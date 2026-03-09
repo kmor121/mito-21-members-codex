@@ -5,6 +5,11 @@ const API_ORIGIN =
     : window.location.origin;
 const FUNCTION_BASE = `${API_ORIGIN}/functions`;
 const APPLICATION_DRAFT_KEY = "mito21-application-draft";
+const PROFILE_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const PROFILE_IMAGE_ACCEPTED_TYPES = ["image/jpeg", "image/png"];
+const PROFILE_IMAGE_ACCEPTED_EXTENSIONS = [".jpg", ".jpeg", ".png"];
+let applicationProfileImageFile = null;
+let applicationProfileImagePreviewUrl = "";
 
 const ADMIN_NAV_ITEMS = [
   { href: "/admin/dashboard", key: "admin-dashboard", label: "ダッシュボード", shortLabel: "A1" },
@@ -804,6 +809,97 @@ function saveApplicationDraft(draft) {
 
 function clearApplicationDraft() {
   sessionStorage.removeItem(APPLICATION_DRAFT_KEY);
+  setApplicationProfileImage(null);
+}
+
+function setApplicationProfileImage(file) {
+  if (applicationProfileImagePreviewUrl) {
+    URL.revokeObjectURL(applicationProfileImagePreviewUrl);
+    applicationProfileImagePreviewUrl = "";
+  }
+
+  applicationProfileImageFile = file instanceof File ? file : null;
+
+  if (applicationProfileImageFile && applicationProfileImageFile.type.startsWith("image/")) {
+    applicationProfileImagePreviewUrl = URL.createObjectURL(applicationProfileImageFile);
+  }
+}
+
+function getApplicationProfileImage() {
+  return applicationProfileImageFile;
+}
+
+function getApplicationProfileImagePreviewUrl() {
+  return applicationProfileImagePreviewUrl;
+}
+
+function profileImageHasAllowedType(file) {
+  if (!(file instanceof File)) {
+    return false;
+  }
+
+  const lowerName = file.name.toLowerCase();
+  return (
+    PROFILE_IMAGE_ACCEPTED_TYPES.includes(file.type) ||
+    PROFILE_IMAGE_ACCEPTED_EXTENSIONS.some((extension) => lowerName.endsWith(extension))
+  );
+}
+
+function validateProfileImageFile(file) {
+  if (!(file instanceof File) || file.size === 0) {
+    return "";
+  }
+
+  if (!profileImageHasAllowedType(file)) {
+    return "プロフィール画像は JPG / JPEG / PNG のみアップロードできます。";
+  }
+
+  if (file.size > PROFILE_IMAGE_MAX_BYTES) {
+    return "プロフィール画像は 5MB 以下にしてください。";
+  }
+
+  return "";
+}
+
+function buildApplicationMultipartPayload(draft) {
+  const formData = new FormData();
+  const fieldNames = [
+    "name_kanji",
+    "name_kana",
+    "birthday",
+    "company_name",
+    "company_position",
+    "industry",
+    "company_postal_code",
+    "company_address",
+    "company_phone",
+    "company_fax",
+    "company_pr",
+    "email",
+    "mobile_phone",
+    "home_postal_code",
+    "home_address",
+    "home_phone",
+    "home_fax",
+    "hobbies",
+    "referrer_1",
+    "referrer_2"
+  ];
+
+  fieldNames.forEach((key) => {
+    formData.set(key, String(draft[key] || ""));
+  });
+
+  formData.set("show_company_in_directory", draft.show_company_in_directory ? "true" : "false");
+  formData.set("show_email_in_directory", draft.show_email_in_directory ? "true" : "false");
+  formData.set("show_mobile_in_directory", draft.show_mobile_in_directory ? "true" : "false");
+
+  const file = getApplicationProfileImage();
+  if (file) {
+    formData.set("profile_image", file, file.name);
+  }
+
+  return formData;
 }
 
 function applicationValue(draft, key) {
@@ -831,6 +927,11 @@ function applicationSummaryItem(label, value) {
 
 function normalizeApplicationDraft(form) {
   const file = form.querySelector('[name="profile_image"]')?.files?.[0];
+  if (file) {
+    setApplicationProfileImage(file);
+  }
+
+  const currentFile = getApplicationProfileImage();
   const previousDraft = getApplicationDraft();
 
   return {
@@ -857,7 +958,7 @@ function normalizeApplicationDraft(form) {
     hobbies: String(form.hobbies.value || "").trim(),
     referrer_1: String(form.referrer_1.value || "").trim(),
     referrer_2: String(form.referrer_2.value || "").trim(),
-    profile_image: file?.name || previousDraft.profile_image || ""
+    profile_image: currentFile?.name || previousDraft.profile_image || ""
   };
 }
 
@@ -882,6 +983,11 @@ function validateApplicationDraft(draft) {
 
   if (draft.email && !draft.email.includes("@")) {
     errors.email = "メールアドレスの形式を確認してください。";
+  }
+
+  const profileImageError = validateProfileImageFile(getApplicationProfileImage());
+  if (profileImageError) {
+    errors.profile_image = profileImageError;
   }
 
   return errors;
@@ -932,13 +1038,16 @@ function renderPublicHome() {
 }
 
 function renderApplicationFormPage(draft = {}, errors = {}, formMessage = "") {
+  const profileImagePreviewUrl = getApplicationProfileImagePreviewUrl();
+  const hasProfileImage = Boolean(getApplicationProfileImage());
+
   setView(`
     <section class="application-layout stack">
       <section class="card hero-card">
         <div class="card-body stack-sm">
           <p class="eyebrow dark">P1</p>
           <h1 class="page-title">入会申込フォーム</h1>
-          <p class="page-description">スマホ優先で、入力内容を確認してから送信します。プロフィール画像の本体アップロードは今回は未接続のため、確認画面では選択したファイル名のみ表示します。</p>
+          <p class="page-description">スマホ優先で、入力内容を確認してから送信します。プロフィール画像は確認後にそのままアップロードされます。</p>
         </div>
       </section>
 
@@ -968,8 +1077,16 @@ function renderApplicationFormPage(draft = {}, errors = {}, formMessage = "") {
             </div>
             <div class="field">
               <div class="label-row"><label for="profile_image">プロフィール画像</label><span class="pill">任意</span></div>
-              <input id="profile_image" name="profile_image" type="file" accept="image/*" />
-              <p class="muted">現在はファイル名のみ確認画面に保持します。画像アップロード本体は未接続です。</p>
+              <input id="profile_image" name="profile_image" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" />
+              <p class="muted">JPG / JPEG / PNG、5MB 以下。確認画面でファイル名を表示し、そのまま申込時に保存します。</p>
+              <p class="upload-note">再読み込みすると画像は再選択が必要です。</p>
+              ${applicationError(errors, "profile_image")}
+              ${hasProfileImage ? `<p class="selected-file">選択中: ${escapeHtml(draft.profile_image || "未選択")}</p>` : ""}
+              ${profileImagePreviewUrl ? `
+                <div class="application-image-preview">
+                  <img src="${escapeHtml(profileImagePreviewUrl)}" alt="プロフィール画像プレビュー" />
+                </div>
+              ` : ""}
             </div>
           </div>
         </section>
@@ -1131,6 +1248,8 @@ function renderApplicationFormPage(draft = {}, errors = {}, formMessage = "") {
 }
 
 function renderApplicationConfirmPage(draft) {
+  const profileImagePreviewUrl = getApplicationProfileImagePreviewUrl();
+
   if (!draft.name_kanji) {
     setView(`
       <section class="card">
@@ -1152,12 +1271,18 @@ function renderApplicationConfirmPage(draft) {
         <div class="card-body stack-sm">
           <p class="eyebrow dark">P1 Confirm</p>
           <h1 class="page-title">申込内容の確認</h1>
-          <p class="page-description">内容を確認して送信します。プロフィール画像は今回は保存せず、確認用にファイル名だけ表示しています。</p>
+          <p class="page-description">内容を確認して送信します。プロフィール画像を選択している場合は、このまま保存されます。</p>
         </div>
       </section>
 
       <section class="detail-card stack">
         <div class="panel-heading compact"><div><p class="eyebrow dark">基本情報</p><h2>入力確認</h2></div></div>
+        <p class="upload-note">再読み込みすると画像は再選択が必要です。</p>
+        ${profileImagePreviewUrl ? `
+          <div class="application-image-preview confirm">
+            <img src="${escapeHtml(profileImagePreviewUrl)}" alt="プロフィール画像プレビュー" />
+          </div>
+        ` : ""}
         <dl class="summary-grid">
           ${applicationSummaryItem("氏名（漢字）", draft.name_kanji)}
           ${applicationSummaryItem("氏名（ふりがな）", draft.name_kana)}
@@ -1205,12 +1330,9 @@ function renderApplicationConfirmPage(draft) {
     message.textContent = "";
 
     try {
-      const submitPayload = { ...draft };
-      delete submitPayload.profile_image;
       await apiRequest("register-member", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(submitPayload)
+        body: buildApplicationMultipartPayload(draft)
       });
       clearApplicationDraft();
       window.location.assign("/apply/complete");

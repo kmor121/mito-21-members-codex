@@ -1,4 +1,8 @@
-﻿import { createClientFromRequest } from "npm:@base44/sdk";
+import { createClientFromRequest } from "npm:@base44/sdk";
+
+const PROFILE_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const PROFILE_IMAGE_ALLOWED_TYPES = new Set(["image/jpeg", "image/png"]);
+const PROFILE_IMAGE_ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"];
 
 function normalizeString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -6,6 +10,31 @@ function normalizeString(value: unknown) {
 
 function normalizeBoolean(value: unknown) {
   return value === true || value === "true";
+}
+
+function getStringEntry(source: FormData | Record<string, unknown>, key: string) {
+  if (source instanceof FormData) {
+    const value = source.get(key);
+    return typeof value === "string" ? value.trim() : "";
+  }
+
+  return normalizeString(source?.[key]);
+}
+
+function getBooleanEntry(source: FormData | Record<string, unknown>, key: string) {
+  if (source instanceof FormData) {
+    return source.get(key) === "true";
+  }
+
+  return normalizeBoolean(source?.[key]);
+}
+
+function profileImageHasAllowedType(file: File) {
+  const lowerName = file.name.toLowerCase();
+  return (
+    PROFILE_IMAGE_ALLOWED_TYPES.has(file.type) ||
+    PROFILE_IMAGE_ALLOWED_EXTENSIONS.some((extension) => lowerName.endsWith(extension))
+  );
 }
 
 Deno.serve(async (req) => {
@@ -17,31 +46,34 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
+    const contentType = req.headers.get("content-type") || "";
+    const body = contentType.includes("multipart/form-data")
+      ? await req.formData()
+      : await req.json();
     const payload = {
-      name_kanji: normalizeString(body?.name_kanji),
-      name_kana: normalizeString(body?.name_kana),
-      birthday: normalizeString(body?.birthday),
-      company_name: normalizeString(body?.company_name),
-      company_postal_code: normalizeString(body?.company_postal_code),
-      company_position: normalizeString(body?.company_position),
-      industry: normalizeString(body?.industry),
-      company_address: normalizeString(body?.company_address),
-      company_phone: normalizeString(body?.company_phone),
-      company_fax: normalizeString(body?.company_fax),
-      company_pr: normalizeString(body?.company_pr),
-      email: normalizeString(body?.email),
-      show_email_in_directory: normalizeBoolean(body?.show_email_in_directory),
-      mobile_phone: normalizeString(body?.mobile_phone),
-      show_mobile_in_directory: normalizeBoolean(body?.show_mobile_in_directory),
-      show_company_in_directory: normalizeBoolean(body?.show_company_in_directory),
-      home_postal_code: normalizeString(body?.home_postal_code),
-      home_address: normalizeString(body?.home_address),
-      home_phone: normalizeString(body?.home_phone),
-      home_fax: normalizeString(body?.home_fax),
-      hobbies: normalizeString(body?.hobbies),
-      referrer_1: normalizeString(body?.referrer_1),
-      referrer_2: normalizeString(body?.referrer_2)
+      name_kanji: getStringEntry(body, "name_kanji"),
+      name_kana: getStringEntry(body, "name_kana"),
+      birthday: getStringEntry(body, "birthday"),
+      company_name: getStringEntry(body, "company_name"),
+      company_postal_code: getStringEntry(body, "company_postal_code"),
+      company_position: getStringEntry(body, "company_position"),
+      industry: getStringEntry(body, "industry"),
+      company_address: getStringEntry(body, "company_address"),
+      company_phone: getStringEntry(body, "company_phone"),
+      company_fax: getStringEntry(body, "company_fax"),
+      company_pr: getStringEntry(body, "company_pr"),
+      email: getStringEntry(body, "email"),
+      show_email_in_directory: getBooleanEntry(body, "show_email_in_directory"),
+      mobile_phone: getStringEntry(body, "mobile_phone"),
+      show_mobile_in_directory: getBooleanEntry(body, "show_mobile_in_directory"),
+      show_company_in_directory: getBooleanEntry(body, "show_company_in_directory"),
+      home_postal_code: getStringEntry(body, "home_postal_code"),
+      home_address: getStringEntry(body, "home_address"),
+      home_phone: getStringEntry(body, "home_phone"),
+      home_fax: getStringEntry(body, "home_fax"),
+      hobbies: getStringEntry(body, "hobbies"),
+      referrer_1: getStringEntry(body, "referrer_1"),
+      referrer_2: getStringEntry(body, "referrer_2")
     };
 
     const requiredFields = [
@@ -72,6 +104,7 @@ Deno.serve(async (req) => {
     }
 
     const base44 = createClientFromRequest(req);
+    const profileImageFile = body instanceof FormData ? body.get("profile_image") : null;
     const existingMembers = await base44.asServiceRole.entities.Member.filter({
       email: payload.email,
       approval_status: {
@@ -86,8 +119,34 @@ Deno.serve(async (req) => {
       );
     }
 
+    let profileImageUrl = "";
+
+    if (profileImageFile instanceof File && profileImageFile.size > 0) {
+      if (!profileImageHasAllowedType(profileImageFile)) {
+        return Response.json(
+          { ok: false, error: "Profile image must be JPG or PNG" },
+          { status: 400 }
+        );
+      }
+
+      if (profileImageFile.size > PROFILE_IMAGE_MAX_BYTES) {
+        return Response.json(
+          { ok: false, error: "Profile image must be 5MB or smaller" },
+          { status: 400 }
+        );
+      }
+
+      const uploadResult = await base44.asServiceRole.integrations.Core.UploadFile({
+        file: profileImageFile,
+        fileName: profileImageFile.name
+      });
+
+      profileImageUrl = normalizeString(uploadResult?.file_url || uploadResult?.url);
+    }
+
     const member = await base44.asServiceRole.entities.Member.create({
       ...payload,
+      ...(profileImageUrl ? { profile_image: profileImageUrl } : {}),
       approval_status: "申請中",
       applied_at: new Date().toISOString()
     });

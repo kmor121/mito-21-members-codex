@@ -496,6 +496,37 @@ textarea {
   font-size: 13px;
 }
 
+.selected-file {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.upload-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--warning);
+}
+
+.application-image-preview {
+  width: min(100%, 240px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.application-image-preview.confirm {
+  margin-bottom: 4px;
+}
+
+.application-image-preview img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
 .admin-shell {
   display: grid;
   gap: 20px;
