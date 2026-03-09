@@ -1,0 +1,27 @@
+{
+  "name": "OrgAssignment",
+  "type": "object",
+  "properties": {
+    "fiscal_year_id": {
+      "type": "string",
+      "description": "FiscalYear record id"
+    },
+    "organization_id": {
+      "type": "string",
+      "description": "Organization record id"
+    },
+    "member_id": {
+      "type": "string",
+      "description": "Member record id"
+    },
+    "role": {
+      "type": "string",
+      "description": "Role name in the organization"
+    },
+    "sort_order": {
+      "type": "number",
+      "description": "Display order"
+    }
+  },
+  "required": ["fiscal_year_id", "organization_id", "member_id", "role"]
+}

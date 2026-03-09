@@ -1,0 +1,7 @@
+{
+  "name": "mito21-members-codex",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js"
+  }
+}

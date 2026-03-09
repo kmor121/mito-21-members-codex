@@ -1,0 +1,4 @@
+﻿{
+  "name": "get-newsletter-detail",
+  "entry": "index.ts"
+}

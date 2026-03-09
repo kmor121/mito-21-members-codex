@@ -1,0 +1,62 @@
+﻿{
+  "name": "OrgDocument",
+  "type": "object",
+  "properties": {
+    "fiscal_year_id": {
+      "type": "string",
+      "description": "FiscalYear record id. Empty means evergreen content."
+    },
+    "doc_type": {
+      "type": "string",
+      "enum": [
+        "事業計画",
+        "団体理念",
+        "団体理念・活動方針",
+        "活動方針",
+        "会則",
+        "規約",
+        "会則・規約",
+        "年間スケジュール",
+        "年間予定",
+        "スケジュール",
+        "運用マニュアル",
+        "マニュアル",
+        "手順書"
+      ],
+      "description": "Document type for member pages"
+    },
+    "title": {
+      "type": "string",
+      "description": "Document title"
+    },
+    "content": {
+      "type": "string",
+      "format": "richtext",
+      "description": "Document body"
+    },
+    "attachment": {
+      "type": "string",
+      "format": "uri",
+      "description": "Attachment URL"
+    },
+    "category": {
+      "type": "string",
+      "description": "Document category"
+    },
+    "published": {
+      "type": "boolean",
+      "description": "Whether the document is visible to members",
+      "default": false
+    },
+    "sort_order": {
+      "type": "number",
+      "description": "Display order"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Business update timestamp"
+    }
+  },
+  "required": ["doc_type", "title", "published"]
+}

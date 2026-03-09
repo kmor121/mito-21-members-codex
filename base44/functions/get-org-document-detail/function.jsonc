@@ -1,0 +1,4 @@
+{
+  "name": "get-org-document-detail",
+  "entry": "index.ts"
+}

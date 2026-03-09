@@ -1,0 +1,33 @@
+﻿{
+  "name": "Due",
+  "type": "object",
+  "properties": {
+    "fiscal_year_id": {
+      "type": "string",
+      "description": "FiscalYear record id"
+    },
+    "member_id": {
+      "type": "string",
+      "description": "Member record id"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Due amount for the fiscal year"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["\u672a\u7d0d", "\u7d0d\u5165\u6e08"],
+      "description": "Payment status"
+    },
+    "paid_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Paid date"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes"
+    }
+  },
+  "required": ["fiscal_year_id", "member_id", "amount", "status"]
+}

@@ -1,0 +1,4 @@
+{
+  "name": "toggle-org-document-published",
+  "entry": "index.ts"
+}

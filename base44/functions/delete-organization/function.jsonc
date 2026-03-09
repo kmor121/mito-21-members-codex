@@ -1,0 +1,4 @@
+{
+  "name": "delete-organization",
+  "entry": "index.ts"
+}

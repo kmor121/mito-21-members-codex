@@ -1,0 +1,26 @@
+{
+  "name": "FiscalYear",
+  "type": "object",
+  "properties": {
+    "year": {
+      "type": "integer",
+      "description": "Fiscal year label"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fiscal year start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fiscal year end date"
+    },
+    "is_current": {
+      "type": "boolean",
+      "description": "Whether this is the current fiscal year",
+      "default": false
+    }
+  },
+  "required": ["year", "start_date", "end_date", "is_current"]
+}

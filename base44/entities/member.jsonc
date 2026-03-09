@@ -1,0 +1,154 @@
+﻿{
+  "name": "Member",
+  "type": "object",
+  "properties": {
+    "name_kanji": {
+      "type": "string",
+      "description": "Member full name in kanji"
+    },
+    "name_kana": {
+      "type": "string",
+      "description": "Member full name in kana"
+    },
+    "birthday": {
+      "type": "string",
+      "format": "date",
+      "description": "Member birthday"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Member company name"
+    },
+    "company_postal_code": {
+      "type": "string",
+      "description": "Member company zip code"
+    },
+    "company_position": {
+      "type": "string",
+      "description": "Member company position"
+    },
+    "industry": {
+      "type": "string",
+      "description": "Member industry"
+    },
+    "company_address": {
+      "type": "string",
+      "description": "Member company address"
+    },
+    "company_phone": {
+      "type": "string",
+      "description": "Member company phone number"
+    },
+    "company_fax": {
+      "type": "string",
+      "description": "Member company fax number"
+    },
+    "company_pr": {
+      "type": "string",
+      "description": "Member company profile text"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Member email address"
+    },
+    "show_email_in_directory": {
+      "type": "boolean",
+      "description": "Whether to show email in directory"
+    },
+    "mobile_phone": {
+      "type": "string",
+      "description": "Member mobile phone number"
+    },
+    "show_mobile_in_directory": {
+      "type": "boolean",
+      "description": "Whether to show mobile phone in directory"
+    },
+    "show_company_in_directory": {
+      "type": "boolean",
+      "description": "Whether to show company info in directory"
+    },
+    "home_postal_code": {
+      "type": "string",
+      "description": "Member home zip code"
+    },
+    "home_address": {
+      "type": "string",
+      "description": "Member home address"
+    },
+    "home_phone": {
+      "type": "string",
+      "description": "Member home phone number"
+    },
+    "home_fax": {
+      "type": "string",
+      "description": "Member home fax number"
+    },
+    "hobbies": {
+      "type": "string",
+      "description": "Member hobbies or creed"
+    },
+    "profile_image": {
+      "type": "file",
+      "description": "Member profile image"
+    },
+    "referrer_1": {
+      "type": "string",
+      "description": "First referrer name"
+    },
+    "referrer_2": {
+      "type": "string",
+      "description": "Second referrer name"
+    },
+    "member_number": {
+      "type": "string",
+      "description": "Member number assigned on approval"
+    },
+    "member_type": {
+      "type": "string",
+      "enum": ["正会員", "賛助会員", "OB会員"],
+      "description": "Member type"
+    },
+    "join_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Member join date"
+    },
+    "is_new": {
+      "type": "boolean",
+      "description": "Whether the member is new in the current fiscal year"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["活動中", "休会", "退会"],
+      "description": "Member status"
+    },
+    "approval_status": {
+      "type": "string",
+      "enum": ["申請中", "承認済", "却下"],
+      "description": "Membership application approval status",
+      "default": "申請中"
+    },
+    "applied_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Application submitted at"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Reason for application rejection"
+    }
+  },
+  "required": [
+    "name_kanji",
+    "name_kana",
+    "birthday",
+    "company_name",
+    "email",
+    "mobile_phone",
+    "referrer_1",
+    "referrer_2",
+    "approval_status",
+    "applied_at"
+  ]
+}

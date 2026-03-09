@@ -1,0 +1,28 @@
+{
+  "name": "Organization",
+  "type": "object",
+  "properties": {
+    "fiscal_year_id": {
+      "type": "string",
+      "description": "FiscalYear record id"
+    },
+    "org_name": {
+      "type": "string",
+      "description": "Organization name"
+    },
+    "org_type": {
+      "type": "string",
+      "enum": ["\u5f79\u54e1\u4f1a", "\u59d4\u54e1\u4f1a", "\u90e8\u4f1a", "\u305d\u306e\u4ed6"],
+      "description": "Organization type"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "Parent organization id"
+    },
+    "sort_order": {
+      "type": "number",
+      "description": "Display order"
+    }
+  },
+  "required": ["fiscal_year_id", "org_name"]
+}

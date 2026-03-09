@@ -1,0 +1,4 @@
+{
+  "name": "get-member-organization-chart",
+  "entry": "index.ts"
+}

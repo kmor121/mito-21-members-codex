@@ -1,0 +1,20 @@
+﻿{
+  "name": "DueSetting",
+  "type": "object",
+  "properties": {
+    "fiscal_year_id": {
+      "type": "string",
+      "description": "FiscalYear record id"
+    },
+    "member_type": {
+      "type": "string",
+      "enum": ["\u6b63\u4f1a\u54e1", "\u8cdb\u52a9\u4f1a\u54e1"],
+      "description": "Member type for the annual due setting"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Annual due amount"
+    }
+  },
+  "required": ["fiscal_year_id", "member_type", "amount"]
+}

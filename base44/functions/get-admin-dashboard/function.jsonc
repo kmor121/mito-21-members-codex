@@ -1,0 +1,4 @@
+﻿{
+  "name": "get-admin-dashboard",
+  "entry": "index.ts"
+}

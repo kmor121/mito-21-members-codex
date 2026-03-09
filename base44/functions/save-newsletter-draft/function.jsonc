@@ -1,0 +1,4 @@
+﻿{
+  "name": "save-newsletter-draft",
+  "entry": "index.ts"
+}

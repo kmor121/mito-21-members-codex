@@ -1,0 +1,4 @@
+{
+  "name": "send-application-notification",
+  "entry": "index.ts"
+}

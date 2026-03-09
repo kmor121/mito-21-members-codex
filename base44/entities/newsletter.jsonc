@@ -1,0 +1,59 @@
+﻿{
+  "name": "Newsletter",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Newsletter title"
+    },
+    "body": {
+      "type": "string",
+      "description": "Newsletter body"
+    },
+    "channel": {
+      "type": "string",
+      "enum": ["email", "line", "email+line"],
+      "description": "Delivery channel",
+      "default": "email"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "scheduled", "sent", "cancelled", "failed"],
+      "description": "Delivery status",
+      "default": "draft"
+    },
+    "audience_type": {
+      "type": "string",
+      "enum": ["all", "member_type", "status", "approval_status"],
+      "description": "Audience selector type",
+      "default": "all"
+    },
+    "audience_filter_json": {
+      "type": "string",
+      "description": "Serialized audience filter payload"
+    },
+    "scheduled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scheduled send datetime"
+    },
+    "last_sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last sent datetime"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Last delivery error message"
+    },
+    "attachment_info": {
+      "type": "string",
+      "description": "Attachment placeholder text"
+    },
+    "attachments_json": {
+      "type": "string",
+      "description": "Serialized attachment metadata list"
+    }
+  },
+  "required": ["title", "body", "channel", "status", "audience_type"]
+}
