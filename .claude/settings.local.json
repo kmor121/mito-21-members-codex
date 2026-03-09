@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(base44 deploy:*)",
+      "Bash(npx base44:*)"
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "name": "toggle-member-role",
+  "entry": "index.ts"
+}

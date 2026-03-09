@@ -63,12 +63,18 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    const [fiscalYears, pendingMembers, approvedMembers, newsletters] = await Promise.all([
+    const [fiscalYears, allMembers, newsletters] = await Promise.all([
       base44.asServiceRole.entities.FiscalYear.list(),
-      base44.asServiceRole.entities.Member.filter({ approval_status: APPROVAL_PENDING }),
-      base44.asServiceRole.entities.Member.filter({ approval_status: APPROVAL_APPROVED }),
+      base44.asServiceRole.entities.Member.list(),
       base44.asServiceRole.entities.Newsletter.list()
     ]);
+
+    const pendingMembers = allMembers.filter(
+      (member) => String(member.approval_status || "") === APPROVAL_PENDING
+    );
+    const approvedMembers = allMembers.filter(
+      (member) => String(member.approval_status || "") === APPROVAL_APPROVED
+    );
 
     const fiscalYearList = fiscalYears
       .map((fiscalYear) => ({

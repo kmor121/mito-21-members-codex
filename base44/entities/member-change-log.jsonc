@@ -1,0 +1,37 @@
+{
+  "name": "MemberChangeLog",
+  "type": "object",
+  "properties": {
+    "member_id": {
+      "type": "string",
+      "description": "Member record id"
+    },
+    "changed_by": {
+      "type": "string",
+      "description": "Name of person who made the change"
+    },
+    "changed_by_role": {
+      "type": "string",
+      "enum": ["member", "admin"],
+      "description": "Role of person who made the change"
+    },
+    "changed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the change was made"
+    },
+    "field_name": {
+      "type": "string",
+      "description": "Name of the changed field"
+    },
+    "old_value": {
+      "type": "string",
+      "description": "Value before the change"
+    },
+    "new_value": {
+      "type": "string",
+      "description": "Value after the change"
+    }
+  },
+  "required": ["member_id", "changed_by", "changed_by_role", "changed_at", "field_name"]
+}

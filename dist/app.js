@@ -24,11 +24,11 @@ const ADMIN_NAV_ITEMS = [
 ];
 
 const MEMBER_NAV_ITEMS = [
-  { href: "/directory", key: "member-directory", label: "名簿", shortLabel: "M1" },
-  { href: "/mypage", key: "member-mypage", label: "マイページ", shortLabel: "M3" },
-  { href: "/info", key: "member-info", label: "基本情報", shortLabel: "M4" },
+  { href: "/directory", key: "member-directory", label: "名簿閲覧", shortLabel: "M1" },
   { href: "/organization", key: "member-organization", label: "組織図", shortLabel: "M5" },
-  { href: "/manual", key: "member-manual", label: "運用マニュアル", shortLabel: "M6" }
+  { href: "/info", key: "member-info", label: "基本情報", shortLabel: "M4" },
+  { href: "/manual", key: "member-manual", label: "運用マニュアル", shortLabel: "M6" },
+  { href: "/mypage", key: "member-mypage", label: "マイページ", shortLabel: "M3" }
 ];
 
 function getRouteMeta(pathname) {
@@ -72,13 +72,17 @@ function getRouteMeta(pathname) {
     };
   }
 
-  if (pathname.startsWith("/admin/")) {
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     const adminMetaMap = {
+      "/admin": { title: "ダッシュボード", description: "主要な集計と管理導線をまとめて確認します。", currentKey: "admin-dashboard", crumb: "A1" },
       "/admin/dashboard": { title: "ダッシュボード", description: "主要な集計と管理導線をまとめて確認します。", currentKey: "admin-dashboard", crumb: "A1" },
       "/admin/members": { title: "会員一覧", description: "会員の検索・絞り込み・詳細確認を行います。", currentKey: "admin-members", crumb: "A2" },
       "/admin/applications": { title: "入会申込管理", description: "申請中の入会申込を確認し、承認・却下します。", currentKey: "admin-applications", crumb: "A4" },
+      "/admin/dues": { title: "会費管理", description: "当年度会費の一覧、設定、納入状態を管理します。", currentKey: "admin-dues", crumb: "A5" },
       "/admin/dues-management": { title: "会費管理", description: "当年度会費の一覧、設定、納入状態を管理します。", currentKey: "admin-dues", crumb: "A5" },
+      "/admin/organization": { title: "組織図管理", description: "年度ごとの組織と配属を編集します。", currentKey: "admin-organization", crumb: "A6" },
       "/admin/organization-chart": { title: "組織図管理", description: "年度ごとの組織と配属を編集します。", currentKey: "admin-organization", crumb: "A6" },
+      "/admin/delivery": { title: "配信管理", description: "配信設定の下書き保存と対象確認を行います。", currentKey: "admin-newsletters", crumb: "A7" },
       "/admin/newsletters": { title: "配信管理", description: "配信設定の下書き保存と対象確認を行います。", currentKey: "admin-newsletters", crumb: "A7" },
       "/admin/fiscal-years": { title: "年度管理", description: "年度追加、編集、現在年度切替を行います。", currentKey: "admin-fiscal-years", crumb: "A8" },
       "/admin/settings": { title: "設定", description: "運用設定への導線をまとめたハブです。", currentKey: "admin-settings", crumb: "A9" },
@@ -119,6 +123,10 @@ function getRouteMeta(pathname) {
     return { mode: "member", section: "Member", title: "運用マニュアル", description: "公開中の運用マニュアルを確認します。", currentKey: "member-manual", crumb: "M6" };
   }
 
+  if (pathname.startsWith("/directory/members/")) {
+    return { mode: "member", section: "Member", title: "会員詳細", description: "公開設定に応じた会員情報を表示", currentKey: "member-directory", crumb: "M2" };
+  }
+
   return {
     mode: "public",
     section: "Public",
@@ -134,7 +142,6 @@ function renderWorkspaceNav(items, currentKey) {
       const isActive = item.key === currentKey;
       return `
         <a class="workspace-nav-link ${isActive ? "is-active" : ""}" href="${item.href}"${isActive ? ' aria-current="page"' : ""}>
-          <span class="workspace-nav-chip">${escapeHtml(item.shortLabel)}</span>
           <span>${escapeHtml(item.label)}</span>
         </a>
       `;
@@ -160,30 +167,36 @@ function renderPublicNav(currentKey) {
 
 function renderAppChrome(meta, html) {
   if (meta.mode === "admin" || meta.mode === "member") {
-    const navItems = meta.mode === "admin" ? ADMIN_NAV_ITEMS : MEMBER_NAV_ITEMS;
-    const modeLabel = meta.mode === "admin" ? "管理画面" : "会員向け";
+    const isAdmin = meta.mode === "admin";
+    const modeLabel = isAdmin ? "管理画面" : "会員向け";
+    const adminNav = isAdmin ? `
+          <div class="workspace-group-label">管理メニュー</div>
+          <nav class="workspace-nav">
+            ${renderWorkspaceNav(ADMIN_NAV_ITEMS, meta.currentKey)}
+          </nav>` : "";
+    const memberNav = `
+          <div class="workspace-group-label">会員メニュー</div>
+          <nav class="workspace-nav">
+            ${renderWorkspaceNav(MEMBER_NAV_ITEMS, meta.currentKey)}
+          </nav>`;
     return `
       <div class="workspace-shell">
-        <aside class="workspace-sidebar">
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        <aside class="workspace-sidebar" id="workspace-sidebar">
           <a class="workspace-brand" href="/">
             <span class="workspace-brand-mark">M</span>
             <div>
-              <strong>MITO21 Members</strong>
+              <strong>MITO21</strong>
               <span>${modeLabel}</span>
             </div>
           </a>
-          <div class="workspace-group-label">${modeLabel}</div>
-          <nav class="workspace-nav">
-            ${renderWorkspaceNav(navItems, meta.currentKey)}
-          </nav>
+          ${adminNav}
+          ${memberNav}
         </aside>
         <div class="workspace-main">
           <header class="workspace-header">
-            <p class="workspace-breadcrumb">${escapeHtml(meta.section)} / ${escapeHtml(meta.crumb || meta.title)}</p>
-            <div class="workspace-pagehead">
-              <h1>${escapeHtml(meta.title)}</h1>
-              <p>${escapeHtml(meta.description)}</p>
-            </div>
+            <button class="mobile-nav-toggle" id="mobile-nav-toggle" type="button" aria-label="メニュー"><span></span><span></span><span></span></button>
+            <p class="workspace-breadcrumb">${escapeHtml(meta.title || modeLabel)}</p>
           </header>
           <main class="workspace-content">${html}</main>
         </div>
@@ -198,8 +211,8 @@ function renderAppChrome(meta, html) {
           <a class="public-brand" href="/">
             <span class="workspace-brand-mark">M</span>
             <div>
-              <strong>MITO21 Members</strong>
-              <span>公開ページ</span>
+              <strong>MITO21</strong>
+              <span>水戸21の会</span>
             </div>
           </a>
           <nav class="public-nav">
@@ -212,9 +225,45 @@ function renderAppChrome(meta, html) {
   `;
 }
 
+function bindMobileNav() {
+  const toggle = document.getElementById("mobile-nav-toggle");
+  const sidebar = document.getElementById("workspace-sidebar");
+  const overlay = document.getElementById("sidebar-overlay");
+  if (toggle && sidebar && overlay) {
+    toggle.addEventListener("click", () => {
+      sidebar.classList.toggle("is-open");
+      overlay.classList.toggle("is-visible");
+    });
+    overlay.addEventListener("click", () => {
+      sidebar.classList.remove("is-open");
+      overlay.classList.remove("is-visible");
+    });
+  }
+}
+
 function setView(html) {
   const app = document.getElementById("app");
   app.innerHTML = renderAppChrome(getRouteMeta(window.location.pathname), html);
+  bindMobileNav();
+}
+
+function showToast(message, type = "success") {
+  let container = document.getElementById("toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "toast-container";
+    container.className = "toast-container";
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type} toast-enter`;
+  toast.innerHTML = `<span class="toast-icon">${type === "success" ? "&#10003;" : type === "error" ? "&#10007;" : "&#9432;"}</span><span>${message}</span>`;
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.remove("toast-enter"));
+  setTimeout(() => {
+    toast.classList.add("toast-exit");
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
 function escapeHtml(value) {
@@ -236,6 +285,26 @@ function displayValue(value) {
   }
 
   return String(value);
+}
+
+function renderMemberImage(profileImage, name, size = "detail") {
+  const normalizedImage = String(profileImage || "").trim();
+  const normalizedName = String(name || "").trim();
+  const initial = normalizedName ? normalizedName.charAt(0) : "M";
+
+  if (normalizedImage) {
+    return `
+      <div class="member-image member-image-${size}">
+        <img src="${escapeHtml(normalizedImage)}" alt="${escapeHtml(normalizedName || "会員プロフィール画像")}" loading="lazy" />
+      </div>
+    `;
+  }
+
+  return `
+    <div class="member-image member-image-${size} is-placeholder" aria-label="プロフィール画像未設定">
+      <span>${escapeHtml(initial)}</span>
+    </div>
+  `;
 }
 
 function isChecked(value) {
@@ -278,7 +347,6 @@ function renderBasicInfoDocument(document) {
     <article class="basic-info-document">
       <div class="panel-heading compact">
         <div>
-          <p class="eyebrow dark">Document</p>
           <h3>${escapeHtml(document.title || "無題")}</h3>
         </div>
         ${document.updated_at ? `<span class="pill">${escapeHtml(document.updated_at.slice(0, 10))}</span>` : ""}
@@ -296,7 +364,6 @@ function renderBasicInfoSection(section, isActive) {
     <section class="detail-card stack basic-info-panel ${isActive ? "is-active" : ""}" data-info-panel="${escapeHtml(section.key)}"${isActive ? "" : ' hidden="hidden"'}>
       <div class="panel-heading">
         <div>
-          <p class="eyebrow dark">M4</p>
           <h2>${escapeHtml(section.label)}</h2>
         </div>
       </div>
@@ -310,34 +377,38 @@ function renderBasicInfoSection(section, isActive) {
 }
 
 function renderOrganizationAssignment(assignment) {
+  const member = assignment.member || {};
   return `
     <li class="organization-assignment">
-      <div>
+      ${renderMemberImage(member.profile_image, member.name_kanji, "thumb")}
+      <div class="org-assignment-info">
         <strong>${escapeHtml(displayValue(assignment.role))}</strong>
-        <p class="muted">${escapeHtml(displayValue(assignment.member.name_kanji))}</p>
+        <a class="text-link" href="/directory/members/${encodeURIComponent(member.id || "")}">${escapeHtml(displayValue(member.name_kanji))}</a>
       </div>
-      ${assignment.member.member_type ? `<span class="pill">${escapeHtml(assignment.member.member_type)}</span>` : ""}
+      ${member.member_type ? `<span class="pill">${escapeHtml(member.member_type)}</span>` : ""}
     </li>
   `;
 }
 
-function renderOrganizationCard(organization) {
+function renderOrganizationCard(organization, isChild) {
   const assignments = organization.assignments || [];
+  const children = organization.children || [];
 
   return `
-    <article class="organization-card">
+    <article class="organization-card${isChild ? " org-child" : ""}">
       <div class="panel-heading">
         <div>
-          <p class="eyebrow dark">${escapeHtml(displayValue(organization.org_type || "組織"))}</p>
+          <span class="pill">${escapeHtml(displayValue(organization.org_type || "組織"))}</span>
           <h2>${escapeHtml(displayValue(organization.org_name))}</h2>
         </div>
-        ${organization.parent_name ? `<span class="pill">親組織: ${escapeHtml(organization.parent_name)}</span>` : ""}
+        <span class="muted">${assignments.length}名</span>
       </div>
       ${
         assignments.length
           ? `<ul class="organization-assignment-list">${assignments.map((assignment) => renderOrganizationAssignment(assignment)).join("")}</ul>`
           : '<p class="empty-state">この組織にはまだ配属データがありません。</p>'
       }
+      ${children.length ? `<div class="org-children">${children.map((child) => renderOrganizationCard(child, true)).join("")}</div>` : ""}
     </article>
   `;
 }
@@ -358,7 +429,6 @@ function renderManualCard(manual) {
     <article class="basic-info-document">
       <div class="panel-heading compact">
         <div>
-          <p class="eyebrow dark">Manual</p>
           <h2>${escapeHtml(displayValue(manual.title))}</h2>
         </div>
         ${manual.updated_at ? `<span class="pill">${escapeHtml(manual.updated_at.slice(0, 10))}</span>` : ""}
@@ -372,32 +442,42 @@ function renderManualCard(manual) {
 function renderManualPage(data) {
   const manuals = data.manuals || [];
 
+  // Group by category
+  const categoryMap = new Map();
+  const uncategorized = [];
+  for (const manual of manuals) {
+    const cat = String(manual.category || "").trim();
+    if (cat) {
+      if (!categoryMap.has(cat)) categoryMap.set(cat, []);
+      categoryMap.get(cat).push(manual);
+    } else {
+      uncategorized.push(manual);
+    }
+  }
+
+  const categoryGroups = [...categoryMap.entries()].sort((a, b) => a[0].localeCompare(b[0], "ja"));
+
+  function renderGroup(title, items) {
+    return `
+      <div class="manual-category-group">
+        <h3 class="manual-category-title">${escapeHtml(title)}</h3>
+        <div class="manual-list">${items.map((m) => renderManualCard(m)).join("")}</div>
+      </div>
+    `;
+  }
+
   return `
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 4 / Member</p>
-          <h1>運用マニュアル</h1>
-          <p class="lead">公開中の運用マニュアルだけを一覧表示します。本文と添付リンクを最小表示します。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">運用マニュアル</h1>
+        <p class="page-description">公開中の運用マニュアルを確認</p>
+      </div>
       <section class="card panel-card single-panel">
         <div class="card-body stack">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow dark">M6</p>
-              <h2>マニュアル一覧</h2>
-            </div>
-            <div class="actions">
-              <a class="text-link" href="/directory">名簿閲覧へ</a>
-              <a class="text-link" href="/mypage">マイページへ</a>
-              <a class="text-link" href="/info">基本情報へ</a>
-              <a class="text-link" href="/organization">組織図へ</a>
-            </div>
-          </div>
+          <div class="panel-heading"><div><h2>マニュアル一覧</h2></div></div>
           ${
             manuals.length
-              ? `<div class="manual-list">${manuals.map((manual) => renderManualCard(manual)).join("")}</div>`
+              ? `${categoryGroups.map(([cat, items]) => renderGroup(cat, items)).join("")}${uncategorized.length ? renderGroup("その他", uncategorized) : ""}`
               : '<p class="empty-state">公開中の運用マニュアルはまだ登録されていません。</p>'
           }
         </div>
@@ -409,16 +489,13 @@ function renderManualPage(data) {
 async function renderManualRoute() {
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 4 / Member</p>
-          <h1>運用マニュアル</h1>
-          <p class="lead">公開中のマニュアルを読み込んでいます。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">運用マニュアル</h1>
+        <p class="page-description">公開中のマニュアルを確認</p>
+      </div>
       <section class="card panel-card single-panel">
         <div class="card-body">
-          <p class="message">読込中...</p>
+          <div class="loading-state"><div class="spinner"></div><p>読み込み中...</p></div>
         </div>
       </section>
     </section>
@@ -430,13 +507,10 @@ async function renderManualRoute() {
   } catch (error) {
     setView(`
       <section class="admin-shell">
-        <header class="card admin-hero">
-          <div class="card-header">
-            <p class="eyebrow">Phase 4 / Member</p>
-            <h1>運用マニュアル</h1>
-            <p class="lead">運用マニュアルを表示できませんでした。</p>
-          </div>
-        </header>
+        <div class="page-header">
+          <h1 class="page-title">運用マニュアル</h1>
+          <p class="page-description">公開中のマニュアルを確認</p>
+        </div>
         <section class="card panel-card single-panel">
           <div class="card-body stack">
             <p class="message error">${escapeHtml(error.message || "運用マニュアルの取得に失敗しました。")}</p>
@@ -460,27 +534,13 @@ function renderOrganizationPage(data) {
 
   return `
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 4 / Member</p>
-          <h1>組織図</h1>
-          <p class="lead">年度ごとの役員・委員会・配属を会員向けに一覧表示します。最小版のため図表ではなく縦積みカードで表示します。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">組織図</h1>
+        <p class="page-description">年度ごとの組織と配属を一覧表示</p>
+      </div>
       <section class="card panel-card single-panel">
         <div class="card-body stack">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow dark">M5</p>
-              <h2>${selectedFiscalYear ? `${escapeHtml(formatFiscalYearLabel(selectedFiscalYear))}の組織図` : "組織図"}</h2>
-            </div>
-            <div class="actions">
-              <a class="text-link" href="/directory">名簿閲覧へ</a>
-              <a class="text-link" href="/mypage">マイページへ</a>
-              <a class="text-link" href="/info">基本情報へ</a>
-              <a class="text-link" href="/manual">運用マニュアルへ</a>
-            </div>
-          </div>
+          <div class="panel-heading"><div><h2>${selectedFiscalYear ? `${escapeHtml(formatFiscalYearLabel(selectedFiscalYear))}の組織図` : "組織図"}</h2></div></div>
           <form id="organization-filter-form" class="basic-info-filter" novalidate>
             <div class="field">
               <label for="organization-fiscal-year">年度</label>
@@ -516,8 +576,24 @@ function renderOrganizationPage(data) {
               ? '<p class="empty-state">この年度の配属データはまだ登録されていません。</p>'
               : ""
           }
-          <div class="organization-grid">
-            ${organizations.map((organization) => renderOrganizationCard(organization)).join("")}
+          <div class="organization-tree">
+            ${(() => {
+              // Build parent-child tree
+              const orgById = new Map();
+              organizations.forEach((org) => { orgById.set(org.id, { ...org, children: [] }); });
+              const roots = [];
+              orgById.forEach((org) => {
+                const parentId = org.parent_id || "";
+                if (parentId && orgById.has(parentId)) {
+                  orgById.get(parentId).children.push(org);
+                } else {
+                  roots.push(org);
+                }
+              });
+              return roots.length
+                ? roots.map((org) => renderOrganizationCard(org, false)).join("")
+                : "";
+            })()}
           </div>
         </div>
       </section>
@@ -551,16 +627,13 @@ async function renderOrganizationRoute() {
 
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 4 / Member</p>
-          <h1>組織図</h1>
-          <p class="lead">年度別の組織図を読み込んでいます。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">組織図</h1>
+        <p class="page-description">年度ごとの組織と配属を一覧表示</p>
+      </div>
       <section class="card panel-card single-panel">
         <div class="card-body">
-          <p class="message">読込中...</p>
+          <div class="loading-state"><div class="spinner"></div><p>読み込み中...</p></div>
         </div>
       </section>
     </section>
@@ -587,13 +660,10 @@ async function renderOrganizationRoute() {
   } catch (error) {
     setView(`
       <section class="admin-shell">
-        <header class="card admin-hero">
-          <div class="card-header">
-            <p class="eyebrow">Phase 4 / Member</p>
-            <h1>組織図</h1>
-            <p class="lead">組織図を表示できませんでした。</p>
-          </div>
-        </header>
+        <div class="page-header">
+          <h1 class="page-title">組織図</h1>
+          <p class="page-description">年度ごとの組織と配属を一覧表示</p>
+        </div>
         <section class="card panel-card single-panel">
           <div class="card-body stack">
             <p class="message error">${escapeHtml(error.message || "組織図の取得に失敗しました。")}</p>
@@ -619,26 +689,13 @@ function renderBasicInfoPage(data, selectedTab) {
 
   return `
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 4 / Member</p>
-          <h1>基本情報</h1>
-          <p class="lead">年度ごとの事業計画、理念、会則、年間スケジュールを確認できます。公開中の資料のみ表示します。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">基本情報</h1>
+        <p class="page-description">年度ごとの事業計画・理念・会則・年間スケジュール</p>
+      </div>
       <section class="card panel-card single-panel">
         <div class="card-body stack">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow dark">M4</p>
-              <h2>${selectedFiscalYear ? `${escapeHtml(formatFiscalYearLabel(selectedFiscalYear))}の基本情報` : "基本情報"}</h2>
-            </div>
-            <div class="actions">
-              <a class="text-link" href="/directory">名簿閲覧へ</a>
-              <a class="text-link" href="/mypage">マイページへ</a>
-              <a class="text-link" href="/organization">組織図へ</a>
-            </div>
-          </div>
+          <div class="panel-heading"><div><h2>${selectedFiscalYear ? `${escapeHtml(formatFiscalYearLabel(selectedFiscalYear))}の基本情報` : "基本情報"}</h2></div></div>
           <form id="basic-info-filter-form" class="basic-info-filter" novalidate>
             <div class="field">
               <label for="basic-info-fiscal-year">年度</label>
@@ -728,16 +785,13 @@ async function renderBasicInfoRoute() {
 
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 4 / Member</p>
-          <h1>基本情報</h1>
-          <p class="lead">年度別の基本情報を読み込んでいます。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">基本情報</h1>
+        <p class="page-description">年度ごとの事業計画・理念・会則・年間スケジュール</p>
+      </div>
       <section class="card panel-card single-panel">
         <div class="card-body">
-          <p class="message">読込中...</p>
+          <div class="loading-state"><div class="spinner"></div><p>読み込み中...</p></div>
         </div>
       </section>
     </section>
@@ -763,13 +817,10 @@ async function renderBasicInfoRoute() {
   } catch (error) {
     setView(`
       <section class="admin-shell">
-        <header class="card admin-hero">
-          <div class="card-header">
-            <p class="eyebrow">Phase 4 / Member</p>
-            <h1>基本情報</h1>
-            <p class="lead">基本情報を表示できませんでした。</p>
-          </div>
-        </header>
+        <div class="page-header">
+          <h1 class="page-title">基本情報</h1>
+          <p class="page-description">年度ごとの事業計画・理念・会則・年間スケジュール</p>
+        </div>
         <section class="card panel-card single-panel">
           <div class="card-body stack">
             <p class="message error">${escapeHtml(error.message || "基本情報の取得に失敗しました。")}</p>
@@ -887,10 +938,13 @@ function buildApplicationMultipartPayload(draft) {
   ];
 
   fieldNames.forEach((key) => {
-    formData.set(key, String(draft[key] || ""));
+    const value = key === "company_name"
+      ? String(draft[key] || "").trim() || "未設定"
+      : String(draft[key] || "");
+    formData.set(key, value);
   });
 
-  formData.set("show_company_in_directory", draft.show_company_in_directory ? "true" : "false");
+  formData.set("show_company_in_directory", "false");
   formData.set("show_email_in_directory", draft.show_email_in_directory ? "true" : "false");
   formData.set("show_mobile_in_directory", draft.show_mobile_in_directory ? "true" : "false");
 
@@ -946,7 +1000,7 @@ function normalizeApplicationDraft(form) {
     company_phone: String(form.company_phone.value || "").trim(),
     company_fax: String(form.company_fax.value || "").trim(),
     company_pr: String(form.company_pr.value || "").trim(),
-    show_company_in_directory: form.show_company_in_directory.checked,
+    show_company_in_directory: false,
     email: String(form.email.value || "").trim(),
     show_email_in_directory: form.show_email_in_directory.checked,
     mobile_phone: String(form.mobile_phone.value || "").trim(),
@@ -965,10 +1019,9 @@ function normalizeApplicationDraft(form) {
 function validateApplicationDraft(draft) {
   const errors = {};
   const requiredFields = [
-    ["name_kanji", "氏名（漢字）を入力してください。"],
+    ["name_kanji", "氏名を入力してください。"],
     ["name_kana", "氏名（ふりがな）を入力してください。"],
     ["birthday", "生年月日を入力してください。"],
-    ["company_name", "会社名を入力してください。"],
     ["email", "メールアドレスを入力してください。"],
     ["mobile_phone", "携帯番号を入力してください。"],
     ["referrer_1", "紹介者1を入力してください。"],
@@ -995,44 +1048,28 @@ function validateApplicationDraft(draft) {
 
 function renderPublicHome() {
   setView(`
-    <section class="hero-stack">
-      <section class="card hero-card">
-        <div class="card-body stack">
-          <p class="eyebrow dark">Public</p>
-          <h1 class="page-title">水戸21の会 会員管理</h1>
-          <p class="page-description">入会申込、会員向け情報、管理運用をひとつの導線で扱うための最小版です。公開トップでは入口だけを整理し、申込フォームは別ルートで案内します。</p>
-          <div class="hero-link-grid">
-            <a class="hero-link-card" href="/apply">
-              <span class="workspace-nav-chip">P1</span>
-              <strong>入会を希望する方はこちら</strong>
-              <p>入力 → 確認 → 送信の流れで申込できます。</p>
-            </a>
-            <a class="hero-link-card" href="/directory">
-              <span class="workspace-nav-chip">M1</span>
-              <strong>会員向けページを見る</strong>
-              <p>名簿、基本情報、組織図、運用マニュアルへ進めます。</p>
-            </a>
-            <a class="hero-link-card" href="/admin/dashboard">
-              <span class="workspace-nav-chip">A1</span>
-              <strong>管理画面を開く</strong>
-              <p>ダッシュボードから主要な管理画面へ 3 クリック以内で移動できます。</p>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section class="public-info-grid">
-        <article class="detail-card stack-sm">
-          <p class="eyebrow dark">Guide</p>
-          <h2>公開導線</h2>
-          <p class="muted">トップではフォームを直置きせず、まず入口を整理します。申込フォームは `/apply`、完了は `/apply/complete` に分離しました。</p>
-        </article>
-        <article class="detail-card stack-sm">
-          <p class="eyebrow dark">Member</p>
-          <h2>会員向け導線</h2>
-          <p class="muted">名簿、マイページ、基本情報、組織図、運用マニュアルを共通ナビで移動できます。認証はまだ未実装です。</p>
-        </article>
-      </section>
+    <section class="landing-page">
+      <div class="landing-hero">
+        <h1 class="landing-title">水戸21の会</h1>
+        <p class="landing-subtitle">会員管理システム</p>
+      </div>
+      <div class="landing-cards">
+        <a class="landing-card" href="/apply">
+          <div class="landing-card-icon" aria-hidden="true">&#128203;</div>
+          <h2>入会申込</h2>
+          <p>新規入会をご希望の方はこちらから申込できます</p>
+        </a>
+        <a class="landing-card" href="/directory">
+          <div class="landing-card-icon" aria-hidden="true">&#128101;</div>
+          <h2>会員ページ</h2>
+          <p>会員名簿・基本情報・組織図・マニュアルを閲覧</p>
+        </a>
+        <a class="landing-card" href="/admin/dashboard">
+          <div class="landing-card-icon" aria-hidden="true">&#9881;</div>
+          <h2>管理画面</h2>
+          <p>管理者向けのダッシュボードと各種管理機能</p>
+        </a>
+      </div>
     </section>
   `);
 }
@@ -1043,25 +1080,17 @@ function renderApplicationFormPage(draft = {}, errors = {}, formMessage = "") {
 
   setView(`
     <section class="application-layout stack">
-      <section class="card hero-card">
-        <div class="card-body stack-sm">
-          <p class="eyebrow dark">P1</p>
-          <h1 class="page-title">入会申込フォーム</h1>
-          <p class="page-description">スマホ優先で、入力内容を確認してから送信します。プロフィール画像は確認後にそのままアップロードされます。</p>
-        </div>
-      </section>
+      <div class="page-header">
+        <h1 class="page-title">入会申込</h1>
+        <p class="page-description">必要事項を入力し、確認後に送信してください</p>
+      </div>
 
-      <form id="application-form" class="stack" novalidate>
-        <section class="detail-card stack">
-          <div class="panel-heading compact">
-            <div>
-              <p class="eyebrow dark">Section 1</p>
-              <h2>基本情報</h2>
-            </div>
-          </div>
+      <form id="application-form" class="application-form stack" novalidate>
+        <section class="detail-card application-section stack">
+          <div class="panel-heading compact"><div><h2>基本情報</h2></div></div>
           <div class="editor-grid">
             <div class="field">
-              <div class="label-row"><label for="name_kanji">氏名（漢字）</label><span class="required">必須</span></div>
+              <div class="label-row"><label for="name_kanji">氏名</label><span class="required">必須</span></div>
               <input id="name_kanji" name="name_kanji" type="text" autocomplete="name" placeholder="例: 水戸 太郎" value="${applicationValue(draft, "name_kanji")}" />
               ${applicationError(errors, "name_kanji")}
             </div>
@@ -1070,9 +1099,12 @@ function renderApplicationFormPage(draft = {}, errors = {}, formMessage = "") {
               <input id="name_kana" name="name_kana" type="text" placeholder="例: みと たろう" value="${applicationValue(draft, "name_kana")}" />
               ${applicationError(errors, "name_kana")}
             </div>
-            <div class="field">
+            <div class="field field-compact">
               <div class="label-row"><label for="birthday">生年月日</label><span class="required">必須</span></div>
-              <input id="birthday" name="birthday" type="date" value="${applicationValue(draft, "birthday")}" />
+              <div class="date-input-wrap">
+                <input id="birthday" class="date-input" name="birthday" type="date" value="${applicationValue(draft, "birthday")}" />
+              </div>
+              <p class="field-help">カレンダーから選択できます。</p>
               ${applicationError(errors, "birthday")}
             </div>
             <div class="field">
@@ -1091,16 +1123,12 @@ function renderApplicationFormPage(draft = {}, errors = {}, formMessage = "") {
           </div>
         </section>
 
-        <section class="detail-card stack">
-          <div class="panel-heading compact">
-            <div>
-              <p class="eyebrow dark">Section 2</p>
-              <h2>会社情報</h2>
-            </div>
-          </div>
+        <section class="detail-card application-section stack">
+          <div class="panel-heading compact"><div><h2>会社情報</h2></div></div>
+          <p class="muted section-note">会社名は任意です。わかる範囲で入力してください。</p>
           <div class="editor-grid">
             <div class="field">
-              <div class="label-row"><label for="company_name">会社名</label><span class="required">必須</span></div>
+              <div class="label-row"><label for="company_name">会社名</label><span class="pill">任意</span></div>
               <input id="company_name" name="company_name" type="text" autocomplete="organization" placeholder="例: 株式会社MITO" value="${applicationValue(draft, "company_name")}" />
               ${applicationError(errors, "company_name")}
             </div>
@@ -1132,49 +1160,39 @@ function renderApplicationFormPage(draft = {}, errors = {}, formMessage = "") {
               <div class="label-row"><label for="company_pr">会社の概要・PR</label><span class="pill">任意</span></div>
               <textarea id="company_pr" name="company_pr" rows="4" placeholder="事業内容や特徴を入力してください。">${applicationValue(draft, "company_pr")}</textarea>
             </div>
-            <label class="checkbox-row field-span-2">
-              <input name="show_company_in_directory" type="checkbox" ${applicationChecked(draft, "show_company_in_directory")} />
-              <span>会社情報を名簿に掲載してよい</span>
-            </label>
           </div>
         </section>
 
-        <section class="detail-card stack">
-          <div class="panel-heading compact">
-            <div>
-              <p class="eyebrow dark">Section 3</p>
-              <h2>個人連絡先</h2>
+        <section class="detail-card application-section application-section-contacts stack">
+          <div class="panel-heading compact"><div><h2>個人連絡先</h2></div></div>
+          <div class="contact-pair-grid">
+            <div class="contact-field">
+              <div class="field">
+                <div class="label-row"><label for="email">メールアドレス</label><span class="required">必須</span></div>
+                <input id="email" name="email" type="email" autocomplete="email" placeholder="例: member@example.com" value="${applicationValue(draft, "email")}" />
+                ${applicationError(errors, "email")}
+              </div>
+              <label class="checkbox-row checkbox-row-compact">
+                <input name="show_email_in_directory" type="checkbox" ${applicationChecked(draft, "show_email_in_directory")} />
+                <span>メールを名簿に掲載してよい</span>
+              </label>
             </div>
-          </div>
-          <div class="editor-grid">
-            <div class="field">
-              <div class="label-row"><label for="email">メールアドレス</label><span class="required">必須</span></div>
-              <input id="email" name="email" type="email" autocomplete="email" placeholder="例: member@example.com" value="${applicationValue(draft, "email")}" />
-              ${applicationError(errors, "email")}
+            <div class="contact-field">
+              <div class="field">
+                <div class="label-row"><label for="mobile_phone">携帯番号</label><span class="required">必須</span></div>
+                <input id="mobile_phone" name="mobile_phone" type="tel" autocomplete="tel" placeholder="例: 090-1234-5678" value="${applicationValue(draft, "mobile_phone")}" />
+                ${applicationError(errors, "mobile_phone")}
+              </div>
+              <label class="checkbox-row checkbox-row-compact">
+                <input name="show_mobile_in_directory" type="checkbox" ${applicationChecked(draft, "show_mobile_in_directory")} />
+                <span>携帯番号を名簿に掲載してよい</span>
+              </label>
             </div>
-            <label class="checkbox-row">
-              <input name="show_email_in_directory" type="checkbox" ${applicationChecked(draft, "show_email_in_directory")} />
-              <span>メールアドレスを名簿に掲載してよい</span>
-            </label>
-            <div class="field">
-              <div class="label-row"><label for="mobile_phone">携帯番号</label><span class="required">必須</span></div>
-              <input id="mobile_phone" name="mobile_phone" type="tel" autocomplete="tel" placeholder="例: 090-1234-5678" value="${applicationValue(draft, "mobile_phone")}" />
-              ${applicationError(errors, "mobile_phone")}
-            </div>
-            <label class="checkbox-row">
-              <input name="show_mobile_in_directory" type="checkbox" ${applicationChecked(draft, "show_mobile_in_directory")} />
-              <span>携帯番号を名簿に掲載してよい</span>
-            </label>
           </div>
         </section>
 
-        <section class="detail-card stack">
-          <div class="panel-heading compact">
-            <div>
-              <p class="eyebrow dark">Section 4</p>
-              <h2>自宅情報</h2>
-            </div>
-          </div>
+        <section class="detail-card application-section stack">
+          <div class="panel-heading compact"><div><h2>自宅情報</h2></div></div>
           <div class="editor-grid">
             <div class="field">
               <div class="label-row"><label for="home_postal_code">自宅郵便番号</label><span class="pill">任意</span></div>
@@ -1195,13 +1213,8 @@ function renderApplicationFormPage(draft = {}, errors = {}, formMessage = "") {
           </div>
         </section>
 
-        <section class="detail-card stack">
-          <div class="panel-heading compact">
-            <div>
-              <p class="eyebrow dark">Section 5</p>
-              <h2>その他</h2>
-            </div>
-          </div>
+        <section class="detail-card application-section stack">
+          <div class="panel-heading compact"><div><h2>その他</h2></div></div>
           <div class="editor-grid">
             <div class="field field-span-2">
               <div class="label-row"><label for="hobbies">趣味・信条</label><span class="pill">任意</span></div>
@@ -1220,11 +1233,11 @@ function renderApplicationFormPage(draft = {}, errors = {}, formMessage = "") {
           </div>
         </section>
 
-        <section class="detail-card stack-sm">
+        <section class="detail-card application-section application-section-actions stack-sm">
           <p id="application-form-message" class="message ${formMessage ? "error" : ""}" aria-live="polite">${escapeHtml(formMessage)}</p>
-          <div class="actions">
-            <a class="button ghost" href="/">公開トップへ戻る</a>
-            <button class="button" type="submit">確認画面へ</button>
+          <div class="actions application-actions">
+            <button class="button" type="submit">確認画面へ進む</button>
+            <a class="text-link subtle-link" href="/">公開トップ</a>
           </div>
         </section>
       </form>
@@ -1267,28 +1280,25 @@ function renderApplicationConfirmPage(draft) {
 
   setView(`
     <section class="application-layout stack">
-      <section class="card hero-card">
-        <div class="card-body stack-sm">
-          <p class="eyebrow dark">P1 Confirm</p>
-          <h1 class="page-title">申込内容の確認</h1>
-          <p class="page-description">内容を確認して送信します。プロフィール画像を選択している場合は、このまま保存されます。</p>
-        </div>
-      </section>
+      <div class="page-header">
+        <h1 class="page-title">申込内容の確認</h1>
+        <p class="page-description">入力内容を確認して送信してください</p>
+      </div>
 
-      <section class="detail-card stack">
-        <div class="panel-heading compact"><div><p class="eyebrow dark">基本情報</p><h2>入力確認</h2></div></div>
+      <section class="detail-card application-section application-confirm-card stack">
+        <div class="panel-heading compact"><div><h2>確認内容</h2></div></div>
         <p class="upload-note">再読み込みすると画像は再選択が必要です。</p>
         ${profileImagePreviewUrl ? `
           <div class="application-image-preview confirm">
             <img src="${escapeHtml(profileImagePreviewUrl)}" alt="プロフィール画像プレビュー" />
           </div>
         ` : ""}
-        <dl class="summary-grid">
-          ${applicationSummaryItem("氏名（漢字）", draft.name_kanji)}
+        <dl class="summary-grid application-summary-grid">
+          ${applicationSummaryItem("氏名", draft.name_kanji)}
           ${applicationSummaryItem("氏名（ふりがな）", draft.name_kana)}
           ${applicationSummaryItem("生年月日", draft.birthday)}
           ${applicationSummaryItem("プロフィール画像", draft.profile_image || "未選択")}
-          ${applicationSummaryItem("会社名", draft.company_name)}
+          ${applicationSummaryItem("会社名", draft.company_name || "未入力")}
           ${applicationSummaryItem("役職名", draft.company_position)}
           ${applicationSummaryItem("業種", draft.industry)}
           ${applicationSummaryItem("会社郵便番号", draft.company_postal_code)}
@@ -1296,11 +1306,10 @@ function renderApplicationConfirmPage(draft) {
           ${applicationSummaryItem("会社電話番号", draft.company_phone)}
           ${applicationSummaryItem("会社FAX", draft.company_fax)}
           ${applicationSummaryItem("会社の概要・PR", draft.company_pr)}
-          ${applicationSummaryItem("会社情報を名簿掲載", draft.show_company_in_directory)}
           ${applicationSummaryItem("メールアドレス", draft.email)}
-          ${applicationSummaryItem("メールを名簿掲載", draft.show_email_in_directory)}
+          ${applicationSummaryItem("メール公開", draft.show_email_in_directory)}
           ${applicationSummaryItem("携帯番号", draft.mobile_phone)}
-          ${applicationSummaryItem("携帯番号を名簿掲載", draft.show_mobile_in_directory)}
+          ${applicationSummaryItem("携帯番号公開", draft.show_mobile_in_directory)}
           ${applicationSummaryItem("自宅郵便番号", draft.home_postal_code)}
           ${applicationSummaryItem("自宅住所", draft.home_address)}
           ${applicationSummaryItem("自宅電話番号", draft.home_phone)}
@@ -1311,11 +1320,11 @@ function renderApplicationConfirmPage(draft) {
         </dl>
       </section>
 
-      <section class="detail-card stack-sm">
+      <section class="detail-card application-section application-section-actions stack-sm">
         <p id="application-confirm-message" class="message" aria-live="polite"></p>
-        <div class="actions">
-          <a class="button ghost" href="/apply">入力に戻る</a>
+        <div class="actions application-actions">
           <button id="application-confirm-submit" class="button" type="button">この内容で送信する</button>
+          <a class="text-link subtle-link" href="/apply">入力画面</a>
         </div>
       </section>
     </section>
@@ -1351,20 +1360,17 @@ function renderApplicationConfirmPage(draft) {
 function renderApplicationCompletePage() {
   setView(`
     <section class="application-layout stack">
-      <section class="card hero-card">
-        <div class="card-body stack-sm">
-          <p class="eyebrow dark">P2</p>
-          <h1 class="page-title">申込ありがとうございました</h1>
-          <p class="page-description">申込は受付済みです。現在の承認ステータスは「申請中」です。審査後にご連絡します。</p>
-        </div>
-      </section>
+      <div class="page-header">
+        <h1 class="page-title">申込を受け付けました</h1>
+        <p class="page-description">内容を確認のうえ、承認後にご連絡いたします</p>
+      </div>
 
       <section class="detail-card stack-sm">
-        <p class="message success">受付処理は完了しました。管理画面では A4 入会申込管理から確認できます。</p>
-        <div class="actions">
-          <a class="button" href="/">公開トップへ戻る</a>
-          <a class="button ghost" href="/apply">もう一度申込内容を確認する</a>
-          <a class="text-link" href="/directory">会員向けページを見る</a>
+        <p class="message success">受付処理は完了しました。必要な連絡がある場合のみ、後日ご案内します。</p>
+        <div class="actions application-actions">
+          <a class="button" href="/">公開トップ</a>
+          <a class="button ghost" href="/apply">新規申込</a>
+          <a class="text-link subtle-link" href="/directory">名簿</a>
         </div>
       </section>
     </section>
@@ -1450,7 +1456,7 @@ function renderMemberDetail(detail) {
       <section class="detail-card stack-sm">
         <div class="detail-header-row">
           <div>
-            <p class="eyebrow dark">Application Detail</p>
+
             <h2>${escapeHtml(member.name_kanji)}</h2>
           </div>
           <span class="pill">${escapeHtml(member.approval_status)}</span>
@@ -1470,7 +1476,7 @@ function renderMemberDetail(detail) {
       <section class="detail-card stack-sm">
         <div class="detail-header-row">
           <div>
-            <p class="eyebrow dark">Referrer Check</p>
+
             <h3>紹介者照合</h3>
           </div>
         </div>
@@ -1481,10 +1487,10 @@ function renderMemberDetail(detail) {
       <section class="detail-card stack">
         <div class="detail-header-row">
           <div>
-            <p class="eyebrow dark">Approval</p>
+
             <h3>承認 / 却下</h3>
           </div>
-          <a class="text-link" href="/admin/members">会員一覧へ</a>
+          
         </div>
         <form id="approve-form" class="stack-sm" novalidate>
           <input type="hidden" name="id" value="${escapeHtml(member.id)}" />
@@ -1497,7 +1503,11 @@ function renderMemberDetail(detail) {
           </div>
           <div class="field">
             <label for="member_number">会員番号</label>
-            <input id="member_number" name="member_number" type="text" placeholder="承認時に手入力" />
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="member_number" name="member_number" type="text" placeholder="自動採番中..." style="flex:1" />
+              <button id="auto-number-btn" class="button ghost" type="button" style="white-space:nowrap">自動採番</button>
+            </div>
+            <span id="auto-number-hint" class="muted" style="font-size:12px"></span>
           </div>
           <button class="button" type="submit">承認する</button>
         </form>
@@ -1526,31 +1536,35 @@ function renderMemberRows(members) {
       <table class="members-table">
         <thead>
           <tr>
+            <th>番号</th>
             <th>氏名</th>
             <th>会社名</th>
+            <th>委員会・役職</th>
             <th>会員種別</th>
-            <th>status</th>
+            <th>ステータス</th>
             <th>メール</th>
-            <th>電話番号</th>
-            <th>入会日</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
           ${members
             .map(
-              (member) => `
-                <tr>
-                  <td>${escapeHtml(member.name_kanji || "-")}</td>
+              (member) => {
+                const assigns = member.org_assignments || [];
+                const orgText = assigns.map((a) => `${a.org_name}${a.role ? "/" + a.role : ""}`).join(", ");
+                return `
+                <tr class="table-row-link" onclick="window.location.href='/admin/members/${escapeHtml(member.id)}'" style="cursor:pointer">
+                  <td>${escapeHtml(member.member_number || "-")}</td>
+                  <td><strong>${escapeHtml(member.name_kanji || "-")}</strong></td>
                   <td>${escapeHtml(member.company_name || "-")}</td>
-                  <td>${escapeHtml(member.member_type || "-")}</td>
+                  <td>${escapeHtml(orgText || "-")}</td>
+                  <td><span class="pill">${escapeHtml(member.member_type || "-")}</span></td>
                   <td>${escapeHtml(member.status || "-")}</td>
                   <td>${escapeHtml(member.email || "-")}</td>
-                  <td>${escapeHtml(member.mobile_phone || "-")}</td>
-                  <td>${escapeHtml(member.join_date || "-")}</td>
                   <td><a class="text-link" href="/admin/members/${escapeHtml(member.id)}">詳細</a></td>
                 </tr>
-              `
+              `;
+              }
             )
             .join("")}
         </tbody>
@@ -1568,25 +1582,30 @@ function renderDirectoryCards(members) {
     <div class="directory-grid">
       ${members
         .map(
-          (member) => `
+          (member) => {
+            const assigns = member.org_assignments || [];
+            const orgText = assigns.map((a) => `${a.org_name}${a.role ? " / " + a.role : ""}`).join("、");
+            return `
             <article class="directory-card">
               <div class="directory-card-header">
+                ${renderMemberImage(member.profile_image, member.name_kanji, "thumb")}
                 <div>
-                  <p class="eyebrow dark">Member</p>
                   <h3>${escapeHtml(displayValue(member.name_kanji))}</h3>
+                  ${orgText ? `<p class="muted" style="font-size:0.85em;margin:2px 0 0">${escapeHtml(orgText)}</p>` : ""}
                 </div>
                 <span class="pill">${escapeHtml(displayValue(member.member_type))}</span>
               </div>
               <dl class="directory-meta">
-                <div><dt>会社名</dt><dd>${escapeHtml(displayValue(member.company_name))}</dd></div>
-                <div><dt>メール</dt><dd>${escapeHtml(displayValue(member.email))}</dd></div>
-                <div><dt>携帯番号</dt><dd>${escapeHtml(displayValue(member.mobile_phone))}</dd></div>
+                ${member.company_name ? `<div><dt>会社名</dt><dd>${escapeHtml(member.company_name)}${member.company_position ? " / " + escapeHtml(member.company_position) : ""}</dd></div>` : ""}
+                ${member.email ? `<div><dt>メール</dt><dd>${escapeHtml(member.email)}</dd></div>` : ""}
+                ${member.mobile_phone ? `<div><dt>携帯番号</dt><dd>${escapeHtml(member.mobile_phone)}</dd></div>` : ""}
               </dl>
               <div class="actions">
                 <a class="text-link" href="/directory/members/${escapeHtml(member.id)}">詳細を見る</a>
               </div>
             </article>
-          `
+          `;
+          }
         )
         .join("")}
     </div>
@@ -1594,40 +1613,46 @@ function renderDirectoryCards(members) {
 }
 
 function renderDirectoryMemberDetailCard(member) {
+  const assigns = member.org_assignments || [];
+  const orgText = assigns.map((a) => `${a.org_name}${a.role ? " / " + a.role : ""}`).join("、");
+  const joinYear = member.join_date ? member.join_date.slice(0, 4) + "年" : "";
+
   return `
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 4 / Member</p>
-          <h1>会員詳細</h1>
-          <p class="lead">公開設定に応じた会員情報のみを表示しています。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">会員詳細</h1>
+        <p class="page-description">公開設定に応じた会員情報を表示</p>
+      </div>
       <section class="card panel-card single-panel">
         <div class="card-body stack">
           <div class="panel-heading">
-            <div>
-              <p class="eyebrow dark">M2</p>
-              <h2>${escapeHtml(displayValue(member.name_kanji))}</h2>
-            </div>
+            <div><h2>${escapeHtml(displayValue(member.name_kanji))}</h2></div>
             <span class="pill">${escapeHtml(displayValue(member.member_type))}</span>
           </div>
           <section class="detail-card stack-sm">
+            <div class="member-image-wrap">
+              ${renderMemberImage(member.profile_image, member.name_kanji, "detail")}
+            </div>
             <dl class="detail-grid">
               <div><dt>氏名</dt><dd>${escapeHtml(displayValue(member.name_kanji))}</dd></div>
+              ${orgText ? `<div><dt>委員会・役職</dt><dd>${escapeHtml(orgText)}</dd></div>` : ""}
+              <div><dt>生年月日</dt><dd>${escapeHtml(displayValue(member.birthday))}</dd></div>
+              ${joinYear ? `<div><dt>入会年</dt><dd>${escapeHtml(joinYear)}</dd></div>` : ""}
               <div><dt>会員種別</dt><dd>${escapeHtml(displayValue(member.member_type))}</dd></div>
-              <div><dt>会社名</dt><dd>${escapeHtml(displayValue(member.company_name))}</dd></div>
-              <div><dt>役職</dt><dd>${escapeHtml(displayValue(member.company_position))}</dd></div>
-              <div><dt>業種</dt><dd>${escapeHtml(displayValue(member.industry))}</dd></div>
-              <div><dt>メール</dt><dd>${escapeHtml(displayValue(member.email))}</dd></div>
-              <div><dt>携帯番号</dt><dd>${escapeHtml(displayValue(member.mobile_phone))}</dd></div>
+              ${member.company_name ? `<div><dt>会社名</dt><dd>${escapeHtml(member.company_name)}</dd></div>` : ""}
+              ${member.company_position ? `<div><dt>役職</dt><dd>${escapeHtml(member.company_position)}</dd></div>` : ""}
+              ${member.company_postal_code ? `<div><dt>会社郵便番号</dt><dd>${escapeHtml(member.company_postal_code)}</dd></div>` : ""}
+              ${member.company_address ? `<div><dt>会社住所</dt><dd>${escapeHtml(member.company_address)}</dd></div>` : ""}
+              ${member.company_phone ? `<div><dt>会社電話</dt><dd>${escapeHtml(member.company_phone)}</dd></div>` : ""}
+              ${member.company_fax ? `<div><dt>会社FAX</dt><dd>${escapeHtml(member.company_fax)}</dd></div>` : ""}
+              ${member.industry ? `<div><dt>業種</dt><dd>${escapeHtml(member.industry)}</dd></div>` : ""}
+              ${member.email ? `<div><dt>メール</dt><dd>${escapeHtml(member.email)}</dd></div>` : ""}
+              ${member.mobile_phone ? `<div><dt>携帯番号</dt><dd>${escapeHtml(member.mobile_phone)}</dd></div>` : ""}
             </dl>
           </section>
           <div class="actions">
-            <a class="text-link" href="/directory">名簿閲覧へ戻る</a>
-            <a class="text-link" href="/info">基本情報へ</a>
-            <a class="text-link" href="/organization">組織図へ</a>
-            <a class="text-link" href="/manual">運用マニュアルへ</a>
+            <a class="text-link subtle-link" href="/directory">名簿</a>
+            <a class="text-link subtle-link" href="/organization">組織図</a>
           </div>
         </div>
       </section>
@@ -1638,16 +1663,13 @@ function renderDirectoryMemberDetailCard(member) {
 async function renderDirectoryMemberDetail(memberId) {
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 4 / Member</p>
-          <h1>会員詳細</h1>
-          <p class="lead">会員情報を読み込んでいます。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">会員詳細</h1>
+        <p class="page-description">公開設定に応じた会員情報を表示</p>
+      </div>
       <section class="card panel-card single-panel">
         <div class="card-body">
-          <p class="message">読込中...</p>
+          <div class="loading-state"><div class="spinner"></div><p>読み込み中...</p></div>
         </div>
       </section>
     </section>
@@ -1661,13 +1683,10 @@ async function renderDirectoryMemberDetail(memberId) {
   } catch (error) {
     setView(`
       <section class="admin-shell">
-        <header class="card admin-hero">
-          <div class="card-header">
-            <p class="eyebrow">Phase 4 / Member</p>
-            <h1>会員詳細</h1>
-            <p class="lead">会員情報を表示できませんでした。</p>
-          </div>
-        </header>
+        <div class="page-header">
+          <h1 class="page-title">会員詳細</h1>
+          <p class="page-description">公開設定に応じた会員情報を表示</p>
+        </div>
         <section class="card panel-card single-panel">
           <div class="card-body stack">
             <p class="message error">${escapeHtml(error.message || "会員情報の取得に失敗しました。")}</p>
@@ -1684,35 +1703,29 @@ async function renderDirectoryMemberDetail(memberId) {
 async function renderDirectoryMembers() {
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 4 / Member</p>
-          <h1>名簿閲覧</h1>
-          <p class="lead">承認済かつ活動中の会員のみを表示します。会社名、メール、携帯番号は各会員の公開フラグに応じて表示します。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">名簿閲覧</h1>
+        <p class="page-description">承認済・活動中の会員名簿を閲覧</p>
+      </div>
       <section class="card panel-card single-panel">
         <div class="card-body stack">
           <form id="directory-search-form" class="filter-grid directory-filter" novalidate>
             <div class="field field-span-2">
               <label for="directory-search">検索</label>
-              <input id="directory-search" name="q" type="text" placeholder="氏名 / 公開中の会社名" />
+              <input id="directory-search" name="q" type="text" placeholder="氏名 / フリガナ / 公開中の会社名" />
+            </div>
+            <div class="field">
+              <label for="directory-org-filter">委員会</label>
+              <select id="directory-org-filter" name="organization_id">
+                <option value="">すべて</option>
+              </select>
             </div>
             <div class="filter-actions">
               <button class="button" type="submit">検索する</button>
               <button id="directory-reset" class="button ghost" type="button">リセット</button>
             </div>
           </form>
-          <div class="panel-heading compact">
-            <p id="directory-message" class="message" aria-live="polite"></p>
-            <div class="actions">
-              <a class="text-link" href="/apply">公開フォームへ</a>
-              <a class="text-link" href="/admin/members">管理画面へ</a>
-              <a class="text-link" href="/info">基本情報へ</a>
-              <a class="text-link" href="/organization">組織図へ</a>
-              <a class="text-link" href="/manual">運用マニュアルへ</a>
-            </div>
-          </div>
+          <div class="panel-heading compact"><p id="directory-message" class="message" aria-live="polite"></p></div>
           <div id="directory-list-slot"></div>
         </div>
       </section>
@@ -1723,23 +1736,37 @@ async function renderDirectoryMembers() {
   const resetButton = document.getElementById("directory-reset");
   const listSlot = document.getElementById("directory-list-slot");
   const message = document.getElementById("directory-message");
+  const orgSelect = document.getElementById("directory-org-filter");
 
   async function loadMembers() {
     const params = new URLSearchParams();
-    const query = String(new FormData(form).get("q") || "").trim();
+    const formData = new FormData(form);
+    const query = String(formData.get("q") || "").trim();
+    const orgId = String(formData.get("organization_id") || "").trim();
 
-    if (query) {
-      params.set("q", query);
-    }
+    if (query) params.set("q", query);
+    if (orgId) params.set("organization_id", orgId);
 
     message.className = "message";
-    message.textContent = "読込中...";
+    message.textContent = "読み込み中...";
 
     try {
       const result = await apiRequest(
         params.toString() ? `list-directory-members?${params.toString()}` : "list-directory-members"
       );
       const members = result.members || [];
+      const orgOptions = result.org_options || [];
+
+      // Populate org filter if not already done
+      if (orgSelect && orgSelect.options.length <= 1 && orgOptions.length > 0) {
+        for (const opt of orgOptions) {
+          const option = document.createElement("option");
+          option.value = opt.id;
+          option.textContent = opt.name;
+          orgSelect.appendChild(option);
+        }
+      }
+
       listSlot.innerHTML = renderDirectoryCards(members);
       message.textContent = `${members.length}件を表示中 / 対象: 承認済・活動中 / 並び順: 氏名昇順`;
     } catch (error) {
@@ -1764,38 +1791,27 @@ async function renderDirectoryMembers() {
 function renderMyPage(member, flashMessage = "") {
   return `
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 4 / Member</p>
-          <h1>マイページ</h1>
-          <p class="lead">今回は仮運用として memberId 指定で表示しています。ここで変更した公開設定は M1 名簿閲覧と M2 会員詳細に反映されます。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">マイページ</h1>
+        <p class="page-description">自分の情報と名簿公開設定を管理</p>
+      </div>
       <div class="admin-grid admin-grid-wide">
         <section class="card panel-card">
           <div class="card-body stack">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow dark">M3</p>
-                <h2>自分の情報</h2>
-              </div>
-              <div class="actions">
-                <a class="text-link" href="/directory">名簿閲覧へ</a>
-                <a class="text-link" href="/info">基本情報へ</a>
-                <a class="text-link" href="/organization">組織図へ</a>
-                <a class="text-link" href="/manual">運用マニュアルへ</a>
-              </div>
-            </div>
+            <div class="panel-heading"><div><h2>自分の情報</h2></div></div>
             <section class="detail-card stack-sm">
               <div class="detail-header-row">
                 <div>
-                  <p class="eyebrow dark">Profile</p>
+
                   <h3>${escapeHtml(displayValue(member.name_kanji))}</h3>
                 </div>
                 <div class="pill-row">
                   <span class="pill">${escapeHtml(displayValue(member.member_type))}</span>
                   <span class="pill">${escapeHtml(displayValue(member.status))}</span>
                 </div>
+              </div>
+              <div class="member-image-wrap">
+                ${renderMemberImage(member.profile_image, member.name_kanji, "detail")}
               </div>
               <dl class="detail-grid">
                 <div><dt>氏名</dt><dd>${escapeHtml(displayValue(member.name_kanji))}</dd></div>
@@ -1810,7 +1826,7 @@ function renderMyPage(member, flashMessage = "") {
                 <div><dt>会社住所</dt><dd>${escapeHtml(displayValue(member.company_address))}</dd></div>
                 <div><dt>会員番号</dt><dd>${escapeHtml(displayValue(member.member_number))}</dd></div>
                 <div><dt>会員種別</dt><dd>${escapeHtml(displayValue(member.member_type))}</dd></div>
-                <div><dt>status</dt><dd>${escapeHtml(displayValue(normalizeMemberStatus(member.status)))}</dd></div>
+                <div><dt>ステータス</dt><dd>${escapeHtml(displayValue(normalizeMemberStatus(member.status)))}</dd></div>
               </dl>
             </section>
           </div>
@@ -1818,59 +1834,45 @@ function renderMyPage(member, flashMessage = "") {
 
         <section class="card panel-card">
           <div class="card-body stack">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow dark">M3</p>
-                <h2>公開設定と連絡先</h2>
-              </div>
-            </div>
-            <p class="muted">名簿に出るのは公開フラグをオンにした項目です。会社情報は M1/M2 の会社名・役職・業種に、メールと携帯番号はそれぞれの公開表示に反映されます。</p>
+            <div class="panel-heading"><div><h2>プロフィール編集</h2></div></div>
+            <p class="muted">名簿に出るのは公開フラグをオンにした項目です。氏名・フリガナ・生年月日・会員番号は管理者のみ変更可能です。</p>
             <form id="mypage-form" class="editor-form" novalidate>
               <input type="hidden" name="id" value="${escapeHtml(member.id)}" />
+              <h4 style="margin:0.5rem 0 0.25rem">個人連絡先</h4>
               <div class="editor-grid">
-                <div class="field">
-                  <label for="mypage-email">メール</label>
-                  <input id="mypage-email" name="email" type="email" value="${escapeHtml(member.email || "")}" />
-                </div>
-                <div class="field">
-                  <label for="mypage-mobile-phone">携帯番号</label>
-                  <input id="mypage-mobile-phone" name="mobile_phone" type="tel" value="${escapeHtml(member.mobile_phone || "")}" />
-                </div>
-                <div class="field">
-                  <label for="mypage-company-phone">会社電話</label>
-                  <input id="mypage-company-phone" name="company_phone" type="tel" value="${escapeHtml(member.company_phone || "")}" />
-                </div>
-                <div class="field">
-                  <label for="mypage-company-fax">会社FAX</label>
-                  <input id="mypage-company-fax" name="company_fax" type="tel" value="${escapeHtml(member.company_fax || "")}" />
-                </div>
-                <div class="field field-span-2">
-                  <label for="mypage-company-address">会社住所</label>
-                  <textarea id="mypage-company-address" name="company_address" rows="3">${escapeHtml(member.company_address || "")}</textarea>
-                </div>
+                <div class="field"><label for="mypage-email">メール</label><input id="mypage-email" name="email" type="email" value="${escapeHtml(member.email || "")}" /></div>
+                <div class="field"><label for="mypage-mobile-phone">携帯番号</label><input id="mypage-mobile-phone" name="mobile_phone" type="tel" value="${escapeHtml(member.mobile_phone || "")}" /></div>
+              </div>
+              <h4 style="margin:0.5rem 0 0.25rem">会社情報</h4>
+              <div class="editor-grid">
+                <div class="field"><label for="mypage-company-name">会社名</label><input id="mypage-company-name" name="company_name" type="text" value="${escapeHtml(member.company_name || "")}" /></div>
+                <div class="field"><label for="mypage-company-position">役職</label><input id="mypage-company-position" name="company_position" type="text" value="${escapeHtml(member.company_position || "")}" /></div>
+                <div class="field"><label for="mypage-industry">業種</label><input id="mypage-industry" name="industry" type="text" value="${escapeHtml(member.industry || "")}" /></div>
+                <div class="field"><label for="mypage-company-postal-code">会社郵便番号</label><input id="mypage-company-postal-code" name="company_postal_code" type="text" value="${escapeHtml(member.company_postal_code || "")}" /></div>
+                <div class="field field-span-2"><label for="mypage-company-address">会社住所</label><textarea id="mypage-company-address" name="company_address" rows="2">${escapeHtml(member.company_address || "")}</textarea></div>
+                <div class="field"><label for="mypage-company-phone">会社電話</label><input id="mypage-company-phone" name="company_phone" type="tel" value="${escapeHtml(member.company_phone || "")}" /></div>
+                <div class="field"><label for="mypage-company-fax">会社FAX</label><input id="mypage-company-fax" name="company_fax" type="tel" value="${escapeHtml(member.company_fax || "")}" /></div>
+                <div class="field field-span-2"><label for="mypage-company-pr">会社PR</label><textarea id="mypage-company-pr" name="company_pr" rows="2">${escapeHtml(member.company_pr || "")}</textarea></div>
+              </div>
+              <h4 style="margin:0.5rem 0 0.25rem">自宅情報</h4>
+              <div class="editor-grid">
+                <div class="field"><label for="mypage-home-postal-code">自宅郵便番号</label><input id="mypage-home-postal-code" name="home_postal_code" type="text" value="${escapeHtml(member.home_postal_code || "")}" /></div>
+                <div class="field field-span-2"><label for="mypage-home-address">自宅住所</label><textarea id="mypage-home-address" name="home_address" rows="2">${escapeHtml(member.home_address || "")}</textarea></div>
+                <div class="field"><label for="mypage-home-phone">自宅電話</label><input id="mypage-home-phone" name="home_phone" type="tel" value="${escapeHtml(member.home_phone || "")}" /></div>
+                <div class="field"><label for="mypage-home-fax">自宅FAX</label><input id="mypage-home-fax" name="home_fax" type="tel" value="${escapeHtml(member.home_fax || "")}" /></div>
+              </div>
+              <h4 style="margin:0.5rem 0 0.25rem">その他</h4>
+              <div class="editor-grid">
+                <div class="field field-span-2"><label for="mypage-hobbies">趣味・信条</label><textarea id="mypage-hobbies" name="hobbies" rows="2">${escapeHtml(member.hobbies || "")}</textarea></div>
               </div>
               <section class="detail-card stack-sm inset-card">
-                <div>
-                  <p class="eyebrow dark">Directory Flags</p>
-                  <h3>名簿公開設定</h3>
-                </div>
-                <label class="checkbox-row">
-                  <input name="show_email_in_directory" type="checkbox" ${isChecked(member.show_email_in_directory)} />
-                  <span>メールを名簿に公開する</span>
-                </label>
-                <label class="checkbox-row">
-                  <input name="show_company_in_directory" type="checkbox" ${isChecked(member.show_company_in_directory)} />
-                  <span>会社情報を名簿に公開する</span>
-                </label>
-                <label class="checkbox-row">
-                  <input name="show_mobile_in_directory" type="checkbox" ${isChecked(member.show_mobile_in_directory)} />
-                  <span>携帯番号を名簿に公開する</span>
-                </label>
+                <div><h3>名簿公開設定</h3></div>
+                <label class="checkbox-row"><input name="show_email_in_directory" type="checkbox" ${isChecked(member.show_email_in_directory)} /><span>メールを名簿に公開する</span></label>
+                <label class="checkbox-row"><input name="show_company_in_directory" type="checkbox" ${isChecked(member.show_company_in_directory)} /><span>会社情報を名簿に公開する</span></label>
+                <label class="checkbox-row"><input name="show_mobile_in_directory" type="checkbox" ${isChecked(member.show_mobile_in_directory)} /><span>携帯番号を名簿に公開する</span></label>
               </section>
               <p id="mypage-message" class="message ${flashMessage ? "success" : ""}" aria-live="polite">${escapeHtml(flashMessage)}</p>
-              <div class="actions">
-                <button id="mypage-submit" class="button" type="submit">保存する</button>
-              </div>
+              <div class="actions"><button id="mypage-submit" class="button" type="submit">保存する</button></div>
             </form>
           </div>
         </section>
@@ -1885,13 +1887,10 @@ async function renderMyPageRoute() {
   if (!memberId) {
     setView(`
       <section class="admin-shell">
-        <header class="card admin-hero">
-          <div class="card-header">
-            <p class="eyebrow">Phase 4 / Member</p>
-            <h1>マイページ</h1>
-            <p class="lead">認証未実装のため、今は memberId 指定で表示します。</p>
-          </div>
-        </header>
+        <div class="page-header">
+          <h1 class="page-title">マイページ</h1>
+          <p class="page-description">自分の情報と名簿公開設定を管理</p>
+        </div>
         <section class="card panel-card single-panel">
           <div class="card-body stack">
             <p class="message">例: <code>/mypage?memberId=YOUR_MEMBER_ID</code></p>
@@ -1910,16 +1909,13 @@ async function renderMyPageRoute() {
 
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 4 / Member</p>
-          <h1>マイページ</h1>
-          <p class="lead">会員情報を読み込んでいます。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">マイページ</h1>
+        <p class="page-description">自分の情報と名簿公開設定を管理</p>
+      </div>
       <section class="card panel-card single-panel">
         <div class="card-body">
-          <p class="message">読込中...</p>
+          <div class="loading-state"><div class="spinner"></div><p>読み込み中...</p></div>
         </div>
       </section>
     `);
@@ -1935,13 +1931,10 @@ async function renderMyPageRoute() {
   } catch (error) {
     setView(`
       <section class="admin-shell">
-        <header class="card admin-hero">
-          <div class="card-header">
-            <p class="eyebrow">Phase 4 / Member</p>
-            <h1>マイページ</h1>
-            <p class="lead">会員情報を表示できませんでした。</p>
-          </div>
-        </header>
+        <div class="page-header">
+          <h1 class="page-title">マイページ</h1>
+          <p class="page-description">自分の情報と名簿公開設定を管理</p>
+        </div>
         <section class="card panel-card single-panel">
           <div class="card-body stack">
             <p class="message error">${escapeHtml(error.message || "会員情報の取得に失敗しました。")}</p>
@@ -1976,11 +1969,23 @@ function bindMyPageForm(memberId, member) {
     const payload = {
       id: member.id,
       allow_partial_profile_update: true,
+      changed_by: member.name_kanji || "会員",
+      changed_by_role: "member",
       email: String(formData.get("email") || "").trim(),
       mobile_phone: String(formData.get("mobile_phone") || "").trim(),
+      company_name: String(formData.get("company_name") || "").trim(),
+      company_position: String(formData.get("company_position") || "").trim(),
+      industry: String(formData.get("industry") || "").trim(),
+      company_postal_code: String(formData.get("company_postal_code") || "").trim(),
+      company_address: String(formData.get("company_address") || "").trim(),
       company_phone: String(formData.get("company_phone") || "").trim(),
       company_fax: String(formData.get("company_fax") || "").trim(),
-      company_address: String(formData.get("company_address") || "").trim(),
+      company_pr: String(formData.get("company_pr") || "").trim(),
+      home_postal_code: String(formData.get("home_postal_code") || "").trim(),
+      home_address: String(formData.get("home_address") || "").trim(),
+      home_phone: String(formData.get("home_phone") || "").trim(),
+      home_fax: String(formData.get("home_fax") || "").trim(),
+      hobbies: String(formData.get("hobbies") || "").trim(),
       show_email_in_directory: form.querySelector('[name="show_email_in_directory"]').checked,
       show_company_in_directory: form.querySelector('[name="show_company_in_directory"]').checked,
       show_mobile_in_directory: form.querySelector('[name="show_mobile_in_directory"]').checked
@@ -2025,179 +2030,223 @@ function bindMyPageForm(memberId, member) {
     }
   });
 }
-function renderMemberEditor(detail, flashMessage = "") {
+function renderMemberEditor(detail, flashMessage = "", historyData = null, changeLogs = null) {
   const { member, referrer_matches: referrerMatches } = detail;
+  const orgHistory = historyData?.org_history || [];
+  const duesHistory = historyData?.dues_history || [];
+  const logs = changeLogs || [];
+
+  const FIELD_LABELS = {
+    name_kanji: "氏名", name_kana: "フリガナ", birthday: "生年月日",
+    company_name: "会社名", company_position: "役職", industry: "業種",
+    email: "メール", mobile_phone: "携帯番号", company_phone: "会社電話",
+    company_fax: "会社FAX", company_address: "会社住所", company_postal_code: "会社郵便番号",
+    company_pr: "会社PR", home_postal_code: "自宅郵便番号", home_address: "自宅住所",
+    home_phone: "自宅電話", home_fax: "自宅FAX", hobbies: "趣味・信条",
+    profile_image: "プロフィール画像", show_email_in_directory: "メール公開",
+    show_company_in_directory: "会社公開", show_mobile_in_directory: "携帯公開",
+    member_number: "会員番号", member_type: "会員種別", status: "ステータス",
+    is_new: "新入フラグ", notes: "備考"
+  };
 
   return `
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 3 / Admin</p>
-          <h1>会員詳細・編集</h1>
-          <p class="lead">会員情報の確認と最小更新を行います。承認状態は表示のみで、承認フロー自体は A4 を使います。</p>
-        </div>
-      </header>
-      <div class="admin-grid admin-grid-wide">
-        <section class="card panel-card">
-          <div class="card-body stack">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow dark">A3</p>
-                <h2>会員詳細</h2>
-              </div>
-              <div class="actions">
-                <a class="text-link" href="/admin/members">会員一覧へ戻る</a>
-                <a class="text-link" href="/admin/applications">入会申込管理へ</a>
-                <a class="text-link" href="/directory">名簿閲覧へ</a>
-              </div>
+      <div class="page-header">
+        <h1 class="page-title">会員詳細・編集</h1>
+        <p class="page-description">会員情報の確認と更新</p>
+        <div class="actions"><a class="text-link subtle-link" href="/admin/members">会員一覧</a></div>
+      </div>
+      <div class="tab-bar" id="member-detail-tabs">
+        <button class="tab-button is-active" data-tab="tab-basic">基本情報</button>
+        <button class="tab-button" data-tab="tab-org-history">組織履歴</button>
+        <button class="tab-button" data-tab="tab-dues-history">会費履歴</button>
+        <button class="tab-button" data-tab="tab-directory">名簿設定</button>
+        <button class="tab-button" data-tab="tab-change-log">変更履歴</button>
+      </div>
+
+      <div id="tab-basic" class="tab-panel is-active">
+        <div class="admin-grid admin-grid-wide">
+          <section class="card panel-card">
+            <div class="card-body stack">
+              <div class="panel-heading"><div><h2>会員詳細</h2></div></div>
+              <section class="detail-card stack-sm">
+                <div class="detail-header-row">
+                  <div><h3>${escapeHtml(displayValue(member.name_kanji))}</h3></div>
+                  <div class="pill-row">
+                    <span class="pill">${escapeHtml(displayValue(member.approval_status))}</span>
+                    <span class="pill">${escapeHtml(displayValue(member.status))}</span>
+                  </div>
+                </div>
+                <dl class="detail-grid">
+                  <div><dt>氏名</dt><dd>${escapeHtml(displayValue(member.name_kanji))}</dd></div>
+                  <div><dt>フリガナ</dt><dd>${escapeHtml(displayValue(member.name_kana))}</dd></div>
+                  <div><dt>生年月日</dt><dd>${escapeHtml(displayValue(member.birthday))}</dd></div>
+                  <div><dt>会社名</dt><dd>${escapeHtml(displayValue(member.company_name))}</dd></div>
+                  <div><dt>役職</dt><dd>${escapeHtml(displayValue(member.company_position))}</dd></div>
+                  <div><dt>業種</dt><dd>${escapeHtml(displayValue(member.industry))}</dd></div>
+                  <div><dt>メール</dt><dd>${escapeHtml(displayValue(member.email))}</dd></div>
+                  <div><dt>携帯番号</dt><dd>${escapeHtml(displayValue(member.mobile_phone))}</dd></div>
+                  <div><dt>会社電話</dt><dd>${escapeHtml(displayValue(member.company_phone))}</dd></div>
+                  <div><dt>会社FAX</dt><dd>${escapeHtml(displayValue(member.company_fax))}</dd></div>
+                  <div><dt>会社郵便番号</dt><dd>${escapeHtml(displayValue(member.company_postal_code))}</dd></div>
+                  <div><dt>会社住所</dt><dd>${escapeHtml(displayValue(member.company_address))}</dd></div>
+                  <div><dt>会社PR</dt><dd>${escapeHtml(displayValue(member.company_pr))}</dd></div>
+                  <div><dt>自宅郵便番号</dt><dd>${escapeHtml(displayValue(member.home_postal_code))}</dd></div>
+                  <div><dt>自宅住所</dt><dd>${escapeHtml(displayValue(member.home_address))}</dd></div>
+                  <div><dt>自宅電話</dt><dd>${escapeHtml(displayValue(member.home_phone))}</dd></div>
+                  <div><dt>自宅FAX</dt><dd>${escapeHtml(displayValue(member.home_fax))}</dd></div>
+                  <div><dt>趣味・信条</dt><dd>${escapeHtml(displayValue(member.hobbies))}</dd></div>
+                  <div><dt>会員番号</dt><dd>${escapeHtml(displayValue(member.member_number))}</dd></div>
+                  <div><dt>会員種別</dt><dd>${escapeHtml(displayValue(member.member_type))}</dd></div>
+                  <div><dt>承認状態</dt><dd>${escapeHtml(displayValue(member.approval_status))}</dd></div>
+                  <div><dt>入会日</dt><dd>${escapeHtml(displayValue(member.join_date))}</dd></div>
+                  <div><dt>新規フラグ</dt><dd>${escapeHtml(displayValue(member.is_new))}</dd></div>
+                  <div><dt>備考</dt><dd>${escapeHtml(displayValue(member.notes))}</dd></div>
+                </dl>
+              </section>
+              <section class="detail-card stack-sm">
+                <div class="detail-header-row"><div><h3>紹介者照合</h3></div></div>
+                ${renderReferrerMatchList("紹介者1", referrerMatches.referrer_1 || [])}
+                ${renderReferrerMatchList("紹介者2", referrerMatches.referrer_2 || [])}
+              </section>
             </div>
-            <section class="detail-card stack-sm">
-              <div class="detail-header-row">
-                <div>
-                  <p class="eyebrow dark">Profile</p>
-                  <h3>${escapeHtml(displayValue(member.name_kanji))}</h3>
+          </section>
+
+          <section class="card panel-card">
+            <div class="card-body stack">
+              <div class="panel-heading"><div><h2>編集</h2></div></div>
+              <form id="member-edit-form" class="editor-form" novalidate>
+                <input type="hidden" name="id" value="${escapeHtml(member.id)}" />
+                <div class="editor-grid">
+                  <div class="field"><label for="edit-name-kanji">氏名</label><input id="edit-name-kanji" name="name_kanji" type="text" value="${escapeHtml(member.name_kanji || "")}" /></div>
+                  <div class="field"><label for="edit-name-kana">フリガナ</label><input id="edit-name-kana" name="name_kana" type="text" value="${escapeHtml(member.name_kana || "")}" /></div>
+                  <div class="field"><label for="edit-birthday">生年月日</label><input id="edit-birthday" name="birthday" type="date" value="${escapeHtml(member.birthday || "")}" /></div>
+                  <div class="field"><label for="edit-company-name">会社名</label><input id="edit-company-name" name="company_name" type="text" value="${escapeHtml(member.company_name || "")}" /></div>
+                  <div class="field"><label for="edit-company-position">役職</label><input id="edit-company-position" name="company_position" type="text" value="${escapeHtml(member.company_position || "")}" /></div>
+                  <div class="field"><label for="edit-industry">業種</label><input id="edit-industry" name="industry" type="text" value="${escapeHtml(member.industry || "")}" /></div>
+                  <div class="field"><label for="edit-email">メール</label><input id="edit-email" name="email" type="email" value="${escapeHtml(member.email || "")}" /></div>
+                  <div class="field"><label for="edit-mobile-phone">携帯番号</label><input id="edit-mobile-phone" name="mobile_phone" type="tel" value="${escapeHtml(member.mobile_phone || "")}" /></div>
+                  <div class="field"><label for="edit-company-phone">会社電話</label><input id="edit-company-phone" name="company_phone" type="tel" value="${escapeHtml(member.company_phone || "")}" /></div>
+                  <div class="field"><label for="edit-company-fax">会社FAX</label><input id="edit-company-fax" name="company_fax" type="tel" value="${escapeHtml(member.company_fax || "")}" /></div>
+                  <div class="field"><label for="edit-company-postal-code">会社郵便番号</label><input id="edit-company-postal-code" name="company_postal_code" type="text" value="${escapeHtml(member.company_postal_code || "")}" /></div>
+                  <div class="field field-span-2"><label for="edit-company-address">会社住所</label><textarea id="edit-company-address" name="company_address" rows="2">${escapeHtml(member.company_address || "")}</textarea></div>
+                  <div class="field field-span-2"><label for="edit-company-pr">会社PR</label><textarea id="edit-company-pr" name="company_pr" rows="2">${escapeHtml(member.company_pr || "")}</textarea></div>
+                  <div class="field"><label for="edit-home-postal-code">自宅郵便番号</label><input id="edit-home-postal-code" name="home_postal_code" type="text" value="${escapeHtml(member.home_postal_code || "")}" /></div>
+                  <div class="field field-span-2"><label for="edit-home-address">自宅住所</label><textarea id="edit-home-address" name="home_address" rows="2">${escapeHtml(member.home_address || "")}</textarea></div>
+                  <div class="field"><label for="edit-home-phone">自宅電話</label><input id="edit-home-phone" name="home_phone" type="tel" value="${escapeHtml(member.home_phone || "")}" /></div>
+                  <div class="field"><label for="edit-home-fax">自宅FAX</label><input id="edit-home-fax" name="home_fax" type="tel" value="${escapeHtml(member.home_fax || "")}" /></div>
+                  <div class="field field-span-2"><label for="edit-hobbies">趣味・信条</label><textarea id="edit-hobbies" name="hobbies" rows="2">${escapeHtml(member.hobbies || "")}</textarea></div>
+                  <div class="field"><label for="edit-member-number">会員番号</label><input id="edit-member-number" name="member_number" type="text" value="${escapeHtml(member.member_number || "")}" /></div>
+                  <div class="field"><label for="edit-member-type">会員種別</label>
+                    <select id="edit-member-type" name="member_type">
+                      <option value="">未設定</option>
+                      <option value="正会員" ${member.member_type === "正会員" ? "selected" : ""}>正会員</option>
+                      <option value="賛助会員" ${member.member_type === "賛助会員" ? "selected" : ""}>賛助会員</option>
+                      <option value="OB会員" ${member.member_type === "OB会員" ? "selected" : ""}>OB会員</option>
+                    </select>
+                  </div>
+                  <div class="field"><label for="edit-status">ステータス</label>
+                    <select id="edit-status" name="status">
+                      <option value="">未設定</option>
+                      <option value="活動中" ${member.status === "活動中" ? "selected" : ""}>活動中</option>
+                      <option value="休会" ${member.status === "休会" ? "selected" : ""}>休会</option>
+                      <option value="退会" ${member.status === "退会" ? "selected" : ""}>退会</option>
+                    </select>
+                  </div>
+                  <div class="field field-span-2"><label for="edit-notes">備考（管理者用）</label><textarea id="edit-notes" name="notes" rows="2">${escapeHtml(member.notes || "")}</textarea></div>
                 </div>
-                <div class="pill-row">
-                  <span class="pill">${escapeHtml(displayValue(member.approval_status))}</span>
-                  <span class="pill">${escapeHtml(displayValue(member.status))}</span>
+                <p id="member-edit-message" class="message ${flashMessage ? "success" : ""}" aria-live="polite">${escapeHtml(flashMessage)}</p>
+                <div class="actions"><button id="member-edit-submit" class="button" type="submit">保存する</button></div>
+              </form>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div id="tab-org-history" class="tab-panel">
+        <section class="card panel-card single-panel">
+          <div class="card-body stack">
+            <div class="panel-heading"><div><h2>組織履歴</h2></div></div>
+            ${orgHistory.length ? orgHistory.map((fy) => `
+              <section class="detail-card stack-sm">
+                <div class="detail-header-row">
+                  <div><h3>${escapeHtml(String(fy.year))}年度${fy.is_current ? " (現在)" : ""}</h3></div>
                 </div>
-              </div>
-              <dl class="detail-grid">
-                <div><dt>氏名（漢字）</dt><dd>${escapeHtml(displayValue(member.name_kanji))}</dd></div>
-                <div><dt>氏名（ふりがな）</dt><dd>${escapeHtml(displayValue(member.name_kana))}</dd></div>
-                <div><dt>生年月日</dt><dd>${escapeHtml(displayValue(member.birthday))}</dd></div>
-                <div><dt>会社名</dt><dd>${escapeHtml(displayValue(member.company_name))}</dd></div>
-                <div><dt>役職</dt><dd>${escapeHtml(displayValue(member.company_position))}</dd></div>
-                <div><dt>業種</dt><dd>${escapeHtml(displayValue(member.industry))}</dd></div>
-                <div><dt>メール</dt><dd>${escapeHtml(displayValue(member.email))}</dd></div>
-                <div><dt>携帯番号</dt><dd>${escapeHtml(displayValue(member.mobile_phone))}</dd></div>
-                <div><dt>会社電話</dt><dd>${escapeHtml(displayValue(member.company_phone))}</dd></div>
-                <div><dt>会社FAX</dt><dd>${escapeHtml(displayValue(member.company_fax))}</dd></div>
-                <div><dt>会社住所</dt><dd>${escapeHtml(displayValue(member.company_address))}</dd></div>
-                <div><dt>会員番号</dt><dd>${escapeHtml(displayValue(member.member_number))}</dd></div>
-                <div><dt>会員種別</dt><dd>${escapeHtml(displayValue(member.member_type))}</dd></div>
-                <div><dt>承認状態</dt><dd>${escapeHtml(displayValue(member.approval_status))}</dd></div>
-                <div><dt>入会日</dt><dd>${escapeHtml(displayValue(member.join_date))}</dd></div>
-                <div><dt>新規フラグ</dt><dd>${escapeHtml(displayValue(member.is_new))}</dd></div>
-              </dl>
-            </section>
-            <section class="detail-card stack-sm">
-              <div class="detail-header-row">
-                <div>
-                  <p class="eyebrow dark">Referrer Check</p>
-                  <h3>紹介者照合</h3>
-                </div>
-              </div>
-              ${renderReferrerMatchList("紹介者1", referrerMatches.referrer_1 || [])}
-              ${renderReferrerMatchList("紹介者2", referrerMatches.referrer_2 || [])}
-            </section>
+                <dl class="detail-grid">
+                  ${fy.assignments.map((a) => `<div><dt>${escapeHtml(a.org_name)}</dt><dd>${escapeHtml(a.role || "-")}</dd></div>`).join("")}
+                </dl>
+              </section>
+            `).join("") : '<p class="empty-state">組織配属の履歴はありません。</p>'}
           </div>
         </section>
+      </div>
 
-        <section class="card panel-card">
+      <div id="tab-dues-history" class="tab-panel">
+        <section class="card panel-card single-panel">
           <div class="card-body stack">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow dark">A3</p>
-                <h2>編集</h2>
+            <div class="panel-heading"><div><h2>会費履歴</h2></div></div>
+            ${duesHistory.length ? `
+              <div class="members-table-wrap">
+                <table class="members-table">
+                  <thead><tr><th>年度</th><th>金額</th><th>状態</th><th>入金日</th><th>備考</th></tr></thead>
+                  <tbody>
+                    ${duesHistory.map((d) => `
+                      <tr>
+                        <td>${escapeHtml(String(d.year))}年度</td>
+                        <td>${escapeHtml(d.amount ? d.amount.toLocaleString() + "円" : "-")}</td>
+                        <td><span class="pill ${d.status === "納入済" ? "pill-success" : ""}">${escapeHtml(d.status)}</span></td>
+                        <td>${escapeHtml(displayValue(d.paid_date))}</td>
+                        <td>${escapeHtml(displayValue(d.notes))}</td>
+                      </tr>
+                    `).join("")}
+                  </tbody>
+                </table>
               </div>
-            </div>
-            <form id="member-edit-form" class="editor-form" novalidate>
+            ` : '<p class="empty-state">会費の履歴はありません。</p>'}
+          </div>
+        </section>
+      </div>
+
+      <div id="tab-directory" class="tab-panel">
+        <section class="card panel-card single-panel">
+          <div class="card-body stack">
+            <div class="panel-heading"><div><h2>名簿掲載設定</h2></div></div>
+            <form id="member-directory-form" class="editor-form" novalidate>
               <input type="hidden" name="id" value="${escapeHtml(member.id)}" />
-              <div class="editor-grid">
-                <div class="field">
-                  <label for="edit-name-kanji">氏名</label>
-                  <input id="edit-name-kanji" name="name_kanji" type="text" value="${escapeHtml(member.name_kanji || "")}" />
-                </div>
-                <div class="field">
-                  <label for="edit-name-kana">フリガナ</label>
-                  <input id="edit-name-kana" name="name_kana" type="text" value="${escapeHtml(member.name_kana || "")}" />
-                </div>
-                <div class="field">
-                  <label for="edit-birthday">生年月日</label>
-                  <input id="edit-birthday" name="birthday" type="date" value="${escapeHtml(member.birthday || "")}" />
-                </div>
-                <div class="field">
-                  <label for="edit-company-name">会社名</label>
-                  <input id="edit-company-name" name="company_name" type="text" value="${escapeHtml(member.company_name || "")}" />
-                </div>
-                <div class="field">
-                  <label for="edit-company-position">役職</label>
-                  <input id="edit-company-position" name="company_position" type="text" value="${escapeHtml(member.company_position || "")}" />
-                </div>
-                <div class="field">
-                  <label for="edit-industry">業種</label>
-                  <input id="edit-industry" name="industry" type="text" value="${escapeHtml(member.industry || "")}" />
-                </div>
-                <div class="field">
-                  <label for="edit-email">メール</label>
-                  <input id="edit-email" name="email" type="email" value="${escapeHtml(member.email || "")}" />
-                </div>
-                <div class="field">
-                  <label for="edit-mobile-phone">携帯番号</label>
-                  <input id="edit-mobile-phone" name="mobile_phone" type="tel" value="${escapeHtml(member.mobile_phone || "")}" />
-                </div>
-                <div class="field">
-                  <label for="edit-company-phone">会社電話</label>
-                  <input id="edit-company-phone" name="company_phone" type="tel" value="${escapeHtml(member.company_phone || "")}" />
-                </div>
-                <div class="field">
-                  <label for="edit-company-fax">会社FAX</label>
-                  <input id="edit-company-fax" name="company_fax" type="tel" value="${escapeHtml(member.company_fax || "")}" />
-                </div>
-                <div class="field field-span-2">
-                  <label for="edit-company-address">会社住所</label>
-                  <textarea id="edit-company-address" name="company_address" rows="3">${escapeHtml(member.company_address || "")}</textarea>
-                </div>
-                <div class="field">
-                  <label for="edit-member-number">会員番号</label>
-                  <input id="edit-member-number" name="member_number" type="text" value="${escapeHtml(member.member_number || "")}" />
-                </div>
-                <div class="field">
-                  <label for="edit-member-type">会員種別</label>
-                  <select id="edit-member-type" name="member_type">
-                    <option value="">未設定</option>
-                    <option value="正会員" ${member.member_type === "正会員" ? "selected" : ""}>正会員</option>
-                    <option value="賛助会員" ${member.member_type === "賛助会員" ? "selected" : ""}>賛助会員</option>
-                    <option value="OB会員" ${member.member_type === "OB会員" ? "selected" : ""}>OB会員</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="edit-status">status</label>
-                  <select id="edit-status" name="status">
-                    <option value="">未設定</option>
-                    <option value="活動中" ${member.status === "活動中" ? "selected" : ""}>活動中</option>
-                    <option value="休会" ${member.status === "休会" ? "selected" : ""}>休会</option>
-                    <option value="退会" ${member.status === "退会" ? "selected" : ""}>退会</option>
-                  </select>
-                </div>
-              </div>
-
               <section class="detail-card stack-sm inset-card">
-                <div>
-                  <p class="eyebrow dark">Directory Flags</p>
-                  <h3>名簿掲載フラグ</h3>
-                </div>
-                <label class="checkbox-row">
-                  <input name="show_email_in_directory" type="checkbox" ${isChecked(member.show_email_in_directory)} />
-                  <span>メールを名簿掲載する</span>
-                </label>
-                <label class="checkbox-row">
-                  <input name="show_company_in_directory" type="checkbox" ${isChecked(member.show_company_in_directory)} />
-                  <span>会社情報を名簿掲載する</span>
-                </label>
-                <label class="checkbox-row">
-                  <input name="show_mobile_in_directory" type="checkbox" ${isChecked(member.show_mobile_in_directory)} />
-                  <span>携帯番号を名簿掲載する</span>
-                </label>
+                <label class="checkbox-row"><input name="show_email_in_directory" type="checkbox" ${isChecked(member.show_email_in_directory)} /><span>メールを名簿掲載する</span></label>
+                <label class="checkbox-row"><input name="show_company_in_directory" type="checkbox" ${isChecked(member.show_company_in_directory)} /><span>会社情報を名簿掲載する</span></label>
+                <label class="checkbox-row"><input name="show_mobile_in_directory" type="checkbox" ${isChecked(member.show_mobile_in_directory)} /><span>携帯番号を名簿掲載する</span></label>
               </section>
-
-              <p id="member-edit-message" class="message ${flashMessage ? "success" : ""}" aria-live="polite">${escapeHtml(flashMessage)}</p>
-              <div class="actions">
-                <button id="member-edit-submit" class="button" type="submit">保存する</button>
-                <a class="text-link" href="/admin/members">会員一覧へ戻る</a>
-              </div>
+              <p id="member-directory-message" class="message" aria-live="polite"></p>
+              <div class="actions"><button id="member-directory-submit" class="button" type="submit">名簿設定を保存</button></div>
             </form>
+          </div>
+        </section>
+      </div>
+
+      <div id="tab-change-log" class="tab-panel">
+        <section class="card panel-card single-panel">
+          <div class="card-body stack">
+            <div class="panel-heading"><div><h2>変更履歴</h2></div></div>
+            ${logs.length ? `
+              <div class="members-table-wrap">
+                <table class="members-table">
+                  <thead><tr><th>日時</th><th>変更者</th><th>項目</th><th>変更前</th><th>変更後</th></tr></thead>
+                  <tbody>
+                    ${logs.map((log) => `
+                      <tr>
+                        <td>${escapeHtml(log.changed_at ? new Date(log.changed_at).toLocaleString("ja-JP") : "-")}</td>
+                        <td>${escapeHtml(log.changed_by)} (${escapeHtml(log.changed_by_role)})</td>
+                        <td>${escapeHtml(FIELD_LABELS[log.field_name] || log.field_name)}</td>
+                        <td>${escapeHtml(displayValue(log.old_value))}</td>
+                        <td>${escapeHtml(displayValue(log.new_value))}</td>
+                      </tr>
+                    `).join("")}
+                  </tbody>
+                </table>
+              </div>
+            ` : '<p class="empty-state">変更履歴はありません。</p>'}
           </div>
         </section>
       </div>
@@ -2208,43 +2257,42 @@ function renderMemberEditor(detail, flashMessage = "") {
 async function renderAdminMemberDetail(memberId) {
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 3 / Admin</p>
-          <h1>会員詳細・編集</h1>
-          <p class="lead">会員情報を読み込んでいます。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">会員詳細・編集</h1>
+        <p class="page-description">会員情報の確認と更新</p>
+        <div class="actions"><a class="text-link subtle-link" href="/admin/members">会員一覧</a></div>
+      </div>
       <section class="card panel-card single-panel">
         <div class="card-body">
-          <p class="message">読込中...</p>
+          <div class="loading-state"><div class="spinner"></div><p>読み込み中...</p></div>
         </div>
       </section>
     </section>
   `);
 
   try {
-    const detail = await apiRequest(`get-member-detail?id=${encodeURIComponent(memberId)}`);
+    const [detail, historyResult, changeLogResult] = await Promise.all([
+      apiRequest(`get-member-detail?id=${encodeURIComponent(memberId)}`),
+      apiRequest(`get-member-history?memberId=${encodeURIComponent(memberId)}`).catch(() => ({ org_history: [], dues_history: [] })),
+      apiRequest(`get-member-change-logs?memberId=${encodeURIComponent(memberId)}`).catch(() => ({ logs: [] }))
+    ]);
     const flashMessage = sessionStorage.getItem("member-edit-message") || "";
     sessionStorage.removeItem("member-edit-message");
-    renderMemberEditor(detail, flashMessage);
+    setView(renderMemberEditor(detail, flashMessage, historyResult, changeLogResult.logs));
     bindMemberEditForm(memberId);
+    bindMemberDetailTabs();
+    bindMemberDirectoryForm(memberId);
   } catch (error) {
     setView(`
       <section class="admin-shell">
-        <header class="card admin-hero">
-          <div class="card-header">
-            <p class="eyebrow">Phase 3 / Admin</p>
-            <h1>会員詳細・編集</h1>
-            <p class="lead">会員情報を表示できませんでした。</p>
-          </div>
-        </header>
+        <div class="page-header">
+          <h1 class="page-title">会員詳細・編集</h1>
+          <p class="page-description">会員情報の確認と更新</p>
+          <div class="actions"><a class="text-link subtle-link" href="/admin/members">会員一覧</a></div>
+        </div>
         <section class="card panel-card single-panel">
           <div class="card-body stack">
             <p class="message error">${escapeHtml(error.message || "会員情報の取得に失敗しました。")}</p>
-            <div class="actions">
-              <a class="text-link" href="/admin/members">会員一覧へ戻る</a>
-            </div>
           </div>
         </section>
       </section>
@@ -2252,14 +2300,65 @@ async function renderAdminMemberDetail(memberId) {
   }
 }
 
+function bindMemberDetailTabs() {
+  const tabBar = document.getElementById("member-detail-tabs");
+  if (!tabBar) return;
+  tabBar.querySelectorAll(".tab-button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      tabBar.querySelectorAll(".tab-button").forEach((b) => b.classList.remove("is-active"));
+      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      const panel = document.getElementById(btn.dataset.tab);
+      if (panel) panel.classList.add("is-active");
+    });
+  });
+}
+
+function bindMemberDirectoryForm(memberId) {
+  const form = document.getElementById("member-directory-form");
+  const message = document.getElementById("member-directory-message");
+  const submitButton = document.getElementById("member-directory-submit");
+  if (!form || !message || !submitButton) return;
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    message.className = "message";
+    message.textContent = "";
+    submitButton.disabled = true;
+    submitButton.textContent = "保存中...";
+    try {
+      await apiRequest("update-member-detail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: String(new FormData(form).get("id") || ""),
+          allow_partial_profile_update: true,
+          show_email_in_directory: form.querySelector('[name="show_email_in_directory"]').checked,
+          show_company_in_directory: form.querySelector('[name="show_company_in_directory"]').checked,
+          show_mobile_in_directory: form.querySelector('[name="show_mobile_in_directory"]').checked,
+          changed_by: "admin",
+          changed_by_role: "admin"
+        })
+      });
+      message.textContent = "名簿設定を保存しました。";
+      message.classList.add("success");
+      submitButton.disabled = false;
+      submitButton.textContent = "名簿設定を保存";
+    } catch (error) {
+      message.textContent = error.message || "保存に失敗しました。";
+      message.classList.add("error");
+      submitButton.disabled = false;
+      submitButton.textContent = "名簿設定を保存";
+    }
+  });
+}
+
 function bindMemberEditForm(memberId) {
   const form = document.getElementById("member-edit-form");
   const message = document.getElementById("member-edit-message");
   const submitButton = document.getElementById("member-edit-submit");
 
-  if (!form || !message || !submitButton) {
-    return;
-  }
+  if (!form || !message || !submitButton) return;
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -2279,20 +2378,26 @@ function bindMemberEditForm(memberId) {
       mobile_phone: String(formData.get("mobile_phone") || "").trim(),
       company_phone: String(formData.get("company_phone") || "").trim(),
       company_fax: String(formData.get("company_fax") || "").trim(),
+      company_postal_code: String(formData.get("company_postal_code") || "").trim(),
       company_address: String(formData.get("company_address") || "").trim(),
+      company_pr: String(formData.get("company_pr") || "").trim(),
+      home_postal_code: String(formData.get("home_postal_code") || "").trim(),
+      home_address: String(formData.get("home_address") || "").trim(),
+      home_phone: String(formData.get("home_phone") || "").trim(),
+      home_fax: String(formData.get("home_fax") || "").trim(),
+      hobbies: String(formData.get("hobbies") || "").trim(),
       member_number: String(formData.get("member_number") || "").trim(),
       member_type: String(formData.get("member_type") || "").trim(),
       status: normalizeMemberStatus(formData.get("status")),
-      show_email_in_directory: form.querySelector('[name="show_email_in_directory"]').checked,
-      show_company_in_directory: form.querySelector('[name="show_company_in_directory"]').checked,
-      show_mobile_in_directory: form.querySelector('[name="show_mobile_in_directory"]').checked
+      notes: String(formData.get("notes") || "").trim(),
+      changed_by: "admin",
+      changed_by_role: "admin"
     };
 
     const requiredFields = [
       [payload.name_kanji, "氏名"],
       [payload.name_kana, "フリガナ"],
       [payload.birthday, "生年月日"],
-      [payload.company_name, "会社名"],
       [payload.email, "メール"],
       [payload.mobile_phone, "携帯番号"]
     ];
@@ -2317,9 +2422,7 @@ function bindMemberEditForm(memberId) {
     try {
       await apiRequest("update-member-detail", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
       sessionStorage.setItem("member-edit-message", "保存しました。");
@@ -2342,22 +2445,19 @@ function bindMemberEditForm(memberId) {
 async function renderAdminMembers() {
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 3 / Admin</p>
-          <h1>会員一覧</h1>
-          <p class="lead">会員を検索・絞り込みし、A3 の会員詳細へ遷移する最小版です。並び順は氏名昇順で固定しています。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">会員一覧</h1>
+        <p class="page-description">会員の検索・絞り込み・詳細確認</p>
+      </div>
       <section class="card panel-card single-panel">
         <div class="card-body stack">
           <form id="members-filter-form" class="filter-grid" novalidate>
             <div class="field field-span-2">
               <label for="member-search">検索</label>
-              <input id="member-search" name="q" type="text" placeholder="氏名 / 会社名 / email" />
+              <input id="member-search" name="q" type="text" placeholder="氏名 / フリガナ / 会社名 / email / 会員番号" />
             </div>
             <div class="field">
-              <label for="status-filter">status</label>
+              <label for="status-filter">ステータス</label>
               <select id="status-filter" name="status">
                 <option value="">すべて</option>
                 <option value="活動中">活動中</option>
@@ -2383,6 +2483,12 @@ async function renderAdminMembers() {
                 <option value="却下">却下</option>
               </select>
             </div>
+            <div class="field">
+              <label for="org-filter">委員会</label>
+              <select id="org-filter" name="organization_id">
+                <option value="">すべて</option>
+              </select>
+            </div>
             <div class="filter-actions">
               <button class="button" type="submit">絞り込む</button>
               <button id="members-reset" class="button ghost" type="button">リセット</button>
@@ -2390,14 +2496,6 @@ async function renderAdminMembers() {
           </form>
           <div class="panel-heading compact">
             <p id="members-message" class="message" aria-live="polite"></p>
-              <div class="actions">
-                <a class="text-link" href="/admin/applications">入会申込管理へ</a>
-                <a class="text-link" href="/admin/newsletters">配信管理へ</a>
-                <a class="text-link" href="/admin/fiscal-years">年度管理へ</a>
-                <a class="text-link" href="/admin/documents">資料管理へ</a>
-                <a class="text-link" href="/admin/organization-chart">組織図管理へ</a>
-                <a class="text-link" href="/directory">名簿閲覧へ</a>
-              </div>
           </div>
           <div id="members-list-slot"></div>
         </div>
@@ -2422,7 +2520,7 @@ async function renderAdminMembers() {
     }
 
     message.className = "message";
-    message.textContent = "読込中...";
+    message.textContent = "読み込み中...";
 
     try {
       const query = params.toString();
@@ -2430,7 +2528,20 @@ async function renderAdminMembers() {
         query ? `list-members-admin?${query}` : "list-members-admin"
       );
       const members = result.members || [];
+      const orgOptions = result.org_options || [];
       listSlot.innerHTML = renderMemberRows(members);
+
+      // Populate org filter if available
+      const orgFilterSelect = document.getElementById("org-filter");
+      if (orgFilterSelect && orgFilterSelect.options.length <= 1 && orgOptions.length > 0) {
+        for (const opt of orgOptions) {
+          const option = document.createElement("option");
+          option.value = opt.id;
+          option.textContent = opt.name;
+          orgFilterSelect.appendChild(option);
+        }
+      }
+
       message.textContent = `${members.length}件を表示中 / 並び順: 氏名昇順`;
     } catch (error) {
       listSlot.innerHTML = '<p class="empty-state">一覧を表示できませんでした。</p>';
@@ -2452,21 +2563,48 @@ async function renderAdminMembers() {
   await loadMembers();
 }
 
-function renderNewsletterRows(newsletters, selectedId) {
-  if (!newsletters.length) {
-    return '<p class="empty-state">配信設定はまだありません。</p>';
+function newsletterStatusLabel(status) {
+  const map = { draft: "下書き", scheduled: "予約中", sent: "送信済", cancelled: "取消", failed: "失敗" };
+  return map[status] || status || "-";
+}
+
+function newsletterStatusClass(status) {
+  const map = { draft: "", scheduled: "pill-warning", sent: "pill-success", failed: "pill-danger", cancelled: "" };
+  return map[status] || "";
+}
+
+function newsletterChannelIcon(channel) {
+  if (channel === "line") return "LINE";
+  if (channel === "email+line") return "Mail+LINE";
+  return "Mail";
+}
+
+function audienceLabel(type) {
+  const map = { all: "全員", member_type: "会員種別", status: "ステータス", approval_status: "承認状態" };
+  return map[type] || type || "全員";
+}
+
+function renderNewsletterRows(newsletters, selectedId, statusFilter) {
+  const filtered = statusFilter === "all" ? newsletters : newsletters.filter((n) => n.status === statusFilter);
+  if (!filtered.length) {
+    return `<div class="nl-empty-state"><p class="muted">${statusFilter === "all" ? "配信はまだありません。「新規作成」から始めましょう。" : "該当する配信はありません。"}</p></div>`;
   }
 
   return `
-    <div class="pending-list stack-sm">
-      ${newsletters
+    <div class="nl-card-list">
+      ${filtered
         .map(
           (newsletter) => `
-            <button class="pending-item ${newsletter.id === selectedId ? "is-selected" : ""}" data-newsletter-id="${escapeHtml(newsletter.id)}" type="button">
-              <span class="pending-date">${escapeHtml(newsletter.updated_at || newsletter.created_at || "-")}</span>
-              <strong>${escapeHtml(displayValue(newsletter.title))}</strong>
-              <span>${escapeHtml(displayValue(newsletter.channel))} / ${escapeHtml(displayValue(newsletter.status))}</span>
-              <span>${escapeHtml(displayValue(newsletter.audience_type))}</span>
+            <button class="nl-card ${newsletter.id === selectedId ? "is-selected" : ""}" data-newsletter-id="${escapeHtml(newsletter.id)}" type="button">
+              <div class="nl-card-header">
+                <span class="pill ${newsletterStatusClass(newsletter.status)}">${escapeHtml(newsletterStatusLabel(newsletter.status))}</span>
+                <span class="nl-channel-badge">${escapeHtml(newsletterChannelIcon(newsletter.channel))}</span>
+              </div>
+              <strong class="nl-card-title">${escapeHtml(displayValue(newsletter.title))}</strong>
+              <div class="nl-card-meta">
+                <span>${escapeHtml(audienceLabel(newsletter.audience_type))}</span>
+                <span>${escapeHtml((newsletter.updated_at || newsletter.created_at || "").slice(0, 10))}</span>
+              </div>
             </button>
           `
         )
@@ -2520,106 +2658,104 @@ function renderNewsletterEditor(newsletter, flashMessage = "") {
   const current = newsletter || createEmptyNewsletter();
   const attachments = parseNewsletterAttachments(current.attachments_json);
   const primaryAttachment = attachments[0] || { name: "", url: "" };
+  const isSent = current.status === "sent";
+  const isReadonly = isSent;
 
   return `
-    <div class="detail-stack">
-      <section class="detail-card stack-sm">
-        <div class="detail-header-row">
-          <div>
-            <p class="eyebrow dark">A7</p>
-            <h2>${escapeHtml(current.id ? "配信詳細 / 編集" : "新規配信作成")}</h2>
-          </div>
-          <span class="pill">${escapeHtml(displayValue(current.status || "draft"))}</span>
-        </div>
-        <p class="muted">この画面は下書き管理と配信設定の下地です。実送信は未接続です。件数は送信対象ルールに基づく概算です。</p>
-      </section>
+    <div class="nl-detail-stack">
+      <div class="nl-detail-header">
+        <h2>${escapeHtml(current.id ? current.title || "無題の配信" : "新規配信作成")}</h2>
+        ${current.id ? `<span class="pill ${newsletterStatusClass(current.status)}">${escapeHtml(newsletterStatusLabel(current.status))}</span>` : ""}
+      </div>
 
-      <section class="detail-card stack">
-        <form id="newsletter-form" class="editor-form" novalidate>
-          <input type="hidden" name="id" value="${escapeHtml(current.id)}" />
-          <div class="field">
-            <label for="newsletter-title">タイトル</label>
-            <input id="newsletter-title" name="title" type="text" value="${escapeHtml(current.title)}" />
+      <form id="newsletter-form" class="nl-form" novalidate>
+        <input type="hidden" name="id" value="${escapeHtml(current.id)}" />
+
+        <div class="field nl-subject-field">
+          <label for="newsletter-title">件名</label>
+          <input id="newsletter-title" name="title" type="text" value="${escapeHtml(current.title)}" placeholder="配信の件名を入力..." class="nl-subject-input" ${isReadonly ? "readonly" : ""} />
+        </div>
+
+        <div class="field">
+          <label for="newsletter-body">本文</label>
+          <textarea id="newsletter-body" name="body" class="nl-body-textarea" placeholder="配信本文を入力..." ${isReadonly ? "readonly" : ""}>${escapeHtml(current.body)}</textarea>
+        </div>
+
+        <div class="nl-options-grid">
+          <div class="nl-option-section">
+            <label class="nl-option-label">配信チャネル</label>
+            <div class="nl-channel-toggles">
+              <label class="nl-toggle-btn ${current.channel === "email" || current.channel === "email+line" ? "active" : ""}">
+                <input type="checkbox" name="channel_email" ${current.channel === "email" || current.channel === "email+line" ? "checked" : ""} ${isReadonly ? "disabled" : ""} />
+                <span>&#9993; Mail</span>
+              </label>
+              <label class="nl-toggle-btn ${current.channel === "line" || current.channel === "email+line" ? "active" : ""}">
+                <input type="checkbox" name="channel_line" ${current.channel === "line" || current.channel === "email+line" ? "checked" : ""} ${isReadonly ? "disabled" : ""} />
+                <span>LINE</span>
+              </label>
+            </div>
+            <input type="hidden" name="channel" value="${escapeHtml(current.channel || "email")}" />
           </div>
-          <div class="field">
-            <label for="newsletter-body">本文</label>
-            <textarea id="newsletter-body" name="body" rows="10">${escapeHtml(current.body)}</textarea>
-          </div>
-          <div class="editor-grid">
-            <div class="field">
-              <label for="newsletter-channel">配信チャネル</label>
-              <select id="newsletter-channel" name="channel">
-                <option value="email"${current.channel === "email" ? " selected" : ""}>email</option>
-                <option value="line"${current.channel === "line" ? " selected" : ""}>line</option>
-                <option value="email+line"${current.channel === "email+line" ? " selected" : ""}>email+line</option>
+
+          <div class="nl-option-section">
+            <label class="nl-option-label">配信対象</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="newsletter-audience-type" name="audience_type" ${isReadonly ? "disabled" : ""}>
+                <option value="all"${current.audience_type === "all" ? " selected" : ""}>全員</option>
+                <option value="member_type"${current.audience_type === "member_type" ? " selected" : ""}>会員種別指定</option>
               </select>
+              <span id="nl-audience-badge" class="pill pill-success" style="display:none"></span>
             </div>
-            <div class="field">
-              <label for="newsletter-status">ステータス</label>
-              <select id="newsletter-status" name="status">
-                <option value="draft"${current.status === "draft" ? " selected" : ""}>draft</option>
-                <option value="scheduled"${current.status === "scheduled" ? " selected" : ""}>scheduled</option>
-                <option value="sent"${current.status === "sent" ? " selected" : ""}>sent</option>
-                <option value="cancelled"${current.status === "cancelled" ? " selected" : ""}>cancelled</option>
-                <option value="failed"${current.status === "failed" ? " selected" : ""}>failed</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="newsletter-audience-type">配信対象種別</label>
-              <select id="newsletter-audience-type" name="audience_type">
-                <option value="all"${current.audience_type === "all" ? " selected" : ""}>all</option>
-                <option value="member_type"${current.audience_type === "member_type" ? " selected" : ""}>member_type</option>
-                <option value="status"${current.audience_type === "status" ? " selected" : ""}>status</option>
-                <option value="approval_status"${current.audience_type === "approval_status" ? " selected" : ""}>approval_status</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="newsletter-scheduled-at">予約送信日時</label>
-              <input id="newsletter-scheduled-at" name="scheduled_at" type="datetime-local" value="${escapeHtml(current.scheduled_at)}" />
+            <select id="newsletter-audience-detail" name="audience_filter_value" style="display:none;margin-top:6px" ${isReadonly ? "disabled" : ""}>
+              <option value="">選択してください</option>
+              <option value="正会員"${current.audience_filter_json?.includes("正会員") ? " selected" : ""}>正会員のみ</option>
+              <option value="賛助会員"${current.audience_filter_json?.includes("賛助会員") ? " selected" : ""}>賛助会員のみ</option>
+            </select>
+            <input type="hidden" name="audience_filter_json" value="${escapeHtml(current.audience_filter_json)}" />
+          </div>
+
+          <div class="nl-option-section">
+            <label class="nl-option-label">予約送信</label>
+            <input id="newsletter-scheduled-at" name="scheduled_at" type="datetime-local" value="${escapeHtml(current.scheduled_at || "")}" ${isReadonly ? "readonly" : ""} />
+            <span class="muted" style="font-size:12px">空欄の場合は即時送信</span>
+          </div>
+        </div>
+
+        <details class="nl-attachment-section" ${primaryAttachment.url ? "open" : ""}>
+          <summary class="nl-option-label" style="cursor:pointer">添付ファイル</summary>
+          <div class="nl-attachment-drop" style="margin-top:8px">
+            <div class="editor-grid">
+              <div class="field">
+                <label for="newsletter-attachment-name">表示名</label>
+                <input id="newsletter-attachment-name" name="attachment_name" type="text" value="${escapeHtml(primaryAttachment.name || "")}" placeholder="例: 2026年度案内PDF" ${isReadonly ? "readonly" : ""} />
+              </div>
+              <div class="field">
+                <label for="newsletter-attachment-url">URL</label>
+                <input id="newsletter-attachment-url" name="attachment_url" type="url" value="${escapeHtml(primaryAttachment.url || "")}" placeholder="https://..." ${isReadonly ? "readonly" : ""} />
+              </div>
             </div>
           </div>
-          <div class="field">
-            <label for="newsletter-audience-filter">配信対象条件 JSON</label>
-            <textarea id="newsletter-audience-filter" name="audience_filter_json" rows="4" placeholder='例: {"member_type":"正会員"}'>${escapeHtml(current.audience_filter_json)}</textarea>
+        </details>
+
+        <input type="hidden" name="status" value="${escapeHtml(current.status || "draft")}" />
+        <input type="hidden" name="attachment_info" value="${escapeHtml(current.attachment_info || "")}" />
+        <input type="hidden" name="error_message" value="${escapeHtml(current.error_message || "")}" />
+
+        ${current.id && current.last_sent_at ? `
+          <div class="nl-sent-info">
+            <span class="muted">送信日時: ${escapeHtml(current.last_sent_at)}</span>
           </div>
-          <div class="field">
-            <label for="newsletter-attachment-info">添付メモ</label>
-            <input id="newsletter-attachment-info" name="attachment_info" type="text" value="${escapeHtml(current.attachment_info)}" placeholder="今回は placeholder のみ" />
-          </div>
-          <div class="editor-grid">
-            <div class="field">
-              <label for="newsletter-attachment-name">添付表示名</label>
-              <input id="newsletter-attachment-name" name="attachment_name" type="text" value="${escapeHtml(primaryAttachment.name || "")}" placeholder="例: 2026年度案内PDF" />
-            </div>
-            <div class="field">
-              <label for="newsletter-attachment-url">添付URL</label>
-              <input id="newsletter-attachment-url" name="attachment_url" type="url" value="${escapeHtml(primaryAttachment.url || "")}" placeholder="https://example.com/file.pdf" />
-            </div>
-          </div>
-          <div class="field">
-            <label for="newsletter-error-message">エラーメッセージ</label>
-            <textarea id="newsletter-error-message" name="error_message" rows="3">${escapeHtml(current.error_message)}</textarea>
-          </div>
-          <section class="detail-card stack-sm inset-card">
-            <div>
-              <p class="eyebrow dark">Summary</p>
-              <h3>保存済み情報</h3>
-            </div>
-            <dl class="detail-grid">
-              <div><dt>最終送信日時</dt><dd>${escapeHtml(displayValue(current.last_sent_at))}</dd></div>
-              <div><dt>更新日時</dt><dd>${escapeHtml(displayValue(current.updated_at))}</dd></div>
-              <div><dt>添付表示名</dt><dd>${escapeHtml(displayValue(primaryAttachment.name || ""))}</dd></div>
-              <div><dt>添付URL</dt><dd>${primaryAttachment.url ? `<a class="text-link" href="${escapeHtml(primaryAttachment.url)}" target="_blank" rel="noreferrer">${escapeHtml(primaryAttachment.url)}</a>` : "-"}</dd></div>
-            </dl>
-          </section>
-          <p id="newsletter-message" class="message ${flashMessage ? "success" : ""}" aria-live="polite">${escapeHtml(flashMessage)}</p>
-          <p id="newsletter-preview-message" class="message" aria-live="polite"></p>
-          <div class="actions">
-            <button id="newsletter-save" class="button" type="submit">下書き保存</button>
-            <button id="newsletter-preview" class="button ghost" type="button">対象件数を確認</button>
-          </div>
-        </form>
-      </section>
+        ` : ""}
+
+        <p id="newsletter-message" class="message ${flashMessage ? "success" : ""}" aria-live="polite">${escapeHtml(flashMessage)}</p>
+        <p id="newsletter-preview-message" class="message" aria-live="polite"></p>
+
+        <div class="nl-action-bar">
+          ${!isReadonly ? `<button id="newsletter-save" class="button ghost" type="submit">下書き保存</button>` : ""}
+          <button id="newsletter-preview" class="button ghost" type="button">プレビュー</button>
+          ${current.id && !isSent ? `<button id="newsletter-send" class="button nl-send-btn" type="button">送信する</button>` : ""}
+        </div>
+      </form>
     </div>
   `;
 }
@@ -2627,45 +2763,28 @@ function renderNewsletterEditor(newsletter, flashMessage = "") {
 async function renderAdminNewsletters(selectedId = "") {
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 3 / Admin</p>
-          <h1>配信管理</h1>
-          <p class="lead">配信設定の下書き保存と一覧確認の最小版です。Resend / LINE の実送信はまだ接続していません。</p>
-        </div>
-      </header>
-      <div class="admin-grid">
-        <section class="card panel-card">
-          <div class="card-body">
+      <div class="page-header">
+        <h1 class="page-title">配信管理</h1>
+        <p class="page-description">メール配信の作成・送信・履歴管理</p>
+      </div>
+      <div class="admin-grid admin-grid-wide">
+        <section class="card panel-card nl-list-panel">
+          <div class="card-body stack">
             <div class="panel-heading">
-              <div>
-                <p class="eyebrow dark">A7</p>
-                <h2>配信一覧</h2>
-              </div>
-              <div class="actions">
-                <a class="text-link" href="/admin/dashboard">ダッシュボードへ</a>
-                <a class="text-link" href="/admin/settings">設定へ</a>
-                <a class="text-link" href="/admin/applications">入会申込管理へ</a>
-                <a class="text-link" href="/admin/members">会員一覧へ</a>
-                <a class="text-link" href="/admin/fiscal-years">年度管理へ</a>
-                <a class="text-link" href="/admin/documents">資料管理へ</a>
-                <a class="text-link" href="/admin/organization-chart">組織図管理へ</a>
-                <button id="newsletter-create" class="button ghost" type="button">新規作成</button>
-              </div>
+              <div><h2>配信一覧</h2></div>
+              <button id="newsletter-create" class="button" type="button">+ 新規作成</button>
             </div>
-            <p id="newsletter-list-message" class="message" aria-live="polite"></p>
-            <div id="newsletter-list-slot"></div>
+            <div class="nl-status-tabs" id="nl-status-tabs">
+              <button class="nl-tab active" data-filter="all" type="button">全て</button>
+              <button class="nl-tab" data-filter="draft" type="button">下書き</button>
+              <button class="nl-tab" data-filter="scheduled" type="button">予約中</button>
+              <button class="nl-tab" data-filter="sent" type="button">送信済</button>
+            </div>
+            <div id="newsletter-list-slot" class="nl-list-slot"></div>
           </div>
         </section>
-        <section class="card panel-card">
+        <section class="card panel-card nl-detail-panel">
           <div class="card-body">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow dark">A7</p>
-                <h2>配信詳細</h2>
-              </div>
-              <a class="text-link" href="/apply">公開フォームへ</a>
-            </div>
             <div id="newsletter-detail-slot"></div>
           </div>
         </section>
@@ -2673,13 +2792,40 @@ async function renderAdminNewsletters(selectedId = "") {
     </section>
   `);
 
-  const listMessage = document.getElementById("newsletter-list-message");
   const listSlot = document.getElementById("newsletter-list-slot");
   const detailSlot = document.getElementById("newsletter-detail-slot");
   const createButton = document.getElementById("newsletter-create");
+  const statusTabs = document.getElementById("nl-status-tabs");
 
   let newsletters = [];
   let activeId = selectedId || "";
+  let currentFilter = "all";
+
+  function updateChannelHidden(form) {
+    const emailCb = form.querySelector("[name=channel_email]");
+    const lineCb = form.querySelector("[name=channel_line]");
+    const channelInput = form.querySelector("[name=channel]");
+    if (!emailCb || !lineCb || !channelInput) return;
+    const e = emailCb.checked, l = lineCb.checked;
+    channelInput.value = e && l ? "email+line" : l ? "line" : "email";
+    emailCb.closest(".nl-toggle-btn").classList.toggle("active", e);
+    lineCb.closest(".nl-toggle-btn").classList.toggle("active", l);
+  }
+
+  function updateAudienceUI(form) {
+    const type = form.querySelector("[name=audience_type]")?.value || "all";
+    const detailSelect = form.querySelector("#newsletter-audience-detail");
+    const filterInput = form.querySelector("[name=audience_filter_json]");
+    if (detailSelect) {
+      detailSelect.style.display = type === "member_type" ? "" : "none";
+    }
+    if (type === "member_type" && detailSelect && filterInput) {
+      const val = detailSelect.value;
+      filterInput.value = val ? JSON.stringify({ member_type: val }) : "";
+    } else if (type === "all" && filterInput) {
+      filterInput.value = "";
+    }
+  }
 
   async function loadDetail(id) {
     const flashMessage = sessionStorage.getItem("newsletter-message") || "";
@@ -2691,7 +2837,7 @@ async function renderAdminNewsletters(selectedId = "") {
       return;
     }
 
-    detailSlot.innerHTML = '<p class="message">詳細を読み込んでいます...</p>';
+    detailSlot.innerHTML = '<div class="nl-skeleton"><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-block"></div></div>';
 
     try {
       const result = await apiRequest(`get-newsletter-detail?id=${encodeURIComponent(id)}`);
@@ -2702,12 +2848,16 @@ async function renderAdminNewsletters(selectedId = "") {
     }
   }
 
+  function renderList() {
+    listSlot.innerHTML = renderNewsletterRows(newsletters, activeId, currentFilter);
+    bindListActions();
+  }
+
   function bindListActions() {
     listSlot.querySelectorAll("[data-newsletter-id]").forEach((button) => {
       button.addEventListener("click", async () => {
         activeId = button.dataset.newsletterId || "";
-        listSlot.innerHTML = renderNewsletterRows(newsletters, activeId);
-        bindListActions();
+        renderList();
         await loadDetail(activeId);
       });
     });
@@ -2720,160 +2870,178 @@ async function renderAdminNewsletters(selectedId = "") {
     const saveButton = document.getElementById("newsletter-save");
     const previewButton = document.getElementById("newsletter-preview");
 
-    if (!form || !message || !previewMessage || !saveButton || !previewButton) {
-      return;
+    if (!form || !previewMessage) return;
+
+    // Channel toggle binding
+    form.querySelectorAll("[name=channel_email],[name=channel_line]").forEach((cb) => {
+      cb.addEventListener("change", () => updateChannelHidden(form));
+    });
+
+    // Audience type binding
+    const audienceType = form.querySelector("[name=audience_type]");
+    const audienceDetail = form.querySelector("#newsletter-audience-detail");
+    if (audienceType) {
+      audienceType.addEventListener("change", () => updateAudienceUI(form));
+      updateAudienceUI(form);
+    }
+    if (audienceDetail) {
+      audienceDetail.addEventListener("change", () => updateAudienceUI(form));
     }
 
+    // Auto-resize textarea
+    const bodyTextarea = form.querySelector("#newsletter-body");
+    if (bodyTextarea) {
+      function autoResize() {
+        bodyTextarea.style.height = "auto";
+        bodyTextarea.style.height = Math.max(200, bodyTextarea.scrollHeight) + "px";
+      }
+      bodyTextarea.addEventListener("input", autoResize);
+      autoResize();
+    }
+
+    // Preview audience
     async function previewAudience() {
       previewMessage.className = "message";
       previewMessage.textContent = "";
-
       const formData = new FormData(form);
       const payload = {
         audience_type: String(formData.get("audience_type") || "all").trim(),
         audience_filter_json: String(formData.get("audience_filter_json") || "").trim()
       };
 
-      if (payload.audience_filter_json) {
-        try {
-          JSON.parse(payload.audience_filter_json);
-        } catch {
-          previewMessage.textContent = "配信対象条件 JSON の形式を確認してください。";
-          previewMessage.classList.add("error");
-          return;
-        }
-      }
-
       previewButton.disabled = true;
       previewButton.textContent = "確認中...";
-
       try {
         const result = await apiRequest("preview-newsletter-audience", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        const values = result.matched_values || [];
-        const suffix = values.length ? ` / 条件: ${values.join(", ")}` : "";
-        previewMessage.textContent = `対象件数: ${result.count}件${suffix} / 基準: 承認済・活動中`;
+        const badge = document.getElementById("nl-audience-badge");
+        if (badge) { badge.style.display = ""; badge.textContent = `${result.count}名`; }
+        previewMessage.textContent = `対象: ${result.count}名（承認済・活動中）`;
         previewMessage.classList.add("success");
       } catch (error) {
-        previewMessage.textContent = error.message || "対象件数の確認に失敗しました。";
+        previewMessage.textContent = error.message || "確認に失敗しました。";
         previewMessage.classList.add("error");
       } finally {
         previewButton.disabled = false;
-        previewButton.textContent = "対象件数を確認";
+        previewButton.textContent = "プレビュー";
       }
     }
-
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      message.className = "message";
-      message.textContent = "";
-
-      const formData = new FormData(form);
-      const attachmentName = String(formData.get("attachment_name") || "").trim();
-      const attachmentUrl = String(formData.get("attachment_url") || "").trim();
-      const attachments = attachmentName || attachmentUrl
-        ? [{ name: attachmentName, url: attachmentUrl }]
-        : [];
-      const payload = {
-        id: String(formData.get("id") || "").trim(),
-        title: String(formData.get("title") || "").trim(),
-        body: String(formData.get("body") || "").trim(),
-        channel: String(formData.get("channel") || "email").trim(),
-        status: String(formData.get("status") || "draft").trim(),
-        audience_type: String(formData.get("audience_type") || "all").trim(),
-        audience_filter_json: String(formData.get("audience_filter_json") || "").trim(),
-        scheduled_at: String(formData.get("scheduled_at") || "").trim(),
-        last_sent_at: "",
-        error_message: String(formData.get("error_message") || "").trim(),
-        attachment_info: String(formData.get("attachment_info") || "").trim(),
-        attachments_json: JSON.stringify(attachments)
-      };
-
-      if (!payload.title) {
-        message.textContent = "タイトルを入力してください。";
-        message.classList.add("error");
-        return;
-      }
-
-      if (!payload.body) {
-        message.textContent = "本文を入力してください。";
-        message.classList.add("error");
-        return;
-      }
-
-      if (payload.audience_filter_json) {
-        try {
-          JSON.parse(payload.audience_filter_json);
-        } catch {
-          message.textContent = "配信対象条件 JSON の形式を確認してください。";
-          message.classList.add("error");
-          return;
-        }
-      }
-
-      if (attachmentUrl) {
-        try {
-          new URL(attachmentUrl);
-        } catch {
-          message.textContent = "添付URLの形式を確認してください。";
-          message.classList.add("error");
-          return;
-        }
-      }
-
-      saveButton.disabled = true;
-      saveButton.textContent = "保存中...";
-
-      try {
-        const result = await apiRequest("save-newsletter-draft", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        sessionStorage.setItem("newsletter-message", "下書きを保存しました。実送信は未接続です。");
-        await renderAdminNewsletters(result.newsletter?.id || currentId || "");
-      } catch (error) {
-        message.textContent = error.message || "保存に失敗しました。";
-        message.classList.add("error");
-        saveButton.disabled = false;
-        saveButton.textContent = "下書き保存";
-      }
-    });
-
     previewButton.addEventListener("click", previewAudience);
+
+    // Save
+    if (saveButton) {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (message) { message.className = "message"; message.textContent = ""; }
+        const formData = new FormData(form);
+        const attachmentName = String(formData.get("attachment_name") || "").trim();
+        const attachmentUrl = String(formData.get("attachment_url") || "").trim();
+        const attachments = attachmentName || attachmentUrl ? [{ name: attachmentName, url: attachmentUrl }] : [];
+
+        const payload = {
+          id: String(formData.get("id") || "").trim(),
+          title: String(formData.get("title") || "").trim(),
+          body: String(formData.get("body") || "").trim(),
+          channel: String(formData.get("channel") || "email").trim(),
+          status: String(formData.get("status") || "draft").trim(),
+          audience_type: String(formData.get("audience_type") || "all").trim(),
+          audience_filter_json: String(formData.get("audience_filter_json") || "").trim(),
+          scheduled_at: String(formData.get("scheduled_at") || "").trim(),
+          last_sent_at: "",
+          error_message: String(formData.get("error_message") || "").trim(),
+          attachment_info: String(formData.get("attachment_info") || "").trim(),
+          attachments_json: JSON.stringify(attachments)
+        };
+
+        if (!payload.title) { if (message) { message.textContent = "件名を入力してください。"; message.classList.add("error"); } return; }
+        if (!payload.body) { if (message) { message.textContent = "本文を入力してください。"; message.classList.add("error"); } return; }
+
+        saveButton.disabled = true;
+        saveButton.textContent = "保存中...";
+        try {
+          const result = await apiRequest("save-newsletter-draft", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          showToast("下書きを保存しました");
+          activeId = result.newsletter?.id || currentId || "";
+          await loadNewsletters();
+        } catch (error) {
+          if (message) { message.textContent = error.message || "保存に失敗しました。"; message.classList.add("error"); }
+          saveButton.disabled = false;
+          saveButton.textContent = "下書き保存";
+        }
+      });
+    }
+
+    // Send
+    const sendButton = document.getElementById("newsletter-send");
+    if (sendButton && currentId) {
+      sendButton.addEventListener("click", async () => {
+        // Build confirm message
+        const formData = new FormData(form);
+        const scheduledAt = String(formData.get("scheduled_at") || "").trim();
+        let confirmMsg;
+        if (scheduledAt) {
+          const d = new Date(scheduledAt);
+          confirmMsg = `${d.getMonth()+1}月${d.getDate()}日 ${d.getHours()}時${String(d.getMinutes()).padStart(2,"0")}分に送信予約します。\nよろしいですか？`;
+        } else {
+          confirmMsg = "この配信を今すぐ送信します。\n送信後は取り消せません。よろしいですか？";
+        }
+        if (!confirm(confirmMsg)) return;
+
+        if (message) { message.className = "message"; message.textContent = ""; }
+        sendButton.disabled = true;
+        sendButton.innerHTML = '<span class="nl-spinner"></span> 送信中...';
+        try {
+          const result = await apiRequest("send-newsletter", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ newsletter_id: currentId })
+          });
+          showToast(`送信完了: ${result.success_count}名に送信しました`);
+          activeId = currentId;
+          await loadNewsletters();
+        } catch (error) {
+          if (message) { message.textContent = error.message || "送信に失敗しました。"; message.classList.add("error"); }
+          sendButton.disabled = false;
+          sendButton.textContent = "送信する";
+        }
+      });
+    }
   }
 
   async function loadNewsletters() {
-    listMessage.className = "message";
-    listMessage.textContent = "読込中...";
-
+    listSlot.innerHTML = '<div class="nl-skeleton"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>';
     try {
       const result = await apiRequest("list-newsletters-admin");
       newsletters = result.newsletters || [];
-      if (activeId && !newsletters.some((newsletter) => newsletter.id === activeId)) {
-        activeId = "";
-      }
-      listSlot.innerHTML = renderNewsletterRows(newsletters, activeId);
-      bindListActions();
-      listMessage.textContent = newsletters.length
-        ? `${newsletters.length}件を表示中 / 実送信は未接続`
-        : "下書きはまだありません。";
+      if (activeId && !newsletters.some((n) => n.id === activeId)) activeId = "";
+      renderList();
       await loadDetail(activeId);
     } catch (error) {
-      listSlot.innerHTML = '<p class="empty-state">一覧を表示できませんでした。</p>';
-      detailSlot.innerHTML = '<p class="message error">配信詳細を表示できませんでした。</p>';
-      listMessage.className = "message error";
-      listMessage.textContent = error.message || "配信一覧の取得に失敗しました。";
+      listSlot.innerHTML = `<p class="message error">${escapeHtml(error.message || "一覧取得に失敗")}</p>`;
     }
+  }
+
+  // Tab switching
+  if (statusTabs) {
+    statusTabs.addEventListener("click", (e) => {
+      const tab = e.target.closest("[data-filter]");
+      if (!tab) return;
+      currentFilter = tab.dataset.filter;
+      statusTabs.querySelectorAll(".nl-tab").forEach((t) => t.classList.toggle("active", t === tab));
+      renderList();
+    });
   }
 
   createButton.addEventListener("click", async () => {
     activeId = "";
-    listSlot.innerHTML = renderNewsletterRows(newsletters, activeId);
-    bindListActions();
+    renderList();
     sessionStorage.removeItem("newsletter-message");
     await loadDetail("");
   });
@@ -2932,7 +3100,7 @@ function renderOrgDocumentEditor(document, fiscalYears, flashMessage = "") {
       <section class="detail-card stack-sm">
         <div class="detail-header-row">
           <div>
-            <p class="eyebrow dark">A10</p>
+
             <h2>${escapeHtml(current.id ? "資料詳細 / 編集" : "新規資料追加")}</h2>
           </div>
           <span class="pill">${current.published ? "公開中" : "非公開"}</span>
@@ -2984,7 +3152,7 @@ function renderOrgDocumentEditor(document, fiscalYears, flashMessage = "") {
           </div>
           <section class="detail-card stack-sm inset-card">
             <div>
-              <p class="eyebrow dark">Summary</p>
+
               <h3>保存済み情報</h3>
             </div>
             <dl class="detail-grid">
@@ -3009,29 +3177,16 @@ function renderOrgDocumentEditor(document, fiscalYears, flashMessage = "") {
 async function renderAdminDocuments(selectedId = "") {
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 3 / Admin</p>
-          <h1>資料管理</h1>
-          <p class="lead">M4 基本情報と M6 運用マニュアルに出す資料を、管理画面から登録・公開する最小版です。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">資料管理</h1>
+        <p class="page-description">基本情報・運用マニュアル向け資料の登録・公開管理</p>
+      </div>
       <div class="admin-grid">
         <section class="card panel-card">
           <div class="card-body">
             <div class="panel-heading">
-              <div>
-                <p class="eyebrow dark">A10</p>
-                <h2>資料一覧</h2>
-              </div>
+              <div><h2>資料一覧</h2></div>
               <div class="actions">
-                <a class="text-link" href="/admin/dashboard">ダッシュボードへ</a>
-                <a class="text-link" href="/admin/settings">設定へ</a>
-                <a class="text-link" href="/admin/fiscal-years">年度管理へ</a>
-                <a class="text-link" href="/admin/newsletters">配信管理へ</a>
-                <a class="text-link" href="/admin/dues-management">会費管理へ</a>
-                <a class="text-link" href="/info">会員向け基本情報へ</a>
-                <a class="text-link" href="/admin/organization-chart">組織図管理へ</a>
                 <button id="org-document-create" class="button ghost" type="button">新規追加</button>
               </div>
             </div>
@@ -3043,12 +3198,8 @@ async function renderAdminDocuments(selectedId = "") {
           <div class="card-body">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow dark">A10</p>
+    
                 <h2>資料詳細</h2>
-              </div>
-              <div class="actions">
-                <a class="text-link" href="/manual">運用マニュアルへ</a>
-                <a class="text-link" href="/organization">組織図へ</a>
               </div>
             </div>
             <div id="org-document-detail-slot"></div>
@@ -3300,23 +3451,23 @@ function renderDueSummary(summary) {
     <section class="detail-card stack-sm">
       <div class="panel-heading compact">
         <div>
-          <p class="eyebrow dark">Summary</p>
+
           <h3>簡易集計</h3>
         </div>
       </div>
       <div class="a3-summary-grid">
         <section class="detail-card inset-card stack-sm">
-          <span class="eyebrow dark">対象件数</span>
+          <span class="metric-label">対象件数</span>
           <strong>${escapeHtml(String(summary.total_count || 0))}件</strong>
           <span class="muted">納入済 ${escapeHtml(String(summary.paid_count || 0))}件 / 未納 ${escapeHtml(String(summary.unpaid_count || 0))}件</span>
         </section>
         <section class="detail-card inset-card stack-sm">
-          <span class="eyebrow dark">請求総額</span>
+          <span class="metric-label">請求総額</span>
           <strong>${escapeHtml(formatCurrency(summary.total_amount || 0))}</strong>
           <span class="muted">納入済 ${escapeHtml(formatCurrency(summary.paid_amount || 0))}</span>
         </section>
         <section class="detail-card inset-card stack-sm">
-          <span class="eyebrow dark">未納総額</span>
+          <span class="metric-label">未納総額</span>
           <strong>${escapeHtml(formatCurrency(summary.unpaid_amount || 0))}</strong>
           <span class="muted">概算表示</span>
         </section>
@@ -3338,12 +3489,12 @@ function renderDueEditor(data) {
       <section class="detail-card stack-sm">
         <div class="detail-header-row">
           <div>
-            <p class="eyebrow dark">A5</p>
+
             <h2>会費管理</h2>
           </div>
           <span class="pill">${escapeHtml(selectedFiscalYear?.year ? `${selectedFiscalYear.year}年度` : "年度未選択")}</span>
         </div>
-        <p class="muted">年度ごとの会費一覧、納入ステータス更新、簡易集計を扱う最小版です。</p>
+        <p class="muted">年度ごとの会費一覧と納入状況管理</p>
       </section>
 
       <section class="detail-card stack">
@@ -3361,8 +3512,19 @@ function renderDueEditor(data) {
 
       <section class="detail-card stack">
         <div class="panel-heading compact">
+          <div><h3>一括操作</h3></div>
+        </div>
+        <div class="actions" style="flex-wrap:wrap">
+          <button id="send-due-reminder" class="button ghost" type="button"${summary.unpaid_count > 0 ? "" : " disabled"}>未納者にリマインドメール送信 (${summary.unpaid_count || 0}名)</button>
+          <button id="batch-mark-paid" class="button ghost" type="button"${summary.unpaid_count > 0 ? "" : " disabled"}>全員を納入済にする</button>
+        </div>
+        <p id="batch-action-message" class="message" aria-live="polite"></p>
+      </section>
+
+      <section class="detail-card stack">
+        <div class="panel-heading compact">
           <div>
-            <p class="eyebrow dark">Settings</p>
+
             <h3>会費金額設定</h3>
           </div>
         </div>
@@ -3388,7 +3550,7 @@ function renderDueEditor(data) {
       <section class="detail-card stack">
         <div class="panel-heading compact">
           <div>
-            <p class="eyebrow dark">Due</p>
+
             <h3>${escapeHtml(due.id ? "会費更新" : "会費詳細")}</h3>
           </div>
           ${due.id ? `<span class="pill">${escapeHtml(displayValue(due.status))}</span>` : ""}
@@ -3453,27 +3615,17 @@ async function renderAdminDuesManagement(options = {}) {
 
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 3 / Admin</p>
-          <h1>会費管理</h1>
-          <p class="lead">年度ごとの会費一覧、納入ステータス更新、簡易集計を扱う最小版です。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">会費管理</h1>
+        <p class="page-description">年度ごとの会費一覧と納入状況管理</p>
+      </div>
       <div class="admin-grid admin-grid-wide">
         <section class="card panel-card">
           <div class="card-body">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow dark">A5</p>
+    
                 <h2>会費一覧</h2>
-              </div>
-              <div class="actions">
-                <a class="text-link" href="/admin/dashboard">ダッシュボードへ</a>
-                <a class="text-link" href="/admin/settings">設定へ</a>
-                <a class="text-link" href="/admin/fiscal-years">年度管理へ</a>
-                <a class="text-link" href="/admin/organization-chart">組織図管理へ</a>
-                <a class="text-link" href="/admin/newsletters">配信管理へ</a>
               </div>
             </div>
             <p id="due-list-message" class="message" aria-live="polite"></p>
@@ -3523,6 +3675,64 @@ async function renderAdminDuesManagement(options = {}) {
     const dueForm = document.getElementById("due-form");
     const dueMessage = document.getElementById("due-message");
     const dueSave = document.getElementById("due-save");
+    const sendReminderBtn = document.getElementById("send-due-reminder");
+    const batchMarkPaidBtn = document.getElementById("batch-mark-paid");
+    const batchMessage = document.getElementById("batch-action-message");
+
+    if (sendReminderBtn) {
+      sendReminderBtn.addEventListener("click", async () => {
+        if (!confirm(`未納の${summary.unpaid_count || 0}名にリマインドメールを送信しますか？`)) return;
+        sendReminderBtn.disabled = true;
+        sendReminderBtn.textContent = "送信中...";
+        if (batchMessage) { batchMessage.className = "message"; batchMessage.textContent = ""; }
+        try {
+          const result = await apiRequest("send-due-reminder", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fiscal_year_id: selectedFiscalYearId })
+          });
+          if (batchMessage) {
+            batchMessage.textContent = `${result.sent_count || 0}名に送信しました。${result.fail_count ? ` 失敗: ${result.fail_count}件` : ""}`;
+            batchMessage.className = "message success";
+          }
+        } catch (error) {
+          if (batchMessage) {
+            batchMessage.textContent = error.message || "リマインド送信に失敗しました。";
+            batchMessage.className = "message error";
+          }
+        }
+        sendReminderBtn.disabled = false;
+        sendReminderBtn.textContent = `未納者にリマインドメール送信 (${summary.unpaid_count || 0}名)`;
+      });
+    }
+
+    if (batchMarkPaidBtn) {
+      batchMarkPaidBtn.addEventListener("click", async () => {
+        if (!confirm(`未納の全${summary.unpaid_count || 0}件を納入済に変更しますか？`)) return;
+        batchMarkPaidBtn.disabled = true;
+        batchMarkPaidBtn.textContent = "更新中...";
+        if (batchMessage) { batchMessage.className = "message"; batchMessage.textContent = ""; }
+        try {
+          const result = await apiRequest("batch-update-dues", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fiscal_year_id: selectedFiscalYearId, status: "納入済", paid_date: new Date().toISOString().slice(0, 10) })
+          });
+          if (batchMessage) {
+            batchMessage.textContent = `${result.updated_count || 0}件を納入済に更新しました。`;
+            batchMessage.className = "message success";
+          }
+          await loadDues();
+        } catch (error) {
+          if (batchMessage) {
+            batchMessage.textContent = error.message || "一括更新に失敗しました。";
+            batchMessage.className = "message error";
+          }
+          batchMarkPaidBtn.disabled = false;
+          batchMarkPaidBtn.textContent = "全員を納入済にする";
+        }
+      });
+    }
 
     if (filterForm) {
       filterForm.addEventListener("change", () => {
@@ -3699,25 +3909,44 @@ function createEmptyOrgAssignment(fiscalYearId = "", organizationId = "") {
   };
 }
 
+function renderOrgTreeNode(org, selectedId, depth) {
+  const indent = depth * 16;
+  return `
+    <button class="pending-item ${org.id === selectedId ? "is-selected" : ""}" data-organization-id="${escapeHtml(org.id)}" type="button" style="padding-left:${12 + indent}px">
+      <span class="pending-date">${escapeHtml(displayValue(org.org_type))} / 配属 ${(org.assignments || []).length}名</span>
+      <strong>${depth > 0 ? "└ " : ""}${escapeHtml(displayValue(org.org_name))}</strong>
+    </button>
+    ${(org.children || []).map((child) => renderOrgTreeNode(child, selectedId, depth + 1)).join("")}
+  `;
+}
+
 function renderOrganizationRows(organizations, selectedId) {
   if (!organizations.length) {
     return '<p class="empty-state">この年度の組織はまだありません。</p>';
   }
 
+  // Build tree
+  const orgById = new Map();
+  organizations.forEach((o) => { orgById.set(o.id, { ...o, children: [] }); });
+  const roots = [];
+  orgById.forEach((o) => {
+    const pid = o.parent_id || "";
+    if (pid && orgById.has(pid)) {
+      orgById.get(pid).children.push(o);
+    } else {
+      roots.push(o);
+    }
+  });
+  // Sort children by sort_order
+  function sortTree(nodes) {
+    nodes.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    nodes.forEach((n) => sortTree(n.children));
+  }
+  sortTree(roots);
+
   return `
     <div class="pending-list stack-sm">
-      ${organizations
-        .map(
-          (organization) => `
-            <button class="pending-item ${organization.id === selectedId ? "is-selected" : ""}" data-organization-id="${escapeHtml(organization.id)}" type="button">
-              <span class="pending-date">${escapeHtml(displayValue(organization.org_type))} / sort: ${escapeHtml(String(organization.sort_order || 0))}</span>
-              <strong>${escapeHtml(displayValue(organization.org_name))}</strong>
-              <span>${escapeHtml(displayValue(organization.parent_name || "親組織なし"))}</span>
-              <span>配属 ${escapeHtml(String((organization.assignments || []).length))} 件</span>
-            </button>
-          `
-        )
-        .join("")}
+      ${roots.map((org) => renderOrgTreeNode(org, selectedId, 0)).join("")}
     </div>
   `;
 }
@@ -3761,12 +3990,12 @@ function renderOrganizationEditor(data) {
       <section class="detail-card stack-sm">
         <div class="detail-header-row">
           <div>
-            <p class="eyebrow dark">A6</p>
+
             <h2>組織図管理</h2>
           </div>
           <span class="pill">${escapeHtml(selectedFiscalYear?.year ? `${selectedFiscalYear.year}年度` : "年度未選択")}</span>
         </div>
-        <p class="muted">年度単位で組織と役職付き配属を管理する最小版です。</p>
+        <p class="muted">年度単位で組織と役職付き配属を管理します。前年度の組織構成をコピーすることも可能です。</p>
       </section>
 
       <section class="detail-card stack">
@@ -3777,13 +4006,17 @@ function renderOrganizationEditor(data) {
               ${fiscalYears.map((fiscalYear) => `<option value="${escapeHtml(fiscalYear.id)}"${selectedFiscalYearId === fiscalYear.id ? " selected" : ""}>${escapeHtml(String(fiscalYear.year || "-"))}年度${fiscalYear.is_current ? " (現在)" : ""}</option>`).join("")}
             </select>
           </div>
+          <div class="field" style="align-self:end">
+            <button id="copy-prev-year-orgs" class="button ghost" type="button"${organizations.length > 0 ? ' disabled title="この年度には既に組織があります"' : ""}>前年度からコピー</button>
+          </div>
         </form>
+        <p id="copy-year-message" class="message" aria-live="polite"></p>
       </section>
 
       <section class="detail-card stack">
         <div class="panel-heading compact">
           <div>
-            <p class="eyebrow dark">Organization</p>
+
             <h3>${escapeHtml(organization.id ? "組織編集" : "組織新規追加")}</h3>
           </div>
           <button id="organization-reset" class="button ghost" type="button">新規組織</button>
@@ -3825,7 +4058,7 @@ function renderOrganizationEditor(data) {
       <section class="detail-card stack">
         <div class="panel-heading compact">
           <div>
-            <p class="eyebrow dark">Assignments</p>
+
             <h3>配属一覧</h3>
           </div>
           <button id="assignment-reset" class="button ghost" type="button"${organization.id ? "" : " disabled"}>新規配属</button>
@@ -3836,7 +4069,7 @@ function renderOrganizationEditor(data) {
       <section class="detail-card stack">
         <div class="panel-heading compact">
           <div>
-            <p class="eyebrow dark">Assignment</p>
+
             <h3>${escapeHtml(assignment.id ? "配属編集" : "配属新規追加")}</h3>
           </div>
         </div>
@@ -3881,28 +4114,17 @@ async function renderAdminOrganizationChart(options = {}) {
 
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 3 / Admin</p>
-          <h1>組織図管理</h1>
-          <p class="lead">年度ごとに組織と配属を管理し、M5 組織図表示と同じデータを編集する最小版です。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">組織図管理</h1>
+        <p class="page-description">年度ごとの組織と配属の管理</p>
+      </div>
       <div class="admin-grid admin-grid-wide">
         <section class="card panel-card">
           <div class="card-body">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow dark">A6</p>
+    
                 <h2>組織一覧</h2>
-              </div>
-              <div class="actions">
-                <a class="text-link" href="/admin/dashboard">ダッシュボードへ</a>
-                <a class="text-link" href="/admin/settings">設定へ</a>
-                <a class="text-link" href="/admin/fiscal-years">年度管理へ</a>
-                <a class="text-link" href="/admin/dues-management">会費管理へ</a>
-                <a class="text-link" href="/admin/documents">資料管理へ</a>
-                <a class="text-link" href="/organization">会員向け組織図へ</a>
               </div>
             </div>
             <p id="organization-list-message" class="message" aria-live="polite"></p>
@@ -3982,6 +4204,36 @@ async function renderAdminOrganizationChart(options = {}) {
     const organizationMessage = document.getElementById("organization-message");
     const assignmentMessage = document.getElementById("assignment-message");
     const organizationReset = document.getElementById("organization-reset");
+    const copyPrevYearBtn = document.getElementById("copy-prev-year-orgs");
+    const copyYearMessage = document.getElementById("copy-year-message");
+
+    if (copyPrevYearBtn && !copyPrevYearBtn.disabled) {
+      copyPrevYearBtn.addEventListener("click", async () => {
+        if (!confirm("前年度の組織・配属をこの年度にコピーしますか？")) return;
+        copyPrevYearBtn.disabled = true;
+        copyPrevYearBtn.textContent = "コピー中...";
+        if (copyYearMessage) { copyYearMessage.className = "message"; copyYearMessage.textContent = ""; }
+        try {
+          const result = await apiRequest("copy-organizations-to-year", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ target_fiscal_year_id: selectedFiscalYearId })
+          });
+          if (copyYearMessage) {
+            copyYearMessage.textContent = result.message || "コピーが完了しました。";
+            copyYearMessage.className = "message success";
+          }
+          await loadAdminData("前年度からのコピーが完了しました。");
+        } catch (error) {
+          if (copyYearMessage) {
+            copyYearMessage.textContent = error.message || "コピーに失敗しました。";
+            copyYearMessage.className = "message error";
+          }
+          copyPrevYearBtn.disabled = false;
+          copyPrevYearBtn.textContent = "前年度からコピー";
+        }
+      });
+    }
     const assignmentReset = document.getElementById("assignment-reset");
     const organizationDelete = document.getElementById("organization-delete");
     const assignmentDelete = document.getElementById("assignment-delete");
@@ -4248,7 +4500,7 @@ function renderFiscalYearEditor(fiscalYear, flashMessage = "") {
       <section class="detail-card stack-sm">
         <div class="detail-header-row">
           <div>
-            <p class="eyebrow dark">A8</p>
+
             <h2>${escapeHtml(current.id ? "年度詳細 / 編集" : "新規年度追加")}</h2>
           </div>
           <span class="pill">${escapeHtml(displayValue(current.is_current ? "現在年度" : getFiscalYearStateLabel(current.state)))}</span>
@@ -4279,7 +4531,7 @@ function renderFiscalYearEditor(fiscalYear, flashMessage = "") {
           </div>
           <section class="detail-card stack-sm inset-card">
             <div>
-              <p class="eyebrow dark">Summary</p>
+
               <h3>年度情報</h3>
             </div>
             <dl class="detail-grid">
@@ -4296,6 +4548,21 @@ function renderFiscalYearEditor(fiscalYear, flashMessage = "") {
           </div>
         </form>
       </section>
+      ${current.id && !current.is_current ? `
+      <section class="detail-card stack">
+        <div class="detail-header-row"><div><h3>年度切替一括処理</h3></div></div>
+        <p class="muted">この年度を現在年度に切り替え、前年度から組織コピー・会費一括生成・新入フラグリセットを実行します。</p>
+        <div style="margin:0.5rem 0">
+          <label class="checkbox-row"><input id="transition-copy-orgs" type="checkbox" checked /><span>組織構成を前年度からコピー</span></label>
+          <label class="checkbox-row"><input id="transition-generate-dues" type="checkbox" checked /><span>会費を一括生成（DueSettings の金額を適用）</span></label>
+          <label class="checkbox-row"><input id="transition-reset-new" type="checkbox" checked /><span>新入会員フラグをリセット</span></label>
+        </div>
+        <p id="transition-message" class="message" aria-live="polite"></p>
+        <div class="actions">
+          <button id="fiscal-year-transition" class="button" type="button" style="background:#c53030">年度切替を実行する</button>
+        </div>
+      </section>
+      ` : ""}
     </div>
   `;
 }
@@ -4303,30 +4570,19 @@ function renderFiscalYearEditor(fiscalYear, flashMessage = "") {
 async function renderAdminFiscalYears(selectedId = "") {
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 3 / Admin</p>
-          <h1>年度管理</h1>
-          <p class="lead">M4 / M5 の基準になる年度データを追加・更新し、現在年度を切り替える最小版です。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">年度管理</h1>
+        <p class="page-description">年度の追加・編集と現在年度の切り替え</p>
+      </div>
       <div class="admin-grid">
         <section class="card panel-card">
           <div class="card-body">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow dark">A8</p>
+    
                 <h2>年度一覧</h2>
               </div>
               <div class="actions">
-                <a class="text-link" href="/admin/dashboard">ダッシュボードへ</a>
-                <a class="text-link" href="/admin/settings">設定へ</a>
-                <a class="text-link" href="/admin/applications">入会申込管理へ</a>
-                <a class="text-link" href="/admin/members">会員一覧へ</a>
-                <a class="text-link" href="/admin/newsletters">配信管理へ</a>
-                <a class="text-link" href="/admin/dues-management">会費管理へ</a>
-                <a class="text-link" href="/admin/documents">資料管理へ</a>
-                <a class="text-link" href="/admin/organization-chart">組織図管理へ</a>
                 <button id="fiscal-year-create" class="button ghost" type="button">新規追加</button>
               </div>
             </div>
@@ -4338,10 +4594,10 @@ async function renderAdminFiscalYears(selectedId = "") {
           <div class="card-body">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow dark">A8</p>
+    
                 <h2>年度詳細</h2>
               </div>
-              <a class="text-link" href="/info">会員向け年度情報へ</a>
+              
             </div>
             <div id="fiscal-year-detail-slot"></div>
           </div>
@@ -4462,6 +4718,43 @@ async function renderAdminFiscalYears(selectedId = "") {
         }
       });
     }
+
+    const transitionButton = document.getElementById("fiscal-year-transition");
+    const transitionMessage = document.getElementById("transition-message");
+    if (transitionButton && transitionMessage && currentId) {
+      transitionButton.addEventListener("click", async () => {
+        if (!confirm("年度切替一括処理を実行しますか？\nこの操作は取り消せません。")) return;
+        transitionMessage.className = "message";
+        transitionMessage.textContent = "";
+        transitionButton.disabled = true;
+        transitionButton.textContent = "処理中...";
+
+        const copyOrgs = document.getElementById("transition-copy-orgs")?.checked ?? true;
+        const generateDues = document.getElementById("transition-generate-dues")?.checked ?? true;
+        const resetIsNew = document.getElementById("transition-reset-new")?.checked ?? true;
+
+        try {
+          const result = await apiRequest("execute-fiscal-year-transition", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              new_fiscal_year_id: currentId,
+              copy_organizations: copyOrgs,
+              generate_dues: generateDues,
+              reset_is_new: resetIsNew
+            })
+          });
+          const logText = (result.log || []).join("\n");
+          sessionStorage.setItem("fiscal-year-message", "年度切替が完了しました。\n" + logText);
+          await renderAdminFiscalYears(currentId);
+        } catch (error) {
+          transitionMessage.textContent = error.message || "年度切替に失敗しました。";
+          transitionMessage.classList.add("error");
+          transitionButton.disabled = false;
+          transitionButton.textContent = "年度切替を実行する";
+        }
+      });
+    }
   }
 
   async function loadFiscalYears() {
@@ -4517,8 +4810,8 @@ function renderDashboardNewsletterRows(newsletters) {
             <article class="basic-info-document">
               <div class="panel-heading compact">
                 <div>
-                  <p class="eyebrow dark">${escapeHtml(displayValue(newsletter.channel || "-"))}</p>
                   <h3>${escapeHtml(displayValue(newsletter.title || "無題"))}</h3>
+                  <span class="muted">${escapeHtml(displayValue(newsletter.channel || "-"))}</span>
                 </div>
                 <span class="pill">${escapeHtml(displayValue(newsletter.status || "-"))}</span>
               </div>
@@ -4531,6 +4824,10 @@ function renderDashboardNewsletterRows(newsletters) {
   `;
 }
 
+// Admin UI rule:
+// - Dashboard and Settings are hub screens and may keep in-body navigation.
+// - Other admin screens are work screens and should avoid generic in-body links.
+// - Work screens may keep one subtle back link only when it has clear list/detail meaning.
 function renderAdminDashboardPage(data) {
   const currentFiscalYear = data.current_fiscal_year || null;
   const memberSummary = data.member_summary || {};
@@ -4542,46 +4839,30 @@ function renderAdminDashboardPage(data) {
 
   return `
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 3 / Admin</p>
-          <h1>ダッシュボード</h1>
-          <p class="lead">会員数、未承認申込、当年度会費、直近配信をまとめて確認する最小版です。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">ダッシュボード</h1>
+        <p class="page-description">主要指標と管理導線を確認</p>
+      </div>
 
       <section class="card panel-card single-panel">
         <div class="card-body stack">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow dark">A1</p>
-              <h2>概要</h2>
-            </div>
-            <div class="actions">
-              <a class="text-link" href="/admin/applications">入会申込確認</a>
-              <a class="text-link" href="/admin/dues-management">会費管理</a>
-              <a class="text-link" href="/admin/newsletters">配信管理</a>
-              <a class="text-link" href="/admin/settings">設定</a>
-              <a class="text-link" href="/admin/members">会員一覧</a>
-            </div>
-          </div>
+          <div class="panel-heading"><div><h2>概要</h2></div></div>
 
           <div class="dashboard-grid">
-            <section class="detail-card stack-sm">
+            <section class="detail-card stack-sm accent-warning">
               <div class="panel-heading compact">
                 <div>
-                  <p class="eyebrow dark">Pending</p>
                   <h3>未承認申込</h3>
                 </div>
                 <span class="pill">${escapeHtml(String(data.pending_application_count || 0))}件</span>
               </div>
-              <p class="muted">A4 で確認が必要な申込件数です。</p>
+              <p class="muted">確認が必要な申込件数です。</p>
+              <div class="actions"><a class="text-link" href="/admin/applications">申込管理</a></div>
             </section>
 
-            <section class="detail-card stack-sm">
+            <section class="detail-card stack-sm accent-info">
               <div class="panel-heading compact">
                 <div>
-                  <p class="eyebrow dark">Dues</p>
                   <h3>${escapeHtml(currentFiscalYear?.year ? `${currentFiscalYear.year}年度会費` : "当年度会費")}</h3>
                 </div>
                 <span class="pill">${escapeHtml(String(dueRate))}%</span>
@@ -4590,35 +4871,36 @@ function renderAdminDashboardPage(data) {
                 <div class="progress-fill" style="width: ${Math.max(0, Math.min(100, dueRate))}%"></div>
               </div>
               <p class="muted">${escapeHtml(String(dueSummary.paid_count || 0))} / ${escapeHtml(String(dueSummary.total_count || 0))} 件が納入済です。</p>
+              <div class="actions"><a class="text-link" href="/admin/dues-management">会費管理</a></div>
             </section>
           </div>
 
           <section class="detail-card stack-sm">
             <div class="panel-heading compact">
               <div>
-                <p class="eyebrow dark">Members</p>
+
                 <h3>会員数サマリー</h3>
               </div>
             </div>
             <div class="dashboard-metrics">
               <article class="metric-card">
-                <span class="eyebrow dark">正会員</span>
+                <span class="metric-label">正会員</span>
                 <strong>${escapeHtml(String(memberSummary.regular_count || 0))}</strong>
               </article>
               <article class="metric-card">
-                <span class="eyebrow dark">賛助会員</span>
+                <span class="metric-label">賛助会員</span>
                 <strong>${escapeHtml(String(memberSummary.supporting_count || 0))}</strong>
               </article>
               <article class="metric-card">
-                <span class="eyebrow dark">OB会員</span>
+                <span class="metric-label">OB会員</span>
                 <strong>${escapeHtml(String(memberSummary.ob_count || 0))}</strong>
               </article>
               <article class="metric-card">
-                <span class="eyebrow dark">休会</span>
+                <span class="metric-label">休会</span>
                 <strong>${escapeHtml(String(memberSummary.paused_count || 0))}</strong>
               </article>
               <article class="metric-card">
-                <span class="eyebrow dark">新入</span>
+                <span class="metric-label">新入</span>
                 <strong>${escapeHtml(String(memberSummary.new_count || 0))}</strong>
               </article>
             </div>
@@ -4627,11 +4909,26 @@ function renderAdminDashboardPage(data) {
           <section class="detail-card stack-sm">
             <div class="panel-heading compact">
               <div>
-                <p class="eyebrow dark">Newsletters</p>
+
                 <h3>直近配信5件</h3>
               </div>
             </div>
             ${renderDashboardNewsletterRows(recentNewsletters)}
+          </section>
+
+          <section class="detail-card stack-sm">
+            <div class="panel-heading compact">
+              <div>
+                <h3>クイックアクション</h3>
+              </div>
+            </div>
+            <div class="dashboard-metrics">
+              <a class="metric-card" href="/admin/members"><strong>会員一覧</strong></a>
+              <a class="metric-card" href="/admin/applications"><strong>申込管理</strong></a>
+              <a class="metric-card" href="/admin/dues-management"><strong>会費管理</strong></a>
+              <a class="metric-card" href="/admin/organization-chart"><strong>組織図管理</strong></a>
+              <a class="metric-card" href="/admin/newsletters"><strong>配信管理</strong></a>
+            </div>
           </section>
         </div>
       </section>
@@ -4642,16 +4939,13 @@ function renderAdminDashboardPage(data) {
 async function renderAdminDashboard() {
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 3 / Admin</p>
-          <h1>ダッシュボード</h1>
-          <p class="lead">集計を読み込んでいます。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">ダッシュボード</h1>
+        <p class="page-description">主要指標と管理導線を確認</p>
+      </div>
       <section class="card panel-card single-panel">
         <div class="card-body">
-          <p class="message">読込中...</p>
+          <div class="loading-state"><div class="spinner"></div><p>読み込み中...</p></div>
         </div>
       </section>
     </section>
@@ -4663,13 +4957,10 @@ async function renderAdminDashboard() {
   } catch (error) {
     setView(`
       <section class="admin-shell">
-        <header class="card admin-hero">
-          <div class="card-header">
-            <p class="eyebrow">Phase 3 / Admin</p>
-            <h1>ダッシュボード</h1>
-            <p class="lead">集計の取得に失敗しました。</p>
-          </div>
-        </header>
+        <div class="page-header">
+          <h1 class="page-title">ダッシュボード</h1>
+          <p class="page-description">主要指標と管理導線を確認</p>
+        </div>
         <section class="card panel-card single-panel">
           <div class="card-body">
             <p class="message error">${escapeHtml(error.message || "ダッシュボードの取得に失敗しました。")}</p>
@@ -4680,115 +4971,175 @@ async function renderAdminDashboard() {
   }
 }
 
-function renderAdminSettings() {
+async function renderAdminSettings() {
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 3 / Admin</p>
-          <h1>設定</h1>
-          <p class="lead">運用で参照する設定の入口をまとめた最小版です。通知接続や外部 API 設定はまだ未実装です。</p>
-        </div>
-      </header>
-
+      <div class="page-header">
+        <h1 class="page-title">設定</h1>
+        <p class="page-description">アプリ基本設定と管理者アカウント管理</p>
+      </div>
       <section class="card panel-card single-panel">
-        <div class="card-body stack">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow dark">A9</p>
-              <h2>設定ハブ</h2>
-            </div>
-            <div class="actions">
-              <a class="text-link" href="/admin/dashboard">ダッシュボードへ</a>
-              <a class="text-link" href="/admin/members">会員一覧へ</a>
-            </div>
-          </div>
-
-          <div class="dashboard-metrics">
-            <article class="metric-card">
-              <span class="eyebrow dark">年度設定</span>
-              <strong>A8</strong>
-              <p class="muted">現在年度の確認、年度追加、切替を行います。</p>
-              <div class="actions">
-                <a class="text-link" href="/admin/fiscal-years">年度管理へ</a>
-              </div>
-            </article>
-
-            <article class="metric-card">
-              <span class="eyebrow dark">会費設定</span>
-              <strong>A5</strong>
-              <p class="muted">年度別の会費金額設定と納入状況確認を行います。</p>
-              <div class="actions">
-                <a class="text-link" href="/admin/dues-management">会費管理へ</a>
-              </div>
-            </article>
-
-            <article class="metric-card">
-              <span class="eyebrow dark">資料設定</span>
-              <strong>A10</strong>
-              <p class="muted">基本情報と運用マニュアルの公開資料を管理します。</p>
-              <div class="actions">
-                <a class="text-link" href="/admin/documents">資料管理へ</a>
-              </div>
-            </article>
-
-            <article class="metric-card">
-              <span class="eyebrow dark">通知設定</span>
-              <strong>予定</strong>
-              <p class="muted">Resend / LINE 設定の置き場です。今回はプレースホルダのみです。</p>
-              <div class="actions">
-                <a class="text-link" href="/admin/newsletters">配信管理へ</a>
-              </div>
-            </article>
-          </div>
-
-          <section class="detail-card stack-sm">
-            <div class="panel-heading compact">
-              <div>
-                <p class="eyebrow dark">Scope</p>
-                <h3>今回の対象外</h3>
-              </div>
-            </div>
-            <ul class="settings-list">
-              <li>Resend 接続設定</li>
-              <li>LINE Channel Access Token 設定</li>
-              <li>SMTP や secret の保存 UI</li>
-              <li>通知テンプレート編集</li>
-            </ul>
-          </section>
+        <div class="card-body">
+          <div class="loading-state"><div class="spinner"></div><p>読み込み中...</p></div>
         </div>
       </section>
     </section>
   `);
+
+  let adminMembers = [];
+  try {
+    const result = await apiRequest("list-admin-members");
+    adminMembers = result.members || [];
+  } catch { /* silent */ }
+
+  const admins = adminMembers.filter((m) => m.role === "admin");
+  const nonAdmins = adminMembers.filter((m) => m.role !== "admin");
+
+  setView(`
+    <section class="admin-shell">
+      <div class="page-header">
+        <h1 class="page-title">設定</h1>
+        <p class="page-description">アプリ基本設定と管理者アカウント管理</p>
+      </div>
+
+      <div class="settings-grid">
+        <section class="card panel-card">
+          <div class="card-body stack">
+            <div class="panel-heading"><div><h2>管理画面へのリンク</h2></div></div>
+            <div class="dashboard-metrics">
+              <a class="metric-card" href="/admin/fiscal-years"><span class="metric-label">年度設定</span><strong>年度管理</strong></a>
+              <a class="metric-card" href="/admin/dues-management"><span class="metric-label">会費設定</span><strong>会費管理</strong></a>
+              <a class="metric-card" href="/admin/documents"><span class="metric-label">資料設定</span><strong>資料管理</strong></a>
+              <a class="metric-card" href="/admin/newsletters"><span class="metric-label">通知設定</span><strong>配信管理</strong></a>
+              <a class="metric-card" href="/admin/applications"><span class="metric-label">申込管理</span><strong>入会申込</strong></a>
+              <a class="metric-card" href="/admin/organization-chart"><span class="metric-label">組織設定</span><strong>組織図管理</strong></a>
+            </div>
+          </div>
+        </section>
+
+        <section class="card panel-card">
+          <div class="card-body stack">
+            <div class="panel-heading"><div><h2>メール配信設定</h2></div></div>
+            <dl class="detail-grid">
+              <div><dt>配信エンジン</dt><dd>Resend API</dd></div>
+              <div><dt>送信元</dt><dd>環境変数 RESEND_FROM_EMAIL で設定</dd></div>
+              <div><dt>APIキー</dt><dd>環境変数 RESEND_API_KEY で設定</dd></div>
+              <div><dt>ステータス</dt><dd><span class="pill pill-success">設定済み（Base44 Secrets）</span></dd></div>
+            </dl>
+          </div>
+        </section>
+
+        <section class="card panel-card">
+          <div class="card-body stack">
+            <div class="panel-heading"><div><h2>LINE連携設定</h2></div></div>
+            <div class="detail-card inset-card stack-sm">
+              <span class="pill pill-warning">準備中</span>
+              <p class="muted">LINE Messaging API との連携は後フェーズで実装予定です。Channel Access Token の設定はこのセクションで行います。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="card panel-card">
+          <div class="card-body stack">
+            <div class="panel-heading">
+              <div><h2>管理者アカウント</h2></div>
+              <span class="pill">${admins.length}名</span>
+            </div>
+            <p class="muted">role=admin の会員に管理画面へのアクセス権限が付与されます。</p>
+            <p id="admin-role-message" class="message" aria-live="polite"></p>
+
+            ${admins.length ? `
+              <div class="panel-heading compact"><div><h3>管理者一覧</h3></div></div>
+              <div class="pending-list stack-sm">
+                ${admins.map((m) => `
+                  <div class="pending-item" style="cursor:default">
+                    <div>
+                      <strong>${escapeHtml(m.name_kanji)}</strong>
+                      <span class="muted">${escapeHtml(m.email)} / ${escapeHtml(m.member_number || "-")}</span>
+                    </div>
+                    <button class="button ghost toggle-role-btn" data-member-id="${escapeHtml(m.id)}" data-new-role="member" type="button" style="font-size:12px;color:#c53030">権限剥奪</button>
+                  </div>
+                `).join("")}
+              </div>
+            ` : '<p class="empty-state">管理者が設定されていません。</p>'}
+
+            <div class="panel-heading compact"><div><h3>会員から管理者を追加</h3></div></div>
+            <div class="field">
+              <select id="add-admin-select">
+                <option value="">会員を選択...</option>
+                ${nonAdmins.map((m) => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name_kanji)} (${escapeHtml(m.member_number || "-")})</option>`).join("")}
+              </select>
+            </div>
+            <div class="actions">
+              <button id="add-admin-btn" class="button ghost" type="button">管理者権限を付与</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  `);
+
+  // Bind role toggle actions
+  const roleMessage = document.getElementById("admin-role-message");
+
+  document.querySelectorAll(".toggle-role-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const memberId = btn.dataset.memberId;
+      const newRole = btn.dataset.newRole;
+      if (!confirm(newRole === "member" ? "この会員の管理者権限を剥奪しますか？" : "この会員に管理者権限を付与しますか？")) return;
+      btn.disabled = true;
+      try {
+        await apiRequest("toggle-member-role", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ member_id: memberId, role: newRole })
+        });
+        showToast(newRole === "admin" ? "管理者権限を付与しました" : "管理者権限を剥奪しました");
+        await renderAdminSettings();
+      } catch (error) {
+        if (roleMessage) { roleMessage.textContent = error.message || "変更に失敗しました。"; roleMessage.className = "message error"; }
+        btn.disabled = false;
+      }
+    });
+  });
+
+  const addAdminBtn = document.getElementById("add-admin-btn");
+  const addAdminSelect = document.getElementById("add-admin-select");
+  if (addAdminBtn && addAdminSelect) {
+    addAdminBtn.addEventListener("click", async () => {
+      const memberId = addAdminSelect.value;
+      if (!memberId) { if (roleMessage) { roleMessage.textContent = "会員を選択してください。"; roleMessage.className = "message error"; } return; }
+      if (!confirm("この会員に管理者権限を付与しますか？")) return;
+      addAdminBtn.disabled = true;
+      try {
+        await apiRequest("toggle-member-role", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ member_id: memberId, role: "admin" })
+        });
+        showToast("管理者権限を付与しました");
+        await renderAdminSettings();
+      } catch (error) {
+        if (roleMessage) { roleMessage.textContent = error.message || "変更に失敗しました。"; roleMessage.className = "message error"; }
+        addAdminBtn.disabled = false;
+      }
+    });
+  }
 }
 
 async function renderAdminApplications() {
   setView(`
     <section class="admin-shell">
-      <header class="card admin-hero">
-        <div class="card-header">
-          <p class="eyebrow">Phase 3 / Admin</p>
-          <h1>入会申込管理</h1>
-          <p class="lead">申請中の申込を確認し、承認または却下します。member_number は手入力で確定します。</p>
-        </div>
-      </header>
+      <div class="page-header">
+        <h1 class="page-title">入会申込管理</h1>
+        <p class="page-description">申請中の入会申込を確認・承認・却下</p>
+      </div>
       <div class="admin-grid">
         <section class="card panel-card">
           <div class="card-body">
             <div class="panel-heading">
-              <div>
-                <p class="eyebrow dark">A4</p>
-                <h2>申請中一覧</h2>
-              </div>
+              <div><h2>申請中一覧</h2></div>
               <div class="actions">
-                <a class="text-link" href="/admin/dashboard">ダッシュボードへ</a>
-                <a class="text-link" href="/admin/settings">設定へ</a>
-                <a class="text-link" href="/admin/members">会員一覧へ</a>
-                <a class="text-link" href="/admin/newsletters">配信管理へ</a>
-                <a class="text-link" href="/admin/fiscal-years">年度管理へ</a>
-                <a class="text-link" href="/admin/documents">資料管理へ</a>
-                <a class="text-link" href="/admin/organization-chart">組織図管理へ</a>
-                <a class="text-link" href="/directory">名簿閲覧へ</a>
                 <button id="reload-pending" class="button ghost" type="button">再読込</button>
               </div>
             </div>
@@ -4798,13 +5149,7 @@ async function renderAdminApplications() {
         </section>
         <section class="card panel-card">
           <div class="card-body">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow dark">A4</p>
-                <h2>申込詳細</h2>
-              </div>
-              <a class="text-link" href="/apply">公開フォームへ</a>
-            </div>
+            <div class="panel-heading"><div><h2>申込詳細</h2></div></div>
             <div id="detail-slot"></div>
           </div>
         </section>
@@ -4855,6 +5200,38 @@ async function renderAdminApplications() {
 
     if (!approveForm || !rejectForm || !adminMessage) {
       return;
+    }
+
+    // Auto-generate member number
+    const memberNumberInput = document.getElementById("member_number");
+    const autoNumberBtn = document.getElementById("auto-number-btn");
+    const autoNumberHint = document.getElementById("auto-number-hint");
+
+    async function fetchSuggestedNumber() {
+      try {
+        const result = await apiRequest("generate-member-number");
+        if (memberNumberInput && !memberNumberInput.value) {
+          memberNumberInput.value = result.suggested_number || "";
+        }
+        if (autoNumberHint) {
+          autoNumberHint.textContent = `${result.fiscal_year}年度: ${result.prefix}*** (次: ${result.next_sequence})`;
+        }
+      } catch { /* silent */ }
+    }
+    fetchSuggestedNumber();
+
+    if (autoNumberBtn) {
+      autoNumberBtn.addEventListener("click", async () => {
+        autoNumberBtn.disabled = true;
+        autoNumberBtn.textContent = "取得中...";
+        try {
+          const result = await apiRequest("generate-member-number");
+          if (memberNumberInput) memberNumberInput.value = result.suggested_number || "";
+          if (autoNumberHint) autoNumberHint.textContent = `${result.fiscal_year}年度: ${result.prefix}*** (次: ${result.next_sequence})`;
+        } catch { /* silent */ }
+        autoNumberBtn.disabled = false;
+        autoNumberBtn.textContent = "自動採番";
+      });
     }
 
     approveForm.addEventListener("submit", async (event) => {
@@ -4986,7 +5363,7 @@ function route() {
     return;
   }
 
-  if (window.location.pathname === "/admin/dashboard") {
+  if (window.location.pathname === "/admin" || window.location.pathname === "/admin/dashboard") {
     renderAdminDashboard();
     return;
   }
@@ -4996,12 +5373,12 @@ function route() {
     return;
   }
 
-  if (window.location.pathname === "/admin/newsletters") {
+  if (window.location.pathname === "/admin/delivery" || window.location.pathname === "/admin/newsletters") {
     renderAdminNewsletters();
     return;
   }
 
-  if (window.location.pathname === "/admin/dues-management") {
+  if (window.location.pathname === "/admin/dues" || window.location.pathname === "/admin/dues-management") {
     renderAdminDuesManagement();
     return;
   }
@@ -5016,7 +5393,7 @@ function route() {
     return;
   }
 
-  if (window.location.pathname === "/admin/organization-chart") {
+  if (window.location.pathname === "/admin/organization" || window.location.pathname === "/admin/organization-chart") {
     renderAdminOrganizationChart();
     return;
   }

@@ -80,7 +80,6 @@ Deno.serve(async (req) => {
       ["name_kanji", "name_kanji"],
       ["name_kana", "name_kana"],
       ["birthday", "birthday"],
-      ["company_name", "company_name"],
       ["email", "email"],
       ["mobile_phone", "mobile_phone"],
       ["referrer_1", "referrer_1"],

@@ -1,0 +1,4 @@
+{
+  "name": "send-newsletter",
+  "entry": "index.ts"
+}

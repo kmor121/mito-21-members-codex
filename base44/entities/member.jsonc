@@ -137,13 +137,25 @@
     "rejection_reason": {
       "type": "string",
       "description": "Reason for application rejection"
+    },
+    "line_user_id": {
+      "type": "string",
+      "description": "LINE UID for LINE messaging integration"
+    },
+    "role": {
+      "type": "string",
+      "enum": ["admin", "member"],
+      "description": "User role for access control"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes"
     }
   },
   "required": [
     "name_kanji",
     "name_kana",
     "birthday",
-    "company_name",
     "email",
     "mobile_phone",
     "referrer_1",

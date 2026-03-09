@@ -32,12 +32,15 @@ Deno.serve(async (req) => {
     const requestedFiscalYearId = normalize(url.searchParams.get("fiscalYearId"));
     const base44 = createClientFromRequest(req);
 
-    const [fiscalYears, organizations, assignments, members] = await Promise.all([
+    const [fiscalYears, organizations, members] = await Promise.all([
       base44.asServiceRole.entities.FiscalYear.list(),
       base44.asServiceRole.entities.Organization.list(),
-      base44.asServiceRole.entities.OrgAssignment.list(),
       base44.asServiceRole.entities.Member.list()
     ]);
+    const assignments = await base44.asServiceRole.entities.OrgAssignment.list().catch((error) => {
+      console.error("OrgAssignment.list failed, continuing with empty assignments", error);
+      return [];
+    });
 
     const years = fiscalYears
       .map((fiscalYear) => ({

@@ -1,0 +1,4 @@
+{
+  "name": "execute-fiscal-year-transition",
+  "entry": "index.ts"
+}

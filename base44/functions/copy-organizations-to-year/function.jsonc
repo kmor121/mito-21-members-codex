@@ -1,0 +1,4 @@
+{
+  "name": "copy-organizations-to-year",
+  "entry": "index.ts"
+}

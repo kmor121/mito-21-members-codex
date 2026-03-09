@@ -1,6 +1,69 @@
-﻿import { createClientFromRequest } from "npm:@base44/sdk";
+import { createClientFromRequest } from "npm:@base44/sdk";
 
 const ALLOWED_MEMBER_TYPES = ["正会員", "賛助会員"];
+
+function generateMemberNumber(currentFiscalYear: number, existingNumbers: string[]): string {
+  const prefix = String(currentFiscalYear).slice(-2);
+  const pattern = new RegExp(`^${prefix}(\\d{3})$`);
+  let maxSeq = 0;
+  for (const num of existingNumbers) {
+    const match = String(num || "").match(pattern);
+    if (match) {
+      const seq = parseInt(match[1], 10);
+      if (seq > maxSeq) maxSeq = seq;
+    }
+  }
+  const nextSeq = String(maxSeq + 1).padStart(3, "0");
+  return `${prefix}${nextSeq}`;
+}
+
+async function sendApprovalEmail(
+  memberEmail: string,
+  memberName: string,
+  memberNumber: string,
+  memberType: string
+) {
+  const apiKey = Deno.env.get("RESEND_API_KEY") || "";
+  const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "";
+  if (!apiKey || !fromEmail) return { skipped: true };
+
+  const body = `${memberName} 様
+
+水戸２１の会への入会が承認されました。
+
+■ 会員情報
+  会員番号: ${memberNumber}
+  会員種別: ${memberType}
+
+■ ご案内
+  会員専用ページから名簿の閲覧やマイページの編集が行えます。
+  ログイン方法については別途ご案内いたします。
+
+今後ともよろしくお願いいたします。
+
+水戸２１の会 事務局`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [memberEmail],
+        subject: `【水戸２１の会】入会承認のお知らせ（会員番号: ${memberNumber}）`,
+        text: body
+      })
+    });
+    const result = await res.json();
+    return { sent: true, result };
+  } catch (error) {
+    console.error("Failed to send approval email:", error);
+    return { sent: false, error: String(error) };
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
@@ -81,10 +144,18 @@ Deno.serve(async (req) => {
       rejection_reason: ""
     });
 
-    // Future hook: invoke sendApprovalEmail after approval is finalized.
+    // Send approval email
+    const emailResult = await sendApprovalEmail(
+      String(member.email || ""),
+      String(member.name_kanji || ""),
+      memberNumber,
+      memberType
+    );
+
     return Response.json({
       ok: true,
-      member: updatedMember
+      member: updatedMember,
+      email: emailResult
     });
   } catch (error) {
     console.error(error);

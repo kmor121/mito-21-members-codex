@@ -1,0 +1,20 @@
+[2026-03-09T13:34:12.497Z] [INFO] ========================================================================================================================
+[2026-03-09T13:34:12.497Z] [INFO] Initializing MAM Client.
+App: com.microsoft.edge 145.0.3800.97
+SDK: 2.1.367.0
+OS: windows 10.0.26200.7922
+DeviceType: Desktop
+Manufacturer: LENOVO
+Model: 20XYCTO1WW
+Telemetry: yes
+Managed device support: disabled
+[2026-03-09T13:34:12.498Z] [INFO] Telemetry session 08c92d36-61fb-4f0f-9860-be5f472facec.
+[2026-03-09T13:34:12.498Z] [INFO] Initializing cache (v1).
+[2026-03-09T13:34:12.513Z] [INFO] Registered UserID:254bb917-5f91-4a56-ad19-db6b7c3e93fe in the Azure public cloud.
+[2026-03-09T13:34:12.513Z] [INFO] Conditional Access is blocked for UserID:254bb917-5f91-4a56-ad19-db6b7c3e93fe pre-enrollment; compliance reporting will be accelerated to unblock the user.
+[2026-03-09T13:34:12.513Z] [INFO] Queuing pre-enrollment policy assignment check for UserID:254bb917-5f91-4a56-ad19-db6b7c3e93fe to run as soon as possible.
+[2026-03-09T13:34:12.513Z] [INFO] Scheduler background thread starting for UserID:254bb917-5f91-4a56-ad19-db6b7c3e93fe.
+[2026-03-09T13:34:12.627Z] [INFO] Resolved MAM Location Service address "https://mamservice.manage.microsoft.com/api/Locations" for UserID:254bb917-5f91-4a56-ad19-db6b7c3e93fe.
+[2026-03-09T13:34:12.735Z] [ERROR] MAM Location Service request for UserID:254bb917-5f91-4a56-ad19-db6b7c3e93fe failed with a status (404) indicating the tenant has not completed onboarding, or the user is not licensed for Intune. (client-request-id:a913f635-e658-4699-b720-3ea0cdfbb986)
+[2026-03-09T13:34:12.736Z] [ERROR] Unable to retrieve or validate the MAM Service address during check for MAM policy assignment for UserID:254bb917-5f91-4a56-ad19-db6b7c3e93fe; the operation will be reattempted at a later time.
+[2026-03-09T13:34:12.736Z] [INFO] Queuing pre-enrollment policy assignment check for UserID:254bb917-5f91-4a56-ad19-db6b7c3e93fe to run at 2026-03-10T13:34:13.735Z.

@@ -1,4 +1,48 @@
-﻿import { createClientFromRequest } from "npm:@base44/sdk";
+import { createClientFromRequest } from "npm:@base44/sdk";
+
+async function sendRejectionEmail(
+  memberEmail: string,
+  memberName: string,
+  rejectionReason: string
+) {
+  const apiKey = Deno.env.get("RESEND_API_KEY") || "";
+  const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "";
+  if (!apiKey || !fromEmail) return { skipped: true };
+
+  const body = `${memberName} 様
+
+この度は水戸２１の会への入会申込をいただき、誠にありがとうございました。
+
+審査の結果、誠に残念ながら今回はご入会をお見送りとさせていただきました。
+
+■ 理由
+${rejectionReason}
+
+ご不明な点がございましたら、事務局までお問い合わせください。
+
+水戸２１の会 事務局`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [memberEmail],
+        subject: "【水戸２１の会】入会申込の審査結果について",
+        text: body
+      })
+    });
+    const result = await res.json();
+    return { sent: true, result };
+  } catch (error) {
+    console.error("Failed to send rejection email:", error);
+    return { sent: false, error: String(error) };
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
@@ -52,10 +96,16 @@ Deno.serve(async (req) => {
       rejection_reason: rejectionReason
     });
 
-    // Future hook: invoke sendApprovalEmail with rejection notice if needed.
+    const emailResult = await sendRejectionEmail(
+      String(member.email || ""),
+      String(member.name_kanji || ""),
+      rejectionReason
+    );
+
     return Response.json({
       ok: true,
-      member: updatedMember
+      member: updatedMember,
+      email: emailResult
     });
   } catch (error) {
     console.error(error);
