@@ -1,0 +1,1 @@
+const s="https://mito21-members-codex-da487265.base44.app",e=window.location.hostname==="localhost"||window.location.hostname==="127.0.0.1"?s:window.location.origin,c=`${e}/functions`;async function i(n,a={}){const t=await fetch(`${c}/${n}`,a),o=await t.json().catch(()=>({}));if(!t.ok||o.ok===!1)throw new Error(o.error||"Request failed");return o}export{i as a};
