@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { apiRequest } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+
+const RichTextEditor = lazy(() => import('../../components/common/RichTextEditor'));
 
 function displayValue(v) {
   if (v === null || v === undefined || v === "") return "-";
@@ -13,13 +15,14 @@ const DOC_TYPES = ["事業計画", "団体理念", "会則・規約", "年間ス
 export default function Documents() {
   const [docs, setDocs] = useState([]);
   const [fiscalYears, setFiscalYears] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
-  const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Modal state
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   // Editor form state
   const [formTitle, setFormTitle] = useState("");
@@ -31,6 +34,10 @@ export default function Documents() {
   const [formAttachment, setFormAttachment] = useState("");
   const [formCategory, setFormCategory] = useState("");
 
+  // Drag state
+  const dragItem = useRef(null);
+  const dragOverItem = useRef(null);
+
   const loadDocs = useCallback(async () => {
     setError("");
     setLoading(true);
@@ -41,7 +48,8 @@ export default function Documents() {
       ]);
       const rawDocs = docsResult.documents || docsResult;
       setDocs(Array.isArray(rawDocs) ? rawDocs : []);
-      setFiscalYears(fyResult.fiscal_years || []);
+      const rawFY2 = fyResult.fiscal_years;
+      setFiscalYears(Array.isArray(rawFY2) ? rawFY2 : []);
     } catch (err) {
       setError(err.message || "資料一覧の取得に失敗しました。");
     } finally {
@@ -53,44 +61,7 @@ export default function Documents() {
     loadDocs();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function loadDetail(id) {
-    if (!id) {
-      setDetail(null);
-      return;
-    }
-    setDetailLoading(true);
-    setError("");
-    try {
-      const result = await apiRequest(`get-org-document-detail?id=${id}`);
-      setDetail(result);
-      populateForm(result);
-    } catch (err) {
-      setError(err.message || "資料詳細の取得に失敗しました。");
-    } finally {
-      setDetailLoading(false);
-    }
-  }
-
-  function populateForm(doc) {
-    setFormTitle(doc.title || "");
-    setFormDocType(doc.doc_type || "");
-    setFormFiscalYearId(doc.fiscal_year_id || "");
-    setFormSortOrder(doc.sort_order || 0);
-    setFormPublished(!!doc.published);
-    setFormContent(doc.content || "");
-    setFormAttachment(doc.attachment || "");
-    setFormCategory(doc.category || (doc.doc_type === "運用マニュアル" ? "運用マニュアル" : ""));
-  }
-
-  function handleSelect(doc) {
-    setSelectedId(doc.id);
-    setMessage("");
-    loadDetail(doc.id);
-  }
-
-  function handleNew() {
-    setSelectedId(null);
-    setDetail(null);
+  function resetForm() {
     setFormTitle("");
     setFormDocType("");
     setFormFiscalYearId("");
@@ -99,7 +70,34 @@ export default function Documents() {
     setFormContent("");
     setFormAttachment("");
     setFormCategory("");
+  }
+
+  function handleNew() {
+    setEditingId(null);
+    resetForm();
+    setShowModal(true);
     setMessage("");
+  }
+
+  async function handleEdit(doc) {
+    setEditingId(doc.id);
+    setMessage("");
+    setError("");
+
+    try {
+      const result = await apiRequest(`get-org-document-detail?id=${doc.id}`);
+      setFormTitle(result.title || "");
+      setFormDocType(result.doc_type || "");
+      setFormFiscalYearId(result.fiscal_year_id || "");
+      setFormSortOrder(result.sort_order || 0);
+      setFormPublished(!!result.published);
+      setFormContent(result.content || "");
+      setFormAttachment(result.attachment || "");
+      setFormCategory(result.category || (result.doc_type === "運用マニュアル" ? "運用マニュアル" : ""));
+      setShowModal(true);
+    } catch (err) {
+      setError(err.message || "資料詳細の取得に失敗しました。");
+    }
   }
 
   async function handleSave(e) {
@@ -107,18 +105,9 @@ export default function Documents() {
     setError("");
     setMessage("");
 
-    if (!formTitle.trim()) {
-      setError("タイトルは必須です。");
-      return;
-    }
-    if (!formDocType) {
-      setError("資料種別は必須です。");
-      return;
-    }
-    if (formAttachment && !/^https?:\/\/.+/.test(formAttachment)) {
-      setError("添付URLの形式が正しくありません。");
-      return;
-    }
+    if (!formTitle.trim()) { setError("タイトルは必須です。"); return; }
+    if (!formDocType) { setError("資料種別は必須です。"); return; }
+    if (formAttachment && !/^https?:\/\/.+/.test(formAttachment)) { setError("添付URLの形式が正しくありません。"); return; }
 
     setSaving(true);
     try {
@@ -134,22 +123,17 @@ export default function Documents() {
       if (formDocType === "運用マニュアル") {
         payload.category = formCategory || "運用マニュアル";
       }
-      if (selectedId) payload.id = selectedId;
+      if (editingId) payload.id = editingId;
 
-      const result = await apiRequest("save-org-document", {
+      await apiRequest("save-org-document", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const savedId = result.id || selectedId;
       setMessage("保存しました。");
+      setShowModal(false);
       await loadDocs();
-
-      if (savedId) {
-        setSelectedId(savedId);
-        await loadDetail(savedId);
-      }
     } catch (err) {
       setError(err.message || "保存に失敗しました。");
     } finally {
@@ -157,24 +141,56 @@ export default function Documents() {
     }
   }
 
-  async function handleTogglePublished() {
-    if (!selectedId) return;
+  async function handleTogglePublished(doc) {
     setError("");
     setMessage("");
-    setSaving(true);
     try {
       await apiRequest("toggle-org-document-published", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: selectedId }),
+        body: JSON.stringify({ id: doc.id }),
       });
       setMessage("公開状態を変更しました。");
       await loadDocs();
-      await loadDetail(selectedId);
     } catch (err) {
       setError(err.message || "公開状態の変更に失敗しました。");
-    } finally {
-      setSaving(false);
+    }
+  }
+
+  // Drag & Drop sort order
+  function handleDragStart(idx) {
+    dragItem.current = idx;
+  }
+
+  function handleDragEnter(idx) {
+    dragOverItem.current = idx;
+  }
+
+  async function handleDragEnd() {
+    if (dragItem.current === null || dragOverItem.current === null) return;
+    if (dragItem.current === dragOverItem.current) return;
+
+    const reordered = [...docs];
+    const [removed] = reordered.splice(dragItem.current, 1);
+    reordered.splice(dragOverItem.current, 0, removed);
+
+    setDocs(reordered);
+    dragItem.current = null;
+    dragOverItem.current = null;
+
+    // Save new sort orders
+    try {
+      const updates = reordered.map((doc, idx) => ({
+        id: doc.id,
+        sort_order: idx,
+      }));
+      await apiRequest("batch-update-sort-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entity: "org_documents", items: updates }),
+      });
+    } catch {
+      // Silently fail on sort save - order is preserved locally
     }
   }
 
@@ -191,205 +207,146 @@ export default function Documents() {
         </p>
       )}
 
-      <div className="master-detail">
-        {/* Left: document list */}
-        <section className="card panel-card list-panel">
-          <div className="card-body stack">
-            <div className="panel-heading">
-              <div><h2>資料一覧</h2></div>
-              <button className="button" type="button" onClick={handleNew}>新規追加</button>
-            </div>
-
-            {loading ? (
-              <LoadingSpinner />
-            ) : docs.length === 0 ? (
-              <p className="empty-state">資料がありません。</p>
-            ) : (
-              <div className="pending-list">
-                {docs.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className={`basic-info-document${doc.id === selectedId ? " selected" : ""}`}
-                    style={{ cursor: "pointer" }}
-                    onClick={() => handleSelect(doc)}
-                  >
-                    <div>
-                      <strong>{displayValue(doc.title)}</strong>
-                      <span className="muted" style={{ marginLeft: "0.5rem" }}>
-                        {displayValue(doc.updated_at)}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="pill">{displayValue(doc.doc_type)}</span>
-                      {doc.fiscal_year_label && (
-                        <span className="muted" style={{ marginLeft: "0.5rem" }}>
-                          {doc.fiscal_year_label}
-                        </span>
-                      )}
-                      <span className={`pill${doc.published ? " pill-success" : ""}`} style={{ marginLeft: "0.5rem" }}>
-                        {doc.published ? "公開" : "非公開"}
-                      </span>
-                      {doc.sort_order != null && (
-                        <span className="muted" style={{ marginLeft: "0.5rem" }}>
-                          順序: {doc.sort_order}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+      <section className="card panel-card single-panel">
+        <div className="card-body stack">
+          <div className="panel-heading">
+            <div><h2>資料一覧</h2></div>
+            <button className="button" type="button" onClick={handleNew}>新規追加</button>
           </div>
-        </section>
 
-        {/* Right: document editor */}
-        <section className="card panel-card detail-panel">
-          <div className="card-body stack">
-            <div className="panel-heading">
-              <div><h2>{selectedId ? "資料編集" : "新規資料"}</h2></div>
+          {loading ? (
+            <LoadingSpinner />
+          ) : docs.length === 0 ? (
+            <p className="empty-state">資料がありません。</p>
+          ) : (
+            <div className="table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: 40 }}></th>
+                    <th>タイトル</th>
+                    <th>資料種別</th>
+                    <th>年度</th>
+                    <th>順序</th>
+                    <th>状態</th>
+                    <th>更新日</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {docs.map((doc, idx) => (
+                    <tr
+                      key={doc.id}
+                      draggable
+                      onDragStart={() => handleDragStart(idx)}
+                      onDragEnter={() => handleDragEnter(idx)}
+                      onDragEnd={handleDragEnd}
+                      onDragOver={(e) => e.preventDefault()}
+                      style={{ cursor: 'grab' }}
+                    >
+                      <td style={{ cursor: 'grab', textAlign: 'center', color: 'var(--text-secondary)' }}>&#8942;</td>
+                      <td><strong>{displayValue(doc.title)}</strong></td>
+                      <td><span className="pill">{displayValue(doc.doc_type)}</span></td>
+                      <td>{doc.fiscal_year_label || "常設"}</td>
+                      <td>{doc.sort_order ?? "-"}</td>
+                      <td>
+                        <span
+                          className={`pill${doc.published ? " pill-success" : ""}`}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => handleTogglePublished(doc)}
+                        >
+                          {doc.published ? "公開" : "非公開"}
+                        </span>
+                      </td>
+                      <td className="muted">{doc.updated_at ? doc.updated_at.slice(0, 10) : "-"}</td>
+                      <td>
+                        <button className="text-link" type="button" onClick={() => handleEdit(doc)}>編集</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          )}
+        </div>
+      </section>
 
-            {detailLoading ? (
-              <LoadingSpinner />
-            ) : (
-              <form className="form-grid" noValidate onSubmit={handleSave}>
+      {/* Edit Modal */}
+      {showModal && (
+        <div className="confirm-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingId ? "資料編集" : "新規資料"}</h3>
+              <button type="button" className="modal-close" onClick={() => setShowModal(false)}>&times;</button>
+            </div>
+            <form className="modal-body" noValidate onSubmit={handleSave}>
+              <div className="form-grid">
                 <div className="field field-span-2">
                   <label htmlFor="doc-title">タイトル</label>
-                  <input
-                    id="doc-title"
-                    type="text"
-                    value={formTitle}
-                    onChange={(e) => setFormTitle(e.target.value)}
-                    required
-                  />
+                  <input id="doc-title" type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} required />
                 </div>
 
                 <div className="field">
                   <label htmlFor="doc-type">資料種別</label>
-                  <select
-                    id="doc-type"
-                    value={formDocType}
-                    onChange={(e) => {
-                      setFormDocType(e.target.value);
-                      if (e.target.value === "運用マニュアル" && !formCategory) {
-                        setFormCategory("運用マニュアル");
-                      }
-                    }}
-                    required
-                  >
+                  <select id="doc-type" value={formDocType} onChange={(e) => {
+                    setFormDocType(e.target.value);
+                    if (e.target.value === "運用マニュアル" && !formCategory) setFormCategory("運用マニュアル");
+                  }} required>
                     <option value="">選択してください</option>
-                    {DOC_TYPES.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
+                    {DOC_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
 
                 <div className="field">
                   <label htmlFor="doc-fy">年度</label>
-                  <select
-                    id="doc-fy"
-                    value={formFiscalYearId}
-                    onChange={(e) => setFormFiscalYearId(e.target.value)}
-                  >
+                  <select id="doc-fy" value={formFiscalYearId} onChange={(e) => setFormFiscalYearId(e.target.value)}>
                     <option value="">常設 / 年度なし</option>
-                    {fiscalYears.map((fy) => (
-                      <option key={fy.id} value={fy.id}>{fy.year}年度</option>
-                    ))}
+                    {fiscalYears.map((fy) => <option key={fy.id} value={fy.id}>{fy.year}年度</option>)}
                   </select>
                 </div>
 
                 <div className="field">
                   <label htmlFor="doc-sort">表示順</label>
-                  <input
-                    id="doc-sort"
-                    type="number"
-                    value={formSortOrder}
-                    onChange={(e) => setFormSortOrder(e.target.value)}
-                  />
+                  <input id="doc-sort" type="number" value={formSortOrder} onChange={(e) => setFormSortOrder(e.target.value)} />
                 </div>
 
                 <div className="field">
                   <label htmlFor="doc-published" className="checkbox-label">
-                    <input
-                      id="doc-published"
-                      type="checkbox"
-                      checked={formPublished}
-                      onChange={(e) => setFormPublished(e.target.checked)}
-                    />
+                    <input id="doc-published" type="checkbox" checked={formPublished} onChange={(e) => setFormPublished(e.target.checked)} />
                     公開する
                   </label>
                 </div>
 
                 <div className="field field-span-2">
-                  <label htmlFor="doc-content">本文</label>
-                  <textarea
-                    id="doc-content"
-                    rows={12}
-                    value={formContent}
-                    onChange={(e) => setFormContent(e.target.value)}
-                  />
+                  <label>本文</label>
+                  <Suspense fallback={<div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><LoadingSpinner /></div>}>
+                    <RichTextEditor content={formContent} onChange={setFormContent} />
+                  </Suspense>
                 </div>
 
                 <div className="field field-span-2">
                   <label htmlFor="doc-attachment">添付URL</label>
-                  <input
-                    id="doc-attachment"
-                    type="url"
-                    placeholder="https://..."
-                    value={formAttachment}
-                    onChange={(e) => setFormAttachment(e.target.value)}
-                  />
+                  <input id="doc-attachment" type="url" placeholder="https://..." value={formAttachment} onChange={(e) => setFormAttachment(e.target.value)} />
                 </div>
 
                 {formDocType === "運用マニュアル" && (
                   <div className="field field-span-2">
                     <label htmlFor="doc-category">カテゴリ</label>
-                    <input
-                      id="doc-category"
-                      type="text"
-                      value={formCategory}
-                      onChange={(e) => setFormCategory(e.target.value)}
-                    />
+                    <input id="doc-category" type="text" value={formCategory} onChange={(e) => setFormCategory(e.target.value)} />
                   </div>
                 )}
+              </div>
 
-                {detail && (
-                  <div className="field field-span-2">
-                    <div className="info-block">
-                      <p><span className="muted">資料種別:</span> {displayValue(detail.doc_type)}</p>
-                      <p><span className="muted">年度:</span> {displayValue(detail.fiscal_year_label || detail.fiscal_year_id)}</p>
-                      <p><span className="muted">カテゴリ:</span> {displayValue(detail.category)}</p>
-                      <p>
-                        <span className="muted">公開状態:</span>{" "}
-                        <span className={`pill${detail.published ? " pill-success" : ""}`}>
-                          {detail.published ? "公開" : "非公開"}
-                        </span>
-                      </p>
-                      <p><span className="muted">最終更新:</span> {displayValue(detail.updated_at)}</p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="filter-actions">
-                  <button className="button" type="submit" disabled={saving}>
-                    {saving ? "保存中..." : "保存する"}
-                  </button>
-                  {selectedId && (
-                    <button
-                      className="button ghost"
-                      type="button"
-                      disabled={saving}
-                      onClick={handleTogglePublished}
-                    >
-                      {formPublished ? "非公開にする" : "公開にする"}
-                    </button>
-                  )}
-                </div>
-              </form>
-            )}
+              <div className="modal-footer">
+                <button className="button" type="submit" disabled={saving}>
+                  {saving ? "保存中..." : "保存する"}
+                </button>
+                <button className="button ghost" type="button" onClick={() => setShowModal(false)}>キャンセル</button>
+              </div>
+            </form>
           </div>
-        </section>
-      </div>
+        </div>
+      )}
     </section>
   );
 }

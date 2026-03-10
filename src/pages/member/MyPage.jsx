@@ -174,7 +174,7 @@ export default function MyPage() {
           <div className="card-body stack">
             <p className="message">例: <code>/mypage?memberId=YOUR_MEMBER_ID</code></p>
             <div className="actions">
-              <Link className="text-link" to="/directory">名簿閲覧へ</Link>
+              <Link className="text-link" to="/directory">会員名簿へ</Link>
               <Link className="text-link" to="/info">基本情報へ</Link>
               <Link className="text-link" to="/organization">組織図へ</Link>
               <Link className="text-link" to="/manual">運用マニュアルへ</Link>
@@ -212,7 +212,7 @@ export default function MyPage() {
           <div className="card-body stack">
             <p className="message error">{error}</p>
             <div className="actions">
-              <Link className="text-link" to="/directory">名簿閲覧へ</Link>
+              <Link className="text-link" to="/directory">会員名簿へ</Link>
               <Link className="text-link" to="/info">基本情報へ</Link>
               <Link className="text-link" to="/organization">組織図へ</Link>
               <Link className="text-link" to="/manual">運用マニュアルへ</Link>
@@ -243,7 +243,7 @@ export default function MyPage() {
                 </div>
                 <div className="pill-row">
                   <span className="pill">{displayValue(member.member_type)}</span>
-                  <span className="pill">{displayValue(member.status)}</span>
+                  <span className="pill">{displayValue(normalizeMemberStatus(member.status))}</span>
                 </div>
               </div>
               <div className="member-image-wrap">

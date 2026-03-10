@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { apiRequest } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -73,6 +73,25 @@ export default function Manual() {
       });
   }, []);
 
+  // Group by category — must be before any early returns to satisfy Rules of Hooks
+  const { categoryGroups, uncategorized } = useMemo(() => {
+    const catMap = new Map();
+    const uncat = [];
+    for (const manual of manuals) {
+      const cat = String(manual.category || "").trim();
+      if (cat) {
+        if (!catMap.has(cat)) catMap.set(cat, []);
+        catMap.get(cat).push(manual);
+      } else {
+        uncat.push(manual);
+      }
+    }
+    const groups = [...catMap.entries()].sort((a, b) =>
+      a[0].localeCompare(b[0], "ja")
+    );
+    return { categoryGroups: groups, uncategorized: uncat };
+  }, [manuals]);
+
   if (loading) {
     return (
       <section className="admin-shell">
@@ -100,7 +119,7 @@ export default function Manual() {
           <div className="card-body stack">
             <p className="message error">{error}</p>
             <div className="actions">
-              <Link className="text-link" to="/directory">名簿閲覧へ</Link>
+              <Link className="text-link" to="/directory">会員名簿へ</Link>
               <Link className="text-link" to="/info">基本情報へ</Link>
               <Link className="text-link" to="/organization">組織図へ</Link>
             </div>
@@ -109,23 +128,6 @@ export default function Manual() {
       </section>
     );
   }
-
-  // Group by category
-  const categoryMap = new Map();
-  const uncategorized = [];
-  for (const manual of manuals) {
-    const cat = String(manual.category || "").trim();
-    if (cat) {
-      if (!categoryMap.has(cat)) categoryMap.set(cat, []);
-      categoryMap.get(cat).push(manual);
-    } else {
-      uncategorized.push(manual);
-    }
-  }
-
-  const categoryGroups = [...categoryMap.entries()].sort((a, b) =>
-    a[0].localeCompare(b[0], "ja")
-  );
 
   return (
     <section className="admin-shell">

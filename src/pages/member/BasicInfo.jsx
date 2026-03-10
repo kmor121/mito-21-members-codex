@@ -148,7 +148,7 @@ export default function BasicInfo() {
           <div className="card-body stack">
             <p className="message error">{error}</p>
             <div className="actions">
-              <Link className="text-link" to="/directory">名簿閲覧へ</Link>
+              <Link className="text-link" to="/directory">会員名簿へ</Link>
               <Link className="text-link" to="/mypage">マイページへ</Link>
             </div>
           </div>
@@ -201,7 +201,7 @@ export default function BasicInfo() {
 
           {!years.length && (
             <p className="empty-state">
-              FiscalYears が未登録のため、表示対象の年度を決められません。年度を登録すると M4 で切替表示できます。
+              年度が未登録のため、表示対象の年度を決められません。管理画面で年度を登録すると切替表示できます。
             </p>
           )}
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { apiRequest } from "../../api/base44Client";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
@@ -74,7 +74,7 @@ export default function OrgChart() {
   const [orgForm, setOrgForm] = useState({
     id: "",
     org_name: "",
-    org_type: "役員会",
+    org_type: "幹事会",
     parent_id: "",
     sort_order: 0,
   });
@@ -85,6 +85,10 @@ export default function OrgChart() {
     role: "",
     sort_order: 0,
   });
+
+  // Drag & drop for org list
+  const dragOrgIdx = useRef(null);
+  const dragOverOrgIdx = useRef(null);
 
   const loadData = useCallback(() => {
     setLoading(true);
@@ -122,7 +126,7 @@ export default function OrgChart() {
         setOrgForm({
           id: org.id || "",
           org_name: org.org_name || "",
-          org_type: org.org_type || "役員会",
+          org_type: org.org_type || "幹事会",
           parent_id: org.parent_id || "",
           sort_order: org.sort_order || 0,
         });
@@ -133,13 +137,13 @@ export default function OrgChart() {
   }, [selectedOrgId, organizations]);
 
   const selectedOrg = organizations.find((o) => o.id === selectedOrgId) || null;
-  const assignments = selectedOrg?.assignments || [];
+  const rawAssignments = selectedOrg?.assignments; const assignments = Array.isArray(rawAssignments) ? rawAssignments : [];
   const activeFiscalYearId = selectedFiscalYear?.id || fiscalYearId;
-  const orgTree = buildOrgTree(organizations);
+  const orgTree = useMemo(() => buildOrgTree(organizations), [organizations]);
 
   function resetOrgForm() {
     setSelectedOrgId(null);
-    setOrgForm({ id: "", org_name: "", org_type: "役員会", parent_id: "", sort_order: 0 });
+    setOrgForm({ id: "", org_name: "", org_type: "幹事会", parent_id: "", sort_order: 0 });
     setSelectedAssignmentId(null);
     resetAssignmentForm();
   }
@@ -326,12 +330,34 @@ export default function OrgChart() {
               <p className="muted">組織データがありません。</p>
             ) : (
               <div className="pending-list">
-                {orgTree.map(({ org, depth }) => (
+                {orgTree.map(({ org, depth }, idx) => (
                   <button
                     key={org.id}
                     className={`pending-item${selectedOrgId === org.id ? " is-selected" : ""}`}
-                    style={{ paddingLeft: `${12 + depth * 16}px` }}
+                    style={{ paddingLeft: `${12 + depth * 16}px`, cursor: 'grab' }}
                     onClick={() => setSelectedOrgId(org.id)}
+                    draggable
+                    onDragStart={() => { dragOrgIdx.current = idx; }}
+                    onDragEnter={() => { dragOverOrgIdx.current = idx; }}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDragEnd={async () => {
+                      if (dragOrgIdx.current === null || dragOverOrgIdx.current === null || dragOrgIdx.current === dragOverOrgIdx.current) return;
+                      const reordered = [...organizations];
+                      const flatOrdered = orgTree.map(item => item.org);
+                      const [removed] = flatOrdered.splice(dragOrgIdx.current, 1);
+                      flatOrdered.splice(dragOverOrgIdx.current, 0, removed);
+                      const updated = flatOrdered.map((o, i) => ({ ...reordered.find(r => r.id === o.id) || o, sort_order: i }));
+                      setOrganizations(updated);
+                      dragOrgIdx.current = null;
+                      dragOverOrgIdx.current = null;
+                      try {
+                        await apiRequest("batch-update-sort-order", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ entity: "organizations", items: updated.map((o, i) => ({ id: o.id, sort_order: i })) }),
+                        });
+                      } catch { /* silent */ }
+                    }}
                   >
                     <span className="pending-date">
                       {displayValue(org.org_type)} / 配属 {(org.assignments || []).length}名
@@ -374,14 +400,14 @@ export default function OrgChart() {
                     <option value="">-- 選択 --</option>
                     {fiscalYears.map((fy) => (
                       <option key={fy.id} value={fy.id}>
-                        {fy.year_label || fy.id}
+                        {fy.year_label || (fy.year ? `${fy.year}年度` : fy.id)}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div className="form-field" style={{ display: "flex", alignItems: "flex-end" }}>
                   <button
-                    className="btn btn-secondary"
+                    className="button ghost"
                     type="button"
                     onClick={handleCopyFromPreviousYear}
                     disabled={saving || organizations.length > 0}
@@ -401,7 +427,7 @@ export default function OrgChart() {
                 <h3 className="section-title" style={{ margin: 0 }}>
                   組織フォーム
                 </h3>
-                <button className="btn btn-secondary" type="button" onClick={resetOrgForm}>
+                <button className="button ghost" type="button" onClick={resetOrgForm}>
                   新規組織
                 </button>
               </div>
@@ -433,7 +459,7 @@ export default function OrgChart() {
                       setOrgForm((prev) => ({ ...prev, org_type: e.target.value }))
                     }
                   >
-                    <option value="役員会">役員会</option>
+                    <option value="幹事会">幹事会</option>
                     <option value="委員会">委員会</option>
                     <option value="部会">部会</option>
                     <option value="その他">その他</option>
@@ -456,7 +482,7 @@ export default function OrgChart() {
                       .filter((o) => o.id !== orgForm.id)
                       .map((o) => (
                         <option key={o.id} value={o.id}>
-                          {o.org_name || o.id}
+                          {o.org_name || "（名称未設定）"}
                         </option>
                       ))}
                   </select>
@@ -478,13 +504,14 @@ export default function OrgChart() {
               </div>
 
               <div className="actions" style={{ marginTop: "0.75rem", gap: "0.5rem" }}>
-                <button className="btn btn-primary" type="submit" disabled={saving}>
+                <button className="button" type="submit" disabled={saving}>
                   保存
                 </button>
                 {orgForm.id && (
                   <button
-                    className="btn btn-danger"
+                    className="button ghost"
                     type="button"
+                    style={{ color: "#c53030" }}
                     onClick={handleDeleteOrg}
                     disabled={saving}
                   >
@@ -531,7 +558,7 @@ export default function OrgChart() {
                   配属フォーム
                 </h3>
                 <button
-                  className="btn btn-secondary"
+                  className="button ghost"
                   type="button"
                   onClick={resetAssignmentForm}
                   disabled={!selectedOrgId}
@@ -557,7 +584,7 @@ export default function OrgChart() {
                     <option value="">-- 選択 --</option>
                     {memberOptions.map((m) => (
                       <option key={m.id} value={m.id}>
-                        {m.name || m.id}
+                        {m.name || "（名前未設定）"}
                       </option>
                     ))}
                   </select>
@@ -596,7 +623,7 @@ export default function OrgChart() {
 
               <div className="actions" style={{ marginTop: "0.75rem", gap: "0.5rem" }}>
                 <button
-                  className="btn btn-primary"
+                  className="button"
                   type="submit"
                   disabled={saving || !selectedOrgId}
                 >
@@ -604,8 +631,9 @@ export default function OrgChart() {
                 </button>
                 {assignmentForm.id && (
                   <button
-                    className="btn btn-danger"
+                    className="button ghost"
                     type="button"
+                    style={{ color: "#c53030" }}
                     onClick={handleDeleteAssignment}
                     disabled={saving}
                   >

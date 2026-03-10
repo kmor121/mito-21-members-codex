@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { apiRequest } from "../../api/base44Client";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 
@@ -303,10 +303,12 @@ export default function Newsletters() {
   }
 
   // Filter newsletters by tab
-  const filteredNewsletters =
+  const filteredNewsletters = useMemo(() =>
     activeTab === "all"
       ? newsletters
-      : newsletters.filter((nl) => nl.status === activeTab);
+      : newsletters.filter((nl) => nl.status === activeTab),
+    [activeTab, newsletters]
+  );
 
   if (loading) {
     return (

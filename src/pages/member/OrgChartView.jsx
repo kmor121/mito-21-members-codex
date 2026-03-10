@@ -47,8 +47,8 @@ function OrganizationAssignment({ assignment }) {
 }
 
 function OrganizationCard({ organization, isChild }) {
-  const assignments = organization.assignments || [];
-  const children = organization.children || [];
+  const assignments = Array.isArray(organization.assignments) ? organization.assignments : [];
+  const children = Array.isArray(organization.children) ? organization.children : [];
 
   return (
     <article className={`organization-card${isChild ? " org-child" : ""}`}>
@@ -177,7 +177,7 @@ export default function OrgChartView() {
           <div className="card-body stack">
             <p className="message error">{error}</p>
             <div className="actions">
-              <Link className="text-link" to="/directory">名簿閲覧へ</Link>
+              <Link className="text-link" to="/directory">会員名簿へ</Link>
               <Link className="text-link" to="/mypage">マイページへ</Link>
               <Link className="text-link" to="/info">基本情報へ</Link>
               <Link className="text-link" to="/manual">運用マニュアルへ</Link>
@@ -232,7 +232,7 @@ export default function OrgChartView() {
 
           {!years.length && (
             <p className="empty-state">
-              FiscalYears が未登録のため、表示対象の年度を決められません。年度を登録すると M5 で切替表示できます。
+              年度が未登録のため、表示対象の年度を決められません。管理画面で年度を登録すると切替表示できます。
             </p>
           )}
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -7,6 +7,18 @@ function displayValue(v) {
   if (v === null || v === undefined || v === "") return "-";
   if (typeof v === "boolean") return v ? "はい" : "いいえ";
   return String(v);
+}
+
+const MEMBER_TYPES = ["正会員", "賛助会員", "OB会員", "名誉顧問"];
+const STATUSES = ["活動中", "休会", "退会"];
+
+function useDebounce(value, delay) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
 }
 
 export default function MemberList() {
@@ -25,6 +37,14 @@ export default function MemberList() {
   const [approvalStatus, setApprovalStatus] = useState("");
   const [organizationId, setOrganizationId] = useState("");
 
+  // Inline editing
+  const [editMode, setEditMode] = useState(false);
+  const [editingRows, setEditingRows] = useState({});
+  const saveTimerRef = useRef({});
+
+  // Debounced search query
+  const debouncedQ = useDebounce(q, 300);
+
   const loadMembers = useCallback(async (filters) => {
     setError("");
     setMessage("読み込み中...");
@@ -37,6 +57,7 @@ export default function MemberList() {
       if (filters.member_type) params.set("member_type", filters.member_type);
       if (filters.approval_status) params.set("approval_status", filters.approval_status);
       if (filters.organization_id) params.set("organization_id", filters.organization_id);
+      if (filters.is_new) params.set("is_new", "true");
 
       const qs = params.toString();
       const path = qs ? `list-members-admin?${qs}` : "list-members-admin";
@@ -61,20 +82,31 @@ export default function MemberList() {
     }
   }, []);
 
+  function getCurrentFilters() {
+    return {
+      q: q.trim(),
+      status,
+      member_type: memberType === "新入会員" ? "" : memberType,
+      approval_status: approvalStatus,
+      organization_id: organizationId,
+      is_new: memberType === "新入会員" ? true : undefined,
+    };
+  }
+
+  // Initial load
   useEffect(() => {
     loadMembers({});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    loadMembers({
-      q: q.trim(),
-      status,
-      member_type: memberType,
-      approval_status: approvalStatus,
-      organization_id: organizationId,
-    });
-  }
+  // Real-time search on debounced query change
+  useEffect(() => {
+    loadMembers(getCurrentFilters());
+  }, [debouncedQ]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-search when filter dropdowns change
+  useEffect(() => {
+    loadMembers(getCurrentFilters());
+  }, [status, memberType, approvalStatus, organizationId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleReset() {
     setQ("");
@@ -83,6 +115,60 @@ export default function MemberList() {
     setApprovalStatus("");
     setOrganizationId("");
     loadMembers({});
+  }
+
+  // Inline editing helpers
+  function handleCellChange(memberId, field, value) {
+    setEditingRows((prev) => ({
+      ...prev,
+      [memberId]: { ...(prev[memberId] || {}), [field]: value },
+    }));
+
+    // Debounced auto-save (1 second)
+    if (saveTimerRef.current[memberId]) {
+      clearTimeout(saveTimerRef.current[memberId]);
+    }
+    saveTimerRef.current[memberId] = setTimeout(() => {
+      saveRow(memberId);
+    }, 1000);
+  }
+
+  async function saveRow(memberId) {
+    const changes = editingRows[memberId];
+    if (!changes || Object.keys(changes).length === 0) return;
+
+    try {
+      await apiRequest("update-member-detail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: memberId,
+          allow_partial_profile_update: true,
+          changed_by: "管理者",
+          changed_by_role: "admin",
+          ...changes,
+        }),
+      });
+
+      // Update local state
+      setMembers((prev) =>
+        prev.map((m) => (m.id === memberId ? { ...m, ...changes } : m))
+      );
+      setEditingRows((prev) => {
+        const next = { ...prev };
+        delete next[memberId];
+        return next;
+      });
+    } catch (err) {
+      setError(`保存に失敗: ${err.message}`);
+    }
+  }
+
+  function getCellValue(member, field) {
+    if (editingRows[member.id] && field in editingRows[member.id]) {
+      return editingRows[member.id][field];
+    }
+    return member[field] || "";
   }
 
   return (
@@ -94,7 +180,7 @@ export default function MemberList() {
 
       <section className="card panel-card single-panel">
         <div className="card-body stack">
-          <form className="filter-grid" noValidate onSubmit={handleSubmit}>
+          <div className="filter-grid">
             <div className="field field-span-2">
               <label htmlFor="ml-search">検索</label>
               <input
@@ -122,6 +208,8 @@ export default function MemberList() {
                 <option value="正会員">正会員</option>
                 <option value="賛助会員">賛助会員</option>
                 <option value="OB会員">OB会員</option>
+                <option value="名誉顧問">名誉顧問</option>
+                <option value="新入会員">新入会員</option>
               </select>
             </div>
             <div className="field">
@@ -134,7 +222,7 @@ export default function MemberList() {
               </select>
             </div>
             <div className="field">
-              <label htmlFor="ml-org">委員会</label>
+              <label htmlFor="ml-org">所属</label>
               <select id="ml-org" name="organization_id" value={organizationId} onChange={(e) => setOrganizationId(e.target.value)}>
                 <option value="">すべて</option>
                 {orgOptions.map((opt) => (
@@ -143,10 +231,16 @@ export default function MemberList() {
               </select>
             </div>
             <div className="filter-actions">
-              <button className="button" type="submit">検索する</button>
               <button className="button ghost" type="button" onClick={handleReset}>リセット</button>
+              <button
+                className={`button${editMode ? "" : " ghost"}`}
+                type="button"
+                onClick={() => setEditMode((v) => !v)}
+              >
+                {editMode ? "編集モード ON" : "編集モード"}
+              </button>
             </div>
-          </form>
+          </div>
 
           <div className="panel-heading compact">
             <p className={`message${error ? " error" : ""}`} aria-live="polite">
@@ -166,16 +260,17 @@ export default function MemberList() {
                     <th>番号</th>
                     <th>氏名</th>
                     <th>会社名</th>
-                    <th>委員会・役職</th>
+                    <th>所属・役職</th>
                     <th>会員種別</th>
                     <th>ステータス</th>
                     <th>メール</th>
+                    <th>携帯</th>
                     <th>詳細</th>
                   </tr>
                 </thead>
                 <tbody>
                   {members.map((m) => {
-                    const assigns = m.org_assignments || [];
+                    const assigns = Array.isArray(m.org_assignments) ? m.org_assignments : [];
                     const orgText = assigns
                       .map((a) => `${a.org_name || ""}${a.role ? "/" + a.role : ""}`)
                       .join(", ");
@@ -183,16 +278,75 @@ export default function MemberList() {
                     return (
                       <tr
                         key={m.id}
-                        style={{ cursor: "pointer" }}
-                        onClick={() => navigate(`/admin/members/${m.id}`)}
+                        style={{ cursor: editMode ? "default" : "pointer" }}
+                        onClick={editMode ? undefined : () => navigate(`/admin/members/${m.id}`)}
                       >
                         <td>{displayValue(m.member_number)}</td>
-                        <td>{displayValue(m.name_kanji)}</td>
-                        <td>{displayValue(m.company_name)}</td>
-                        <td>{orgText || "-"}</td>
-                        <td><span className="pill">{displayValue(m.member_type)}</span></td>
-                        <td><span className="pill">{displayValue(m.status)}</span></td>
-                        <td>{displayValue(m.email)}</td>
+                        <td>
+                          {displayValue(m.name_kanji)}
+                          {m.is_new && <span className="pill pill-info" style={{ marginLeft: 4, fontSize: '0.75em' }}>新入</span>}
+                          {m.is_graduate && <span className="pill pill-warning" style={{ marginLeft: 4, fontSize: '0.75em' }}>卒業生</span>}
+                        </td>
+                        {editMode ? (
+                          <>
+                            <td>
+                              <input
+                                type="text"
+                                className="inline-edit-input"
+                                value={getCellValue(m, "company_name")}
+                                onChange={(e) => handleCellChange(m.id, "company_name", e.target.value)}
+                              />
+                            </td>
+                            <td>{orgText || "-"}</td>
+                            <td>
+                              <select
+                                className="inline-edit-input"
+                                value={getCellValue(m, "member_type")}
+                                onChange={(e) => handleCellChange(m.id, "member_type", e.target.value)}
+                              >
+                                {MEMBER_TYPES.map((t) => (
+                                  <option key={t} value={t}>{t}</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td>
+                              <select
+                                className="inline-edit-input"
+                                value={getCellValue(m, "status")}
+                                onChange={(e) => handleCellChange(m.id, "status", e.target.value)}
+                              >
+                                {STATUSES.map((s) => (
+                                  <option key={s} value={s}>{s}</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td>
+                              <input
+                                type="email"
+                                className="inline-edit-input"
+                                value={getCellValue(m, "email")}
+                                onChange={(e) => handleCellChange(m.id, "email", e.target.value)}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="tel"
+                                className="inline-edit-input"
+                                value={getCellValue(m, "mobile_phone")}
+                                onChange={(e) => handleCellChange(m.id, "mobile_phone", e.target.value)}
+                              />
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td>{displayValue(m.company_name)}</td>
+                            <td>{orgText || "-"}</td>
+                            <td><span className="pill">{displayValue(m.member_type)}</span></td>
+                            <td><span className="pill">{displayValue(m.status)}</span></td>
+                            <td>{displayValue(m.email)}</td>
+                            <td>{displayValue(m.mobile_phone)}</td>
+                          </>
+                        )}
                         <td>
                           <button
                             className="text-link"

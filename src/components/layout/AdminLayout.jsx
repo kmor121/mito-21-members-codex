@@ -14,7 +14,7 @@ const ADMIN_NAV_ITEMS = [
 ];
 
 const MEMBER_NAV_ITEMS = [
-  { to: "/directory", label: "名簿閲覧" },
+  { to: "/directory", label: "会員名簿" },
   { to: "/organization", label: "組織図" },
   { to: "/info", label: "基本情報" },
   { to: "/manual", label: "運用マニュアル" },

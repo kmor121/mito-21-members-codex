@@ -89,7 +89,7 @@ export default function Directory() {
   return (
     <section className="admin-shell">
       <div className="page-header">
-        <h1 className="page-title">名簿閲覧</h1>
+        <h1 className="page-title">会員名簿</h1>
         <p className="page-description">承認済・活動中の会員名簿を閲覧</p>
       </div>
       <section className="card panel-card single-panel">
@@ -107,7 +107,7 @@ export default function Directory() {
               />
             </div>
             <div className="field">
-              <label htmlFor="directory-org-filter">委員会</label>
+              <label htmlFor="directory-org-filter">所属</label>
               <select
                 id="directory-org-filter"
                 name="organization_id"
@@ -139,7 +139,7 @@ export default function Directory() {
           ) : (
             <div className="directory-grid">
               {members.map((member) => {
-                const assigns = member.org_assignments || [];
+                const assigns = Array.isArray(member.org_assignments) ? member.org_assignments : [];
                 const orgText = assigns
                   .map((a) => `${a.org_name}${a.role ? " / " + a.role : ""}`)
                   .join("、");
@@ -157,6 +157,8 @@ export default function Directory() {
                         )}
                       </div>
                       <span className="pill">{displayValue(member.member_type)}</span>
+                      {member.is_new && <span className="pill pill-info" style={{ marginLeft: 4, fontSize: '0.75em' }}>新入</span>}
+                      {member.is_graduate && <span className="pill pill-warning" style={{ marginLeft: 4, fontSize: '0.75em' }}>卒業生</span>}
                     </div>
                     <dl className="directory-meta">
                       {member.company_name && (

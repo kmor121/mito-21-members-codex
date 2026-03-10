@@ -47,15 +47,13 @@ Deno.serve(async (req) => {
         fiscal_year_id: previousFiscalYearId
       });
 
-      // Check if new year already has organizations
       const existingNewOrgs = await base44.asServiceRole.entities.Organization.filter({
         fiscal_year_id: newFiscalYearId
       });
 
       if (existingNewOrgs.length === 0) {
-        const orgIdMap = new Map<string, string>(); // old id -> new id
+        const orgIdMap = new Map<string, string>();
 
-        // First pass: create organizations without parent_id
         for (const org of previousOrgs) {
           const newOrg = await base44.asServiceRole.entities.Organization.create({
             fiscal_year_id: newFiscalYearId,
@@ -67,7 +65,6 @@ Deno.serve(async (req) => {
           orgsCopied++;
         }
 
-        // Second pass: set parent_id references
         for (const org of previousOrgs) {
           if (org.parent_id) {
             const newId = orgIdMap.get(org.id);
@@ -82,7 +79,6 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Copy assignments
         const previousAssignments = await base44.asServiceRole.entities.OrgAssignment.filter({
           fiscal_year_id: previousFiscalYearId
         });
@@ -107,7 +103,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 3. Generate dues for new fiscal year
+    // 3. Generate dues for new fiscal year using new DueSetting schema
     let duesGenerated = 0;
 
     if (generateDues) {
@@ -115,42 +111,46 @@ Deno.serve(async (req) => {
         fiscal_year_id: newFiscalYearId
       });
 
-      const settingsMap = new Map<string, number>();
-      for (const setting of dueSettings) {
-        settingsMap.set(String(setting.member_type || ""), Number(setting.amount || 0));
-      }
+      if (dueSettings.length > 0) {
+        const setting = dueSettings[0];
+        // New schema: single record with named fee fields
+        const regularFee = Number(setting.regular_annual_fee || 0);
+        const associateFee = Number(setting.associate_annual_fee || 0);
 
-      if (settingsMap.size > 0) {
-        const allMembers = await base44.asServiceRole.entities.Member.list();
-        const eligibleMembers = allMembers.filter(
-          (m) =>
-            m.approval_status === "承認済" &&
-            m.status === "活動中" &&
-            (m.member_type === "正会員" || m.member_type === "賛助会員")
-        );
+        if (regularFee > 0 || associateFee > 0) {
+          const allMembers = await base44.asServiceRole.entities.Member.list();
+          const eligibleMembers = allMembers.filter(
+            (m) =>
+              m.approval_status === "承認済" &&
+              m.status === "活動中" &&
+              (m.member_type === "正会員" || m.member_type === "賛助会員")
+          );
 
-        // Check existing dues for this fiscal year
-        const existingDues = await base44.asServiceRole.entities.Due.filter({
-          fiscal_year_id: newFiscalYearId
-        });
-        const existingMemberIds = new Set(existingDues.map((d) => String(d.member_id || "")));
+          const existingDues = await base44.asServiceRole.entities.Due.filter({
+            fiscal_year_id: newFiscalYearId
+          });
+          const existingMemberIds = new Set(existingDues.map((d) => String(d.member_id || "")));
 
-        for (const member of eligibleMembers) {
-          if (existingMemberIds.has(member.id)) continue;
+          for (const member of eligibleMembers) {
+            if (existingMemberIds.has(member.id)) continue;
 
-          const amount = settingsMap.get(String(member.member_type || "")) || 0;
-          if (amount > 0) {
-            await base44.asServiceRole.entities.Due.create({
-              fiscal_year_id: newFiscalYearId,
-              member_id: member.id,
-              amount,
-              status: "未納"
-            });
-            duesGenerated++;
+            const amount = member.member_type === "正会員" ? regularFee : associateFee;
+            if (amount > 0) {
+              await base44.asServiceRole.entities.Due.create({
+                fiscal_year_id: newFiscalYearId,
+                member_id: member.id,
+                amount,
+                due_type: "年会費",
+                status: "未納"
+              });
+              duesGenerated++;
+            }
           }
-        }
 
-        log.push(`会費 ${duesGenerated} 件を生成しました`);
+          log.push(`会費 ${duesGenerated} 件を生成しました`);
+        } else {
+          log.push("会費金額が0のため、会費生成をスキップしました");
+        }
       } else {
         log.push("会費金額設定がないため、会費生成をスキップしました");
       }

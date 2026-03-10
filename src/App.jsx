@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useToast } from './hooks/useToast';
 import ToastContainer from './components/common/Toast';
 import LoadingSpinner from './components/common/LoadingSpinner';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import PublicLayout from './components/layout/PublicLayout';
 import AdminLayout from './components/layout/AdminLayout';
 import MemberLayout from './components/layout/MemberLayout';
@@ -54,6 +55,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ToastContainer toasts={toasts} />
+      <ErrorBoundary>
       <Suspense fallback={<PageFallback />}>
         <Routes>
           {/* Public routes */}
@@ -99,6 +101,7 @@ export default function App() {
           </Route>
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

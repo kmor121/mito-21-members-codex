@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiRequest } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -93,16 +93,23 @@ export default function MemberDetail() {
     setError("");
     setLoading(true);
     try {
-      const [detailRes, historyRes, logsRes] = await Promise.all([
-        apiRequest(`get-member-detail?id=${encodeURIComponent(memberId)}`),
-        apiRequest(`get-member-history?memberId=${encodeURIComponent(memberId)}`),
-        apiRequest(`get-member-change-logs?memberId=${encodeURIComponent(memberId)}`),
-      ]);
-
+      // Load member detail first (required), then history/logs (optional)
+      const detailRes = await apiRequest(`get-member-detail?id=${encodeURIComponent(memberId)}`);
       const m = detailRes.member || detailRes;
       setMember(m);
-      setHistory(historyRes);
-      const rawLogs = logsRes.logs || logsRes.change_logs;
+
+      // Load history and change logs - don't crash if these fail
+      let historyRes = {};
+      let logsRes = {};
+      try {
+        [historyRes, logsRes] = await Promise.all([
+          apiRequest(`get-member-history?memberId=${encodeURIComponent(memberId)}`).catch(() => ({})),
+          apiRequest(`get-member-change-logs?memberId=${encodeURIComponent(memberId)}`).catch(() => ({})),
+        ]);
+      } catch { /* ignore */ }
+
+      setHistory(historyRes || {});
+      const rawLogs = logsRes?.logs || logsRes?.change_logs;
       setChangeLogs(Array.isArray(rawLogs) ? rawLogs : []);
 
       setFormData({
@@ -285,19 +292,22 @@ export default function MemberDetail() {
 
   if (!member) return null;
 
-  const orgHistory = history?.org_history || [];
-  const duesHistory = history?.dues_history || [];
-
   // Group org history by year
-  const orgByYear = {};
-  for (const item of orgHistory) {
-    const year = item.year || "不明";
-    if (!orgByYear[year]) orgByYear[year] = [];
-    orgByYear[year].push(item);
-  }
-  const orgYears = Object.keys(orgByYear).sort((a, b) => String(b).localeCompare(String(a)));
+  const orgHistory = Array.isArray(history?.org_history) ? history.org_history : [];
+  const duesHistory = Array.isArray(history?.dues_history) ? history.dues_history : [];
 
-  const referrerMatches = member.referrer_matches || {};
+  const { orgByYear, orgYears } = useMemo(() => {
+    const byYear = {};
+    for (const item of orgHistory) {
+      const year = item.year || "不明";
+      if (!byYear[year]) byYear[year] = [];
+      byYear[year].push(item);
+    }
+    const years = Object.keys(byYear).sort((a, b) => String(b).localeCompare(String(a)));
+    return { orgByYear: byYear, orgYears: years };
+  }, [orgHistory]);
+
+  const referrerMatches = member?.referrer_matches || {};
 
   return (
     <section className="admin-shell">
@@ -335,6 +345,8 @@ export default function MemberDetail() {
                   <div className="pill-row">
                     <span className="pill">{displayValue(member.member_type)}</span>
                     <span className="pill">{displayValue(member.status)}</span>
+                    {member.is_new && <span className="pill pill-info">新入会員</span>}
+                    {member.is_graduate && <span className="pill pill-warning">卒業生</span>}
                   </div>
                 </div>
                 <div className="member-image-wrap">
@@ -493,6 +505,7 @@ export default function MemberDetail() {
                       <option value="正会員">正会員</option>
                       <option value="賛助会員">賛助会員</option>
                       <option value="OB会員">OB会員</option>
+                      <option value="名誉顧問">名誉顧問</option>
                     </select>
                   </div>
                   <div className="field">

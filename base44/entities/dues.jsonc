@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "Due",
   "type": "object",
   "properties": {
@@ -16,8 +16,14 @@
     },
     "status": {
       "type": "string",
-      "enum": ["\u672a\u7d0d", "\u7d0d\u5165\u6e08"],
+      "enum": ["未納", "納入済"],
       "description": "Payment status"
+    },
+    "due_type": {
+      "type": "string",
+      "enum": ["年会費", "入会金", "後期入会会費"],
+      "description": "Type of due: annual fee, admission fee, or half-year fee",
+      "default": "年会費"
     },
     "paid_date": {
       "type": "string",

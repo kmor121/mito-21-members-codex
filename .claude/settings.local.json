@@ -5,7 +5,12 @@
       "Bash(npx base44:*)",
       "Bash(npm create:*)",
       "Bash(mkdir:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(base44 site:*)",
+      "Bash(npm run:*)",
+      "Bash(base44 entities:*)",
+      "Bash(xargs grep:*)",
+      "Bash(base44 functions:*)"
     ]
   }
 }

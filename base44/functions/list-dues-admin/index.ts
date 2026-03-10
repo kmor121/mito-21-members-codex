@@ -1,10 +1,10 @@
-﻿import { createClientFromRequest } from "npm:@base44/sdk";
+import { createClientFromRequest } from "npm:@base44/sdk";
 
-const MEMBER_TYPE_REGULAR = "\u6b63\u4f1a\u54e1";
-const MEMBER_TYPE_SUPPORTING = "\u8cdb\u52a9\u4f1a\u54e1";
-const DUE_STATUS_UNPAID = "\u672a\u7d0d";
-const DUE_STATUS_PAID = "\u7d0d\u5165\u6e08";
-const LEGACY_DUE_STATUS_PAID = "\u5165\u91d1\u6e08";
+const MEMBER_TYPE_REGULAR = "正会員";
+const MEMBER_TYPE_SUPPORTING = "賛助会員";
+const DUE_STATUS_UNPAID = "未納";
+const DUE_STATUS_PAID = "納入済";
+const LEGACY_DUE_STATUS_PAID = "入金済";
 
 const ELIGIBLE_MEMBER_TYPES = new Set([MEMBER_TYPE_REGULAR, MEMBER_TYPE_SUPPORTING]);
 
@@ -19,10 +19,7 @@ function toAmount(value: unknown) {
 
 function normalizeDueStatus(value: unknown) {
   const source = String(value || "").trim();
-  if (source === LEGACY_DUE_STATUS_PAID) {
-    return DUE_STATUS_PAID;
-  }
-  if (source === DUE_STATUS_PAID) {
+  if (source === LEGACY_DUE_STATUS_PAID || source === DUE_STATUS_PAID) {
     return DUE_STATUS_PAID;
   }
   return DUE_STATUS_UNPAID;
@@ -34,25 +31,6 @@ function readPaidDate(due: Record<string, unknown>) {
 
 function readNotes(due: Record<string, unknown>) {
   return String(due.notes || due.note || "");
-}
-
-function recordTimestamp(record: Record<string, unknown>) {
-  return String(record.updated_date || record.created_date || "");
-}
-
-function hasCanonicalDueFields(record: Record<string, unknown>) {
-  return "paid_date" in record || "notes" in record || String(record.status || "") === DUE_STATUS_PAID;
-}
-
-function shouldReplaceDue(currentDue: Record<string, unknown>, nextDue: Record<string, unknown>) {
-  const currentCanonical = hasCanonicalDueFields(currentDue);
-  const nextCanonical = hasCanonicalDueFields(nextDue);
-
-  if (currentCanonical !== nextCanonical) {
-    return nextCanonical;
-  }
-
-  return recordTimestamp(nextDue) > recordTimestamp(currentDue);
 }
 
 Deno.serve(async (req) => {
@@ -90,8 +68,11 @@ Deno.serve(async (req) => {
         fiscal_years: fiscalYearList,
         selected_fiscal_year: null,
         due_settings: {
-          regular_member_amount: 0,
-          supporting_member_amount: 0
+          regular_annual_fee: 0,
+          associate_annual_fee: 0,
+          admission_fee: 0,
+          first_half_fee: 0,
+          second_half_fee: 0
         },
         dues: [],
         summary: {
@@ -105,61 +86,67 @@ Deno.serve(async (req) => {
       });
     }
 
-    const [dueSettings, dues] = await Promise.all([
+    const [dueSettings, dues, allMembers] = await Promise.all([
       base44.asServiceRole.entities.DueSetting.filter({ fiscal_year_id: selectedFiscalYearId }),
-      base44.asServiceRole.entities.Due.filter({ fiscal_year_id: selectedFiscalYearId })
+      base44.asServiceRole.entities.Due.filter({ fiscal_year_id: selectedFiscalYearId }),
+      base44.asServiceRole.entities.Member.filter({
+        approval_status: "承認済",
+        status: "活動中"
+      })
     ]);
 
-    const settingsForYear = dueSettings.map((setting) => ({
-      id: setting.id,
-      fiscal_year_id: String(setting.fiscal_year_id || ""),
-      member_type: String(setting.member_type || ""),
-      amount: toAmount(setting.amount)
-    }));
-    const settingMap = new Map(settingsForYear.map((setting) => [setting.member_type, setting]));
+    // Read DueSetting - new schema: single record with named fields
+    // Backward compat: if old schema (member_type field), convert
+    let dueSetting = {
+      regular_annual_fee: 0,
+      associate_annual_fee: 0,
+      admission_fee: 0,
+      first_half_fee: 0,
+      second_half_fee: 0
+    };
 
-    const dueMap = new Map<string, Record<string, unknown>>();
-    for (const due of dues) {
-      const memberId = String(due.member_id || "");
-      if (!memberId) {
-        continue;
-      }
-      const currentDue = dueMap.get(memberId);
-      if (!currentDue || shouldReplaceDue(currentDue, due)) {
-        dueMap.set(memberId, due);
+    if (dueSettings.length > 0) {
+      const first = dueSettings[0];
+      if ("regular_annual_fee" in first) {
+        // New schema
+        dueSetting = {
+          regular_annual_fee: toAmount(first.regular_annual_fee),
+          associate_annual_fee: toAmount(first.associate_annual_fee),
+          admission_fee: toAmount(first.admission_fee),
+          first_half_fee: toAmount(first.first_half_fee),
+          second_half_fee: toAmount(first.second_half_fee)
+        };
+      } else {
+        // Old schema: array with member_type + amount
+        for (const s of dueSettings) {
+          const mt = String(s.member_type || "");
+          const amt = toAmount(s.amount);
+          if (mt === MEMBER_TYPE_REGULAR) dueSetting.regular_annual_fee = amt;
+          if (mt === MEMBER_TYPE_SUPPORTING) dueSetting.associate_annual_fee = amt;
+        }
       }
     }
 
-    const memberIds = Array.from(dueMap.keys());
-    const memberEntries = await Promise.all(
-      memberIds.map(async (memberId) => {
-        try {
-          const member = await base44.asServiceRole.entities.Member.get(memberId);
-          return [memberId, member] as const;
-        } catch {
-          return [memberId, null] as const;
-        }
-      })
-    );
-    const memberMap = new Map(memberEntries);
+    // Build member map for eligible members
+    const memberMap = new Map<string, any>();
+    for (const member of allMembers) {
+      const memberType = String(member.member_type || "");
+      if (ELIGIBLE_MEMBER_TYPES.has(memberType)) {
+        memberMap.set(member.id, member);
+      }
+    }
 
-    const rows = memberIds
-      .map((memberId) => {
-        const due = dueMap.get(memberId) || {};
+    // Build rows from dues - NO deduplication (new members can have multiple records)
+    const rows = dues
+      .map((due) => {
+        const memberId = String(due.member_id || "");
+        if (!memberId) return null;
         const member = memberMap.get(memberId);
-        if (!member) {
-          return null;
-        }
+        if (!member) return null;
+
         const memberType = String(member.member_type || "");
-        if (!ELIGIBLE_MEMBER_TYPES.has(memberType)) {
-          return null;
-        }
-        if (String(member.approval_status || "") !== "\u627f\u8a8d\u6e08") {
-          return null;
-        }
-        if (String(member.status || "") !== "\u6d3b\u52d5\u4e2d") {
-          return null;
-        }
+        const dueType = String(due.due_type || "年会費");
+        const isNew = member.is_new === true;
 
         return {
           id: String(due.id || ""),
@@ -168,7 +155,9 @@ Deno.serve(async (req) => {
           member_name: String(member.name_kanji || ""),
           member_type: memberType,
           member_number: String(member.member_number || ""),
-          amount: toAmount(due.amount ?? settingMap.get(memberType)?.amount ?? 0),
+          due_type: dueType,
+          is_new: isNew,
+          amount: toAmount(due.amount),
           status: normalizeDueStatus(due.status),
           paid_date: readPaidDate(due),
           notes: readNotes(due)
@@ -176,24 +165,27 @@ Deno.serve(async (req) => {
       })
       .filter((row) => row !== null)
       .sort((left, right) => {
-        if (left.member_type !== right.member_type) {
-          return left.member_type.localeCompare(right.member_type, "ja");
+        if (left.member_name !== right.member_name) {
+          return left.member_name.localeCompare(right.member_name, "ja");
         }
-        return left.member_name.localeCompare(right.member_name, "ja");
+        // Within same member, show 入会金 before 年会費
+        const typeOrder = { "入会金": 0, "年会費": 1, "後期入会会費": 2 };
+        return (typeOrder[left.due_type as keyof typeof typeOrder] ?? 1) -
+               (typeOrder[right.due_type as keyof typeof typeOrder] ?? 1);
       });
 
     const summary = rows.reduce(
-      (accumulator, row) => {
-        accumulator.total_count += 1;
-        accumulator.total_amount += row.amount;
+      (acc, row) => {
+        acc.total_count += 1;
+        acc.total_amount += row.amount;
         if (row.status === DUE_STATUS_PAID) {
-          accumulator.paid_count += 1;
-          accumulator.paid_amount += row.amount;
+          acc.paid_count += 1;
+          acc.paid_amount += row.amount;
         } else {
-          accumulator.unpaid_count += 1;
-          accumulator.unpaid_amount += row.amount;
+          acc.unpaid_count += 1;
+          acc.unpaid_amount += row.amount;
         }
-        return accumulator;
+        return acc;
       },
       {
         total_count: 0,
@@ -210,10 +202,7 @@ Deno.serve(async (req) => {
       current_fiscal_year_id: currentFiscalYear?.id || "",
       fiscal_years: fiscalYearList,
       selected_fiscal_year: selectedFiscalYear,
-      due_settings: {
-        regular_member_amount: settingMap.get(MEMBER_TYPE_REGULAR)?.amount || 0,
-        supporting_member_amount: settingMap.get(MEMBER_TYPE_SUPPORTING)?.amount || 0
-      },
+      due_settings: dueSetting,
       dues: rows,
       summary
     });

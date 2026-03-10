@@ -45,7 +45,8 @@
 |------|------|
 | 正会員 | 通常のアクティブ会員 |
 | 正会員（休会） | 休会中の正会員 |
-| 新入会員 | 当年度に新規入会した会員 |
+| 新入会員 | 当年度に新規入会した会員（is_new=trueで表現） |
+| 名誉顧問 | 名誉顧問として参加する会員 |
 | 賛助会員 | 賛助として参加する会員 |
 | OB会員 | 退会・卒業した元会員 |
 
@@ -57,6 +58,7 @@
 | 新入会員 | 正会員 | 活動中 | true |
 | 賛助会員 | 賛助会員 | 活動中 | false |
 | OB会員 | OB会員 | 退会 | false |
+| 名誉顧問 | 名誉顧問 | 活動中 | false |
 
 ## ユーザーロール
 ### 管理者（役員・事務局）
@@ -139,7 +141,8 @@
 | name_kana | string | 氏名（ふりがな） | - |
 | birthday | date | 生年月日 | ○ |
 | join_date | date | 入会日 | ○（入会年） |
-| member_type | enum | 正会員 / 賛助会員 / OB会員 | - |
+| member_type | enum | 正会員 / 賛助会員 / OB会員 / 名誉顧問 | - |
+| is_graduate | boolean | 卒業生フラグ（年度末時点で55歳以上） | - |
 | status | enum | 活動中 / 休会 / 退会 | - |
 | approval_status | enum | 申請中 / 承認済 / 却下 | - |
 | applied_at | datetime | 申込日時 | - |
@@ -194,7 +197,7 @@
 | id | auto | Base44自動ID |
 | fiscal_year_id | relation | FiscalYearsへの参照 |
 | org_name | string | 組織名（例: 総務委員会） |
-| org_type | enum | 理事会 / 委員会 / 部会 / その他 |
+| org_type | enum | 幹事会 / 委員会 / 部会 / その他 |
 | parent_id | relation | 親組織（階層構造用） |
 | sort_order | number | 表示順 |
 
@@ -217,6 +220,7 @@
 | member_id | relation | Membersへの参照 |
 | amount | number | 会費金額 |
 | status | enum | 未納 / 納入済 |
+| due_type | enum | 年会費 / 入会金 / 後期入会会費 |
 | paid_date | date | 入金日 |
 | notes | text | 備考 |
 
@@ -240,10 +244,16 @@
 |-----------|-----|------|
 | id | auto | Base44自動ID |
 | fiscal_year_id | relation | FiscalYearsへの参照 |
-| member_type | enum | 正会員 / 賛助会員 |
-| amount | number | 年会費金額 |
+| regular_annual_fee | number | 正会員 年会費（デフォルト: 30,000円） |
+| associate_annual_fee | number | 賛助会員 年会費（デフォルト: 10,000円） |
+| admission_fee | number | 新入会員 入会金（デフォルト: 10,000円） |
+| first_half_fee | number | 新入会員 前期入会会費（デフォルト: 30,000円） |
+| second_half_fee | number | 新入会員 後期入会会費（デフォルト: 15,000円） |
 
+※ 1年度につき1レコードでまとめる設計
 ※ OB会員・休会中は会費対象外とする
+※ 新入会員(is_new=true)は入会金+年会費(前期)/後期入会会費の2レコード生成
+※ 前期/後期の判定: 承認日(join_date)が年度のstart_dateとend_dateの中間日より後なら「後期」
 
 ### 8. OrgDocuments（団体資料）
 | フィールド | 型 | 説明 |
@@ -321,7 +331,7 @@
 ### 会員向け画面
 | # | 画面名 | 概要 |
 |---|--------|------|
-| M1 | 名簿閲覧 | 会員名簿の検索・一覧表示 |
+| M1 | 会員名簿 | 会員名簿の検索・一覧表示 |
 | M2 | 会員詳細 | 個別会員の公開情報表示 |
 | M3 | マイページ | 自分のプロフィール確認・編集 |
 | M4 | 基本情報 | 事業計画、理念、会則、年間スケジュールの閲覧 |
@@ -427,6 +437,7 @@
   - 組織構成のコピー（任意）
   - 会費レコードの一括生成
   - is_newフラグのリセット
+  - 卒業生フラグ（is_graduate）の自動更新（年度末時点で55歳以上の会員）
   - 現在年度フラグの切替
 - 実行ログ: 年度切替の実行履歴
 
@@ -517,7 +528,7 @@
   └── 資料管理(A10)
 
 【会員】
-ログイン → 名簿閲覧(M1) → 会員詳細(M2)
+ログイン → 会員名簿(M1) → 会員詳細(M2)
   ├── マイページ(M3)
   ├── 基本情報(M4)
   ├── 組織図(M5) → 会員詳細(M2)

@@ -76,7 +76,7 @@ export default function MemberProfile() {
           <div className="card-body stack">
             <p className="message error">{error}</p>
             <div className="actions">
-              <Link className="text-link" to="/directory">名簿閲覧へ戻る</Link>
+              <Link className="text-link" to="/directory">会員名簿へ戻る</Link>
             </div>
           </div>
         </section>
@@ -86,7 +86,7 @@ export default function MemberProfile() {
 
   if (!member) return null;
 
-  const assigns = member.org_assignments || [];
+  const assigns = Array.isArray(member.org_assignments) ? member.org_assignments : [];
   const orgText = assigns
     .map((a) => `${a.org_name}${a.role ? " / " + a.role : ""}`)
     .join("、");

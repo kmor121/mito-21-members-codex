@@ -1,20 +1,37 @@
-﻿{
+{
   "name": "DueSetting",
   "type": "object",
+  "description": "年度ごとの会費設定。1年度につき1レコード。",
   "properties": {
     "fiscal_year_id": {
       "type": "string",
       "description": "FiscalYear record id"
     },
-    "member_type": {
-      "type": "string",
-      "enum": ["\u6b63\u4f1a\u54e1", "\u8cdb\u52a9\u4f1a\u54e1"],
-      "description": "Member type for the annual due setting"
-    },
-    "amount": {
+    "regular_annual_fee": {
       "type": "number",
-      "description": "Annual due amount"
+      "description": "正会員 年会費",
+      "default": 30000
+    },
+    "associate_annual_fee": {
+      "type": "number",
+      "description": "賛助会員 年会費",
+      "default": 10000
+    },
+    "admission_fee": {
+      "type": "number",
+      "description": "新入会員 入会金",
+      "default": 10000
+    },
+    "first_half_fee": {
+      "type": "number",
+      "description": "新入会員 前期入会会費（年会費と同額がデフォルト）",
+      "default": 30000
+    },
+    "second_half_fee": {
+      "type": "number",
+      "description": "新入会員 後期入会会費（年会費の半額がデフォルト）",
+      "default": 15000
     }
   },
-  "required": ["fiscal_year_id", "member_type", "amount"]
+  "required": ["fiscal_year_id"]
 }

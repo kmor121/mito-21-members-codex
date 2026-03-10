@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { apiRequest } from "../../api/base44Client";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
@@ -14,6 +14,18 @@ function formatCurrency(v) {
   return `¥${(Number.isFinite(n) ? n : 0).toLocaleString("ja-JP")}`;
 }
 
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+const DEFAULT_SETTINGS = {
+  regular_annual_fee: 30000,
+  associate_annual_fee: 10000,
+  admission_fee: 10000,
+  first_half_fee: 30000,
+  second_half_fee: 15000,
+};
+
 export default function DuesManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
   const fiscalYearId = searchParams.get("fiscalYearId") || "";
@@ -21,22 +33,28 @@ export default function DuesManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
 
   // Data from API
   const [fiscalYears, setFiscalYears] = useState([]);
   const [dues, setDues] = useState([]);
-  const [dueSettings, setDueSettings] = useState([]);
   const [summary, setSummary] = useState({});
   const [selectedFiscalYear, setSelectedFiscalYear] = useState(null);
   const [currentFiscalYearId, setCurrentFiscalYearId] = useState("");
 
-  // UI state
-  const [selectedDueId, setSelectedDueId] = useState(null);
-  const [dueForm, setDueForm] = useState({ status: "", paid_date: "", notes: "" });
-  const [settingsForm, setSettingsForm] = useState({
-    regular_member_amount: "",
-    supporting_member_amount: "",
-  });
+  // Settings form — 1 record per fiscal year with 5 fee fields
+  const [settingsForm, setSettingsForm] = useState({ ...DEFAULT_SETTINGS });
+  const [settingsId, setSettingsId] = useState(null); // existing record id
+
+  // Toggle modal
+  const [toggleTarget, setToggleTarget] = useState(null);
+  const [toggleDate, setToggleDate] = useState(todayStr());
+
+  // Batch selection
+  const [selectedIds, setSelectedIds] = useState(new Set());
+
+  // Settings modal
+  const [showSettings, setShowSettings] = useState(false);
 
   const loadData = useCallback(() => {
     setLoading(true);
@@ -44,24 +62,56 @@ export default function DuesManagement() {
     const query = fiscalYearId ? `list-dues-admin?fiscalYearId=${fiscalYearId}` : "list-dues-admin";
     apiRequest(query)
       .then((result) => {
-        const rawFY = result.fiscal_years;
-        setFiscalYears(Array.isArray(rawFY) ? rawFY : []);
-        const rawDues = result.dues;
-        setDues(Array.isArray(rawDues) ? rawDues : []);
-        const rawSettings = result.due_settings;
-        setDueSettings(Array.isArray(rawSettings) ? rawSettings : []);
+        setFiscalYears(Array.isArray(result.fiscal_years) ? result.fiscal_years : []);
+        setDues(Array.isArray(result.dues) ? result.dues : []);
         setSummary(result.summary || {});
         setSelectedFiscalYear(result.selected_fiscal_year || null);
         setCurrentFiscalYearId(result.current_fiscal_year_id || "");
 
-        // Populate settings form from due_settings
-        const settings = Array.isArray(result.due_settings) ? result.due_settings : [];
-        const regular = settings.find((s) => s.member_type === "正会員");
-        const supporting = settings.find((s) => s.member_type === "賛助会員");
-        setSettingsForm({
-          regular_member_amount: regular ? regular.amount : "",
-          supporting_member_amount: supporting ? supporting.amount : "",
-        });
+        // Parse due_settings — support both old (array of member_type records) and new (single record) format
+        const raw = result.due_settings;
+        if (Array.isArray(raw) && raw.length > 0) {
+          // Check if it's new format (has regular_annual_fee) or old format (has member_type)
+          const first = raw[0];
+          if (first.regular_annual_fee !== undefined) {
+            // New format — single record
+            setSettingsId(first.id || null);
+            setSettingsForm({
+              regular_annual_fee: first.regular_annual_fee ?? DEFAULT_SETTINGS.regular_annual_fee,
+              associate_annual_fee: first.associate_annual_fee ?? DEFAULT_SETTINGS.associate_annual_fee,
+              admission_fee: first.admission_fee ?? DEFAULT_SETTINGS.admission_fee,
+              first_half_fee: first.first_half_fee ?? DEFAULT_SETTINGS.first_half_fee,
+              second_half_fee: first.second_half_fee ?? DEFAULT_SETTINGS.second_half_fee,
+            });
+          } else {
+            // Old format — migrate display
+            const regular = raw.find((s) => s.member_type === "正会員");
+            const supporting = raw.find((s) => s.member_type === "賛助会員");
+            setSettingsId(null);
+            setSettingsForm({
+              regular_annual_fee: regular?.amount ?? DEFAULT_SETTINGS.regular_annual_fee,
+              associate_annual_fee: supporting?.amount ?? DEFAULT_SETTINGS.associate_annual_fee,
+              admission_fee: DEFAULT_SETTINGS.admission_fee,
+              first_half_fee: regular?.amount ?? DEFAULT_SETTINGS.first_half_fee,
+              second_half_fee: Math.round((regular?.amount ?? DEFAULT_SETTINGS.first_half_fee) / 2),
+            });
+          }
+        } else if (raw && !Array.isArray(raw) && typeof raw === "object") {
+          // Single object returned directly
+          setSettingsId(raw.id || null);
+          setSettingsForm({
+            regular_annual_fee: raw.regular_annual_fee ?? DEFAULT_SETTINGS.regular_annual_fee,
+            associate_annual_fee: raw.associate_annual_fee ?? DEFAULT_SETTINGS.associate_annual_fee,
+            admission_fee: raw.admission_fee ?? DEFAULT_SETTINGS.admission_fee,
+            first_half_fee: raw.first_half_fee ?? DEFAULT_SETTINGS.first_half_fee,
+            second_half_fee: raw.second_half_fee ?? DEFAULT_SETTINGS.second_half_fee,
+          });
+        } else {
+          setSettingsId(null);
+          setSettingsForm({ ...DEFAULT_SETTINGS });
+        }
+
+        setSelectedIds(new Set());
       })
       .catch((err) => {
         setError(err.message || "会費データの取得に失敗しました。");
@@ -75,36 +125,127 @@ export default function DuesManagement() {
     loadData();
   }, [loadData]);
 
-  // When a due is selected, populate form
-  useEffect(() => {
-    if (selectedDueId) {
-      const due = dues.find((d) => d.id === selectedDueId);
-      if (due) {
-        setDueForm({
-          status: due.status || "",
-          paid_date: due.paid_date || "",
-          notes: due.notes || "",
-        });
+  const activeFiscalYearId = selectedFiscalYear?.id || currentFiscalYearId || fiscalYearId;
+
+  // Compute summary with due_type breakdown
+  const computedSummary = useMemo(() => {
+    const total = dues.length;
+    let paidCount = 0, unpaidCount = 0, paidAmount = 0, unpaidAmount = 0;
+    let annualPaid = 0, annualUnpaid = 0, admissionPaid = 0, admissionUnpaid = 0;
+
+    for (const d of dues) {
+      const amt = Number(d.amount) || 0;
+      const dueType = d.due_type || "年会費";
+      if (d.status === "納入済") {
+        paidCount++;
+        paidAmount += amt;
+        if (dueType === "入会金") admissionPaid += amt;
+        else annualPaid += amt;
+      } else {
+        unpaidCount++;
+        unpaidAmount += amt;
+        if (dueType === "入会金") admissionUnpaid += amt;
+        else annualUnpaid += amt;
       }
     }
-  }, [selectedDueId, dues]);
 
-  const selectedDue = dues.find((d) => d.id === selectedDueId) || null;
-  const activeFiscalYearId = selectedFiscalYear?.id || currentFiscalYearId || fiscalYearId;
+    // Use API summary if available, otherwise use computed
+    return {
+      total_count: summary.total_count || total,
+      paid_count: summary.paid_count ?? paidCount,
+      unpaid_count: summary.unpaid_count ?? unpaidCount,
+      paid_amount: summary.paid_amount ?? paidAmount,
+      unpaid_amount: summary.unpaid_amount ?? unpaidAmount,
+      annual_paid: annualPaid,
+      annual_unpaid: annualUnpaid,
+      admission_paid: admissionPaid,
+      admission_unpaid: admissionUnpaid,
+    };
+  }, [dues, summary]);
 
   function handleFiscalYearChange(e) {
     const val = e.target.value;
-    if (val) {
-      setSearchParams({ fiscalYearId: val });
-    } else {
-      setSearchParams({});
+    if (val) setSearchParams({ fiscalYearId: val });
+    else setSearchParams({});
+  }
+
+  // Toggle single due status
+  async function handleToggleStatus() {
+    if (!toggleTarget) return;
+    const newStatus = toggleTarget.status === "納入済" ? "未納" : "納入済";
+    setSaving(true);
+    try {
+      await apiRequest("save-due", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: toggleTarget.id,
+          status: newStatus,
+          paid_date: newStatus === "納入済" ? toggleDate : "",
+          notes: toggleTarget.notes || "",
+        }),
+      });
+      setMessage(`${toggleTarget.member_name}の${toggleTarget.due_type || "会費"}を${newStatus}にしました。`);
+      setToggleTarget(null);
+      loadData();
+    } catch (err) {
+      setMessage(err.message || "更新に失敗しました。");
+    } finally {
+      setSaving(false);
     }
-    setSelectedDueId(null);
+  }
+
+  // Batch mark as paid
+  async function handleBatchPaid() {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`選択した${selectedIds.size}件を納入済にしますか？`)) return;
+    setSaving(true);
+    try {
+      const today = todayStr();
+      const promises = Array.from(selectedIds).map((id) => {
+        const due = dues.find((d) => d.id === id);
+        return apiRequest("save-due", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, status: "納入済", paid_date: today, notes: due?.notes || "" }),
+        });
+      });
+      await Promise.all(promises);
+      setMessage(`${selectedIds.size}件を納入済にしました。`);
+      setSelectedIds(new Set());
+      loadData();
+    } catch (err) {
+      setMessage(err.message || "一括更新に失敗しました。");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // Mark all as paid
+  async function handleAllPaid() {
+    const unpaid = dues.filter((d) => d.status !== "納入済");
+    if (unpaid.length === 0) return;
+    if (!window.confirm(`全${unpaid.length}件を納入済にしますか？この操作は取り消せません。`)) return;
+    setSaving(true);
+    try {
+      const today = todayStr();
+      await apiRequest("batch-update-dues", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fiscal_year_id: activeFiscalYearId, status: "納入済", paid_date: today }),
+      });
+      setMessage("全件を納入済にしました。");
+      loadData();
+    } catch (err) {
+      setMessage(err.message || "一括更新に失敗しました。");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleSendReminder() {
-    const unpaidCount = summary.unpaid_count || 0;
-    if (!window.confirm(`未納者 ${unpaidCount} 名にリマインドメールを送信しますか？`)) return;
+    const cnt = computedSummary.unpaid_count || 0;
+    if (!window.confirm(`未納者 ${cnt}名にリマインドメールを送信しますか？`)) return;
     setSaving(true);
     try {
       await apiRequest("send-due-reminder", {
@@ -112,32 +253,9 @@ export default function DuesManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fiscal_year_id: activeFiscalYearId }),
       });
-      alert("リマインドメールを送信しました。");
+      setMessage("リマインドメールを送信しました。");
     } catch (err) {
-      alert(err.message || "送信に失敗しました。");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleBatchPaid() {
-    if (!window.confirm("全員を納入済にしますか？この操作は取り消せません。")) return;
-    setSaving(true);
-    try {
-      const today = new Date().toISOString().split("T")[0];
-      await apiRequest("batch-update-dues", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fiscal_year_id: activeFiscalYearId,
-          status: "納入済",
-          paid_date: today,
-        }),
-      });
-      alert("全員を納入済にしました。");
-      loadData();
-    } catch (err) {
-      alert(err.message || "一括更新に失敗しました。");
+      setMessage(err.message || "送信に失敗しました。");
     } finally {
       setSaving(false);
     }
@@ -152,365 +270,316 @@ export default function DuesManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fiscal_year_id: activeFiscalYearId,
-          settings: [
-            { member_type: "正会員", amount: Number(settingsForm.regular_member_amount) || 0 },
-            { member_type: "賛助会員", amount: Number(settingsForm.supporting_member_amount) || 0 },
-          ],
+          id: settingsId || undefined,
+          regular_annual_fee: Number(settingsForm.regular_annual_fee) || 0,
+          associate_annual_fee: Number(settingsForm.associate_annual_fee) || 0,
+          admission_fee: Number(settingsForm.admission_fee) || 0,
+          first_half_fee: Number(settingsForm.first_half_fee) || 0,
+          second_half_fee: Number(settingsForm.second_half_fee) || 0,
         }),
       });
-      alert("会費設定を保存しました。");
+      setMessage("会費設定を保存しました。");
+      setShowSettings(false);
       loadData();
     } catch (err) {
-      alert(err.message || "会費設定の保存に失敗しました。");
+      setMessage(err.message || "会費設定の保存に失敗しました。");
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleSaveDue(e) {
-    e.preventDefault();
-    if (!selectedDue) return;
+  function updateSettings(key, value) {
+    setSettingsForm((prev) => ({ ...prev, [key]: value }));
+  }
 
-    // Validation
-    if (dueForm.status === "納入済" && !dueForm.paid_date) {
-      alert("納入済の場合は納入日を入力してください。");
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await apiRequest("save-due", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: selectedDue.id,
-          status: dueForm.status,
-          paid_date: dueForm.paid_date,
-          notes: dueForm.notes,
-        }),
-      });
-      alert("会費情報を保存しました。");
-      loadData();
-    } catch (err) {
-      alert(err.message || "会費情報の保存に失敗しました。");
-    } finally {
-      setSaving(false);
+  function toggleSelectAll(checked) {
+    if (checked) {
+      setSelectedIds(new Set(dues.filter((d) => d.status !== "納入済").map((d) => d.id)));
+    } else {
+      setSelectedIds(new Set());
     }
   }
 
-  if (loading) {
-    return (
-      <section className="admin-shell">
-        <div className="page-header">
-          <h1 className="page-title">会費管理</h1>
-          <p className="page-description">年度別の会費管理</p>
-        </div>
-        <section className="card panel-card single-panel">
-          <div className="card-body">
-            <LoadingSpinner />
-          </div>
-        </section>
-      </section>
-    );
+  function toggleSelectOne(id, checked) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id); else next.delete(id);
+      return next;
+    });
   }
 
-  if (error) {
-    return (
-      <section className="admin-shell">
-        <div className="page-header">
-          <h1 className="page-title">会費管理</h1>
-          <p className="page-description">年度別の会費管理</p>
-        </div>
-        <section className="card panel-card single-panel">
-          <div className="card-body stack">
-            <p className="message error">{error}</p>
-          </div>
-        </section>
-      </section>
-    );
-  }
-
-  const yearLabel = selectedFiscalYear?.year_label || "";
+  const paidRate = computedSummary.total_count > 0
+    ? Math.round(((computedSummary.paid_count || 0) / computedSummary.total_count) * 100)
+    : 0;
 
   return (
     <section className="admin-shell">
       <div className="page-header">
         <h1 className="page-title">会費管理</h1>
-        <p className="page-description">年度別の会費管理</p>
+        <p className="page-description">年度別の会費管理・消込</p>
       </div>
 
-      <div className="master-detail-layout">
-        {/* Left panel: dues list */}
-        <section className="card panel-card list-panel">
-          <div className="card-body stack">
-            <div className="panel-heading">
-              <div>
-                <h2>会費一覧</h2>
-              </div>
+      {/* Toggle status modal */}
+      {toggleTarget && (
+        <div className="confirm-overlay" onClick={() => setToggleTarget(null)}>
+          <div className="modal-dialog" style={{ maxWidth: 440 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>会費ステータス変更</h3>
+              <button type="button" className="modal-close" onClick={() => setToggleTarget(null)}>&times;</button>
             </div>
-            {dues.length === 0 ? (
-              <p className="muted">会費データがありません。</p>
-            ) : (
-              <div className="pending-list">
-                {dues.map((due) => (
-                  <button
-                    key={due.id}
-                    className={`pending-item${selectedDueId === due.id ? " is-selected" : ""}`}
-                    onClick={() => setSelectedDueId(due.id)}
-                  >
-                    <span className="pending-date">
-                      {displayValue(due.member_type)} / {formatCurrency(due.amount)}
-                    </span>
-                    <strong>{displayValue(due.member_name)}</strong>
-                    <span className="pending-status">
-                      <span className={`pill${due.status === "納入済" ? " pill-success" : ""}`}>
-                        {displayValue(due.status)}
-                      </span>
-                      {due.paid_date && (
-                        <span className="muted" style={{ marginLeft: "0.5rem" }}>
-                          {due.paid_date}
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="modal-body">
+              <p>
+                <strong>{toggleTarget.member_name}</strong>の
+                {toggleTarget.due_type && toggleTarget.due_type !== "年会費" ? `${toggleTarget.due_type}` : "会費"}
+                （{formatCurrency(toggleTarget.amount)}）を
+              </p>
+              <p style={{ fontSize: '1.1em', fontWeight: 600, margin: '0.75rem 0' }}>
+                {toggleTarget.status === "納入済" ? (
+                  <span style={{ color: '#c53030' }}>「未納」に戻す</span>
+                ) : (
+                  <span style={{ color: '#2f855a' }}>「納入済」にする</span>
+                )}
+              </p>
+              {toggleTarget.status !== "納入済" && (
+                <div className="field" style={{ marginTop: '0.5rem' }}>
+                  <label htmlFor="toggle-date">入金日</label>
+                  <input id="toggle-date" type="date" value={toggleDate}
+                    onChange={(e) => setToggleDate(e.target.value)} />
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="button" type="button" onClick={handleToggleStatus} disabled={saving}>
+                {saving ? "処理中..." : "変更する"}
+              </button>
+              <button className="button ghost" type="button" onClick={() => setToggleTarget(null)}>キャンセル</button>
+            </div>
           </div>
-        </section>
+        </div>
+      )}
 
-        {/* Right panel: detail / settings */}
-        <section className="card panel-card detail-panel">
-          <div className="card-body stack">
-            {/* 1. Header with year label pill */}
-            <div className="panel-heading">
-              <div>
-                <h2>会費管理</h2>
-                {yearLabel && <span className="pill">{yearLabel}</span>}
-              </div>
+      {/* Settings modal */}
+      {showSettings && (
+        <div className="confirm-overlay" onClick={() => setShowSettings(false)}>
+          <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>会費設定（年度ごと）</h3>
+              <button type="button" className="modal-close" onClick={() => setShowSettings(false)}>&times;</button>
             </div>
+            <div className="modal-body">
+              <form id="settings-form" noValidate onSubmit={handleSaveSettings}>
+                <p className="muted" style={{ marginBottom: '1rem', fontSize: '0.85em' }}>
+                  この年度の会費金額を設定します。年度ごとに独立して管理されます。
+                </p>
 
-            {/* 2. Fiscal year selector */}
-            <div className="form-section">
-              <label className="field-label" htmlFor="fy-select">
-                年度選択
-              </label>
-              <select
-                id="fy-select"
-                className="field-input"
-                value={activeFiscalYearId}
-                onChange={handleFiscalYearChange}
-              >
-                <option value="">-- 選択 --</option>
-                {fiscalYears.map((fy) => (
-                  <option key={fy.id} value={fy.id}>
-                    {fy.year_label || fy.id}
-                  </option>
-                ))}
-              </select>
-            </div>
+                <h4 style={{ margin: '0 0 0.5rem', borderBottom: '1px solid var(--line)', paddingBottom: '0.25rem' }}>既存会員</h4>
+                <div className="form-grid" style={{ marginBottom: '1rem' }}>
+                  <div className="field">
+                    <label htmlFor="s-regular">正会員 年会費</label>
+                    <input id="s-regular" type="number" min="0" step="1000"
+                      value={settingsForm.regular_annual_fee}
+                      onChange={(e) => updateSettings("regular_annual_fee", e.target.value)} />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="s-associate">賛助会員 年会費</label>
+                    <input id="s-associate" type="number" min="0" step="1000"
+                      value={settingsForm.associate_annual_fee}
+                      onChange={(e) => updateSettings("associate_annual_fee", e.target.value)} />
+                  </div>
+                </div>
 
-            {/* 3. Summary section */}
-            <div className="form-section">
-              <h3 className="section-title">サマリー</h3>
-              <div className="dashboard-metrics">
-                <div className="metric-card">
-                  <span className="metric-label">対象者数</span>
-                  <span>{summary.total_count || 0}</span>
-                </div>
-                <div className="metric-card">
-                  <span className="metric-label">納入済</span>
-                  <span>{summary.paid_count || 0}</span>
-                </div>
-                <div className="metric-card">
-                  <span className="metric-label">未納</span>
-                  <span>{summary.unpaid_count || 0}</span>
-                </div>
-                <div className="metric-card">
-                  <span className="metric-label">合計金額</span>
-                  <span>{formatCurrency(summary.total_amount)}</span>
-                </div>
-                <div className="metric-card">
-                  <span className="metric-label">納入済金額</span>
-                  <span>{formatCurrency(summary.paid_amount)}</span>
-                </div>
-                <div className="metric-card">
-                  <span className="metric-label">未納金額</span>
-                  <span>{formatCurrency(summary.unpaid_amount)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 4. Batch actions */}
-            <div className="form-section">
-              <h3 className="section-title">一括操作</h3>
-              <div className="actions" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
-                <button
-                  className="btn btn-secondary"
-                  onClick={handleSendReminder}
-                  disabled={saving || !(summary.unpaid_count > 0)}
-                >
-                  未納者にリマインドメール送信 ({summary.unpaid_count || 0}名)
-                </button>
-                <button
-                  className="btn btn-secondary"
-                  onClick={handleBatchPaid}
-                  disabled={saving}
-                >
-                  全員を納入済にする
-                </button>
-              </div>
-            </div>
-
-            {/* 5. Due settings form */}
-            <form className="form-section" onSubmit={handleSaveSettings}>
-              <h3 className="section-title">会費設定</h3>
-              <div className="form-grid">
-                <div className="form-field">
-                  <label className="field-label" htmlFor="regular-amount">
-                    正会員 年会費
-                  </label>
-                  <input
-                    id="regular-amount"
-                    className="field-input"
-                    type="number"
-                    min="0"
-                    value={settingsForm.regular_member_amount}
-                    onChange={(e) =>
-                      setSettingsForm((prev) => ({
-                        ...prev,
-                        regular_member_amount: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-                <div className="form-field">
-                  <label className="field-label" htmlFor="supporting-amount">
-                    賛助会員 年会費
-                  </label>
-                  <input
-                    id="supporting-amount"
-                    className="field-input"
-                    type="number"
-                    min="0"
-                    value={settingsForm.supporting_member_amount}
-                    onChange={(e) =>
-                      setSettingsForm((prev) => ({
-                        ...prev,
-                        supporting_member_amount: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-              <div className="actions" style={{ marginTop: "0.75rem" }}>
-                <button className="btn btn-primary" type="submit" disabled={saving}>
-                  設定を保存
-                </button>
-              </div>
-            </form>
-
-            {/* 6. Selected due editor */}
-            {selectedDue && (
-              <form className="form-section" onSubmit={handleSaveDue}>
-                <h3 className="section-title">会費編集</h3>
-
-                {/* Member info (readonly) */}
+                <h4 style={{ margin: '0 0 0.5rem', borderBottom: '1px solid var(--line)', paddingBottom: '0.25rem' }}>新入会員</h4>
                 <div className="form-grid">
-                  <div className="form-field">
-                    <label className="field-label">会員名</label>
-                    <input
-                      className="field-input"
-                      type="text"
-                      value={displayValue(selectedDue.member_name)}
-                      readOnly
-                    />
+                  <div className="field">
+                    <label htmlFor="s-admission">入会金</label>
+                    <input id="s-admission" type="number" min="0" step="1000"
+                      value={settingsForm.admission_fee}
+                      onChange={(e) => updateSettings("admission_fee", e.target.value)} />
                   </div>
-                  <div className="form-field">
-                    <label className="field-label">会員種別</label>
-                    <input
-                      className="field-input"
-                      type="text"
-                      value={displayValue(selectedDue.member_type)}
-                      readOnly
-                    />
+                  <div className="field">
+                    <label htmlFor="s-first-half">前期入会 会費</label>
+                    <input id="s-first-half" type="number" min="0" step="1000"
+                      value={settingsForm.first_half_fee}
+                      onChange={(e) => updateSettings("first_half_fee", e.target.value)} />
                   </div>
-                  <div className="form-field">
-                    <label className="field-label">金額</label>
-                    <input
-                      className="field-input"
-                      type="text"
-                      value={formatCurrency(selectedDue.amount)}
-                      readOnly
-                    />
+                  <div className="field">
+                    <label htmlFor="s-second-half">後期入会 会費</label>
+                    <input id="s-second-half" type="number" min="0" step="1000"
+                      value={settingsForm.second_half_fee}
+                      onChange={(e) => updateSettings("second_half_fee", e.target.value)} />
                   </div>
                 </div>
 
-                <div className="form-grid">
-                  <div className="form-field">
-                    <label className="field-label" htmlFor="due-status">
-                      ステータス
-                    </label>
-                    <select
-                      id="due-status"
-                      className="field-input"
-                      value={dueForm.status}
-                      onChange={(e) =>
-                        setDueForm((prev) => ({ ...prev, status: e.target.value }))
-                      }
-                    >
-                      <option value="未納">未納</option>
-                      <option value="納入済">納入済</option>
-                    </select>
-                  </div>
-                  <div className="form-field">
-                    <label className="field-label" htmlFor="due-paid-date">
-                      納入日
-                    </label>
-                    <input
-                      id="due-paid-date"
-                      className="field-input"
-                      type="date"
-                      value={dueForm.paid_date}
-                      onChange={(e) =>
-                        setDueForm((prev) => ({ ...prev, paid_date: e.target.value }))
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="form-field">
-                  <label className="field-label" htmlFor="due-notes">
-                    備考
-                  </label>
-                  <textarea
-                    id="due-notes"
-                    className="field-input"
-                    rows={3}
-                    value={dueForm.notes}
-                    onChange={(e) =>
-                      setDueForm((prev) => ({ ...prev, notes: e.target.value }))
-                    }
-                  />
-                </div>
-
-                <div className="actions" style={{ marginTop: "0.75rem" }}>
-                  <button className="btn btn-primary" type="submit" disabled={saving}>
-                    保存
-                  </button>
-                  <button
-                    className="btn btn-secondary"
-                    type="button"
-                    onClick={() => setSelectedDueId(null)}
-                  >
-                    選択解除
-                  </button>
+                <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'var(--bg)', borderRadius: 8, fontSize: '0.85em' }}>
+                  <strong>会費生成ルール:</strong>
+                  <ul style={{ margin: '0.25rem 0 0', paddingLeft: '1.2em', lineHeight: 1.6 }}>
+                    <li>正会員: {formatCurrency(settingsForm.regular_annual_fee)}</li>
+                    <li>賛助会員: {formatCurrency(settingsForm.associate_annual_fee)}</li>
+                    <li>新入会員: 入会金 {formatCurrency(settingsForm.admission_fee)} + 前期会費 {formatCurrency(settingsForm.first_half_fee)} or 後期会費 {formatCurrency(settingsForm.second_half_fee)}</li>
+                  </ul>
                 </div>
               </form>
-            )}
+            </div>
+            <div className="modal-footer">
+              <button className="button" type="submit" form="settings-form" disabled={saving}>
+                {saving ? "保存中..." : "設定を保存"}
+              </button>
+              <button className="button ghost" type="button" onClick={() => setShowSettings(false)}>閉じる</button>
+            </div>
           </div>
-        </section>
-      </div>
+        </div>
+      )}
+
+      {message && (
+        <p className="message" aria-live="polite" style={{ marginBottom: '0.75rem' }}>{message}</p>
+      )}
+
+      <section className="card panel-card single-panel">
+        <div className="card-body stack">
+          {/* Controls */}
+          <div className="panel-heading">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              <div className="field" style={{ margin: 0, minWidth: 180 }}>
+                <select value={activeFiscalYearId} onChange={handleFiscalYearChange}
+                  style={{ padding: '0.4rem 0.75rem' }}>
+                  <option value="">-- 年度選択 --</option>
+                  {fiscalYears.map((fy) => (
+                    <option key={fy.id} value={fy.id}>
+                      {fy.year_label || (fy.year ? `${fy.year}年度` : fy.id)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {selectedFiscalYear && (
+                <span className="pill">{selectedFiscalYear.year_label || `${selectedFiscalYear.year}年度`}</span>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button className="button ghost" type="button" onClick={() => setShowSettings(true)}>会費設定</button>
+              <button className="button ghost" type="button" onClick={handleSendReminder}
+                disabled={saving || !(computedSummary.unpaid_count > 0)}>
+                リマインド ({computedSummary.unpaid_count || 0}名)
+              </button>
+              <button className="button ghost" type="button" onClick={handleAllPaid}
+                disabled={saving || !(computedSummary.unpaid_count > 0)}>
+                全員納入済
+              </button>
+            </div>
+          </div>
+
+          {/* Summary */}
+          <div className="dashboard-metrics" style={{ marginBottom: '0.25rem' }}>
+            <div className="metric-card">
+              <span className="metric-label">全体</span>
+              <span>{computedSummary.total_count}件</span>
+            </div>
+            <div className="metric-card">
+              <span className="metric-label">納入済</span>
+              <span style={{ color: '#2f855a' }}>{computedSummary.paid_count}件 / {formatCurrency(computedSummary.paid_amount)}</span>
+            </div>
+            <div className="metric-card">
+              <span className="metric-label">未納</span>
+              <span style={{ color: '#c53030' }}>{computedSummary.unpaid_count}件 / {formatCurrency(computedSummary.unpaid_amount)}</span>
+            </div>
+            <div className="metric-card">
+              <span className="metric-label">納入率</span>
+              <span>{paidRate}%</span>
+            </div>
+          </div>
+
+          {/* Breakdown: annual vs admission */}
+          {(computedSummary.admission_paid > 0 || computedSummary.admission_unpaid > 0) && (
+            <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.85em', color: 'var(--text-secondary)', padding: '0 0.25rem' }}>
+              <span>年会費: 納入済 {formatCurrency(computedSummary.annual_paid)} / 未納 {formatCurrency(computedSummary.annual_unpaid)}</span>
+              <span>入会金: 納入済 {formatCurrency(computedSummary.admission_paid)} / 未納 {formatCurrency(computedSummary.admission_unpaid)}</span>
+            </div>
+          )}
+
+          {/* Batch bar */}
+          {selectedIds.size > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem 0.75rem', background: 'var(--bg)', borderRadius: 8 }}>
+              <span style={{ fontSize: '0.9em' }}>{selectedIds.size}件選択中</span>
+              <button className="button" type="button" onClick={handleBatchPaid} disabled={saving} style={{ fontSize: '0.85em' }}>
+                選択した{selectedIds.size}件を納入済にする
+              </button>
+              <button className="button ghost" type="button" onClick={() => setSelectedIds(new Set())} style={{ fontSize: '0.85em' }}>
+                選択解除
+              </button>
+            </div>
+          )}
+
+          {/* Table */}
+          {loading ? (
+            <LoadingSpinner />
+          ) : error ? (
+            <p className="message error">{error}</p>
+          ) : dues.length === 0 ? (
+            <p className="empty-state">会費データがありません。</p>
+          ) : (
+            <div className="table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: 40 }}>
+                      <input type="checkbox"
+                        checked={selectedIds.size > 0 && selectedIds.size === dues.filter(d => d.status !== "納入済").length && dues.some(d => d.status !== "納入済")}
+                        onChange={(e) => toggleSelectAll(e.target.checked)} />
+                    </th>
+                    <th>会員名</th>
+                    <th>会員種別</th>
+                    <th>種類</th>
+                    <th style={{ textAlign: 'right' }}>金額</th>
+                    <th style={{ textAlign: 'center' }}>ステータス</th>
+                    <th>納入日</th>
+                    <th>備考</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dues.map((due) => {
+                    const dueType = due.due_type || "年会費";
+                    return (
+                      <tr key={due.id}>
+                        <td>
+                          {due.status !== "納入済" && (
+                            <input type="checkbox"
+                              checked={selectedIds.has(due.id)}
+                              onChange={(e) => toggleSelectOne(due.id, e.target.checked)} />
+                          )}
+                        </td>
+                        <td>
+                          <strong>{displayValue(due.member_name)}</strong>
+                          {due.is_new && <span className="pill pill-info" style={{ marginLeft: 4, fontSize: '0.7em' }}>新入</span>}
+                        </td>
+                        <td>{displayValue(due.member_type)}</td>
+                        <td>
+                          {dueType === "入会金" ? (
+                            <span className="pill pill-warning" style={{ fontSize: '0.8em' }}>{dueType}</span>
+                          ) : dueType === "後期入会会費" ? (
+                            <span className="pill pill-info" style={{ fontSize: '0.8em' }}>{dueType}</span>
+                          ) : (
+                            <span style={{ fontSize: '0.9em' }}>{dueType}</span>
+                          )}
+                        </td>
+                        <td style={{ textAlign: 'right', fontWeight: 500 }}>{formatCurrency(due.amount)}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button type="button"
+                            className={`pill pill-clickable${due.status === "納入済" ? " pill-success" : " pill-danger"}`}
+                            style={{ cursor: 'pointer', fontSize: '0.9em', padding: '0.3em 0.8em', border: 'none' }}
+                            onClick={() => { setToggleTarget(due); setToggleDate(todayStr()); }}>
+                            {due.status === "納入済" ? "✓ 納入済" : "未納"}
+                          </button>
+                        </td>
+                        <td>{displayValue(due.paid_date)}</td>
+                        <td>{displayValue(due.notes)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </section>
     </section>
   );
 }

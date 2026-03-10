@@ -98,12 +98,61 @@ export default function Apply() {
               <input id="name_kana" name="name_kana" type="text" placeholder="例: みと たろう" value={v("name_kana")} onChange={(e) => updateField("name_kana", e.target.value)} />
               <FieldError errors={errors} field="name_kana" />
             </div>
-            <div className="field field-compact">
-              <div className="label-row"><label htmlFor="birthday">生年月日</label><span className="required">必須</span></div>
-              <div className="date-input-wrap">
-                <input id="birthday" className="date-input" name="birthday" type="date" value={v("birthday")} onChange={(e) => updateField("birthday", e.target.value)} />
+            <div className="field field-span-2">
+              <div className="label-row"><label>生年月日</label><span className="required">必須</span></div>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <select
+                  id="birthday-year"
+                  value={v("birthday") ? v("birthday").slice(0, 4) : ""}
+                  onChange={(e) => {
+                    const y = e.target.value;
+                    const m = v("birthday") ? v("birthday").slice(5, 7) : "01";
+                    const d = v("birthday") ? v("birthday").slice(8, 10) : "01";
+                    if (y) updateField("birthday", `${y}-${m}-${d}`);
+                  }}
+                  style={{ flex: 1 }}
+                >
+                  <option value="">年</option>
+                  {Array.from({ length: new Date().getFullYear() - 1940 + 1 }, (_, i) => {
+                    const yr = new Date().getFullYear() - i;
+                    return <option key={yr} value={yr}>{yr}年</option>;
+                  })}
+                </select>
+                <select
+                  id="birthday-month"
+                  value={v("birthday") ? v("birthday").slice(5, 7) : ""}
+                  onChange={(e) => {
+                    const y = v("birthday") ? v("birthday").slice(0, 4) : String(new Date().getFullYear());
+                    const m = e.target.value;
+                    const d = v("birthday") ? v("birthday").slice(8, 10) : "01";
+                    if (m) updateField("birthday", `${y}-${m}-${d}`);
+                  }}
+                  style={{ flex: 0.7 }}
+                >
+                  <option value="">月</option>
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const mm = String(i + 1).padStart(2, "0");
+                    return <option key={mm} value={mm}>{i + 1}月</option>;
+                  })}
+                </select>
+                <select
+                  id="birthday-day"
+                  value={v("birthday") ? v("birthday").slice(8, 10) : ""}
+                  onChange={(e) => {
+                    const y = v("birthday") ? v("birthday").slice(0, 4) : String(new Date().getFullYear());
+                    const m = v("birthday") ? v("birthday").slice(5, 7) : "01";
+                    const d = e.target.value;
+                    if (d) updateField("birthday", `${y}-${m}-${d}`);
+                  }}
+                  style={{ flex: 0.7 }}
+                >
+                  <option value="">日</option>
+                  {Array.from({ length: 31 }, (_, i) => {
+                    const dd = String(i + 1).padStart(2, "0");
+                    return <option key={dd} value={dd}>{i + 1}日</option>;
+                  })}
+                </select>
               </div>
-              <p className="field-help">カレンダーから選択できます。</p>
               <FieldError errors={errors} field="birthday" />
             </div>
             <div className="field">
@@ -231,7 +280,7 @@ export default function Apply() {
           {formMessage && <p className="message error" aria-live="polite">{formMessage}</p>}
           <div className="actions application-actions">
             <button className="button" type="submit">確認画面へ進む</button>
-            <Link className="text-link subtle-link" to="/">公開トップ</Link>
+            <Link className="text-link subtle-link" to="/">トップ</Link>
           </div>
         </section>
       </form>

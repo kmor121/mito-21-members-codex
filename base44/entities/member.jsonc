@@ -106,7 +106,7 @@
     },
     "member_type": {
       "type": "string",
-      "enum": ["正会員", "賛助会員", "OB会員"],
+      "enum": ["正会員", "賛助会員", "OB会員", "名誉顧問"],
       "description": "Member type"
     },
     "join_date": {
@@ -117,6 +117,11 @@
     "is_new": {
       "type": "boolean",
       "description": "Whether the member is new in the current fiscal year"
+    },
+    "is_graduate": {
+      "type": "boolean",
+      "description": "Whether the member is a graduate (turns 55+ during the fiscal year end_date)",
+      "default": false
     },
     "status": {
       "type": "string",

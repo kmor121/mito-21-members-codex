@@ -1,7 +1,7 @@
 import { NavLink, Outlet, Link } from 'react-router-dom';
 
 const PUBLIC_NAV_ITEMS = [
-  { to: "/", label: "公開トップ" },
+  { to: "/", label: "トップ" },
   { to: "/apply", label: "入会申込" },
   { to: "/directory", label: "会員名簿" },
   { to: "/manual", label: "運用マニュアル" },

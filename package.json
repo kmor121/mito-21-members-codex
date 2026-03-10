@@ -9,6 +9,10 @@
   "dependencies": {
     "@base44/sdk": "^0.8.20",
     "@tailwindcss/vite": "^4.2.1",
+    "@tiptap/extension-link": "^3.20.1",
+    "@tiptap/pm": "^3.20.1",
+    "@tiptap/react": "^3.20.1",
+    "@tiptap/starter-kit": "^3.20.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.1",

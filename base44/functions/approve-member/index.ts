@@ -65,6 +65,14 @@ async function sendApprovalEmail(
   }
 }
 
+function getMidpointDate(startDate: string, endDate: string): string {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+  const mid = new Date((start.getTime() + end.getTime()) / 2);
+  return mid.toISOString().slice(0, 10);
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return Response.json(
@@ -144,6 +152,75 @@ Deno.serve(async (req) => {
       rejection_reason: ""
     });
 
+    // Generate Dues records for new member
+    let duesGenerated: any[] = [];
+    try {
+      // Find current fiscal year
+      const fiscalYears = await base44.asServiceRole.entities.FiscalYear.list();
+      const currentFY = fiscalYears.find((fy) => fy.is_current === true);
+
+      if (currentFY) {
+        const fyId = currentFY.id;
+        // Get DueSetting for current fiscal year
+        const dueSettings = await base44.asServiceRole.entities.DueSetting.filter({
+          fiscal_year_id: fyId
+        });
+
+        if (dueSettings.length > 0) {
+          const setting = dueSettings[0];
+          const admissionFee = Number(setting.admission_fee || 0);
+
+          // Determine front-half or back-half based on join_date vs midpoint
+          const startDate = String(currentFY.start_date || "");
+          const endDate = String(currentFY.end_date || "");
+          const midpoint = getMidpointDate(startDate, endDate);
+          const isSecondHalf = midpoint && today > midpoint;
+
+          let annualFeeAmount: number;
+          let annualFeeDueType: string;
+
+          if (isSecondHalf) {
+            annualFeeAmount = Number(setting.second_half_fee || 15000);
+            annualFeeDueType = "後期入会会費";
+          } else {
+            annualFeeAmount = Number(setting.first_half_fee || 30000);
+            annualFeeDueType = "年会費";
+          }
+
+          // Create admission fee Due
+          if (admissionFee > 0) {
+            const admissionDue = await base44.asServiceRole.entities.Due.create({
+              fiscal_year_id: fyId,
+              member_id: id,
+              amount: admissionFee,
+              due_type: "入会金",
+              status: "未納",
+              paid_date: "",
+              notes: ""
+            });
+            duesGenerated.push(admissionDue);
+          }
+
+          // Create annual/half-year fee Due
+          if (annualFeeAmount > 0) {
+            const annualDue = await base44.asServiceRole.entities.Due.create({
+              fiscal_year_id: fyId,
+              member_id: id,
+              amount: annualFeeAmount,
+              due_type: annualFeeDueType,
+              status: "未納",
+              paid_date: "",
+              notes: ""
+            });
+            duesGenerated.push(annualDue);
+          }
+        }
+      }
+    } catch (dueError) {
+      console.error("Failed to generate dues for new member:", dueError);
+      // Don't fail the approval if dues generation fails
+    }
+
     // Send approval email
     const emailResult = await sendApprovalEmail(
       String(member.email || ""),
@@ -155,7 +232,8 @@ Deno.serve(async (req) => {
     return Response.json({
       ok: true,
       member: updatedMember,
-      email: emailResult
+      email: emailResult,
+      dues_generated: duesGenerated.length
     });
   } catch (error) {
     console.error(error);
