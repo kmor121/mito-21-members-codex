@@ -10,7 +10,8 @@
       "Bash(npm run:*)",
       "Bash(base44 entities:*)",
       "Bash(xargs grep:*)",
-      "Bash(base44 functions:*)"
+      "Bash(base44 functions:*)",
+      "Bash(cd C:/dev/mito-21-members-codex && yes | npx base44 site deploy 2>&1)"
     ]
   }
 }
