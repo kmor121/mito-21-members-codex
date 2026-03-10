@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { apiRequest, base44 } from "../../api/base44Client";
+import { apiRequest, base44, invalidateReadCache } from "../../api/base44Client";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 
@@ -76,6 +76,12 @@ export default function OrgChart() {
     const t = setTimeout(() => setToastMessage(""), 3000);
     return () => clearTimeout(t);
   }, [toastMessage]);
+
+  function reloadData() {
+    invalidateReadCache("Organization");
+    invalidateReadCache("OrgAssignment");
+    loadData();
+  }
 
   const loadData = useCallback(() => {
     setLoading(true);
@@ -176,7 +182,7 @@ export default function OrgChart() {
       });
       setToastMessage("組織を保存しました。");
       setShowOrgModal(false);
-      loadData();
+      reloadData();
     } catch (err) {
       setToastMessage(err.message || "組織の保存に失敗しました。");
     } finally {
@@ -196,7 +202,7 @@ export default function OrgChart() {
       });
       setToastMessage("組織を削除しました。");
       setShowOrgModal(false);
-      loadData();
+      reloadData();
     } catch (err) {
       setToastMessage(err.message || "組織の削除に失敗しました。");
     } finally {
@@ -237,7 +243,7 @@ export default function OrgChart() {
       });
       setToastMessage("配属を保存しました。");
       setShowAssignModal(false);
-      loadData();
+      reloadData();
     } catch (err) {
       setToastMessage(err.message || "配属の保存に失敗しました。");
     } finally {
@@ -257,7 +263,7 @@ export default function OrgChart() {
       });
       setToastMessage("配属を削除しました。");
       setShowAssignModal(false);
-      loadData();
+      reloadData();
     } catch (err) {
       setToastMessage(err.message || "配属の削除に失敗しました。");
     } finally {
@@ -275,7 +281,7 @@ export default function OrgChart() {
         body: JSON.stringify({ target_fiscal_year_id: activeFiscalYearId }),
       });
       setToastMessage("前年度からコピーしました。");
-      loadData();
+      reloadData();
     } catch (err) {
       setToastMessage(err.message || "コピーに失敗しました。");
     } finally {

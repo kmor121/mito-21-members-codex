@@ -1,61 +1,49 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '../../api/base44Client';
+import { useMultiCache } from '../../hooks/useDataCache';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 export default function Dashboard() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { data: raw, loading, error } = useMultiCache([
+    { key: "members:approved", fetcher: () => base44.entities.Member.filter({ approval_status: "承認済" }) },
+    { key: "members:pending", fetcher: () => base44.entities.Member.filter({ approval_status: "申請中" }) },
+    { key: "fiscalYears:all", fetcher: () => base44.entities.FiscalYear.list() },
+    { key: "dues:all", fetcher: () => base44.entities.Due.list() },
+    { key: "newsletters:recent", fetcher: () => base44.entities.Newsletter.list("-created_date", 5) },
+  ]);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const [members, fiscalYears, dues, newsletters] = await Promise.all([
-          base44.entities.Member.filter({ approval_status: "承認済" }),
-          base44.entities.FiscalYear.list(),
-          base44.entities.Due.list(),
-          base44.entities.Newsletter.list("-created_date", 5),
-        ]);
+  const data = useMemo(() => {
+    if (!raw) return null;
+    const members = raw["members:approved"] || [];
+    const pendingMembers = raw["members:pending"] || [];
+    const fiscalYears = raw["fiscalYears:all"] || [];
+    const dues = raw["dues:all"] || [];
+    const newsletters = raw["newsletters:recent"] || [];
 
-        const pendingMembers = await base44.entities.Member.filter({ approval_status: "申請中" });
-        const currentFy = fiscalYears.find((fy) => fy.is_current === true);
-        const currentDues = currentFy ? dues.filter((d) => d.fiscal_year_id === currentFy.id) : [];
+    const currentFy = fiscalYears.find((fy) => fy.is_current === true);
+    const currentDues = currentFy ? dues.filter((d) => d.fiscal_year_id === currentFy.id) : [];
+    const paidCount = currentDues.filter((d) => d.status === "納入済").length;
+    const totalCount = currentDues.length;
 
-        const paidCount = currentDues.filter((d) => d.status === "納入済").length;
-        const totalCount = currentDues.length;
-        const regularCount = members.filter((m) => m.member_type === "正会員" && m.status === "活動中").length;
-        const supportingCount = members.filter((m) => m.member_type === "賛助会員" && m.status === "活動中").length;
-        const obCount = members.filter((m) => m.member_type === "OB会員" && m.status === "活動中").length;
-        const pausedCount = members.filter((m) => m.status === "休会").length;
-        const newCount = members.filter((m) => m.is_new === true).length;
-
-        const recentNewsletters = newsletters.map((nl) => ({
-          id: nl.id,
-          title: nl.title || nl.subject || "",
-          channel: nl.channel || "",
-          status: nl.status === "sent" ? "送信済" : nl.status === "scheduled" ? "予約中" : nl.status === "draft" ? "下書き" : nl.status || "",
-          date: nl.last_sent_at ? nl.last_sent_at.slice(0, 10) : nl.created_date ? nl.created_date.slice(0, 10) : "",
-        }));
-
-        setData({
-          pending_application_count: pendingMembers.length,
-          paid_count: paidCount,
-          total_count: totalCount,
-          regular_count: regularCount,
-          supporting_count: supportingCount,
-          ob_count: obCount,
-          paused_count: pausedCount,
-          new_count: newCount,
-          recent_newsletters: recentNewsletters,
-        });
-      } catch (err) {
-        setError(err.message || "ダッシュボードの取得に失敗しました。");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+    return {
+      pending_application_count: pendingMembers.length,
+      paid_count: paidCount,
+      total_count: totalCount,
+      regular_count: members.filter((m) => m.member_type === "正会員" && m.status === "活動中").length,
+      supporting_count: members.filter((m) => m.member_type === "賛助会員" && m.status === "活動中").length,
+      ob_count: members.filter((m) => m.member_type === "OB会員" && m.status === "活動中").length,
+      paused_count: members.filter((m) => m.status === "休会").length,
+      new_count: members.filter((m) => m.is_new === true).length,
+      recent_newsletters: newsletters.map((nl) => ({
+        id: nl.id,
+        title: nl.title || nl.subject || "",
+        channel: nl.channel || "",
+        status: nl.status === "sent" ? "送信済" : nl.status === "scheduled" ? "予約中" : nl.status === "draft" ? "下書き" : nl.status || "",
+        date: nl.last_sent_at ? nl.last_sent_at.slice(0, 10) : nl.created_date ? nl.created_date.slice(0, 10) : "",
+      })),
+    };
+  }, [raw]);
 
   if (loading) {
     return (
@@ -64,11 +52,7 @@ export default function Dashboard() {
           <h1 className="page-title">ダッシュボード</h1>
           <p className="page-description">管理者ダッシュボード</p>
         </div>
-        <section className="card panel-card single-panel">
-          <div className="card-body">
-            <LoadingSpinner />
-          </div>
-        </section>
+        <section className="card panel-card single-panel"><div className="card-body"><LoadingSpinner /></div></section>
       </section>
     );
   }
@@ -80,11 +64,7 @@ export default function Dashboard() {
           <h1 className="page-title">ダッシュボード</h1>
           <p className="page-description">管理者ダッシュボード</p>
         </div>
-        <section className="card panel-card single-panel">
-          <div className="card-body stack">
-            <p className="message error">{error}</p>
-          </div>
-        </section>
+        <section className="card panel-card single-panel"><div className="card-body stack"><p className="message error">{error}</p></div></section>
       </section>
     );
   }

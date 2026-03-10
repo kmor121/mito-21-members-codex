@@ -53,6 +53,11 @@
     "attachments_json": {
       "type": "string",
       "description": "Serialized attachment metadata list"
+    },
+    "is_template": {
+      "type": "boolean",
+      "description": "Whether this record is a template",
+      "default": false
     }
   },
   "required": ["title", "body", "channel", "status", "audience_type"]

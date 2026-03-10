@@ -1,27 +1,23 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { apiRequest, base44 } from '../../api/base44Client';
+import { apiRequest, base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import DatePicker from '../../components/ui/DatePicker';
 
-/* ---------- helpers ---------- */
+/* ---------- constants ---------- */
 
-function displayValue(v) {
-  if (v === null || v === undefined || v === "") return "-";
-  if (typeof v === "boolean") return v ? "はい" : "いいえ";
-  return String(v);
-}
+const MEMBER_TYPE_BADGE = {
+  "正会員": { bg: "var(--primary-light)", color: "var(--primary)" },
+  "賛助会員": { bg: "#ecfdf5", color: "#059669" },
+  "OB会員": { bg: "#f1f5f9", color: "#64748b" },
+  "名誉顧問": { bg: "#fffbeb", color: "#d97706" },
+};
 
-function formatCurrency(v) {
-  const n = Number(v);
-  return `¥${(Number.isFinite(n) ? n : 0).toLocaleString("ja-JP")}`;
-}
-
-function MemberImage({ src, name, size = "detail" }) {
-  const initial = (name || "M").charAt(0);
-  if (src) return <div className={`member-image member-image-${size}`}><img src={src} alt={name || ""} loading="lazy" /></div>;
-  return <div className={`member-image member-image-${size} is-placeholder`}><span>{initial}</span></div>;
-}
+const STATUS_BADGE = {
+  "活動中": { bg: "#ecfdf5", color: "#059669" },
+  "休会": { bg: "#fffbeb", color: "#d97706" },
+  "退会": { bg: "#fee2e2", color: "#991b1b" },
+};
 
 const FIELD_LABELS = {
   name_kanji: "氏名", name_kana: "フリガナ", birthday: "生年月日",
@@ -44,6 +40,101 @@ const TABS = [
   { key: "directory", label: "名簿設定" },
   { key: "changelog", label: "変更履歴" },
 ];
+
+/* ---------- helpers ---------- */
+
+function displayValue(v) {
+  if (v === null || v === undefined || v === "") return "-";
+  if (typeof v === "boolean") return v ? "はい" : "いいえ";
+  return String(v);
+}
+
+function formatCurrency(v) {
+  const n = Number(v);
+  return `¥${(Number.isFinite(n) ? n : 0).toLocaleString("ja-JP")}`;
+}
+
+function MemberImage({ src, name, size = "detail" }) {
+  const initial = (name || "M").charAt(0);
+  if (src) return <div className={`member-image member-image-${size}`}><img src={src} alt={name || ""} loading="lazy" /></div>;
+  return <div className={`member-image member-image-${size} is-placeholder`}><span>{initial}</span></div>;
+}
+
+function Badge({ label, styleMap }) {
+  const s = styleMap?.[label] || { bg: "#f1f5f9", color: "#64748b" };
+  return (
+    <span
+      className="pill"
+      style={{
+        backgroundColor: s.bg,
+        color: s.color,
+        fontWeight: 600,
+        fontSize: "0.8rem",
+        padding: "0.25rem 0.75rem",
+        borderRadius: "9999px",
+        lineHeight: 1.4,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function SectionHeader({ icon, title }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem", paddingBottom: "0.5rem", borderBottom: "1px solid var(--border, #e5e7eb)" }}>
+      <span style={{ fontSize: "1.15rem" }}>{icon}</span>
+      <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>{title}</h3>
+    </div>
+  );
+}
+
+function InfoRow({ label, value }) {
+  const v = displayValue(value);
+  const isEmpty = v === "-";
+  return (
+    <div style={{ display: "flex", gap: "1rem", padding: "0.4rem 0.5rem", minWidth: 0 }}>
+      <dt style={{ minWidth: "8rem", flexShrink: 0, color: "var(--text-secondary, #64748b)", fontSize: "0.875rem", fontWeight: 500 }}>{label}</dt>
+      <dd style={{ margin: 0, color: isEmpty ? "var(--text-tertiary, #94a3b8)" : "var(--text-primary, #1e293b)", fontSize: "0.875rem", wordBreak: "break-word" }}>{v}</dd>
+    </div>
+  );
+}
+
+function Toast({ message, onClose }) {
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [message, onClose]);
+
+  if (!message) return null;
+
+  return (
+    <div
+      className="nl2-toast"
+      style={{
+        position: "fixed",
+        bottom: "2rem",
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 9999,
+        background: "#059669",
+        color: "#fff",
+        padding: "0.75rem 1.5rem",
+        borderRadius: "0.5rem",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        fontSize: "0.9rem",
+        fontWeight: 500,
+        display: "flex",
+        alignItems: "center",
+        gap: "0.5rem",
+        animation: "fadeInUp 0.3s ease",
+      }}
+    >
+      <span>{message}</span>
+    </div>
+  );
+}
 
 function buildFormData(m) {
   return {
@@ -74,6 +165,9 @@ export default function MemberDetail() {
   const [activeTab, setActiveTab] = useState("basic");
   const [isEditing, setIsEditing] = useState(false);
 
+  // Toast
+  const [toastMessage, setToastMessage] = useState("");
+
   // Edit form
   const [formData, setFormData] = useState({});
   const [formMessage, setFormMessage] = useState("");
@@ -89,6 +183,12 @@ export default function MemberDetail() {
   const [dirMessage, setDirMessage] = useState("");
   const [dirMessageType, setDirMessageType] = useState("");
   const [dirSubmitting, setDirSubmitting] = useState(false);
+
+  function reloadData() {
+    invalidateReadCache("Member");
+    invalidateReadCache("MemberChangeLog");
+    loadData();
+  }
 
   const loadData = useCallback(async () => {
     setError("");
@@ -136,8 +236,7 @@ export default function MemberDetail() {
 
       const flash = sessionStorage.getItem("member-edit-message");
       if (flash) {
-        setFormMessage(flash);
-        setFormMessageType("success");
+        setToastMessage(flash);
         sessionStorage.removeItem("member-edit-message");
       }
     } catch (err) {
@@ -152,12 +251,12 @@ export default function MemberDetail() {
   }, [loadData]);
 
   const orgHistory = useMemo(() => Array.isArray(history?.org_history) ? history.org_history : [], [history]);
-  const duesHistory = useMemo(() => Array.isArray(history?.dues_history) ? history.dues_history : [], [history]);
+  const duesHistory = useMemo(() => Array.isArray(history?.due_history) ? history.due_history : [], [history]);
 
   const { orgByYear, orgYears } = useMemo(() => {
     const byYear = {};
     for (const item of orgHistory) {
-      const year = item.year || "不明";
+      const year = item.fiscal_year_label || "不明";
       if (!byYear[year]) byYear[year] = [];
       byYear[year].push(item);
     }
@@ -174,6 +273,7 @@ export default function MemberDetail() {
   function handleStartEdit() {
     setFormMessage("");
     setFormMessageType("");
+    setActiveTab("basic");
     setIsEditing(true);
   }
 
@@ -226,9 +326,9 @@ export default function MemberDetail() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      sessionStorage.setItem("member-edit-message", "保存しました。");
+      sessionStorage.setItem("member-edit-message", "保存しました");
       setIsEditing(false);
-      await loadData();
+      await reloadData();
     } catch (err) {
       setFormMessage(err.message || "保存に失敗しました。");
       setFormMessageType("error");
@@ -274,10 +374,10 @@ export default function MemberDetail() {
     return (
       <section className="admin-shell">
         <div className="page-header">
-          <h1 className="page-title">会員詳細</h1>
           <p className="page-description">
-            <Link className="text-link" to="/admin/members">&larr; 会員一覧へ戻る</Link>
+            <Link className="text-link" to="/admin/members">&larr; 会員一覧に戻る</Link>
           </p>
+          <h1 className="page-title">会員詳細</h1>
         </div>
         <section className="card panel-card single-panel">
           <div className="card-body"><LoadingSpinner /></div>
@@ -290,10 +390,10 @@ export default function MemberDetail() {
     return (
       <section className="admin-shell">
         <div className="page-header">
-          <h1 className="page-title">会員詳細</h1>
           <p className="page-description">
-            <Link className="text-link" to="/admin/members">&larr; 会員一覧へ戻る</Link>
+            <Link className="text-link" to="/admin/members">&larr; 会員一覧に戻る</Link>
           </p>
+          <h1 className="page-title">会員詳細</h1>
         </div>
         <section className="card panel-card single-panel">
           <div className="card-body stack">
@@ -306,154 +406,171 @@ export default function MemberDetail() {
 
   return (
     <section className="admin-shell">
-      <div className="page-header">
-        <h1 className="page-title">会員詳細: {displayValue(member.name_kanji)}</h1>
-        <p className="page-description">
-          <Link className="text-link" to="/admin/members">&larr; 会員一覧へ戻る</Link>
-        </p>
+      {/* Toast notification */}
+      <Toast message={toastMessage} onClose={() => setToastMessage("")} />
+
+      {/* Back link */}
+      <div style={{ marginBottom: "0.75rem" }}>
+        <Link className="text-link" to="/admin/members" style={{ fontSize: "0.875rem", textDecoration: "none", color: "var(--primary, #2563eb)" }}>
+          &larr; 会員一覧に戻る
+        </Link>
       </div>
 
-      {/* Tab bar */}
-      <div className="tab-bar">
+      {/* ===== Profile Header Card ===== */}
+      <section className="card panel-card" style={{ marginBottom: "1.25rem" }}>
+        <div className="card-body" style={{ padding: "1.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
+            {/* Profile image */}
+            <div style={{ flexShrink: 0 }}>
+              <MemberImage src={member.profile_image} name={member.name_kanji} size="detail" />
+            </div>
+
+            {/* Name + badges */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+                <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 700, color: "var(--text-primary, #1e293b)" }}>
+                  {displayValue(member.name_kanji)}
+                </h1>
+                {member.member_number && (
+                  <span style={{ fontSize: "0.875rem", color: "var(--text-secondary, #64748b)" }}>
+                    No. {member.member_number}
+                  </span>
+                )}
+              </div>
+              {member.name_kana && (
+                <p style={{ margin: "0 0 0.625rem 0", fontSize: "0.875rem", color: "var(--text-secondary, #64748b)" }}>
+                  {member.name_kana}
+                </p>
+              )}
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                {member.member_type && <Badge label={member.member_type} styleMap={MEMBER_TYPE_BADGE} />}
+                {member.status && <Badge label={member.status} styleMap={STATUS_BADGE} />}
+                {member.is_new && (
+                  <span className="pill" style={{ backgroundColor: "#dbeafe", color: "#1d4ed8", fontWeight: 600, fontSize: "0.75rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                    NEW
+                  </span>
+                )}
+                {member.is_graduate && (
+                  <span className="pill" style={{ backgroundColor: "#fef3c7", color: "#92400e", fontWeight: 600, fontSize: "0.75rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                    卒業生
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Edit button */}
+            {!isEditing && (
+              <div style={{ flexShrink: 0 }}>
+                <button className="btn btn-primary" type="button" onClick={handleStartEdit} style={{ whiteSpace: "nowrap" }}>
+                  編集する
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== Tab bar ===== */}
+      <div className="tab-bar" style={{ marginBottom: "1rem" }}>
         {TABS.map((tab) => (
           <button
             key={tab.key}
             type="button"
             className={`tab-button${activeTab === tab.key ? " is-active" : ""}`}
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => { if (!isEditing || tab.key === "basic") setActiveTab(tab.key); }}
+            style={isEditing && tab.key !== "basic" ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* ---------- 基本情報 tab ---------- */}
+      {/* ========== 基本情報 tab ========== */}
       <div className={`tab-panel${activeTab === "basic" ? " is-active" : ""}`}>
         {!isEditing ? (
           /* ── VIEW MODE ── */
-          <>
-            {/* Header with edit button */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-              <button className="button" type="button" onClick={handleStartEdit}>編集する</button>
-            </div>
-
+          <div className="stack" style={{ gap: "1rem" }}>
             {formMessage && (
-              <p className={`message ${formMessageType}`} aria-live="polite" style={{ marginBottom: '0.75rem' }}>{formMessage}</p>
+              <p className={`message ${formMessageType}`} aria-live="polite">{formMessage}</p>
             )}
 
-            {/* Header card */}
-            <section className="card panel-card" style={{ marginBottom: '1rem' }}>
-              <div className="card-body stack">
-                <section className="detail-card stack-sm">
-                  <div className="detail-header-row">
-                    <div><h3>{displayValue(member.name_kanji)}</h3></div>
-                    <div className="pill-row">
-                      <span className="pill">{displayValue(member.member_type)}</span>
-                      <span className="pill">{displayValue(member.status)}</span>
-                      {member.is_new && <span className="pill pill-info">新入会員</span>}
-                      {member.is_graduate && <span className="pill pill-warning">卒業生</span>}
-                    </div>
-                  </div>
-                  <div className="member-image-wrap">
-                    <MemberImage src={member.profile_image} name={member.name_kanji} size="detail" />
-                  </div>
-                </section>
-              </div>
-            </section>
-
-            {/* Basic info */}
-            <section className="card panel-card" style={{ marginBottom: '1rem' }}>
-              <div className="card-body stack">
-                <div className="panel-heading"><div><h2>基本情報</h2></div></div>
-                <dl className="detail-grid">
-                  <div><dt>氏名</dt><dd>{displayValue(member.name_kanji)}</dd></div>
-                  <div><dt>フリガナ</dt><dd>{displayValue(member.name_kana)}</dd></div>
-                  <div><dt>生年月日</dt><dd>{displayValue(member.birthday)}</dd></div>
-                  <div><dt>会員番号</dt><dd>{displayValue(member.member_number)}</dd></div>
-                  <div><dt>会員種別</dt><dd>{displayValue(member.member_type)}</dd></div>
-                  <div><dt>ステータス</dt><dd>{displayValue(member.status)}</dd></div>
+            {/* 個人連絡先 */}
+            <section className="card panel-card">
+              <div className="card-body" style={{ padding: "1.25rem" }}>
+                <SectionHeader icon="📱" title="個人連絡先" />
+                <dl className="detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.25rem 2rem", padding: "0 0.5rem" }}>
+                  <InfoRow label="メール" value={member.email} />
+                  <InfoRow label="携帯番号" value={member.mobile_phone} />
+                  <InfoRow label="生年月日" value={member.birthday} />
                 </dl>
               </div>
             </section>
 
-            {/* Contact */}
-            <section className="card panel-card" style={{ marginBottom: '1rem' }}>
-              <div className="card-body stack">
-                <div className="panel-heading"><div><h2>個人連絡先</h2></div></div>
-                <dl className="detail-grid">
-                  <div><dt>メール</dt><dd>{displayValue(member.email)}</dd></div>
-                  <div><dt>携帯番号</dt><dd>{displayValue(member.mobile_phone)}</dd></div>
+            {/* 会社情報 */}
+            <section className="card panel-card">
+              <div className="card-body" style={{ padding: "1.25rem" }}>
+                <SectionHeader icon="🏢" title="会社情報" />
+                <dl className="detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.25rem 2rem", padding: "0 0.5rem" }}>
+                  <InfoRow label="会社名" value={member.company_name} />
+                  <InfoRow label="役職" value={member.company_position} />
+                  <InfoRow label="業種" value={member.industry} />
+                  <InfoRow label="会社郵便番号" value={member.company_postal_code} />
+                  <InfoRow label="会社住所" value={member.company_address} />
+                  <InfoRow label="会社電話" value={member.company_phone} />
+                  <InfoRow label="会社FAX" value={member.company_fax} />
+                  <InfoRow label="会社PR" value={member.company_pr} />
                 </dl>
               </div>
             </section>
 
-            {/* Company */}
-            <section className="card panel-card" style={{ marginBottom: '1rem' }}>
-              <div className="card-body stack">
-                <div className="panel-heading"><div><h2>会社情報</h2></div></div>
-                <dl className="detail-grid">
-                  <div><dt>会社名</dt><dd>{displayValue(member.company_name)}</dd></div>
-                  <div><dt>役職</dt><dd>{displayValue(member.company_position)}</dd></div>
-                  <div><dt>業種</dt><dd>{displayValue(member.industry)}</dd></div>
-                  <div><dt>会社郵便番号</dt><dd>{displayValue(member.company_postal_code)}</dd></div>
-                  <div><dt>会社住所</dt><dd>{displayValue(member.company_address)}</dd></div>
-                  <div><dt>会社電話</dt><dd>{displayValue(member.company_phone)}</dd></div>
-                  <div><dt>会社FAX</dt><dd>{displayValue(member.company_fax)}</dd></div>
-                  <div><dt>会社PR</dt><dd>{displayValue(member.company_pr)}</dd></div>
+            {/* 自宅情報 */}
+            <section className="card panel-card">
+              <div className="card-body" style={{ padding: "1.25rem" }}>
+                <SectionHeader icon="🏠" title="自宅情報" />
+                <dl className="detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.25rem 2rem", padding: "0 0.5rem" }}>
+                  <InfoRow label="自宅郵便番号" value={member.home_postal_code} />
+                  <InfoRow label="自宅住所" value={member.home_address} />
+                  <InfoRow label="自宅電話" value={member.home_phone} />
+                  <InfoRow label="自宅FAX" value={member.home_fax} />
                 </dl>
               </div>
             </section>
 
-            {/* Home */}
-            <section className="card panel-card" style={{ marginBottom: '1rem' }}>
-              <div className="card-body stack">
-                <div className="panel-heading"><div><h2>自宅情報</h2></div></div>
-                <dl className="detail-grid">
-                  <div><dt>自宅郵便番号</dt><dd>{displayValue(member.home_postal_code)}</dd></div>
-                  <div><dt>自宅住所</dt><dd>{displayValue(member.home_address)}</dd></div>
-                  <div><dt>自宅電話</dt><dd>{displayValue(member.home_phone)}</dd></div>
-                  <div><dt>自宅FAX</dt><dd>{displayValue(member.home_fax)}</dd></div>
-                </dl>
-              </div>
-            </section>
-
-            {/* Other */}
-            <section className="card panel-card" style={{ marginBottom: '1rem' }}>
-              <div className="card-body stack">
-                <div className="panel-heading"><div><h2>その他</h2></div></div>
-                <dl className="detail-grid">
-                  <div><dt>趣味・信条</dt><dd>{displayValue(member.hobbies)}</dd></div>
-                  <div><dt>備考</dt><dd>{displayValue(member.notes)}</dd></div>
-                </dl>
-              </div>
-            </section>
-
-            {/* Referrer matches */}
-            {(referrerMatches.referrer_1 || referrerMatches.referrer_2) && (
-              <section className="card panel-card" style={{ marginBottom: '1rem' }}>
-                <div className="card-body stack">
-                  <div className="panel-heading"><div><h2>紹介者マッチ</h2></div></div>
-                  {referrerMatches.referrer_1 && (
-                    <div>
-                      <strong>紹介者1:</strong> {referrerMatches.referrer_1.name_kanji || "-"} ({referrerMatches.referrer_1.company_name || "-"})
-                    </div>
+            {/* その他 */}
+            <section className="card panel-card">
+              <div className="card-body" style={{ padding: "1.25rem" }}>
+                <SectionHeader icon="📝" title="その他" />
+                <dl className="detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.25rem 2rem", padding: "0 0.5rem" }}>
+                  <InfoRow label="趣味・信条" value={member.hobbies} />
+                  <InfoRow label="備考" value={member.notes} />
+                  {(referrerMatches.referrer_1 || referrerMatches.referrer_2) && (
+                    <>
+                      {referrerMatches.referrer_1 && (
+                        <InfoRow
+                          label="紹介者1"
+                          value={`${referrerMatches.referrer_1.name_kanji || "-"} (${referrerMatches.referrer_1.company_name || "-"})`}
+                        />
+                      )}
+                      {referrerMatches.referrer_2 && (
+                        <InfoRow
+                          label="紹介者2"
+                          value={`${referrerMatches.referrer_2.name_kanji || "-"} (${referrerMatches.referrer_2.company_name || "-"})`}
+                        />
+                      )}
+                    </>
                   )}
-                  {referrerMatches.referrer_2 && (
-                    <div>
-                      <strong>紹介者2:</strong> {referrerMatches.referrer_2.name_kanji || "-"} ({referrerMatches.referrer_2.company_name || "-"})
-                    </div>
-                  )}
-                </div>
-              </section>
-            )}
-          </>
+                </dl>
+              </div>
+            </section>
+          </div>
         ) : (
           /* ── EDIT MODE ── */
           <section className="card panel-card">
-            <div className="card-body stack">
-              <div className="panel-heading"><div><h2>会員編集</h2></div></div>
+            <div className="card-body" style={{ padding: "1.25rem" }}>
               <form className="editor-form" noValidate onSubmit={handleEditSubmit}>
-                <h4 style={{ margin: "0.5rem 0 0.25rem" }}>基本情報</h4>
+                <SectionHeader icon="✏️" title="基本情報を編集" />
+
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>基本情報</h4>
                 <div className="editor-grid">
                   <div className="field">
                     <label htmlFor="md-name-kanji">氏名 *</label>
@@ -477,7 +594,7 @@ export default function MemberDetail() {
                   </div>
                 </div>
 
-                <h4 style={{ margin: "0.5rem 0 0.25rem" }}>会社情報</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>会社情報</h4>
                 <div className="editor-grid">
                   <div className="field">
                     <label htmlFor="md-company-name">会社名</label>
@@ -513,7 +630,7 @@ export default function MemberDetail() {
                   </div>
                 </div>
 
-                <h4 style={{ margin: "0.5rem 0 0.25rem" }}>自宅情報</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>自宅情報</h4>
                 <div className="editor-grid">
                   <div className="field">
                     <label htmlFor="md-home-postal-code">自宅郵便番号</label>
@@ -533,7 +650,7 @@ export default function MemberDetail() {
                   </div>
                 </div>
 
-                <h4 style={{ margin: "0.5rem 0 0.25rem" }}>その他</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>その他</h4>
                 <div className="editor-grid">
                   <div className="field field-span-2">
                     <label htmlFor="md-hobbies">趣味・信条</label>
@@ -541,7 +658,7 @@ export default function MemberDetail() {
                   </div>
                 </div>
 
-                <h4 style={{ margin: "0.5rem 0 0.25rem" }}>管理情報</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>管理情報</h4>
                 <div className="editor-grid">
                   <div className="field">
                     <label htmlFor="md-member-number">会員番号</label>
@@ -571,81 +688,143 @@ export default function MemberDetail() {
                 </div>
 
                 {formMessage && (
-                  <p className={`message ${formMessageType}`} aria-live="polite">{formMessage}</p>
+                  <p className={`message ${formMessageType}`} aria-live="polite" style={{ marginTop: "0.75rem" }}>{formMessage}</p>
                 )}
-                <div className="actions">
-                  <button className="button" type="submit" disabled={submitting}>
-                    {submitting ? "保存中..." : "保存"}
-                  </button>
-                  <button className="button ghost" type="button" onClick={handleCancelEdit} disabled={submitting}>
-                    キャンセル
-                  </button>
-                </div>
               </form>
+            </div>
+
+            {/* Sticky bottom bar */}
+            <div style={{
+              position: "sticky",
+              bottom: 0,
+              backgroundColor: "var(--surface, #fff)",
+              borderTop: "1px solid var(--border, #e5e7eb)",
+              padding: "0.75rem 1.25rem",
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "0.75rem",
+              zIndex: 10,
+            }}>
+              <button className="btn btn-secondary" type="button" onClick={handleCancelEdit} disabled={submitting}>
+                キャンセル
+              </button>
+              <button className="btn btn-primary" type="submit" disabled={submitting} onClick={handleEditSubmit}>
+                {submitting ? "保存中..." : "保存"}
+              </button>
             </div>
           </section>
         )}
       </div>
 
-      {/* ---------- 組織履歴 tab ---------- */}
+      {/* ========== 組織履歴 tab ========== */}
       <div className={`tab-panel${activeTab === "org" ? " is-active" : ""}`}>
         <section className="card panel-card single-panel">
-          <div className="card-body stack">
-            <div className="panel-heading"><div><h2>組織履歴</h2></div></div>
+          <div className="card-body" style={{ padding: "1.25rem" }}>
+            <SectionHeader icon="🏛️" title="組織履歴" />
             {orgYears.length === 0 ? (
-              <p className="muted">組織履歴はありません。</p>
+              <p style={{ color: "var(--text-tertiary, #94a3b8)", fontSize: "0.875rem" }}>組織履歴はありません。</p>
             ) : (
-              orgYears.map((year) => (
-                <section key={year} className="detail-card stack-sm">
-                  <h3>{year}年度</h3>
-                  <dl className="detail-grid">
-                    {orgByYear[year].map((item, idx) => (
-                      <div key={idx}>
-                        <dt>{item.org_name || "-"}</dt>
-                        <dd>{item.role || "-"}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </section>
-              ))
+              <div style={{ position: "relative", paddingLeft: "1.5rem" }}>
+                {/* Vertical timeline line */}
+                <div style={{
+                  position: "absolute",
+                  left: "0.45rem",
+                  top: "0.25rem",
+                  bottom: "0.25rem",
+                  width: "2px",
+                  backgroundColor: "var(--border, #e5e7eb)",
+                }} />
+                {orgYears.map((year, yi) => (
+                  <div key={year} style={{ position: "relative", marginBottom: yi < orgYears.length - 1 ? "1.5rem" : 0 }}>
+                    {/* Timeline dot */}
+                    <div style={{
+                      position: "absolute",
+                      left: "-1.5rem",
+                      top: "0.15rem",
+                      width: "0.75rem",
+                      height: "0.75rem",
+                      borderRadius: "50%",
+                      backgroundColor: "var(--primary, #2563eb)",
+                      border: "2px solid var(--surface, #fff)",
+                      boxShadow: "0 0 0 2px var(--primary, #2563eb)",
+                      transform: "translateX(0.075rem)",
+                    }} />
+                    <div>
+                      <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary, #1e293b)" }}>
+                        {year}
+                      </h4>
+                      {orgByYear[year].map((item, idx) => (
+                        <div key={idx} style={{
+                          display: "flex",
+                          gap: "0.75rem",
+                          alignItems: "center",
+                          padding: "0.35rem 0",
+                          fontSize: "0.875rem",
+                        }}>
+                          <span style={{ color: "var(--text-primary, #1e293b)", fontWeight: 500 }}>{item.org_name || "-"}</span>
+                          <span style={{ color: "var(--text-secondary, #64748b)" }}>{item.role || "-"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </section>
       </div>
 
-      {/* ---------- 会費履歴 tab ---------- */}
+      {/* ========== 会費履歴 tab ========== */}
       <div className={`tab-panel${activeTab === "dues" ? " is-active" : ""}`}>
         <section className="card panel-card single-panel">
-          <div className="card-body stack">
-            <div className="panel-heading"><div><h2>会費履歴</h2></div></div>
+          <div className="card-body" style={{ padding: "1.25rem" }}>
+            <SectionHeader icon="💰" title="会費履歴" />
             {duesHistory.length === 0 ? (
-              <p className="muted">会費履歴はありません。</p>
+              <p style={{ color: "var(--text-tertiary, #94a3b8)", fontSize: "0.875rem" }}>会費履歴はありません。</p>
             ) : (
               <div className="table-wrap">
                 <table className="data-table">
                   <thead>
                     <tr>
                       <th>年度</th>
+                      <th>種類</th>
                       <th>金額</th>
                       <th>ステータス</th>
-                      <th>納入日</th>
-                      <th>備考</th>
+                      <th>入金日</th>
+                      <th>振込名</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {duesHistory.map((d, idx) => (
-                      <tr key={idx}>
-                        <td>{displayValue(d.year)}</td>
-                        <td>{formatCurrency(d.amount)}</td>
-                        <td>
-                          <span className={`pill${d.status === "納入済" ? " pill-success" : ""}`}>
-                            {displayValue(d.status)}
-                          </span>
-                        </td>
-                        <td>{displayValue(d.paid_date)}</td>
-                        <td>{displayValue(d.notes)}</td>
-                      </tr>
-                    ))}
+                    {duesHistory.map((d, idx) => {
+                      const statusStyle = d.status === "納入済"
+                        ? { backgroundColor: "#ecfdf5", color: "#059669" }
+                        : d.status === "未納"
+                          ? { backgroundColor: "#fee2e2", color: "#991b1b" }
+                          : { backgroundColor: "#f1f5f9", color: "#64748b" };
+                      return (
+                        <tr key={idx}>
+                          <td>{displayValue(d.fiscal_year_label)}</td>
+                          <td>{displayValue(d.due_type)}</td>
+                          <td>{formatCurrency(d.amount)}</td>
+                          <td>
+                            <span
+                              className="pill"
+                              style={{
+                                ...statusStyle,
+                                fontWeight: 600,
+                                fontSize: "0.78rem",
+                                padding: "0.2rem 0.6rem",
+                                borderRadius: "9999px",
+                              }}
+                            >
+                              {displayValue(d.status)}
+                            </span>
+                          </td>
+                          <td>{displayValue(d.paid_date)}</td>
+                          <td>{displayValue(d.payer_name)}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -654,35 +833,35 @@ export default function MemberDetail() {
         </section>
       </div>
 
-      {/* ---------- 名簿設定 tab ---------- */}
+      {/* ========== 名簿設定 tab ========== */}
       <div className={`tab-panel${activeTab === "directory" ? " is-active" : ""}`}>
         <section className="card panel-card single-panel">
-          <div className="card-body stack">
-            <div className="panel-heading"><div><h2>名簿設定</h2></div></div>
+          <div className="card-body" style={{ padding: "1.25rem" }}>
+            <SectionHeader icon="📖" title="名簿設定" />
             <form className="editor-form" noValidate onSubmit={handleDirSubmit}>
-              <section className="detail-card stack-sm inset-card">
-                <h3>名簿公開設定</h3>
-                <label className="checkbox-row">
+              <section style={{ padding: "1rem", backgroundColor: "var(--bg-subtle, #f8fafc)", borderRadius: "0.5rem", border: "1px solid var(--border, #e5e7eb)" }}>
+                <h4 style={{ margin: "0 0 0.75rem 0", fontSize: "0.9rem", fontWeight: 600 }}>名簿公開設定</h4>
+                <label className="checkbox-row" style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.4rem 0", cursor: "pointer" }}>
                   <input type="checkbox" checked={dirForm.show_email_in_directory}
                     onChange={(e) => setDirForm((prev) => ({ ...prev, show_email_in_directory: e.target.checked }))} />
-                  <span>メールを名簿に公開する</span>
+                  <span style={{ fontSize: "0.875rem" }}>メールを名簿に公開する</span>
                 </label>
-                <label className="checkbox-row">
+                <label className="checkbox-row" style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.4rem 0", cursor: "pointer" }}>
                   <input type="checkbox" checked={dirForm.show_company_in_directory}
                     onChange={(e) => setDirForm((prev) => ({ ...prev, show_company_in_directory: e.target.checked }))} />
-                  <span>会社情報を名簿に公開する</span>
+                  <span style={{ fontSize: "0.875rem" }}>会社情報を名簿に公開する</span>
                 </label>
-                <label className="checkbox-row">
+                <label className="checkbox-row" style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.4rem 0", cursor: "pointer" }}>
                   <input type="checkbox" checked={dirForm.show_mobile_in_directory}
                     onChange={(e) => setDirForm((prev) => ({ ...prev, show_mobile_in_directory: e.target.checked }))} />
-                  <span>携帯番号を名簿に公開する</span>
+                  <span style={{ fontSize: "0.875rem" }}>携帯番号を名簿に公開する</span>
                 </label>
               </section>
               {dirMessage && (
-                <p className={`message ${dirMessageType}`} aria-live="polite">{dirMessage}</p>
+                <p className={`message ${dirMessageType}`} aria-live="polite" style={{ marginTop: "0.75rem" }}>{dirMessage}</p>
               )}
-              <div className="actions">
-                <button className="button" type="submit" disabled={dirSubmitting}>
+              <div style={{ marginTop: "1rem" }}>
+                <button className="btn btn-primary" type="submit" disabled={dirSubmitting}>
                   {dirSubmitting ? "保存中..." : "名簿設定を保存"}
                 </button>
               </div>
@@ -691,13 +870,13 @@ export default function MemberDetail() {
         </section>
       </div>
 
-      {/* ---------- 変更履歴 tab ---------- */}
+      {/* ========== 変更履歴 tab ========== */}
       <div className={`tab-panel${activeTab === "changelog" ? " is-active" : ""}`}>
         <section className="card panel-card single-panel">
-          <div className="card-body stack">
-            <div className="panel-heading"><div><h2>変更履歴</h2></div></div>
+          <div className="card-body" style={{ padding: "1.25rem" }}>
+            <SectionHeader icon="📋" title="変更履歴" />
             {changeLogs.length === 0 ? (
-              <p className="muted">変更履歴はありません。</p>
+              <p style={{ color: "var(--text-tertiary, #94a3b8)", fontSize: "0.875rem" }}>変更履歴はありません。</p>
             ) : (
               <div className="table-wrap">
                 <table className="data-table">
@@ -705,7 +884,7 @@ export default function MemberDetail() {
                     <tr>
                       <th>日時</th>
                       <th>変更者</th>
-                      <th>項目</th>
+                      <th>フィールド名</th>
                       <th>変更前</th>
                       <th>変更後</th>
                     </tr>
@@ -722,11 +901,11 @@ export default function MemberDetail() {
 
                       return (
                         <tr key={idx}>
-                          <td>{dateStr}</td>
+                          <td style={{ whiteSpace: "nowrap" }}>{dateStr}</td>
                           <td>{changedBy}</td>
                           <td>{fieldLabel}</td>
-                          <td>{displayValue(log.old_value)}</td>
-                          <td>{displayValue(log.new_value)}</td>
+                          <td style={{ color: "var(--text-secondary, #64748b)" }}>{displayValue(log.old_value)}</td>
+                          <td style={{ fontWeight: 500 }}>{displayValue(log.new_value)}</td>
                         </tr>
                       );
                     })}

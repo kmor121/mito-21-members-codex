@@ -14,7 +14,9 @@
       "Bash(cd C:/dev/mito-21-members-codex && yes | npx base44 site deploy 2>&1)",
       "Bash(ls -la C:/dev/mito-21-members-codex/backend/ 2>/dev/null; ls C:/dev/mito-21-members-codex/.base44/ 2>/dev/null; ls C:/dev/mito-21-members-codex/base44.json 2>/dev/null; find C:/dev/mito-21-members-codex -name \"*.js\" -path \"*/backend/*\" -o -name \"*.js\" -path \"*/function*\" 2>/dev/null | head -20)",
       "Bash(curl -s -X POST \"https://mito21-members-codex-da487265.base44.app/functions/seed-demo-members\" -H \"Content-Type: application/json\" -d '{}' 2>&12)",
-      "Bash(find /c/dev/mito-21-members-codex/base44/entities -type f -name \"*\" 2>/dev/null | head -20)"
+      "Bash(find /c/dev/mito-21-members-codex/base44/entities -type f -name \"*\" 2>/dev/null | head -20)",
+      "Bash(find \"C:/dev/mito-21-members-codex/.claude/skills/ui-ux-guidelines\" -type f -name \"*.md\" 2>/dev/null | head -5)",
+      "Bash(find /c/dev/mito-21-members-codex -type f \\\\\\( -name \"*skill*\" -o -name \"CLAUDE*\" -o -name \"*.claude*\" \\\\\\) 2>/dev/null | head -20)"
     ]
   }
 }
