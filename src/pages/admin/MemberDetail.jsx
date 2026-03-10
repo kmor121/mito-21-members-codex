@@ -93,12 +93,12 @@ export default function MemberDetail() {
     setError("");
     setLoading(true);
     try {
-      // Load member detail first (required), then history/logs (optional)
       const detailRes = await apiRequest(`get-member-detail?id=${encodeURIComponent(memberId)}`);
+      if (!detailRes) throw new Error("会員データが見つかりません。");
       const m = detailRes.member || detailRes;
+      if (!m || !m.id) throw new Error("会員データが見つかりません。");
       setMember(m);
 
-      // Load history and change logs - don't crash if these fail
       let historyRes = {};
       let logsRes = {};
       try {
@@ -143,7 +143,6 @@ export default function MemberDetail() {
         show_mobile_in_directory: !!m.show_mobile_in_directory,
       });
 
-      // Flash message
       const flash = sessionStorage.getItem("member-edit-message");
       if (flash) {
         setFormMessage(flash);
@@ -161,6 +160,23 @@ export default function MemberDetail() {
     loadData();
   }, [loadData]);
 
+  // Hooks must be called unconditionally - moved above conditional returns
+  const orgHistory = useMemo(() => Array.isArray(history?.org_history) ? history.org_history : [], [history]);
+  const duesHistory = useMemo(() => Array.isArray(history?.dues_history) ? history.dues_history : [], [history]);
+
+  const { orgByYear, orgYears } = useMemo(() => {
+    const byYear = {};
+    for (const item of orgHistory) {
+      const year = item.year || "不明";
+      if (!byYear[year]) byYear[year] = [];
+      byYear[year].push(item);
+    }
+    const years = Object.keys(byYear).sort((a, b) => String(b).localeCompare(String(a)));
+    return { orgByYear: byYear, orgYears: years };
+  }, [orgHistory]);
+
+  const referrerMatches = member?.referrer_matches || {};
+
   function updateField(key, value) {
     setFormData((prev) => ({ ...prev, [key]: value }));
   }
@@ -171,7 +187,6 @@ export default function MemberDetail() {
     setFormMessage("");
     setFormMessageType("");
 
-    // Validate required fields
     const required = [
       { key: "name_kanji", label: "氏名" },
       { key: "name_kana", label: "フリガナ" },
@@ -194,7 +209,6 @@ export default function MemberDetail() {
       changed_by: "admin",
       changed_by_role: "admin",
     };
-    // Include all editable fields
     const fields = [
       "name_kanji", "name_kana", "birthday",
       "company_name", "company_position", "industry",
@@ -272,7 +286,7 @@ export default function MemberDetail() {
     );
   }
 
-  if (error) {
+  if (error || !member) {
     return (
       <section className="admin-shell">
         <div className="page-header">
@@ -283,31 +297,12 @@ export default function MemberDetail() {
         </div>
         <section className="card panel-card single-panel">
           <div className="card-body stack">
-            <p className="message error">{error}</p>
+            <p className="message error">{error || "データを取得できませんでした"}</p>
           </div>
         </section>
       </section>
     );
   }
-
-  if (!member) return null;
-
-  // Group org history by year
-  const orgHistory = Array.isArray(history?.org_history) ? history.org_history : [];
-  const duesHistory = Array.isArray(history?.dues_history) ? history.dues_history : [];
-
-  const { orgByYear, orgYears } = useMemo(() => {
-    const byYear = {};
-    for (const item of orgHistory) {
-      const year = item.year || "不明";
-      if (!byYear[year]) byYear[year] = [];
-      byYear[year].push(item);
-    }
-    const years = Object.keys(byYear).sort((a, b) => String(b).localeCompare(String(a)));
-    return { orgByYear: byYear, orgYears: years };
-  }, [orgHistory]);
-
-  const referrerMatches = member?.referrer_matches || {};
 
   return (
     <section className="admin-shell">

@@ -12,6 +12,8 @@ function displayValue(v) {
 const MEMBER_TYPES = ["正会員", "賛助会員", "OB会員", "名誉顧問"];
 const STATUSES = ["活動中", "休会", "退会"];
 
+const EDITABLE_FIELDS = ["company_name", "member_type", "status", "email", "mobile_phone"];
+
 function useDebounce(value, delay) {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -40,7 +42,10 @@ export default function MemberList() {
   // Inline editing
   const [editMode, setEditMode] = useState(false);
   const [editingRows, setEditingRows] = useState({});
+  const [activeCell, setActiveCell] = useState(null); // { memberId, field }
+  const [changedCells, setChangedCells] = useState(new Set()); // "memberId:field"
   const saveTimerRef = useRef({});
+  const cellRefs = useRef({});
 
   // Debounced search query
   const debouncedQ = useDebounce(q, 300);
@@ -93,17 +98,14 @@ export default function MemberList() {
     };
   }
 
-  // Initial load
   useEffect(() => {
     loadMembers({});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Real-time search on debounced query change
   useEffect(() => {
     loadMembers(getCurrentFilters());
   }, [debouncedQ]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Re-search when filter dropdowns change
   useEffect(() => {
     loadMembers(getCurrentFilters());
   }, [status, memberType, approvalStatus, organizationId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -123,6 +125,7 @@ export default function MemberList() {
       ...prev,
       [memberId]: { ...(prev[memberId] || {}), [field]: value },
     }));
+    setChangedCells((prev) => new Set(prev).add(`${memberId}:${field}`));
 
     // Debounced auto-save (1 second)
     if (saveTimerRef.current[memberId]) {
@@ -159,6 +162,14 @@ export default function MemberList() {
         delete next[memberId];
         return next;
       });
+      // Clear changed indicators for this member
+      setChangedCells((prev) => {
+        const next = new Set(prev);
+        for (const key of prev) {
+          if (key.startsWith(`${memberId}:`)) next.delete(key);
+        }
+        return next;
+      });
     } catch (err) {
       setError(`保存に失敗: ${err.message}`);
     }
@@ -169,6 +180,136 @@ export default function MemberList() {
       return editingRows[member.id][field];
     }
     return member[field] || "";
+  }
+
+  function handleCellClick(memberId, field) {
+    if (!editMode) return;
+    setActiveCell({ memberId, field });
+    // Focus the input after render
+    requestAnimationFrame(() => {
+      const key = `${memberId}:${field}`;
+      if (cellRefs.current[key]) {
+        cellRefs.current[key].focus();
+        if (cellRefs.current[key].select) cellRefs.current[key].select();
+      }
+    });
+  }
+
+  function handleCellKeyDown(e, memberId, field) {
+    const memberIdx = members.findIndex((m) => m.id === memberId);
+    const fieldIdx = EDITABLE_FIELDS.indexOf(field);
+
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const nextFieldIdx = e.shiftKey ? fieldIdx - 1 : fieldIdx + 1;
+      if (nextFieldIdx >= 0 && nextFieldIdx < EDITABLE_FIELDS.length) {
+        handleCellClick(memberId, EDITABLE_FIELDS[nextFieldIdx]);
+      } else if (!e.shiftKey && memberIdx + 1 < members.length) {
+        handleCellClick(members[memberIdx + 1].id, EDITABLE_FIELDS[0]);
+      } else if (e.shiftKey && memberIdx - 1 >= 0) {
+        handleCellClick(members[memberIdx - 1].id, EDITABLE_FIELDS[EDITABLE_FIELDS.length - 1]);
+      }
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (memberIdx + 1 < members.length) {
+        handleCellClick(members[memberIdx + 1].id, field);
+      }
+    } else if (e.key === "Escape") {
+      setActiveCell(null);
+    }
+  }
+
+  function isCellActive(memberId, field) {
+    return activeCell?.memberId === memberId && activeCell?.field === field;
+  }
+
+  function isCellChanged(memberId, field) {
+    return changedCells.has(`${memberId}:${field}`);
+  }
+
+  function setCellRef(memberId, field, el) {
+    cellRefs.current[`${memberId}:${field}`] = el;
+  }
+
+  function renderEditCell(member, field) {
+    const isActive = isCellActive(member.id, field);
+    const isChanged = isCellChanged(member.id, field);
+    const cellStyle = {
+      background: isChanged ? 'rgba(255, 255, 200, 0.5)' : undefined,
+      padding: 0,
+    };
+
+    if (field === "member_type") {
+      return (
+        <td style={cellStyle} onClick={() => handleCellClick(member.id, field)}>
+          <select
+            ref={(el) => setCellRef(member.id, field, el)}
+            className="inline-edit-input"
+            value={getCellValue(member, field)}
+            onChange={(e) => handleCellChange(member.id, field, e.target.value)}
+            onKeyDown={(e) => handleCellKeyDown(e, member.id, field)}
+            style={{ background: isChanged ? 'rgba(255, 255, 200, 0.5)' : undefined }}
+          >
+            {MEMBER_TYPES.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </td>
+      );
+    }
+    if (field === "status") {
+      return (
+        <td style={cellStyle} onClick={() => handleCellClick(member.id, field)}>
+          <select
+            ref={(el) => setCellRef(member.id, field, el)}
+            className="inline-edit-input"
+            value={getCellValue(member, field)}
+            onChange={(e) => handleCellChange(member.id, field, e.target.value)}
+            onKeyDown={(e) => handleCellKeyDown(e, member.id, field)}
+            style={{ background: isChanged ? 'rgba(255, 255, 200, 0.5)' : undefined }}
+          >
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </td>
+      );
+    }
+
+    // Text/email/tel input
+    if (!isActive) {
+      return (
+        <td
+          style={{ ...cellStyle, padding: '0.5rem 0.75rem', cursor: 'cell' }}
+          onClick={() => handleCellClick(member.id, field)}
+        >
+          {getCellValue(member, field) || "-"}
+        </td>
+      );
+    }
+
+    const inputType = field === "email" ? "email" : field === "mobile_phone" ? "tel" : "text";
+    return (
+      <td style={cellStyle} onClick={() => handleCellClick(member.id, field)}>
+        <input
+          ref={(el) => setCellRef(member.id, field, el)}
+          type={inputType}
+          className="inline-edit-input"
+          value={getCellValue(member, field)}
+          onChange={(e) => handleCellChange(member.id, field, e.target.value)}
+          onKeyDown={(e) => handleCellKeyDown(e, member.id, field)}
+          onBlur={() => {
+            // Small delay to allow Tab to work
+            setTimeout(() => {
+              if (activeCell?.memberId === member.id && activeCell?.field === field) {
+                setActiveCell(null);
+              }
+            }, 100);
+          }}
+          style={{ background: isChanged ? 'rgba(255, 255, 200, 0.5)' : undefined }}
+        />
+      </td>
+    );
   }
 
   return (
@@ -235,7 +376,7 @@ export default function MemberList() {
               <button
                 className={`button${editMode ? "" : " ghost"}`}
                 type="button"
-                onClick={() => setEditMode((v) => !v)}
+                onClick={() => { setEditMode((v) => !v); setActiveCell(null); setChangedCells(new Set()); }}
               >
                 {editMode ? "編集モード ON" : "編集モード"}
               </button>
@@ -289,53 +430,12 @@ export default function MemberList() {
                         </td>
                         {editMode ? (
                           <>
-                            <td>
-                              <input
-                                type="text"
-                                className="inline-edit-input"
-                                value={getCellValue(m, "company_name")}
-                                onChange={(e) => handleCellChange(m.id, "company_name", e.target.value)}
-                              />
-                            </td>
+                            {renderEditCell(m, "company_name")}
                             <td>{orgText || "-"}</td>
-                            <td>
-                              <select
-                                className="inline-edit-input"
-                                value={getCellValue(m, "member_type")}
-                                onChange={(e) => handleCellChange(m.id, "member_type", e.target.value)}
-                              >
-                                {MEMBER_TYPES.map((t) => (
-                                  <option key={t} value={t}>{t}</option>
-                                ))}
-                              </select>
-                            </td>
-                            <td>
-                              <select
-                                className="inline-edit-input"
-                                value={getCellValue(m, "status")}
-                                onChange={(e) => handleCellChange(m.id, "status", e.target.value)}
-                              >
-                                {STATUSES.map((s) => (
-                                  <option key={s} value={s}>{s}</option>
-                                ))}
-                              </select>
-                            </td>
-                            <td>
-                              <input
-                                type="email"
-                                className="inline-edit-input"
-                                value={getCellValue(m, "email")}
-                                onChange={(e) => handleCellChange(m.id, "email", e.target.value)}
-                              />
-                            </td>
-                            <td>
-                              <input
-                                type="tel"
-                                className="inline-edit-input"
-                                value={getCellValue(m, "mobile_phone")}
-                                onChange={(e) => handleCellChange(m.id, "mobile_phone", e.target.value)}
-                              />
-                            </td>
+                            {renderEditCell(m, "member_type")}
+                            {renderEditCell(m, "status")}
+                            {renderEditCell(m, "email")}
+                            {renderEditCell(m, "mobile_phone")}
                           </>
                         ) : (
                           <>

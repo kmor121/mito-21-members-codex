@@ -33,6 +33,10 @@
     "notes": {
       "type": "string",
       "description": "Admin notes"
+    },
+    "payer_name": {
+      "type": "string",
+      "description": "Name used for bank transfer (振込名義)"
     }
   },
   "required": ["fiscal_year_id", "member_id", "amount", "status"]

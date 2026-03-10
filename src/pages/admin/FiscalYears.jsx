@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiRequest } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 function displayValue(v) {
   if (v === null || v === undefined || v === "") return "-";
@@ -15,10 +16,6 @@ function stateLabel(state) {
   return state || "-";
 }
 
-function todayStr() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export default function FiscalYears() {
   const [years, setYears] = useState([]);
   const [currentFiscalYearId, setCurrentFiscalYearId] = useState(null);
@@ -28,20 +25,18 @@ export default function FiscalYears() {
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Editor form state
   const [formYear, setFormYear] = useState(new Date().getFullYear());
   const [formIsCurrent, setFormIsCurrent] = useState(false);
   const [formStartDate, setFormStartDate] = useState("");
   const [formEndDate, setFormEndDate] = useState("");
 
-  // Transition options
   const [copyOrgs, setCopyOrgs] = useState(true);
   const [generateDues, setGenerateDues] = useState(true);
   const [resetIsNew, setResetIsNew] = useState(true);
   const [updateGraduates, setUpdateGraduates] = useState(true);
 
-  // Modal state
   const [showModal, setShowModal] = useState(false);
+  const [confirmTransition, setConfirmTransition] = useState(false);
 
   const loadYears = useCallback(async () => {
     setError("");
@@ -106,14 +101,8 @@ export default function FiscalYears() {
     setError("");
     setMessage("");
 
-    if (!formYear) {
-      setError("年度は必須です。");
-      return;
-    }
-    if (!formStartDate || !formEndDate) {
-      setError("開始日と終了日は必須です。");
-      return;
-    }
+    if (!formYear) { setError("年度は必須です。"); return; }
+    if (!formStartDate || !formEndDate) { setError("開始日と終了日は必須です。"); return; }
 
     setSaving(true);
     try {
@@ -137,9 +126,7 @@ export default function FiscalYears() {
 
       const { list } = await loadYears();
       const saved = list.find((y) => y.id === savedId);
-      if (saved) {
-        setSelectedId(saved.id);
-      }
+      if (saved) setSelectedId(saved.id);
     } catch (err) {
       setError(err.message || "保存に失敗しました。");
     } finally {
@@ -169,10 +156,9 @@ export default function FiscalYears() {
     }
   }
 
-  async function handleTransition() {
+  async function executeTransition() {
+    setConfirmTransition(false);
     if (!selectedId) return;
-    if (!window.confirm("年度切替一括処理を実行しますか？\nこの操作は取り消せません。")) return;
-
     setError("");
     setMessage("");
     setSaving(true);
@@ -205,6 +191,16 @@ export default function FiscalYears() {
         <h1 className="page-title">年度管理</h1>
         <p className="page-description">年度の管理・年度切替</p>
       </div>
+
+      <ConfirmDialog
+        open={confirmTransition}
+        title="年度切替確認"
+        message="年度切替一括処理を実行しますか？この操作は取り消せません。"
+        confirmLabel="実行する"
+        confirmStyle={{ background: '#c53030', borderColor: '#c53030' }}
+        onConfirm={executeTransition}
+        onCancel={() => setConfirmTransition(false)}
+      />
 
       {(error || message) && (
         <p className={`message${error ? " error" : ""}`} aria-live="polite">
@@ -300,7 +296,6 @@ export default function FiscalYears() {
                 </div>
               </form>
 
-              {/* Transition section */}
               {selectedId && !selected?.is_current && (
                 <div className="stack" style={{ marginTop: "2rem", borderTop: "1px solid var(--line)", paddingTop: "1.5rem" }}>
                   <h3>年度切替一括処理</h3>
@@ -318,7 +313,7 @@ export default function FiscalYears() {
                     <label className="checkbox-label"><input type="checkbox" checked={updateGraduates} onChange={(e) => setUpdateGraduates(e.target.checked)} /> 卒業生フラグを自動更新する</label>
                   </div>
                   <div className="filter-actions">
-                    <button className="button" type="button" style={{ background: "#c53030", borderColor: "#c53030" }} disabled={saving} onClick={handleTransition}>
+                    <button className="button" type="button" style={{ background: "#c53030", borderColor: "#c53030" }} disabled={saving} onClick={() => setConfirmTransition(true)}>
                       年度切替を実行する
                     </button>
                   </div>

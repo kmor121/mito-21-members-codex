@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { apiRequest } from "../../api/base44Client";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
 
 function statusLabel(s) {
   return (
@@ -66,12 +67,10 @@ export default function Newsletters() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // List data
   const [newsletters, setNewsletters] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
   const [selectedId, setSelectedId] = useState(null);
 
-  // Detail / form data
   const [form, setForm] = useState({
     id: "",
     title: "",
@@ -94,6 +93,11 @@ export default function Newsletters() {
   const [toast, setToast] = useState("");
   const bodyRef = useRef(null);
 
+  // Confirm dialog for send
+  const [confirmSend, setConfirmSend] = useState(false);
+  // Error dialog (replaces alert)
+  const [errorDialog, setErrorDialog] = useState("");
+
   const loadList = useCallback(() => {
     setLoading(true);
     setError("");
@@ -114,7 +118,6 @@ export default function Newsletters() {
     loadList();
   }, [loadList]);
 
-  // Load detail when selectedId changes
   useEffect(() => {
     if (!selectedId) return;
     setDetailLoading(true);
@@ -141,14 +144,13 @@ export default function Newsletters() {
         });
       })
       .catch((err) => {
-        alert(err.message || "詳細の取得に失敗しました。");
+        setErrorDialog(err.message || "詳細の取得に失敗しました。");
       })
       .finally(() => {
         setDetailLoading(false);
       });
   }, [selectedId]);
 
-  // Auto-resize body textarea
   useEffect(() => {
     if (bodyRef.current) {
       bodyRef.current.style.height = "auto";
@@ -156,7 +158,6 @@ export default function Newsletters() {
     }
   }, [form.body]);
 
-  // Show toast then auto-hide
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(""), 3000);
@@ -194,7 +195,6 @@ export default function Newsletters() {
   function handleChannelToggle(field) {
     setForm((prev) => {
       const next = { ...prev, [field]: !prev[field] };
-      // Ensure at least one is selected
       if (!next.channel_email && !next.channel_line) {
         next.channel_email = true;
       }
@@ -248,14 +248,13 @@ export default function Newsletters() {
         body: JSON.stringify(payload),
       });
       setToast("下書きを保存しました。");
-      // Update form with returned id
       if (result.id) {
         setForm((prev) => ({ ...prev, id: result.id, status: result.status || "draft" }));
         setSelectedId(result.id);
       }
       loadList();
     } catch (err) {
-      alert(err.message || "保存に失敗しました。");
+      setErrorDialog(err.message || "保存に失敗しました。");
     } finally {
       setSaving(false);
     }
@@ -274,16 +273,15 @@ export default function Newsletters() {
       });
       setPreviewCount(result.count ?? result.total ?? 0);
     } catch (err) {
-      alert(err.message || "プレビューに失敗しました。");
+      setErrorDialog(err.message || "プレビューに失敗しました。");
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleSend() {
+  async function executeSend() {
+    setConfirmSend(false);
     if (!form.id) return;
-    const scheduledMsg = form.scheduled_at ? `\n予約日時: ${form.scheduled_at}` : "";
-    if (!window.confirm(`この配信を送信しますか？${scheduledMsg}`)) return;
     setSaving(true);
     try {
       await apiRequest("send-newsletter", {
@@ -293,16 +291,14 @@ export default function Newsletters() {
       });
       setToast("配信を送信しました。");
       loadList();
-      // Reload detail
       setSelectedId(form.id);
     } catch (err) {
-      alert(err.message || "送信に失敗しました。");
+      setErrorDialog(err.message || "送信に失敗しました。");
     } finally {
       setSaving(false);
     }
   }
 
-  // Filter newsletters by tab
   const filteredNewsletters = useMemo(() =>
     activeTab === "all"
       ? newsletters
@@ -351,6 +347,28 @@ export default function Newsletters() {
         <p className="page-description">メール・LINE配信の管理</p>
       </div>
 
+      {/* Confirm send dialog */}
+      <ConfirmDialog
+        open={confirmSend}
+        title="送信確認"
+        confirmLabel="送信する"
+        onConfirm={executeSend}
+        onCancel={() => setConfirmSend(false)}
+      >
+        <p>この配信を送信しますか？</p>
+        {form.scheduled_at && <p>予約日時: {form.scheduled_at}</p>}
+      </ConfirmDialog>
+
+      {/* Error dialog (replaces alert) */}
+      <ConfirmDialog
+        open={!!errorDialog}
+        title="エラー"
+        message={errorDialog}
+        confirmLabel="OK"
+        onConfirm={() => setErrorDialog("")}
+        onCancel={() => setErrorDialog("")}
+      />
+
       {/* Toast */}
       {toast && (
         <div className="message success" style={{ marginBottom: "1rem" }}>
@@ -371,7 +389,6 @@ export default function Newsletters() {
               </button>
             </div>
 
-            {/* Status tabs */}
             <div className="nl-status-tabs">
               {STATUS_TABS.map((tab) => (
                 <button
@@ -384,7 +401,6 @@ export default function Newsletters() {
               ))}
             </div>
 
-            {/* Newsletter card list */}
             {filteredNewsletters.length === 0 ? (
               <div className="nl-empty-state">
                 <p className="muted">配信データがありません。</p>
@@ -433,7 +449,6 @@ export default function Newsletters() {
 
                 <form className="nl-form" onSubmit={handleSaveDraft}>
                   <div className="nl-detail-stack">
-                    {/* Title */}
                     <div className="nl-subject-field">
                       <label className="field-label" htmlFor="nl-title">
                         件名
@@ -451,7 +466,6 @@ export default function Newsletters() {
                       />
                     </div>
 
-                    {/* Body */}
                     <div className="form-field">
                       <label className="field-label" htmlFor="nl-body">
                         本文
@@ -470,9 +484,7 @@ export default function Newsletters() {
                       />
                     </div>
 
-                    {/* Options grid */}
                     <div className="nl-options-grid">
-                      {/* Channel toggles */}
                       <div className="nl-option-section">
                         <span className="nl-option-label">配信チャネル</span>
                         <div className="nl-channel-toggles">
@@ -496,7 +508,6 @@ export default function Newsletters() {
                         <input type="hidden" name="channel" value={form.channel} />
                       </div>
 
-                      {/* Audience */}
                       <div className="nl-option-section">
                         <span className="nl-option-label">配信対象</span>
                         <select
@@ -528,7 +539,6 @@ export default function Newsletters() {
                         />
                       </div>
 
-                      {/* Scheduled at */}
                       <div className="nl-option-section">
                         <span className="nl-option-label">予約送信</span>
                         <input
@@ -543,7 +553,6 @@ export default function Newsletters() {
                       </div>
                     </div>
 
-                    {/* Attachment section */}
                     <details className="nl-attachment-section">
                       <summary>添付ファイル</summary>
                       <div className="nl-attachment-drop">
@@ -588,7 +597,6 @@ export default function Newsletters() {
                       </div>
                     </details>
 
-                    {/* Sent info display */}
                     {isSent && (
                       <div className="nl-sent-info">
                         <p>
@@ -600,7 +608,6 @@ export default function Newsletters() {
                       </div>
                     )}
 
-                    {/* Action bar */}
                     <div className="nl-action-bar">
                       <button
                         className="btn btn-secondary"
@@ -630,7 +637,7 @@ export default function Newsletters() {
                         <button
                           className="nl-send-btn"
                           type="button"
-                          onClick={handleSend}
+                          onClick={() => setConfirmSend(true)}
                           disabled={saving}
                         >
                           {saving ? <span className="nl-spinner" /> : null}

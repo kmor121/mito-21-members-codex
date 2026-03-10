@@ -14,6 +14,7 @@ const DOC_TYPES = ["事業計画", "団体理念", "会則・規約", "年間ス
 
 export default function Documents() {
   const [docs, setDocs] = useState([]);
+  const [savedDocs, setSavedDocs] = useState([]); // Last saved order
   const [fiscalYears, setFiscalYears] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -38,6 +39,9 @@ export default function Documents() {
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
 
+  // Track if sort order has unsaved changes
+  const [sortDirty, setSortDirty] = useState(false);
+
   const loadDocs = useCallback(async () => {
     setError("");
     setLoading(true);
@@ -47,7 +51,10 @@ export default function Documents() {
         apiRequest("list-fiscal-years-admin"),
       ]);
       const rawDocs = docsResult.documents || docsResult;
-      setDocs(Array.isArray(rawDocs) ? rawDocs : []);
+      const docList = Array.isArray(rawDocs) ? rawDocs : [];
+      setDocs(docList);
+      setSavedDocs(docList);
+      setSortDirty(false);
       const rawFY2 = fyResult.fiscal_years;
       setFiscalYears(Array.isArray(rawFY2) ? rawFY2 : []);
     } catch (err) {
@@ -166,7 +173,7 @@ export default function Documents() {
     dragOverItem.current = idx;
   }
 
-  async function handleDragEnd() {
+  function handleDragEnd() {
     if (dragItem.current === null || dragOverItem.current === null) return;
     if (dragItem.current === dragOverItem.current) return;
 
@@ -175,12 +182,16 @@ export default function Documents() {
     reordered.splice(dragOverItem.current, 0, removed);
 
     setDocs(reordered);
+    setSortDirty(true);
     dragItem.current = null;
     dragOverItem.current = null;
+  }
 
-    // Save new sort orders
+  async function handleSaveSortOrder() {
+    setSaving(true);
+    setError("");
     try {
-      const updates = reordered.map((doc, idx) => ({
+      const updates = docs.map((doc, idx) => ({
         id: doc.id,
         sort_order: idx,
       }));
@@ -189,9 +200,19 @@ export default function Documents() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ entity: "org_documents", items: updates }),
       });
-    } catch {
-      // Silently fail on sort save - order is preserved locally
+      setMessage("並び順を保存しました。");
+      setSavedDocs(docs);
+      setSortDirty(false);
+    } catch (err) {
+      setError(err.message || "並び順の保存に失敗しました。");
+    } finally {
+      setSaving(false);
     }
+  }
+
+  function handleCancelSort() {
+    setDocs(savedDocs);
+    setSortDirty(false);
   }
 
   return (
@@ -205,6 +226,24 @@ export default function Documents() {
         <p className={`message${error ? " error" : ""}`} aria-live="polite">
           {error || message}
         </p>
+      )}
+
+      {/* Unsaved sort banner */}
+      {sortDirty && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '1rem',
+          padding: '0.75rem 1rem', marginBottom: '0.75rem',
+          background: '#fffbeb', border: '1px solid #f59e0b', borderRadius: 8,
+          fontSize: '0.9em',
+        }}>
+          <span style={{ fontWeight: 500 }}>未保存の変更があります</span>
+          <button className="button" type="button" onClick={handleSaveSortOrder} disabled={saving} style={{ fontSize: '0.85em' }}>
+            {saving ? "保存中..." : "並び順を保存"}
+          </button>
+          <button className="button ghost" type="button" onClick={handleCancelSort} style={{ fontSize: '0.85em' }}>
+            元に戻す
+          </button>
+        </div>
       )}
 
       <section className="card panel-card single-panel">

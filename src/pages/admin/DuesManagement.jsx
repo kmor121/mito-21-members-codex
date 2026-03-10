@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { apiRequest } from "../../api/base44Client";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
 
 function displayValue(v) {
   if (v === null || v === undefined || v === "") return "-";
@@ -35,26 +36,30 @@ export default function DuesManagement() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Data from API
   const [fiscalYears, setFiscalYears] = useState([]);
   const [dues, setDues] = useState([]);
   const [summary, setSummary] = useState({});
   const [selectedFiscalYear, setSelectedFiscalYear] = useState(null);
   const [currentFiscalYearId, setCurrentFiscalYearId] = useState("");
 
-  // Settings form — 1 record per fiscal year with 5 fee fields
   const [settingsForm, setSettingsForm] = useState({ ...DEFAULT_SETTINGS });
-  const [settingsId, setSettingsId] = useState(null); // existing record id
+  const [settingsId, setSettingsId] = useState(null);
 
   // Toggle modal
   const [toggleTarget, setToggleTarget] = useState(null);
   const [toggleDate, setToggleDate] = useState(todayStr());
+  const [togglePayerName, setTogglePayerName] = useState("");
 
   // Batch selection
   const [selectedIds, setSelectedIds] = useState(new Set());
 
   // Settings modal
   const [showSettings, setShowSettings] = useState(false);
+
+  // Confirm dialogs
+  const [confirmBatch, setConfirmBatch] = useState(false);
+  const [confirmAllPaid, setConfirmAllPaid] = useState(false);
+  const [confirmReminder, setConfirmReminder] = useState(false);
 
   const loadData = useCallback(() => {
     setLoading(true);
@@ -68,13 +73,10 @@ export default function DuesManagement() {
         setSelectedFiscalYear(result.selected_fiscal_year || null);
         setCurrentFiscalYearId(result.current_fiscal_year_id || "");
 
-        // Parse due_settings — support both old (array of member_type records) and new (single record) format
         const raw = result.due_settings;
         if (Array.isArray(raw) && raw.length > 0) {
-          // Check if it's new format (has regular_annual_fee) or old format (has member_type)
           const first = raw[0];
           if (first.regular_annual_fee !== undefined) {
-            // New format — single record
             setSettingsId(first.id || null);
             setSettingsForm({
               regular_annual_fee: first.regular_annual_fee ?? DEFAULT_SETTINGS.regular_annual_fee,
@@ -84,7 +86,6 @@ export default function DuesManagement() {
               second_half_fee: first.second_half_fee ?? DEFAULT_SETTINGS.second_half_fee,
             });
           } else {
-            // Old format — migrate display
             const regular = raw.find((s) => s.member_type === "正会員");
             const supporting = raw.find((s) => s.member_type === "賛助会員");
             setSettingsId(null);
@@ -97,7 +98,6 @@ export default function DuesManagement() {
             });
           }
         } else if (raw && !Array.isArray(raw) && typeof raw === "object") {
-          // Single object returned directly
           setSettingsId(raw.id || null);
           setSettingsForm({
             regular_annual_fee: raw.regular_annual_fee ?? DEFAULT_SETTINGS.regular_annual_fee,
@@ -127,7 +127,6 @@ export default function DuesManagement() {
 
   const activeFiscalYearId = selectedFiscalYear?.id || currentFiscalYearId || fiscalYearId;
 
-  // Compute summary with due_type breakdown
   const computedSummary = useMemo(() => {
     const total = dues.length;
     let paidCount = 0, unpaidCount = 0, paidAmount = 0, unpaidAmount = 0;
@@ -149,7 +148,6 @@ export default function DuesManagement() {
       }
     }
 
-    // Use API summary if available, otherwise use computed
     return {
       total_count: summary.total_count || total,
       paid_count: summary.paid_count ?? paidCount,
@@ -169,7 +167,6 @@ export default function DuesManagement() {
     else setSearchParams({});
   }
 
-  // Toggle single due status
   async function handleToggleStatus() {
     if (!toggleTarget) return;
     const newStatus = toggleTarget.status === "納入済" ? "未納" : "納入済";
@@ -182,6 +179,7 @@ export default function DuesManagement() {
           id: toggleTarget.id,
           status: newStatus,
           paid_date: newStatus === "納入済" ? toggleDate : "",
+          payer_name: newStatus === "納入済" ? togglePayerName : "",
           notes: toggleTarget.notes || "",
         }),
       });
@@ -195,10 +193,9 @@ export default function DuesManagement() {
     }
   }
 
-  // Batch mark as paid
-  async function handleBatchPaid() {
+  async function executeBatchPaid() {
+    setConfirmBatch(false);
     if (selectedIds.size === 0) return;
-    if (!window.confirm(`選択した${selectedIds.size}件を納入済にしますか？`)) return;
     setSaving(true);
     try {
       const today = todayStr();
@@ -221,11 +218,10 @@ export default function DuesManagement() {
     }
   }
 
-  // Mark all as paid
-  async function handleAllPaid() {
+  async function executeAllPaid() {
+    setConfirmAllPaid(false);
     const unpaid = dues.filter((d) => d.status !== "納入済");
     if (unpaid.length === 0) return;
-    if (!window.confirm(`全${unpaid.length}件を納入済にしますか？この操作は取り消せません。`)) return;
     setSaving(true);
     try {
       const today = todayStr();
@@ -243,9 +239,8 @@ export default function DuesManagement() {
     }
   }
 
-  async function handleSendReminder() {
-    const cnt = computedSummary.unpaid_count || 0;
-    if (!window.confirm(`未納者 ${cnt}名にリマインドメールを送信しますか？`)) return;
+  async function executeSendReminder() {
+    setConfirmReminder(false);
     setSaving(true);
     try {
       await apiRequest("send-due-reminder", {
@@ -300,12 +295,17 @@ export default function DuesManagement() {
     }
   }
 
-  function toggleSelectOne(id, checked) {
+  function toggleSelectOne(id) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (checked) next.add(id); else next.delete(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
+  }
+
+  function handleRowClick(due) {
+    if (due.status === "納入済") return;
+    toggleSelectOne(due.id);
   }
 
   const paidRate = computedSummary.total_count > 0
@@ -341,11 +341,19 @@ export default function DuesManagement() {
                 )}
               </p>
               {toggleTarget.status !== "納入済" && (
-                <div className="field" style={{ marginTop: '0.5rem' }}>
-                  <label htmlFor="toggle-date">入金日</label>
-                  <input id="toggle-date" type="date" value={toggleDate}
-                    onChange={(e) => setToggleDate(e.target.value)} />
-                </div>
+                <>
+                  <div className="field" style={{ marginTop: '0.5rem' }}>
+                    <label htmlFor="toggle-date">入金日</label>
+                    <input id="toggle-date" type="date" value={toggleDate}
+                      onChange={(e) => setToggleDate(e.target.value)} />
+                  </div>
+                  <div className="field" style={{ marginTop: '0.5rem' }}>
+                    <label htmlFor="toggle-payer-name">振込名</label>
+                    <input id="toggle-payer-name" type="text" value={togglePayerName}
+                      placeholder="振込元の名義"
+                      onChange={(e) => setTogglePayerName(e.target.value)} />
+                  </div>
+                </>
               )}
             </div>
             <div className="modal-footer">
@@ -430,6 +438,33 @@ export default function DuesManagement() {
         </div>
       )}
 
+      {/* Confirm dialogs */}
+      <ConfirmDialog
+        open={confirmBatch}
+        title="一括消込確認"
+        message={`選択した${selectedIds.size}件を納入済にしますか？`}
+        confirmLabel="納入済にする"
+        onConfirm={executeBatchPaid}
+        onCancel={() => setConfirmBatch(false)}
+      />
+      <ConfirmDialog
+        open={confirmAllPaid}
+        title="全件消込確認"
+        message={`全${dues.filter((d) => d.status !== "納入済").length}件を納入済にしますか？この操作は取り消せません。`}
+        confirmLabel="全員納入済"
+        confirmStyle={{ background: '#c53030', borderColor: '#c53030' }}
+        onConfirm={executeAllPaid}
+        onCancel={() => setConfirmAllPaid(false)}
+      />
+      <ConfirmDialog
+        open={confirmReminder}
+        title="リマインド送信確認"
+        message={`未納者 ${computedSummary.unpaid_count || 0}名にリマインドメールを送信しますか？`}
+        confirmLabel="送信する"
+        onConfirm={executeSendReminder}
+        onCancel={() => setConfirmReminder(false)}
+      />
+
       {message && (
         <p className="message" aria-live="polite" style={{ marginBottom: '0.75rem' }}>{message}</p>
       )}
@@ -456,11 +491,11 @@ export default function DuesManagement() {
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               <button className="button ghost" type="button" onClick={() => setShowSettings(true)}>会費設定</button>
-              <button className="button ghost" type="button" onClick={handleSendReminder}
+              <button className="button ghost" type="button" onClick={() => setConfirmReminder(true)}
                 disabled={saving || !(computedSummary.unpaid_count > 0)}>
                 リマインド ({computedSummary.unpaid_count || 0}名)
               </button>
-              <button className="button ghost" type="button" onClick={handleAllPaid}
+              <button className="button ghost" type="button" onClick={() => setConfirmAllPaid(true)}
                 disabled={saving || !(computedSummary.unpaid_count > 0)}>
                 全員納入済
               </button>
@@ -487,7 +522,7 @@ export default function DuesManagement() {
             </div>
           </div>
 
-          {/* Breakdown: annual vs admission */}
+          {/* Breakdown */}
           {(computedSummary.admission_paid > 0 || computedSummary.admission_unpaid > 0) && (
             <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.85em', color: 'var(--text-secondary)', padding: '0 0.25rem' }}>
               <span>年会費: 納入済 {formatCurrency(computedSummary.annual_paid)} / 未納 {formatCurrency(computedSummary.annual_unpaid)}</span>
@@ -499,7 +534,7 @@ export default function DuesManagement() {
           {selectedIds.size > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem 0.75rem', background: 'var(--bg)', borderRadius: 8 }}>
               <span style={{ fontSize: '0.9em' }}>{selectedIds.size}件選択中</span>
-              <button className="button" type="button" onClick={handleBatchPaid} disabled={saving} style={{ fontSize: '0.85em' }}>
+              <button className="button" type="button" onClick={() => setConfirmBatch(true)} disabled={saving} style={{ fontSize: '0.85em' }}>
                 選択した{selectedIds.size}件を納入済にする
               </button>
               <button className="button ghost" type="button" onClick={() => setSelectedIds(new Set())} style={{ fontSize: '0.85em' }}>
@@ -531,19 +566,29 @@ export default function DuesManagement() {
                     <th style={{ textAlign: 'right' }}>金額</th>
                     <th style={{ textAlign: 'center' }}>ステータス</th>
                     <th>納入日</th>
+                    <th>振込名</th>
                     <th>備考</th>
                   </tr>
                 </thead>
                 <tbody>
                   {dues.map((due) => {
                     const dueType = due.due_type || "年会費";
+                    const isSelected = selectedIds.has(due.id);
+                    const isUnpaid = due.status !== "納入済";
                     return (
-                      <tr key={due.id}>
-                        <td>
-                          {due.status !== "納入済" && (
+                      <tr
+                        key={due.id}
+                        onClick={() => handleRowClick(due)}
+                        style={{
+                          cursor: isUnpaid ? 'pointer' : 'default',
+                          background: isSelected ? 'rgba(66, 153, 225, 0.1)' : undefined,
+                        }}
+                      >
+                        <td onClick={(e) => e.stopPropagation()}>
+                          {isUnpaid && (
                             <input type="checkbox"
-                              checked={selectedIds.has(due.id)}
-                              onChange={(e) => toggleSelectOne(due.id, e.target.checked)} />
+                              checked={isSelected}
+                              onChange={() => toggleSelectOne(due.id)} />
                           )}
                         </td>
                         <td>
@@ -561,15 +606,16 @@ export default function DuesManagement() {
                           )}
                         </td>
                         <td style={{ textAlign: 'right', fontWeight: 500 }}>{formatCurrency(due.amount)}</td>
-                        <td style={{ textAlign: 'center' }}>
+                        <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
                           <button type="button"
                             className={`pill pill-clickable${due.status === "納入済" ? " pill-success" : " pill-danger"}`}
                             style={{ cursor: 'pointer', fontSize: '0.9em', padding: '0.3em 0.8em', border: 'none' }}
-                            onClick={() => { setToggleTarget(due); setToggleDate(todayStr()); }}>
+                            onClick={() => { setToggleTarget(due); setToggleDate(todayStr()); setTogglePayerName(due.payer_name || ""); }}>
                             {due.status === "納入済" ? "✓ 納入済" : "未納"}
                           </button>
                         </td>
                         <td>{displayValue(due.paid_date)}</td>
+                        <td>{displayValue(due.payer_name)}</td>
                         <td>{displayValue(due.notes)}</td>
                       </tr>
                     );

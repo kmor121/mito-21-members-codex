@@ -33,10 +33,12 @@ export default function Applications() {
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("申請中");
 
+  // Detail modal
   const [selectedId, setSelectedId] = useState(null);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState("");
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   // Approve form
   const [memberType, setMemberType] = useState("正会員");
@@ -62,7 +64,6 @@ export default function Applications() {
       const result = await apiRequest("list-pending-members");
       const raw = result.members || result.pending;
       const list = Array.isArray(raw) ? raw : [];
-      // Sort by applied_at descending
       list.sort((a, b) => {
         const da = a.applied_at || "";
         const db = b.applied_at || "";
@@ -107,12 +108,12 @@ export default function Applications() {
     setRejectionReason("");
     setShowApproveConfirm(false);
     setShowRejectConfirm(false);
+    setShowDetailModal(true);
 
     try {
       const result = await apiRequest(`get-member-detail?id=${encodeURIComponent(id)}`);
       const d = result.member || result;
       setDetail(d);
-      // Auto-generate member number
       try {
         const numRes = await apiRequest("generate-member-number");
         setMemberNumber(numRes.suggested_number || numRes.member_number || "");
@@ -122,6 +123,12 @@ export default function Applications() {
     } finally {
       setDetailLoading(false);
     }
+  }
+
+  function closeDetailModal() {
+    setShowDetailModal(false);
+    setSelectedId(null);
+    setDetail(null);
   }
 
   function handleApproveClick(e) {
@@ -151,8 +158,7 @@ export default function Applications() {
       });
       setApproveMessage("承認しました。");
       setApproveMessageType("success");
-      setDetail(null);
-      setSelectedId(null);
+      closeDetailModal();
       await loadPending();
     } catch (err) {
       setApproveMessage(err.message || "承認に失敗しました。");
@@ -188,8 +194,7 @@ export default function Applications() {
       });
       setRejectMessage("却下しました。");
       setRejectMessageType("success");
-      setDetail(null);
-      setSelectedId(null);
+      closeDetailModal();
       await loadPending();
     } catch (err) {
       setRejectMessage(err.message || "却下に失敗しました。");
@@ -265,7 +270,7 @@ export default function Applications() {
             key={tab.key}
             type="button"
             className={`tab-button${statusFilter === tab.key ? " is-active" : ""}`}
-            onClick={() => { setStatusFilter(tab.key); setSelectedId(null); setDetail(null); }}
+            onClick={() => setStatusFilter(tab.key)}
           >
             {tab.label}
             <span className="pill" style={{ marginLeft: 6, fontSize: '0.8em' }}>{statusCounts[tab.key] || 0}</span>
@@ -279,58 +284,71 @@ export default function Applications() {
       ) : error ? (
         <section className="card panel-card single-panel"><div className="card-body"><p className="message error">{error}</p></div></section>
       ) : (
-        <div className="admin-grid admin-grid-wide">
-          {/* Left panel: card list */}
-          <section className="card panel-card">
-            <div className="card-body stack">
-              <div className="panel-heading">
-                <div><h2>申込一覧 ({filteredMembers.length}件)</h2></div>
-              </div>
-
-              {filteredMembers.length === 0 ? (
-                <p className="muted">該当する申込はありません。</p>
-              ) : (
-                <div className="pending-list">
-                  {filteredMembers.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className={`pending-item${selectedId === item.id ? " is-selected" : ""}`}
-                      onClick={() => loadDetail(item.id)}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <strong>{displayValue(item.name_kanji)}</strong>
-                        <span className={`pill${statusPillClass(item.approval_status)}`}>
-                          {displayValue(item.approval_status)}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85em', marginTop: '0.25rem' }}>
-                        <span className="muted">{displayValue(item.company_name)}</span>
-                        <span className="muted">{item.applied_at ? item.applied_at.slice(0, 10) : "-"}</span>
-                      </div>
-                      <div className="muted" style={{ fontSize: "0.8em", marginTop: '0.25rem' }}>
-                        紹介者: {displayValue(item.referrer_1)} / {displayValue(item.referrer_2)}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+        <section className="card panel-card single-panel">
+          <div className="card-body stack">
+            <div className="panel-heading">
+              <div><h2>申込一覧 ({filteredMembers.length}件)</h2></div>
             </div>
-          </section>
 
-          {/* Right panel: detail */}
-          <section className="card panel-card">
-            <div className="card-body stack">
-              <div className="panel-heading"><div><h2>申込詳細</h2></div></div>
+            {filteredMembers.length === 0 ? (
+              <p className="muted">該当する申込はありません。</p>
+            ) : (
+              <div className="table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>氏名</th>
+                      <th>会社名</th>
+                      <th>申込日</th>
+                      <th>紹介者1</th>
+                      <th>紹介者2</th>
+                      <th>ステータス</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredMembers.map((item) => (
+                      <tr key={item.id} style={{ cursor: 'pointer' }} onClick={() => loadDetail(item.id)}>
+                        <td><strong>{displayValue(item.name_kanji)}</strong></td>
+                        <td>{displayValue(item.company_name)}</td>
+                        <td>{item.applied_at ? item.applied_at.slice(0, 10) : "-"}</td>
+                        <td>{displayValue(item.referrer_1)}</td>
+                        <td>{displayValue(item.referrer_2)}</td>
+                        <td>
+                          <span className={`pill${statusPillClass(item.approval_status)}`}>
+                            {displayValue(item.approval_status)}
+                          </span>
+                        </td>
+                        <td>
+                          <button className="text-link" type="button" onClick={(e) => { e.stopPropagation(); loadDetail(item.id); }}>
+                            詳細
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
-              {!selectedId ? (
-                <p className="muted">左の一覧から申込を選択してください。</p>
-              ) : detailLoading ? (
+      {/* Detail Modal */}
+      {showDetailModal && (
+        <div className="confirm-overlay" onClick={closeDetailModal}>
+          <div className="modal-dialog" style={{ maxWidth: 640, maxHeight: '90vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>申込詳細</h3>
+              <button type="button" className="modal-close" onClick={closeDetailModal}>&times;</button>
+            </div>
+            <div className="modal-body">
+              {detailLoading ? (
                 <LoadingSpinner />
               ) : detailError ? (
                 <p className="message error">{detailError}</p>
               ) : detail ? (
-                <>
+                <div className="stack">
                   {/* Header card */}
                   <section className="detail-card stack-sm">
                     <div className="detail-header-row">
@@ -386,9 +404,9 @@ export default function Applications() {
                             const m = detail.referrer_matches?.referrer_1;
                             const arr = m ? (Array.isArray(m) ? m : [m]) : [];
                             if (arr.length > 0) {
-                              return <span className="pill pill-success" style={{ fontSize: '0.8em' }}>✓ 一致: {arr.map(x => x.name_kanji || "-").join(", ")}</span>;
+                              return <span className="pill pill-success" style={{ fontSize: '0.8em' }}>一致: {arr.map(x => x.name_kanji || "-").join(", ")}</span>;
                             }
-                            return <span className="pill pill-warning" style={{ fontSize: '0.8em' }}>⚠ 未マッチ</span>;
+                            return <span className="pill pill-warning" style={{ fontSize: '0.8em' }}>未マッチ</span>;
                           })()}
                         </dd>
                       </div>
@@ -400,9 +418,9 @@ export default function Applications() {
                             const m = detail.referrer_matches?.referrer_2;
                             const arr = m ? (Array.isArray(m) ? m : [m]) : [];
                             if (arr.length > 0) {
-                              return <span className="pill pill-success" style={{ fontSize: '0.8em' }}>✓ 一致: {arr.map(x => x.name_kanji || "-").join(", ")}</span>;
+                              return <span className="pill pill-success" style={{ fontSize: '0.8em' }}>一致: {arr.map(x => x.name_kanji || "-").join(", ")}</span>;
                             }
-                            return <span className="pill pill-warning" style={{ fontSize: '0.8em' }}>⚠ 未マッチ</span>;
+                            return <span className="pill pill-warning" style={{ fontSize: '0.8em' }}>未マッチ</span>;
                           })()}
                         </dd>
                       </div>
@@ -417,24 +435,15 @@ export default function Applications() {
                         <div className="editor-grid">
                           <div className="field">
                             <label htmlFor="app-member-type">会員種別</label>
-                            <select
-                              id="app-member-type"
-                              value={memberType}
-                              onChange={(e) => setMemberType(e.target.value)}
-                            >
+                            <select id="app-member-type" value={memberType} onChange={(e) => setMemberType(e.target.value)}>
                               <option value="正会員">正会員</option>
                               <option value="賛助会員">賛助会員</option>
                             </select>
                           </div>
                           <div className="field">
                             <label htmlFor="app-member-number">会員番号</label>
-                            <input
-                              id="app-member-number"
-                              type="text"
-                              value={memberNumber}
-                              onChange={(e) => setMemberNumber(e.target.value)}
-                              placeholder="自動採番済み"
-                            />
+                            <input id="app-member-number" type="text" value={memberNumber}
+                              onChange={(e) => setMemberNumber(e.target.value)} placeholder="自動採番済み" />
                           </div>
                         </div>
                         {approveMessage && (
@@ -449,7 +458,7 @@ export default function Applications() {
                     </section>
                   )}
 
-                  {/* Reject form - only show for pending */}
+                  {/* Reject form */}
                   {isPending && (
                     <section className="detail-card stack-sm">
                       <h3>却下</h3>
@@ -457,13 +466,9 @@ export default function Applications() {
                         <div className="editor-grid">
                           <div className="field field-span-2">
                             <label htmlFor="app-rejection-reason">却下理由 *</label>
-                            <textarea
-                              id="app-rejection-reason"
-                              rows="3"
-                              value={rejectionReason}
+                            <textarea id="app-rejection-reason" rows="3" value={rejectionReason}
                               onChange={(e) => setRejectionReason(e.target.value)}
-                              placeholder="却下理由を入力してください（必須）"
-                            />
+                              placeholder="却下理由を入力してください（必須）" />
                           </div>
                         </div>
                         {rejectMessage && (
@@ -478,17 +483,17 @@ export default function Applications() {
                     </section>
                   )}
 
-                  {/* Show rejection reason for rejected members */}
+                  {/* Show rejection reason */}
                   {detail.approval_status === "却下" && detail.rejection_reason && (
                     <section className="detail-card stack-sm">
                       <h3>却下理由</h3>
                       <p style={{ whiteSpace: 'pre-wrap' }}>{detail.rejection_reason}</p>
                     </section>
                   )}
-                </>
+                </div>
               ) : null}
             </div>
-          </section>
+          </div>
         </div>
       )}
     </section>
