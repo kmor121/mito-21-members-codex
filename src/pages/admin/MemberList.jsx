@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiRequest } from '../../api/base44Client';
+import { apiRequest, base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 function displayValue(v) {
@@ -56,25 +56,56 @@ export default function MemberList() {
     setLoading(true);
 
     try {
-      const params = new URLSearchParams();
-      if (filters.q) params.set("q", filters.q);
-      if (filters.status) params.set("status", filters.status);
-      if (filters.member_type) params.set("member_type", filters.member_type);
-      if (filters.approval_status) params.set("approval_status", filters.approval_status);
-      if (filters.organization_id) params.set("organization_id", filters.organization_id);
-      if (filters.is_new) params.set("is_new", "true");
+      const [allMembers, fiscalYears, orgs, assignments] = await Promise.all([
+        base44.entities.Member.filter({ approval_status: "承認済" }),
+        base44.entities.FiscalYear.list(),
+        base44.entities.Organization.list(),
+        base44.entities.OrgAssignment.list(),
+      ]);
 
-      const qs = params.toString();
-      const path = qs ? `list-members-admin?${qs}` : "list-members-admin";
-      const result = await apiRequest(path);
-      const rawList = result.members;
-      const list = Array.isArray(rawList) ? rawList : [];
-      const rawOpts = result.org_options;
-      const opts = Array.isArray(rawOpts) ? rawOpts : [];
+      const currentFy = fiscalYears.find((fy) => fy.is_current === true);
+      const currentFyId = currentFy?.id || "";
 
-      if (opts.length > 0) {
-        setOrgOptions(opts);
+      // Build org options
+      const currentOrgs = currentFyId ? orgs.filter((o) => o.fiscal_year_id === currentFyId) : orgs;
+      const opts = currentOrgs.map((o) => ({ id: o.id, name: o.name }));
+      if (opts.length > 0) setOrgOptions(opts);
+
+      // Build assignment map: memberId -> [{org_name, role}]
+      const currentAssignments = currentFyId ? assignments.filter((a) => a.fiscal_year_id === currentFyId) : assignments;
+      const orgMap = {};
+      for (const o of orgs) orgMap[o.id] = o.name || "";
+      const assignMap = {};
+      for (const a of currentAssignments) {
+        if (!assignMap[a.member_id]) assignMap[a.member_id] = [];
+        assignMap[a.member_id].push({ org_name: orgMap[a.organization_id] || "", role: a.role || "" });
       }
+
+      // Enrich and filter
+      let list = allMembers.map((m) => ({
+        ...m,
+        org_assignments: assignMap[m.id] || [],
+      }));
+
+      // Apply filters
+      if (filters.q) {
+        const qLower = filters.q.toLowerCase();
+        list = list.filter((m) => {
+          const haystack = [m.name_kanji, m.name_kana, m.company_name, m.email, m.member_number].join(" ").toLowerCase();
+          return haystack.includes(qLower);
+        });
+      }
+      if (filters.status) list = list.filter((m) => m.status === filters.status);
+      if (filters.member_type) list = list.filter((m) => m.member_type === filters.member_type);
+      if (filters.approval_status) list = list.filter((m) => m.approval_status === filters.approval_status);
+      if (filters.is_new) list = list.filter((m) => m.is_new === true);
+      if (filters.organization_id) {
+        const orgId = filters.organization_id;
+        const memberIdsInOrg = new Set(currentAssignments.filter((a) => a.organization_id === orgId).map((a) => a.member_id));
+        list = list.filter((m) => memberIdsInOrg.has(m.id));
+      }
+
+      list.sort((a, b) => (a.name_kana || "").localeCompare(b.name_kana || "", "ja"));
 
       setMembers(list);
       setMessage(`${list.length}件の会員を表示中`);
@@ -315,8 +346,13 @@ export default function MemberList() {
   return (
     <section className="admin-shell">
       <div className="page-header">
-        <h1 className="page-title">会員一覧</h1>
-        <p className="page-description">全会員の検索・管理</p>
+        <div>
+          <h1 className="page-title">会員一覧</h1>
+          <p className="page-description">全会員の検索・管理</p>
+        </div>
+        <button className="button" type="button" onClick={() => navigate("/admin/members/new")}>
+          新規会員登録
+        </button>
       </div>
 
       <section className="card panel-card single-panel">
@@ -406,7 +442,6 @@ export default function MemberList() {
                     <th>ステータス</th>
                     <th>メール</th>
                     <th>携帯</th>
-                    <th>詳細</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -419,6 +454,7 @@ export default function MemberList() {
                     return (
                       <tr
                         key={m.id}
+                        className={editMode ? "" : "clickable-row"}
                         style={{ cursor: editMode ? "default" : "pointer" }}
                         onClick={editMode ? undefined : () => navigate(`/admin/members/${m.id}`)}
                       >
@@ -447,18 +483,6 @@ export default function MemberList() {
                             <td>{displayValue(m.mobile_phone)}</td>
                           </>
                         )}
-                        <td>
-                          <button
-                            className="text-link"
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/admin/members/${m.id}`);
-                            }}
-                          >
-                            詳細
-                          </button>
-                        </td>
                       </tr>
                     );
                   })}

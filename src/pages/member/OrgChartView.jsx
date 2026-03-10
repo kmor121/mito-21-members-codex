@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { apiRequest } from '../../api/base44Client';
+import { base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 function displayValue(value) {
@@ -114,24 +114,37 @@ export default function OrgChartView() {
 
     (async () => {
       try {
-        const fyResponse = await apiRequest("list-fiscal-years");
-        const fyData = fyResponse || {};
-        const currentFyId = fyData.current_fiscal_year_id || "";
-        const effectiveId = fiscalYearIdParam || currentFyId;
-        const query = effectiveId
-          ? `get-member-organization-chart?fiscalYearId=${encodeURIComponent(effectiveId)}`
-          : "get-member-organization-chart";
-        const result = await apiRequest(query);
+        const [yearsList, allOrgs, allAssignments, allMembers] = await Promise.all([
+          base44.entities.FiscalYear.list("-year"),
+          base44.entities.Organization.list("sort_order"),
+          base44.entities.OrgAssignment.list("sort_order"),
+          base44.entities.Member.filter({ approval_status: "承認済", status: "活動中" }),
+        ]);
 
-        const rawYears = fyData.years || fyData.fiscal_years || result.fiscal_years;
-        const yearsList = Array.isArray(rawYears) ? rawYears : [];
-        const rawOrgs = result.organizations;
-        const organizations = Array.isArray(rawOrgs) ? rawOrgs : [];
+        const currentFy = yearsList.find((fy) => fy.is_current === true);
+        const effectiveId = fiscalYearIdParam || currentFy?.id || "";
+        const selectedFy = yearsList.find((fy) => fy.id === effectiveId) || null;
+
+        const memberMap = {};
+        for (const m of allMembers) memberMap[m.id] = m;
+
+        const fyOrgs = allOrgs.filter((o) => o.fiscal_year_id === effectiveId);
+        const fyAssignments = allAssignments.filter((a) => a.fiscal_year_id === effectiveId);
+
+        const organizations = fyOrgs.map((org) => ({
+          ...org,
+          assignments: fyAssignments
+            .filter((a) => a.organization_id === org.id)
+            .map((a) => ({
+              ...a,
+              member: memberMap[a.member_id] || {},
+            })),
+        }));
 
         setYears(yearsList);
-        setSelectedFiscalYear(result.selected_fiscal_year || null);
-        setOrganizationsCount(result.organizations_count || 0);
-        setAssignmentsCount(result.assignments_count || 0);
+        setSelectedFiscalYear(selectedFy);
+        setOrganizationsCount(fyOrgs.length);
+        setAssignmentsCount(fyAssignments.length);
         setOrgTree(buildTree(organizations));
       } catch (err) {
         setError(err.message || "組織図の取得に失敗しました。");

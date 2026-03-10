@@ -25,6 +25,9 @@ const Newsletters = lazy(() => import('./pages/admin/Newsletters'));
 const FiscalYears = lazy(() => import('./pages/admin/FiscalYears'));
 const Settings = lazy(() => import('./pages/admin/Settings'));
 const Documents = lazy(() => import('./pages/admin/Documents'));
+const DocumentEditor = lazy(() => import('./pages/admin/DocumentEditor'));
+const ApplicationDetail = lazy(() => import('./pages/admin/ApplicationDetail'));
+const MemberCreate = lazy(() => import('./pages/admin/MemberCreate'));
 
 // Member pages
 const Directory = lazy(() => import('./pages/member/Directory'));
@@ -72,8 +75,10 @@ export default function App() {
             <Route path="/admin" element={<Dashboard />} />
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/members" element={<MemberList />} />
+            <Route path="/admin/members/new" element={<MemberCreate />} />
             <Route path="/admin/members/:memberId" element={<MemberDetail />} />
             <Route path="/admin/applications" element={<Applications />} />
+            <Route path="/admin/applications/:applicationId" element={<ApplicationDetail />} />
             <Route path="/admin/dues" element={<DuesManagement />} />
             <Route path="/admin/dues-management" element={<DuesManagement />} />
             <Route path="/admin/organization" element={<OrgChart />} />
@@ -83,6 +88,8 @@ export default function App() {
             <Route path="/admin/fiscal-years" element={<FiscalYears />} />
             <Route path="/admin/settings" element={<Settings />} />
             <Route path="/admin/documents" element={<Documents />} />
+            <Route path="/admin/documents/new" element={<DocumentEditor />} />
+            <Route path="/admin/documents/:documentId/edit" element={<DocumentEditor />} />
           </Route>
 
           {/* Member routes */}

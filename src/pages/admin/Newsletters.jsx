@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { apiRequest } from "../../api/base44Client";
+import { apiRequest, base44 } from "../../api/base44Client";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
+import DateTimePicker from "../../components/ui/DateTimePicker";
 
 function statusLabel(s) {
   return (
@@ -101,10 +102,9 @@ export default function Newsletters() {
   const loadList = useCallback(() => {
     setLoading(true);
     setError("");
-    apiRequest("list-newsletters-admin")
-      .then((result) => {
-        const raw = result.newsletters || result;
-        setNewsletters(Array.isArray(raw) ? raw : []);
+    base44.entities.Newsletter.list("-created_date")
+      .then((list) => {
+        setNewsletters(list);
       })
       .catch((err) => {
         setError(err.message || "配信一覧の取得に失敗しました。");
@@ -122,7 +122,7 @@ export default function Newsletters() {
     if (!selectedId) return;
     setDetailLoading(true);
     setPreviewCount(null);
-    apiRequest(`get-newsletter-detail?id=${selectedId}`)
+    base44.entities.Newsletter.get(selectedId)
       .then((nl) => {
         const channelVal = nl.channel || "email";
         setForm({
@@ -541,12 +541,11 @@ export default function Newsletters() {
 
                       <div className="nl-option-section">
                         <span className="nl-option-label">予約送信</span>
-                        <input
-                          className="field-input"
-                          type="datetime-local"
+                        <DateTimePicker
+                          id="nl-scheduled-at"
                           value={form.scheduled_at}
-                          onChange={(e) =>
-                            setForm((prev) => ({ ...prev, scheduled_at: e.target.value }))
+                          onChange={(val) =>
+                            setForm((prev) => ({ ...prev, scheduled_at: val }))
                           }
                           disabled={isSent}
                         />

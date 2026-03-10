@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { apiRequest } from '../../api/base44Client';
+import { base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 function displayValue(value) {
@@ -82,24 +82,39 @@ export default function BasicInfo() {
 
     (async () => {
       try {
-        const fyResponse = await apiRequest("list-fiscal-years");
-        const fyData = fyResponse || {};
-        const currentFyId = fyData.current_fiscal_year_id || "";
-        const effectiveId = fiscalYearIdParam || currentFyId;
-        const query = effectiveId
-          ? `get-member-basic-info?fiscalYearId=${encodeURIComponent(effectiveId)}`
-          : "get-member-basic-info";
-        const result = await apiRequest(query);
+        const [yearsList, allDocs] = await Promise.all([
+          base44.entities.FiscalYear.list("-year"),
+          base44.entities.OrgDocument.filter({ published: true }, "sort_order"),
+        ]);
 
-        const rawYears = fyData.years || fyData.fiscal_years || result.fiscal_years;
-        const yearsList = Array.isArray(rawYears) ? rawYears : [];
-        const rawSections = result.sections;
-        const sectionsList = Array.isArray(rawSections) ? rawSections : [];
+        const currentFy = yearsList.find((fy) => fy.is_current === true);
+        const effectiveId = fiscalYearIdParam || currentFy?.id || "";
+        const selectedFy = yearsList.find((fy) => fy.id === effectiveId) || null;
+
+        // Group documents by doc_type as sections
+        const DOC_SECTIONS = [
+          { key: "事業計画", label: "事業計画" },
+          { key: "団体理念", label: "団体理念" },
+          { key: "会則・規約", label: "会則・規約" },
+          { key: "年間スケジュール", label: "年間スケジュール" },
+        ];
+
+        const sectionsList = DOC_SECTIONS.map((sec) => ({
+          ...sec,
+          documents: allDocs
+            .filter((d) => d.doc_type === sec.key && (!d.fiscal_year_id || d.fiscal_year_id === effectiveId))
+            .map((d) => ({
+              title: d.title,
+              content: d.content,
+              attachment: d.attachment ? { url: d.attachment, label: "添付ファイル" } : null,
+              updated_at: d.updated_date || d.created_date || "",
+            })),
+        }));
 
         setYears(yearsList);
-        setSelectedFiscalYear(result.selected_fiscal_year || null);
+        setSelectedFiscalYear(selectedFy);
         setSections(sectionsList);
-        setActiveTab(sectionsList[0]?.key || "business_plan");
+        setActiveTab(sectionsList[0]?.key || "事業計画");
       } catch (err) {
         setError(err.message || "基本情報の取得に失敗しました。");
       } finally {

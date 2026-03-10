@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { apiRequest } from '../../api/base44Client';
+import { apiRequest, base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import DatePicker from '../../components/ui/DatePicker';
 
 /* ---------- helpers ---------- */
 
@@ -23,33 +24,17 @@ function MemberImage({ src, name, size = "detail" }) {
 }
 
 const FIELD_LABELS = {
-  name_kanji: "氏名",
-  name_kana: "フリガナ",
-  birthday: "生年月日",
-  company_name: "会社名",
-  company_position: "役職",
-  industry: "業種",
-  email: "メール",
-  mobile_phone: "携帯番号",
-  company_phone: "会社電話",
-  company_fax: "会社FAX",
-  company_address: "会社住所",
-  company_postal_code: "会社郵便番号",
-  company_pr: "会社PR",
-  home_postal_code: "自宅郵便番号",
-  home_address: "自宅住所",
-  home_phone: "自宅電話",
-  home_fax: "自宅FAX",
-  hobbies: "趣味・信条",
-  profile_image: "プロフィール画像",
-  show_email_in_directory: "メール公開",
-  show_company_in_directory: "会社公開",
-  show_mobile_in_directory: "携帯公開",
-  member_number: "会員番号",
-  member_type: "会員種別",
-  status: "ステータス",
-  is_new: "新入フラグ",
-  notes: "備考",
+  name_kanji: "氏名", name_kana: "フリガナ", birthday: "生年月日",
+  company_name: "会社名", company_position: "役職", industry: "業種",
+  email: "メール", mobile_phone: "携帯番号",
+  company_phone: "会社電話", company_fax: "会社FAX",
+  company_address: "会社住所", company_postal_code: "会社郵便番号",
+  company_pr: "会社PR", home_postal_code: "自宅郵便番号",
+  home_address: "自宅住所", home_phone: "自宅電話", home_fax: "自宅FAX",
+  hobbies: "趣味・信条", profile_image: "プロフィール画像",
+  show_email_in_directory: "メール公開", show_company_in_directory: "会社公開",
+  show_mobile_in_directory: "携帯公開", member_number: "会員番号",
+  member_type: "会員種別", status: "ステータス", is_new: "新入フラグ", notes: "備考",
 };
 
 const TABS = [
@@ -59,6 +44,21 @@ const TABS = [
   { key: "directory", label: "名簿設定" },
   { key: "changelog", label: "変更履歴" },
 ];
+
+function buildFormData(m) {
+  return {
+    name_kanji: m.name_kanji || "", name_kana: m.name_kana || "", birthday: m.birthday || "",
+    company_name: m.company_name || "", company_position: m.company_position || "",
+    industry: m.industry || "", email: m.email || "", mobile_phone: m.mobile_phone || "",
+    company_phone: m.company_phone || "", company_fax: m.company_fax || "",
+    company_postal_code: m.company_postal_code || "", company_address: m.company_address || "",
+    company_pr: m.company_pr || "", home_postal_code: m.home_postal_code || "",
+    home_address: m.home_address || "", home_phone: m.home_phone || "",
+    home_fax: m.home_fax || "", hobbies: m.hobbies || "",
+    member_number: m.member_number || "", member_type: m.member_type || "正会員",
+    status: m.status || "活動中", notes: m.notes || "",
+  };
+}
 
 /* ---------- component ---------- */
 
@@ -72,6 +72,7 @@ export default function MemberDetail() {
   const [error, setError] = useState("");
 
   const [activeTab, setActiveTab] = useState("basic");
+  const [isEditing, setIsEditing] = useState(false);
 
   // Edit form
   const [formData, setFormData] = useState({});
@@ -93,49 +94,39 @@ export default function MemberDetail() {
     setError("");
     setLoading(true);
     try {
-      const detailRes = await apiRequest(`get-member-detail?id=${encodeURIComponent(memberId)}`);
-      if (!detailRes) throw new Error("会員データが見つかりません。");
-      const m = detailRes.member || detailRes;
+      const m = await base44.entities.Member.get(memberId);
       if (!m || !m.id) throw new Error("会員データが見つかりません。");
       setMember(m);
 
-      let historyRes = {};
-      let logsRes = {};
-      try {
-        [historyRes, logsRes] = await Promise.all([
-          apiRequest(`get-member-history?memberId=${encodeURIComponent(memberId)}`).catch(() => ({})),
-          apiRequest(`get-member-change-logs?memberId=${encodeURIComponent(memberId)}`).catch(() => ({})),
-        ]);
-      } catch { /* ignore */ }
+      // Load history data in parallel
+      const [fiscalYears, dues, orgAssignments, organizations, changeLogs] = await Promise.all([
+        base44.entities.FiscalYear.list("-year"),
+        base44.entities.Due.filter({ member_id: memberId }),
+        base44.entities.OrgAssignment.filter({ member_id: memberId }),
+        base44.entities.Organization.list(),
+        base44.entities.MemberChangeLog.filter({ member_id: memberId }, "-changed_at"),
+      ]);
 
-      setHistory(historyRes || {});
-      const rawLogs = logsRes?.logs || logsRes?.change_logs;
-      setChangeLogs(Array.isArray(rawLogs) ? rawLogs : []);
+      // Build history
+      const orgMap = {};
+      for (const o of organizations) orgMap[o.id] = o.name || "";
+      const fyMap = {};
+      for (const fy of fiscalYears) fyMap[fy.id] = fy.year ? `${fy.year}年度` : fy.id;
 
-      setFormData({
-        name_kanji: m.name_kanji || "",
-        name_kana: m.name_kana || "",
-        birthday: m.birthday || "",
-        company_name: m.company_name || "",
-        company_position: m.company_position || "",
-        industry: m.industry || "",
-        email: m.email || "",
-        mobile_phone: m.mobile_phone || "",
-        company_phone: m.company_phone || "",
-        company_fax: m.company_fax || "",
-        company_postal_code: m.company_postal_code || "",
-        company_address: m.company_address || "",
-        company_pr: m.company_pr || "",
-        home_postal_code: m.home_postal_code || "",
-        home_address: m.home_address || "",
-        home_phone: m.home_phone || "",
-        home_fax: m.home_fax || "",
-        hobbies: m.hobbies || "",
-        member_number: m.member_number || "",
-        member_type: m.member_type || "正会員",
-        status: m.status || "活動中",
-        notes: m.notes || "",
-      });
+      const orgHistory = orgAssignments.map((a) => ({
+        ...a,
+        org_name: orgMap[a.organization_id] || "",
+        fiscal_year_label: fyMap[a.fiscal_year_id] || "",
+      }));
+      const dueHistory = dues.map((d) => ({
+        ...d,
+        fiscal_year_label: fyMap[d.fiscal_year_id] || "",
+      }));
+
+      setHistory({ org_history: orgHistory, due_history: dueHistory });
+      setChangeLogs(changeLogs);
+
+      setFormData(buildFormData(m));
 
       setDirForm({
         show_email_in_directory: !!m.show_email_in_directory,
@@ -160,7 +151,6 @@ export default function MemberDetail() {
     loadData();
   }, [loadData]);
 
-  // Hooks must be called unconditionally - moved above conditional returns
   const orgHistory = useMemo(() => Array.isArray(history?.org_history) ? history.org_history : [], [history]);
   const duesHistory = useMemo(() => Array.isArray(history?.dues_history) ? history.dues_history : [], [history]);
 
@@ -179,6 +169,19 @@ export default function MemberDetail() {
 
   function updateField(key, value) {
     setFormData((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function handleStartEdit() {
+    setFormMessage("");
+    setFormMessageType("");
+    setIsEditing(true);
+  }
+
+  function handleCancelEdit() {
+    if (member) setFormData(buildFormData(member));
+    setFormMessage("");
+    setFormMessageType("");
+    setIsEditing(false);
   }
 
   /* ---------- Basic info edit submit ---------- */
@@ -204,11 +207,7 @@ export default function MemberDetail() {
 
     setSubmitting(true);
 
-    const payload = {
-      id: member.id,
-      changed_by: "admin",
-      changed_by_role: "admin",
-    };
+    const payload = { id: member.id, changed_by: "admin", changed_by_role: "admin" };
     const fields = [
       "name_kanji", "name_kana", "birthday",
       "company_name", "company_position", "industry",
@@ -228,6 +227,7 @@ export default function MemberDetail() {
         body: JSON.stringify(payload),
       });
       sessionStorage.setItem("member-edit-message", "保存しました。");
+      setIsEditing(false);
       await loadData();
     } catch (err) {
       setFormMessage(err.message || "保存に失敗しました。");
@@ -276,7 +276,7 @@ export default function MemberDetail() {
         <div className="page-header">
           <h1 className="page-title">会員詳細</h1>
           <p className="page-description">
-            <Link className="text-link" to="/admin/members">← 会員一覧へ戻る</Link>
+            <Link className="text-link" to="/admin/members">&larr; 会員一覧へ戻る</Link>
           </p>
         </div>
         <section className="card panel-card single-panel">
@@ -292,7 +292,7 @@ export default function MemberDetail() {
         <div className="page-header">
           <h1 className="page-title">会員詳細</h1>
           <p className="page-description">
-            <Link className="text-link" to="/admin/members">← 会員一覧へ戻る</Link>
+            <Link className="text-link" to="/admin/members">&larr; 会員一覧へ戻る</Link>
           </p>
         </div>
         <section className="card panel-card single-panel">
@@ -309,7 +309,7 @@ export default function MemberDetail() {
       <div className="page-header">
         <h1 className="page-title">会員詳細: {displayValue(member.name_kanji)}</h1>
         <p className="page-description">
-          <Link className="text-link" to="/admin/members">← 会員一覧へ戻る</Link>
+          <Link className="text-link" to="/admin/members">&larr; 会員一覧へ戻る</Link>
         </p>
       </div>
 
@@ -329,57 +329,110 @@ export default function MemberDetail() {
 
       {/* ---------- 基本情報 tab ---------- */}
       <div className={`tab-panel${activeTab === "basic" ? " is-active" : ""}`}>
-        <div className="admin-grid admin-grid-wide">
-          {/* Left: member detail */}
-          <section className="card panel-card">
-            <div className="card-body stack">
-              <div className="panel-heading"><div><h2>会員情報</h2></div></div>
-              <section className="detail-card stack-sm">
-                <div className="detail-header-row">
-                  <div><h3>{displayValue(member.name_kanji)}</h3></div>
-                  <div className="pill-row">
-                    <span className="pill">{displayValue(member.member_type)}</span>
-                    <span className="pill">{displayValue(member.status)}</span>
-                    {member.is_new && <span className="pill pill-info">新入会員</span>}
-                    {member.is_graduate && <span className="pill pill-warning">卒業生</span>}
+        {!isEditing ? (
+          /* ── VIEW MODE ── */
+          <>
+            {/* Header with edit button */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+              <button className="button" type="button" onClick={handleStartEdit}>編集する</button>
+            </div>
+
+            {formMessage && (
+              <p className={`message ${formMessageType}`} aria-live="polite" style={{ marginBottom: '0.75rem' }}>{formMessage}</p>
+            )}
+
+            {/* Header card */}
+            <section className="card panel-card" style={{ marginBottom: '1rem' }}>
+              <div className="card-body stack">
+                <section className="detail-card stack-sm">
+                  <div className="detail-header-row">
+                    <div><h3>{displayValue(member.name_kanji)}</h3></div>
+                    <div className="pill-row">
+                      <span className="pill">{displayValue(member.member_type)}</span>
+                      <span className="pill">{displayValue(member.status)}</span>
+                      {member.is_new && <span className="pill pill-info">新入会員</span>}
+                      {member.is_graduate && <span className="pill pill-warning">卒業生</span>}
+                    </div>
                   </div>
-                </div>
-                <div className="member-image-wrap">
-                  <MemberImage src={member.profile_image} name={member.name_kanji} size="detail" />
-                </div>
+                  <div className="member-image-wrap">
+                    <MemberImage src={member.profile_image} name={member.name_kanji} size="detail" />
+                  </div>
+                </section>
+              </div>
+            </section>
+
+            {/* Basic info */}
+            <section className="card panel-card" style={{ marginBottom: '1rem' }}>
+              <div className="card-body stack">
+                <div className="panel-heading"><div><h2>基本情報</h2></div></div>
                 <dl className="detail-grid">
                   <div><dt>氏名</dt><dd>{displayValue(member.name_kanji)}</dd></div>
                   <div><dt>フリガナ</dt><dd>{displayValue(member.name_kana)}</dd></div>
                   <div><dt>生年月日</dt><dd>{displayValue(member.birthday)}</dd></div>
+                  <div><dt>会員番号</dt><dd>{displayValue(member.member_number)}</dd></div>
+                  <div><dt>会員種別</dt><dd>{displayValue(member.member_type)}</dd></div>
+                  <div><dt>ステータス</dt><dd>{displayValue(member.status)}</dd></div>
+                </dl>
+              </div>
+            </section>
+
+            {/* Contact */}
+            <section className="card panel-card" style={{ marginBottom: '1rem' }}>
+              <div className="card-body stack">
+                <div className="panel-heading"><div><h2>個人連絡先</h2></div></div>
+                <dl className="detail-grid">
+                  <div><dt>メール</dt><dd>{displayValue(member.email)}</dd></div>
+                  <div><dt>携帯番号</dt><dd>{displayValue(member.mobile_phone)}</dd></div>
+                </dl>
+              </div>
+            </section>
+
+            {/* Company */}
+            <section className="card panel-card" style={{ marginBottom: '1rem' }}>
+              <div className="card-body stack">
+                <div className="panel-heading"><div><h2>会社情報</h2></div></div>
+                <dl className="detail-grid">
                   <div><dt>会社名</dt><dd>{displayValue(member.company_name)}</dd></div>
                   <div><dt>役職</dt><dd>{displayValue(member.company_position)}</dd></div>
                   <div><dt>業種</dt><dd>{displayValue(member.industry)}</dd></div>
-                  <div><dt>メール</dt><dd>{displayValue(member.email)}</dd></div>
-                  <div><dt>携帯番号</dt><dd>{displayValue(member.mobile_phone)}</dd></div>
-                  <div><dt>会社電話</dt><dd>{displayValue(member.company_phone)}</dd></div>
-                  <div><dt>会社FAX</dt><dd>{displayValue(member.company_fax)}</dd></div>
                   <div><dt>会社郵便番号</dt><dd>{displayValue(member.company_postal_code)}</dd></div>
                   <div><dt>会社住所</dt><dd>{displayValue(member.company_address)}</dd></div>
+                  <div><dt>会社電話</dt><dd>{displayValue(member.company_phone)}</dd></div>
+                  <div><dt>会社FAX</dt><dd>{displayValue(member.company_fax)}</dd></div>
                   <div><dt>会社PR</dt><dd>{displayValue(member.company_pr)}</dd></div>
+                </dl>
+              </div>
+            </section>
+
+            {/* Home */}
+            <section className="card panel-card" style={{ marginBottom: '1rem' }}>
+              <div className="card-body stack">
+                <div className="panel-heading"><div><h2>自宅情報</h2></div></div>
+                <dl className="detail-grid">
                   <div><dt>自宅郵便番号</dt><dd>{displayValue(member.home_postal_code)}</dd></div>
                   <div><dt>自宅住所</dt><dd>{displayValue(member.home_address)}</dd></div>
                   <div><dt>自宅電話</dt><dd>{displayValue(member.home_phone)}</dd></div>
                   <div><dt>自宅FAX</dt><dd>{displayValue(member.home_fax)}</dd></div>
-                  <div><dt>趣味・信条</dt><dd>{displayValue(member.hobbies)}</dd></div>
-                  <div><dt>会員番号</dt><dd>{displayValue(member.member_number)}</dd></div>
-                  <div><dt>会員種別</dt><dd>{displayValue(member.member_type)}</dd></div>
-                  <div><dt>ステータス</dt><dd>{displayValue(member.status)}</dd></div>
-                  <div><dt>備考</dt><dd>{displayValue(member.notes)}</dd></div>
-                  <div><dt>メール公開</dt><dd>{displayValue(member.show_email_in_directory)}</dd></div>
-                  <div><dt>会社公開</dt><dd>{displayValue(member.show_company_in_directory)}</dd></div>
-                  <div><dt>携帯公開</dt><dd>{displayValue(member.show_mobile_in_directory)}</dd></div>
                 </dl>
-              </section>
+              </div>
+            </section>
 
-              {/* Referrer matches */}
-              {(referrerMatches.referrer_1 || referrerMatches.referrer_2) && (
-                <section className="detail-card stack-sm">
-                  <h3>紹介者マッチ</h3>
+            {/* Other */}
+            <section className="card panel-card" style={{ marginBottom: '1rem' }}>
+              <div className="card-body stack">
+                <div className="panel-heading"><div><h2>その他</h2></div></div>
+                <dl className="detail-grid">
+                  <div><dt>趣味・信条</dt><dd>{displayValue(member.hobbies)}</dd></div>
+                  <div><dt>備考</dt><dd>{displayValue(member.notes)}</dd></div>
+                </dl>
+              </div>
+            </section>
+
+            {/* Referrer matches */}
+            {(referrerMatches.referrer_1 || referrerMatches.referrer_2) && (
+              <section className="card panel-card" style={{ marginBottom: '1rem' }}>
+                <div className="card-body stack">
+                  <div className="panel-heading"><div><h2>紹介者マッチ</h2></div></div>
                   {referrerMatches.referrer_1 && (
                     <div>
                       <strong>紹介者1:</strong> {referrerMatches.referrer_1.name_kanji || "-"} ({referrerMatches.referrer_1.company_name || "-"})
@@ -390,12 +443,12 @@ export default function MemberDetail() {
                       <strong>紹介者2:</strong> {referrerMatches.referrer_2.name_kanji || "-"} ({referrerMatches.referrer_2.company_name || "-"})
                     </div>
                   )}
-                </section>
-              )}
-            </div>
-          </section>
-
-          {/* Right: edit form */}
+                </div>
+              </section>
+            )}
+          </>
+        ) : (
+          /* ── EDIT MODE ── */
           <section className="card panel-card">
             <div className="card-body stack">
               <div className="panel-heading"><div><h2>会員編集</h2></div></div>
@@ -412,7 +465,7 @@ export default function MemberDetail() {
                   </div>
                   <div className="field">
                     <label htmlFor="md-birthday">生年月日 *</label>
-                    <input id="md-birthday" type="date" value={formData.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
+                    <DatePicker id="md-birthday" value={formData.birthday} onChange={(val) => updateField("birthday", val)} minYear={1940} />
                   </div>
                   <div className="field">
                     <label htmlFor="md-email">メール *</label>
@@ -522,13 +575,16 @@ export default function MemberDetail() {
                 )}
                 <div className="actions">
                   <button className="button" type="submit" disabled={submitting}>
-                    {submitting ? "保存中..." : "保存する"}
+                    {submitting ? "保存中..." : "保存"}
+                  </button>
+                  <button className="button ghost" type="button" onClick={handleCancelEdit} disabled={submitting}>
+                    キャンセル
                   </button>
                 </div>
               </form>
             </div>
           </section>
-        </div>
+        )}
       </div>
 
       {/* ---------- 組織履歴 tab ---------- */}
@@ -607,27 +663,18 @@ export default function MemberDetail() {
               <section className="detail-card stack-sm inset-card">
                 <h3>名簿公開設定</h3>
                 <label className="checkbox-row">
-                  <input
-                    type="checkbox"
-                    checked={dirForm.show_email_in_directory}
-                    onChange={(e) => setDirForm((prev) => ({ ...prev, show_email_in_directory: e.target.checked }))}
-                  />
+                  <input type="checkbox" checked={dirForm.show_email_in_directory}
+                    onChange={(e) => setDirForm((prev) => ({ ...prev, show_email_in_directory: e.target.checked }))} />
                   <span>メールを名簿に公開する</span>
                 </label>
                 <label className="checkbox-row">
-                  <input
-                    type="checkbox"
-                    checked={dirForm.show_company_in_directory}
-                    onChange={(e) => setDirForm((prev) => ({ ...prev, show_company_in_directory: e.target.checked }))}
-                  />
+                  <input type="checkbox" checked={dirForm.show_company_in_directory}
+                    onChange={(e) => setDirForm((prev) => ({ ...prev, show_company_in_directory: e.target.checked }))} />
                   <span>会社情報を名簿に公開する</span>
                 </label>
                 <label className="checkbox-row">
-                  <input
-                    type="checkbox"
-                    checked={dirForm.show_mobile_in_directory}
-                    onChange={(e) => setDirForm((prev) => ({ ...prev, show_mobile_in_directory: e.target.checked }))}
-                  />
+                  <input type="checkbox" checked={dirForm.show_mobile_in_directory}
+                    onChange={(e) => setDirForm((prev) => ({ ...prev, show_mobile_in_directory: e.target.checked }))} />
                   <span>携帯番号を名簿に公開する</span>
                 </label>
               </section>

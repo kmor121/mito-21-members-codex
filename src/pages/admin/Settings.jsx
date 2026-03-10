@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { apiRequest } from '../../api/base44Client';
+import { apiRequest, base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 function displayValue(v) {
@@ -22,9 +22,7 @@ export default function Settings() {
     setError("");
     setLoading(true);
     try {
-      const result = await apiRequest("list-admin-members");
-      const raw = result.members || result;
-      const members = Array.isArray(raw) ? raw : [];
+      const members = await base44.entities.Member.filter({ approval_status: "承認済" });
       const adminList = members.filter((m) => m.role === "admin");
       const nonAdminList = members.filter((m) => m.role !== "admin");
       setAdmins(adminList);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { apiRequest } from '../../api/base44Client';
+import { base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 export default function Dashboard() {
@@ -9,16 +9,52 @@ export default function Dashboard() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    apiRequest("get-admin-dashboard")
-      .then((result) => {
-        setData(result);
-      })
-      .catch((err) => {
+    (async () => {
+      try {
+        const [members, fiscalYears, dues, newsletters] = await Promise.all([
+          base44.entities.Member.filter({ approval_status: "承認済" }),
+          base44.entities.FiscalYear.list(),
+          base44.entities.Due.list(),
+          base44.entities.Newsletter.list("-created_date", 5),
+        ]);
+
+        const pendingMembers = await base44.entities.Member.filter({ approval_status: "申請中" });
+        const currentFy = fiscalYears.find((fy) => fy.is_current === true);
+        const currentDues = currentFy ? dues.filter((d) => d.fiscal_year_id === currentFy.id) : [];
+
+        const paidCount = currentDues.filter((d) => d.status === "納入済").length;
+        const totalCount = currentDues.length;
+        const regularCount = members.filter((m) => m.member_type === "正会員" && m.status === "活動中").length;
+        const supportingCount = members.filter((m) => m.member_type === "賛助会員" && m.status === "活動中").length;
+        const obCount = members.filter((m) => m.member_type === "OB会員" && m.status === "活動中").length;
+        const pausedCount = members.filter((m) => m.status === "休会").length;
+        const newCount = members.filter((m) => m.is_new === true).length;
+
+        const recentNewsletters = newsletters.map((nl) => ({
+          id: nl.id,
+          title: nl.title || nl.subject || "",
+          channel: nl.channel || "",
+          status: nl.status === "sent" ? "送信済" : nl.status === "scheduled" ? "予約中" : nl.status === "draft" ? "下書き" : nl.status || "",
+          date: nl.last_sent_at ? nl.last_sent_at.slice(0, 10) : nl.created_date ? nl.created_date.slice(0, 10) : "",
+        }));
+
+        setData({
+          pending_application_count: pendingMembers.length,
+          paid_count: paidCount,
+          total_count: totalCount,
+          regular_count: regularCount,
+          supporting_count: supportingCount,
+          ob_count: obCount,
+          paused_count: pausedCount,
+          new_count: newCount,
+          recent_newsletters: recentNewsletters,
+        });
+      } catch (err) {
         setError(err.message || "ダッシュボードの取得に失敗しました。");
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    })();
   }, []);
 
   if (loading) {
@@ -62,8 +98,7 @@ export default function Dashboard() {
   const obCount = data.ob_count || 0;
   const pausedCount = data.paused_count || 0;
   const newCount = data.new_count || 0;
-  const rawNl = data.recent_newsletters;
-  const newsletters = (Array.isArray(rawNl) ? rawNl : []).slice(0, 5);
+  const newsletters = data.recent_newsletters || [];
 
   return (
     <section className="admin-shell">
@@ -73,71 +108,40 @@ export default function Dashboard() {
       </div>
 
       <div className="dashboard-grid">
-        {/* Pending applications card */}
         <section className="card detail-card stack-sm accent-warning">
           <div className="card-body stack">
-            <div className="panel-heading">
-              <div><h2>未処理の入会申込</h2></div>
-            </div>
+            <div className="panel-heading"><div><h2>未処理の入会申込</h2></div></div>
             <p style={{ fontSize: "2rem", fontWeight: 700, margin: 0 }}>{pendingCount}</p>
             <p className="muted">件の申込が承認待ちです</p>
-            <div className="actions">
-              <Link className="text-link" to="/admin/applications">申込管理へ</Link>
-            </div>
+            <div className="actions"><Link className="text-link" to="/admin/applications">申込管理へ</Link></div>
           </div>
         </section>
 
-        {/* Due rate card */}
         <section className="card detail-card stack-sm accent-info">
           <div className="card-body stack">
-            <div className="panel-heading">
-              <div><h2>会費納入率</h2></div>
-            </div>
+            <div className="panel-heading"><div><h2>会費納入率</h2></div></div>
             <p style={{ fontSize: "2rem", fontWeight: 700, margin: 0 }}>{dueRate}%</p>
-            <div className="progress-track">
-              <div className="progress-fill" style={{ width: `${dueRate}%` }} />
-            </div>
+            <div className="progress-track"><div className="progress-fill" style={{ width: `${dueRate}%` }} /></div>
             <p className="muted">{paidCount} / {totalCount} 名が納入済</p>
           </div>
         </section>
 
-        {/* Member summary metrics */}
         <section className="card detail-card stack-sm">
           <div className="card-body stack">
-            <div className="panel-heading">
-              <div><h2>会員サマリー</h2></div>
-            </div>
+            <div className="panel-heading"><div><h2>会員サマリー</h2></div></div>
             <div className="dashboard-metrics">
-              <div className="metric-card">
-                <span className="metric-label">正会員</span>
-                <span>{regularCount}</span>
-              </div>
-              <div className="metric-card">
-                <span className="metric-label">賛助会員</span>
-                <span>{supportingCount}</span>
-              </div>
-              <div className="metric-card">
-                <span className="metric-label">OB会員</span>
-                <span>{obCount}</span>
-              </div>
-              <div className="metric-card">
-                <span className="metric-label">休会中</span>
-                <span>{pausedCount}</span>
-              </div>
-              <div className="metric-card">
-                <span className="metric-label">新入会員</span>
-                <span>{newCount}</span>
-              </div>
+              <div className="metric-card"><span className="metric-label">正会員</span><span>{regularCount}</span></div>
+              <div className="metric-card"><span className="metric-label">賛助会員</span><span>{supportingCount}</span></div>
+              <div className="metric-card"><span className="metric-label">OB会員</span><span>{obCount}</span></div>
+              <div className="metric-card"><span className="metric-label">休会中</span><span>{pausedCount}</span></div>
+              <div className="metric-card"><span className="metric-label">新入会員</span><span>{newCount}</span></div>
             </div>
           </div>
         </section>
 
-        {/* Recent newsletters */}
         <section className="card detail-card stack-sm">
           <div className="card-body stack">
-            <div className="panel-heading">
-              <div><h2>最近の配信</h2></div>
-            </div>
+            <div className="panel-heading"><div><h2>最近の配信</h2></div></div>
             {newsletters.length === 0 ? (
               <p className="muted">配信履歴はありません。</p>
             ) : (
@@ -159,12 +163,9 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Quick actions */}
         <section className="card detail-card stack-sm">
           <div className="card-body stack">
-            <div className="panel-heading">
-              <div><h2>クイックアクション</h2></div>
-            </div>
+            <div className="panel-heading"><div><h2>クイックアクション</h2></div></div>
             <div className="actions" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
               <Link className="text-link" to="/admin/members">会員一覧</Link>
               <Link className="text-link" to="/admin/applications">申込管理</Link>

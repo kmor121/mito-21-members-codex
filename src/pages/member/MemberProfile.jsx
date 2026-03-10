@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { apiRequest } from '../../api/base44Client';
+import { base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 function displayValue(value) {
@@ -37,9 +37,16 @@ export default function MemberProfile() {
     setLoading(true);
     setError("");
 
-    apiRequest(`get-directory-member-detail?id=${encodeURIComponent(memberId)}`)
-      .then((result) => {
-        setMember(result.member || result);
+    base44.entities.Member.get(memberId)
+      .then((m) => {
+        // Apply directory visibility rules
+        if (!m.show_email_in_directory) m.email = "";
+        if (!m.show_mobile_in_directory) m.mobile_phone = "";
+        if (!m.show_company_in_directory) {
+          m.company_name = ""; m.company_position = ""; m.company_postal_code = "";
+          m.company_address = ""; m.company_phone = ""; m.company_fax = ""; m.industry = "";
+        }
+        setMember(m);
       })
       .catch((err) => {
         setError(err.message || "会員情報の取得に失敗しました。");

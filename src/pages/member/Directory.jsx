@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { apiRequest } from '../../api/base44Client';
+import { base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 function displayValue(value) {
@@ -39,24 +39,63 @@ export default function Directory() {
     setMessage("読み込み中...");
 
     try {
-      const params = new URLSearchParams();
-      const q = String(searchQuery || "").trim();
+      const q = String(searchQuery || "").trim().toLowerCase();
       const org = String(searchOrgId || "").trim();
-      if (q) params.set("q", q);
-      if (org) params.set("organization_id", org);
 
-      const path = params.toString()
-        ? `list-directory-members?${params.toString()}`
-        : "list-directory-members";
-      const result = await apiRequest(path);
-      const rawMembers = result.members;
-      const membersList = Array.isArray(rawMembers) ? rawMembers : [];
-      const rawOpts = result.org_options;
-      const opts = Array.isArray(rawOpts) ? rawOpts : [];
+      const [allMembers, fiscalYears, orgs, assignments] = await Promise.all([
+        base44.entities.Member.filter({ approval_status: "承認済", status: "活動中" }),
+        base44.entities.FiscalYear.list(),
+        base44.entities.Organization.list(),
+        base44.entities.OrgAssignment.list(),
+      ]);
 
-      if (orgOptions.length === 0 && opts.length > 0) {
-        setOrgOptions(opts);
+      const currentFy = fiscalYears.find((fy) => fy.is_current === true);
+      const currentFyId = currentFy?.id || "";
+      const currentOrgs = currentFyId ? orgs.filter((o) => o.fiscal_year_id === currentFyId) : orgs;
+      const opts = currentOrgs.map((o) => ({ id: o.id, name: o.name }));
+      if (orgOptions.length === 0 && opts.length > 0) setOrgOptions(opts);
+
+      // Build assignment map
+      const currentAssignments = currentFyId ? assignments.filter((a) => a.fiscal_year_id === currentFyId) : assignments;
+      const orgMap = {};
+      for (const o of orgs) orgMap[o.id] = o.name || "";
+      const assignMap = {};
+      for (const a of currentAssignments) {
+        if (!assignMap[a.member_id]) assignMap[a.member_id] = [];
+        assignMap[a.member_id].push({ org_name: orgMap[a.organization_id] || "", role: a.role || "" });
       }
+
+      // Enrich members with directory-visible data and org assignments
+      let membersList = allMembers.map((m) => ({
+        id: m.id,
+        name_kanji: m.name_kanji,
+        name_kana: m.name_kana,
+        member_type: m.member_type,
+        is_new: m.is_new,
+        is_graduate: m.is_graduate,
+        profile_image: m.profile_image,
+        company_name: m.show_company_in_directory ? m.company_name : "",
+        company_position: m.show_company_in_directory ? m.company_position : "",
+        email: m.show_email_in_directory ? m.email : "",
+        mobile_phone: m.show_mobile_in_directory ? m.mobile_phone : "",
+        org_assignments: assignMap[m.id] || [],
+      }));
+
+      // Apply search filter
+      if (q) {
+        membersList = membersList.filter((m) => {
+          const haystack = [m.name_kanji, m.name_kana, m.company_name].join(" ").toLowerCase();
+          return haystack.includes(q);
+        });
+      }
+
+      // Apply org filter
+      if (org) {
+        const memberIdsInOrg = new Set(currentAssignments.filter((a) => a.organization_id === org).map((a) => a.member_id));
+        membersList = membersList.filter((m) => memberIdsInOrg.has(m.id));
+      }
+
+      membersList.sort((a, b) => (a.name_kana || "").localeCompare(b.name_kana || "", "ja"));
 
       setMembers(membersList);
       setMessage(`${membersList.length}件を表示中 / 対象: 承認済・活動中 / 並び順: 氏名昇順`);
@@ -145,7 +184,12 @@ export default function Directory() {
                   .join("、");
 
                 return (
-                  <article key={member.id} className="directory-card">
+                  <Link
+                    key={member.id}
+                    to={`/directory/members/${member.id}`}
+                    className="directory-card directory-card-link"
+                    style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
+                  >
                     <div className="directory-card-header">
                       <MemberImage src={member.profile_image} name={member.name_kanji} size="thumb" />
                       <div>
@@ -183,12 +227,7 @@ export default function Directory() {
                         </div>
                       )}
                     </dl>
-                    <div className="actions">
-                      <Link className="text-link" to={`/directory/members/${member.id}`}>
-                        詳細を見る
-                      </Link>
-                    </div>
-                  </article>
+                  </Link>
                 );
               })}
             </div>

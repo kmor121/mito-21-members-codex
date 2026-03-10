@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { apiRequest } from '../../api/base44Client';
+import { apiRequest, base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import DatePicker from '../../components/ui/DatePicker';
 
 function displayValue(v) {
   if (v === null || v === undefined || v === "") return "-";
@@ -37,15 +38,16 @@ export default function FiscalYears() {
 
   const [showModal, setShowModal] = useState(false);
   const [confirmTransition, setConfirmTransition] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
   const loadYears = useCallback(async () => {
     setError("");
     setLoading(true);
     try {
-      const result = await apiRequest("list-fiscal-years-admin");
-      const raw = result.fiscal_years;
-      const list = Array.isArray(raw) ? raw : [];
-      const curId = result.current_fiscal_year_id || null;
+      const list = await base44.entities.FiscalYear.list("-year");
+      const cur = list.find((y) => y.is_current === true);
+      const curId = cur?.id || null;
       setYears(list);
       setCurrentFiscalYearId(curId);
       return { list, curId };
@@ -58,13 +60,7 @@ export default function FiscalYears() {
   }, []);
 
   useEffect(() => {
-    loadYears().then(({ list, curId }) => {
-      if (curId && list.find((y) => y.id === curId)) {
-        selectYear(list.find((y) => y.id === curId));
-      } else if (list.length > 0) {
-        selectYear(list[0]);
-      }
-    });
+    loadYears();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function selectYear(y) {
@@ -183,6 +179,37 @@ export default function FiscalYears() {
     }
   }
 
+  async function handleDeleteYear() {
+    setConfirmDelete(false);
+    if (!deleteTargetId) return;
+    const target = years.find((y) => y.id === deleteTargetId);
+    if (target?.is_current) {
+      setError("現在年度は削除できません。");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    setMessage("");
+    try {
+      await apiRequest("delete-fiscal-year", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: deleteTargetId }),
+      });
+      setMessage("年度を削除しました。");
+      if (selectedId === deleteTargetId) {
+        setSelectedId(null);
+        setShowModal(false);
+      }
+      await loadYears();
+    } catch (err) {
+      setError(err.message || "年度の削除に失敗しました。");
+    } finally {
+      setSaving(false);
+      setDeleteTargetId(null);
+    }
+  }
+
   const selected = years.find((y) => y.id === selectedId) || null;
 
   return (
@@ -191,6 +218,16 @@ export default function FiscalYears() {
         <h1 className="page-title">年度管理</h1>
         <p className="page-description">年度の管理・年度切替</p>
       </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title="年度削除確認"
+        message="この年度を削除しますか？関連する組織・会費データも削除されます。"
+        confirmLabel="削除する"
+        confirmStyle={{ background: '#c53030', borderColor: '#c53030' }}
+        onConfirm={handleDeleteYear}
+        onCancel={() => { setConfirmDelete(false); setDeleteTargetId(null); }}
+      />
 
       <ConfirmDialog
         open={confirmTransition}
@@ -243,8 +280,12 @@ export default function FiscalYears() {
                       <td>{displayValue(y.start_date)}</td>
                       <td>{displayValue(y.end_date)}</td>
                       <td><span className="pill">{stateLabel(y.state)}</span></td>
-                      <td>
+                      <td style={{ display: 'flex', gap: '0.5rem' }}>
                         <button className="text-link" type="button" onClick={() => selectYear(y)}>編集</button>
+                        {!y.is_current && (
+                          <button className="text-link" type="button" style={{ color: '#c53030' }}
+                            onClick={() => { setDeleteTargetId(y.id); setConfirmDelete(true); }}>削除</button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -277,11 +318,11 @@ export default function FiscalYears() {
                 </div>
                 <div className="field">
                   <label htmlFor="fy-start">開始日</label>
-                  <input id="fy-start" type="date" value={formStartDate} onChange={(e) => setFormStartDate(e.target.value)} required />
+                  <DatePicker id="fy-start" value={formStartDate} onChange={(val) => setFormStartDate(val)} required />
                 </div>
                 <div className="field">
                   <label htmlFor="fy-end">終了日</label>
-                  <input id="fy-end" type="date" value={formEndDate} onChange={(e) => setFormEndDate(e.target.value)} required />
+                  <DatePicker id="fy-end" value={formEndDate} onChange={(val) => setFormEndDate(val)} required />
                 </div>
 
                 <div className="filter-actions field-span-2">

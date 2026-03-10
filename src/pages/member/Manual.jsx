@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { apiRequest } from '../../api/base44Client';
+import { base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 function displayValue(value) {
@@ -60,10 +60,9 @@ export default function Manual() {
     setLoading(true);
     setError("");
 
-    apiRequest("get-member-manual")
-      .then((result) => {
-        const raw = result.manuals;
-        setManuals(Array.isArray(raw) ? raw : []);
+    base44.entities.OrgDocument.filter({ published: true, doc_type: "運用マニュアル" }, "sort_order")
+      .then((list) => {
+        setManuals(list);
       })
       .catch((err) => {
         setError(err.message || "運用マニュアルの取得に失敗しました。");

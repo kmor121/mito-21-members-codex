@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { apiRequest } from "../../api/base44Client";
+import { apiRequest, base44 } from "../../api/base44Client";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
+import DatePicker from "../../components/ui/DatePicker";
 
 function displayValue(v) {
   if (v === null || v === undefined || v === "") return "-";
@@ -50,6 +51,11 @@ export default function DuesManagement() {
   const [toggleDate, setToggleDate] = useState(todayStr());
   const [togglePayerName, setTogglePayerName] = useState("");
 
+  // Payer name search
+  const [payerSearch, setPayerSearch] = useState("");
+  const [payerSearchResults, setPayerSearchResults] = useState(null);
+  const [payerSearchLoading, setPayerSearchLoading] = useState(false);
+
   // Batch selection
   const [selectedIds, setSelectedIds] = useState(new Set());
 
@@ -64,47 +70,52 @@ export default function DuesManagement() {
   const loadData = useCallback(() => {
     setLoading(true);
     setError("");
-    const query = fiscalYearId ? `list-dues-admin?fiscalYearId=${fiscalYearId}` : "list-dues-admin";
-    apiRequest(query)
-      .then((result) => {
-        setFiscalYears(Array.isArray(result.fiscal_years) ? result.fiscal_years : []);
-        setDues(Array.isArray(result.dues) ? result.dues : []);
-        setSummary(result.summary || {});
-        setSelectedFiscalYear(result.selected_fiscal_year || null);
-        setCurrentFiscalYearId(result.current_fiscal_year_id || "");
+    (async () => {
+      try {
+        const [allFiscalYears, allDues, allDueSettings, allMembers] = await Promise.all([
+          base44.entities.FiscalYear.list("-year"),
+          base44.entities.Due.list(),
+          base44.entities.DueSetting.list(),
+          base44.entities.Member.filter({ approval_status: "承認済" }),
+        ]);
 
-        const raw = result.due_settings;
-        if (Array.isArray(raw) && raw.length > 0) {
-          const first = raw[0];
-          if (first.regular_annual_fee !== undefined) {
-            setSettingsId(first.id || null);
-            setSettingsForm({
-              regular_annual_fee: first.regular_annual_fee ?? DEFAULT_SETTINGS.regular_annual_fee,
-              associate_annual_fee: first.associate_annual_fee ?? DEFAULT_SETTINGS.associate_annual_fee,
-              admission_fee: first.admission_fee ?? DEFAULT_SETTINGS.admission_fee,
-              first_half_fee: first.first_half_fee ?? DEFAULT_SETTINGS.first_half_fee,
-              second_half_fee: first.second_half_fee ?? DEFAULT_SETTINGS.second_half_fee,
-            });
-          } else {
-            const regular = raw.find((s) => s.member_type === "正会員");
-            const supporting = raw.find((s) => s.member_type === "賛助会員");
-            setSettingsId(null);
-            setSettingsForm({
-              regular_annual_fee: regular?.amount ?? DEFAULT_SETTINGS.regular_annual_fee,
-              associate_annual_fee: supporting?.amount ?? DEFAULT_SETTINGS.associate_annual_fee,
-              admission_fee: DEFAULT_SETTINGS.admission_fee,
-              first_half_fee: regular?.amount ?? DEFAULT_SETTINGS.first_half_fee,
-              second_half_fee: Math.round((regular?.amount ?? DEFAULT_SETTINGS.first_half_fee) / 2),
-            });
-          }
-        } else if (raw && !Array.isArray(raw) && typeof raw === "object") {
-          setSettingsId(raw.id || null);
+        setFiscalYears(allFiscalYears);
+        const currentFy = allFiscalYears.find((fy) => fy.is_current === true);
+        const currentFyId = currentFy?.id || "";
+        setCurrentFiscalYearId(currentFyId);
+        const activeFyId = fiscalYearId || currentFyId;
+        const selectedFy = allFiscalYears.find((fy) => fy.id === activeFyId) || null;
+        setSelectedFiscalYear(selectedFy);
+
+        // Build member name map
+        const memberMap = {};
+        for (const m of allMembers) {
+          memberMap[m.id] = { name: m.name_kanji || "", type: m.member_type || "", is_new: !!m.is_new };
+        }
+
+        // Filter dues for selected fiscal year and enrich
+        const fyDues = allDues
+          .filter((d) => d.fiscal_year_id === activeFyId)
+          .map((d) => ({
+            ...d,
+            member_name: d.member_name || memberMap[d.member_id]?.name || "",
+            member_type: d.member_type || memberMap[d.member_id]?.type || "",
+            is_new: d.is_new ?? memberMap[d.member_id]?.is_new ?? false,
+          }));
+        setDues(fyDues);
+        setSummary({});
+
+        // Due settings
+        const fySettings = allDueSettings.filter((s) => s.fiscal_year_id === activeFyId);
+        if (fySettings.length > 0) {
+          const first = fySettings[0];
+          setSettingsId(first.id || null);
           setSettingsForm({
-            regular_annual_fee: raw.regular_annual_fee ?? DEFAULT_SETTINGS.regular_annual_fee,
-            associate_annual_fee: raw.associate_annual_fee ?? DEFAULT_SETTINGS.associate_annual_fee,
-            admission_fee: raw.admission_fee ?? DEFAULT_SETTINGS.admission_fee,
-            first_half_fee: raw.first_half_fee ?? DEFAULT_SETTINGS.first_half_fee,
-            second_half_fee: raw.second_half_fee ?? DEFAULT_SETTINGS.second_half_fee,
+            regular_annual_fee: first.regular_annual_fee ?? DEFAULT_SETTINGS.regular_annual_fee,
+            associate_annual_fee: first.associate_annual_fee ?? DEFAULT_SETTINGS.associate_annual_fee,
+            admission_fee: first.admission_fee ?? DEFAULT_SETTINGS.admission_fee,
+            first_half_fee: first.first_half_fee ?? DEFAULT_SETTINGS.first_half_fee,
+            second_half_fee: first.second_half_fee ?? DEFAULT_SETTINGS.second_half_fee,
           });
         } else {
           setSettingsId(null);
@@ -112,13 +123,12 @@ export default function DuesManagement() {
         }
 
         setSelectedIds(new Set());
-      })
-      .catch((err) => {
+      } catch (err) {
         setError(err.message || "会費データの取得に失敗しました。");
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    })();
   }, [fiscalYearId]);
 
   useEffect(() => {
@@ -308,6 +318,50 @@ export default function DuesManagement() {
     toggleSelectOne(due.id);
   }
 
+  async function handlePayerSearch() {
+    const q = payerSearch.trim().toLowerCase();
+    if (!q) { setPayerSearchResults(null); return; }
+    setPayerSearchLoading(true);
+    try {
+      const [allDues, allFiscalYears] = await Promise.all([
+        base44.entities.Due.list(),
+        base44.entities.FiscalYear.list(),
+      ]);
+      const fyMap = {};
+      for (const fy of allFiscalYears) fyMap[fy.id] = fy.year ? `${fy.year}年度` : fy.id;
+      const results = allDues
+        .filter((d) => {
+          const pn = (d.payer_name || "").toLowerCase();
+          const mn = (d.member_name || "").toLowerCase();
+          return pn.includes(q) || mn.includes(q);
+        })
+        .map((d) => ({
+          member_name: d.member_name || "",
+          payer_name: d.payer_name || "",
+          year: fyMap[d.fiscal_year_id] || "",
+          amount: d.amount || 0,
+          status: d.status || "",
+        }))
+        .slice(0, 50);
+      setPayerSearchResults(results);
+    } catch {
+      setPayerSearchResults([]);
+    } finally {
+      setPayerSearchLoading(false);
+    }
+  }
+
+  // Filter dues by payer name locally
+  const filteredDues = useMemo(() => {
+    const q = payerSearch.trim().toLowerCase();
+    if (!q) return dues;
+    return dues.filter((d) => {
+      const pn = (d.payer_name || "").toLowerCase();
+      const mn = (d.member_name || "").toLowerCase();
+      return pn.includes(q) || mn.includes(q);
+    });
+  }, [dues, payerSearch]);
+
   const paidRate = computedSummary.total_count > 0
     ? Math.round(((computedSummary.paid_count || 0) / computedSummary.total_count) * 100)
     : 0;
@@ -344,8 +398,8 @@ export default function DuesManagement() {
                 <>
                   <div className="field" style={{ marginTop: '0.5rem' }}>
                     <label htmlFor="toggle-date">入金日</label>
-                    <input id="toggle-date" type="date" value={toggleDate}
-                      onChange={(e) => setToggleDate(e.target.value)} />
+                    <DatePicker id="toggle-date" value={toggleDate}
+                      onChange={(val) => setToggleDate(val)} />
                   </div>
                   <div className="field" style={{ marginTop: '0.5rem' }}>
                     <label htmlFor="toggle-payer-name">振込名</label>
@@ -489,7 +543,20 @@ export default function DuesManagement() {
                 <span className="pill">{selectedFiscalYear.year_label || `${selectedFiscalYear.year}年度`}</span>
               )}
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <div className="field" style={{ margin: 0, minWidth: 200 }}>
+                <input
+                  type="text"
+                  placeholder="振込名 / 会員名で検索"
+                  value={payerSearch}
+                  onChange={(e) => setPayerSearch(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handlePayerSearch(); }}
+                  style={{ padding: '0.4rem 0.75rem' }}
+                />
+              </div>
+              <button className="button ghost" type="button" onClick={handlePayerSearch} disabled={payerSearchLoading} style={{ fontSize: '0.85em' }}>
+                {payerSearchLoading ? "検索中..." : "振込名検索"}
+              </button>
               <button className="button ghost" type="button" onClick={() => setShowSettings(true)}>会費設定</button>
               <button className="button ghost" type="button" onClick={() => setConfirmReminder(true)}
                 disabled={saving || !(computedSummary.unpaid_count > 0)}>
@@ -543,12 +610,44 @@ export default function DuesManagement() {
             </div>
           )}
 
+          {/* Payer search results (cross-year) */}
+          {payerSearchResults !== null && (
+            <div style={{ padding: '0.75rem 1rem', background: 'var(--info-light)', borderRadius: 8, fontSize: '0.9em', marginBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <strong>過去年度の振込名検索結果</strong>
+                <button className="text-link" type="button" onClick={() => setPayerSearchResults(null)} style={{ fontSize: '0.85em' }}>閉じる</button>
+              </div>
+              {payerSearchResults.length === 0 ? (
+                <p className="muted">一致する振込名は見つかりませんでした。</p>
+              ) : (
+                <div className="table-wrap" style={{ maxHeight: 200, overflowY: 'auto' }}>
+                  <table className="data-table" style={{ minWidth: 400 }}>
+                    <thead>
+                      <tr><th>会員名</th><th>振込名</th><th>年度</th><th>金額</th><th>ステータス</th></tr>
+                    </thead>
+                    <tbody>
+                      {payerSearchResults.map((r, i) => (
+                        <tr key={i}>
+                          <td>{r.member_name || "-"}</td>
+                          <td><strong>{r.payer_name || "-"}</strong></td>
+                          <td>{r.year || "-"}</td>
+                          <td>{formatCurrency(r.amount)}</td>
+                          <td><span className={`pill${r.status === "納入済" ? " pill-success" : ""}`}>{r.status || "-"}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Table */}
           {loading ? (
             <LoadingSpinner />
           ) : error ? (
             <p className="message error">{error}</p>
-          ) : dues.length === 0 ? (
+          ) : filteredDues.length === 0 ? (
             <p className="empty-state">会費データがありません。</p>
           ) : (
             <div className="table-wrap">
@@ -571,7 +670,7 @@ export default function DuesManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {dues.map((due) => {
+                  {filteredDues.map((due) => {
                     const dueType = due.due_type || "年会費";
                     const isSelected = selectedIds.has(due.id);
                     const isUnpaid = due.status !== "納入済";
