@@ -401,7 +401,7 @@ function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, curren
           )}
           {memberDues.length === 0 ? (
             <div style={{ padding: "32px 0", textAlign: "center" }}>
-              <div style={{ fontSize: 32, marginBottom: 8, opacity: 0.4 }}>{"\uD83D\uDCC4"}</div>
+              <div style={{ fontSize: 32, marginBottom: 8, opacity: 0.4 }}>{"📄"}</div>
               <p style={{ margin: 0, color: "var(--text-secondary)" }}>会費データがありません</p>
             </div>
           ) : (
@@ -1102,7 +1102,7 @@ export default function DuesManagement() {
           {/* Summary cards */}
           <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
             <SummaryCard
-              icon={"\uD83D\uDCCA"}
+              icon={"📊"}
               label="全体"
               value={`${computedSummary.total}名`}
               color="var(--primary)"
@@ -1122,7 +1122,7 @@ export default function DuesManagement() {
               color="#dc2626"
             />
             <SummaryCard
-              icon={"\uD83D\uDCC8"}
+              icon={"📈"}
               label="納入率"
               value={`${paidRate}%`}
               color="var(--primary)"
@@ -1218,7 +1218,7 @@ export default function DuesManagement() {
                 <LoadingSpinner />
               ) : filteredDues.length === 0 ? (
                 <div style={{ padding: "48px 20px", textAlign: "center" }}>
-                  <div style={{ fontSize: 40, marginBottom: 8, opacity: 0.4 }}>{"\uD83D\uDCB0"}</div>
+                  <div style={{ fontSize: 40, marginBottom: 8, opacity: 0.4 }}>{"💰"}</div>
                   <p style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>
                     {dues.length === 0 ? "会費データがありません" : "条件に一致するデータがありません"}
                   </p>
@@ -1381,14 +1381,14 @@ export default function DuesManagement() {
               color="#dc2626"
             />
             <SummaryCard
-              icon={"\uD83D\uDFE0"}
+              icon={"🟠"}
               label="うち前年度以前"
               value={`${allUnpaidSummary.priorCount}件`}
               sub={formatCurrency(allUnpaidSummary.priorAmount)}
               color="#d97706"
             />
             <SummaryCard
-              icon={"\uD83D\uDFE3"}
+              icon={"🟣"}
               label="当年度分"
               value={`${allUnpaidSummary.totalCount - allUnpaidSummary.priorCount}件`}
               sub={formatCurrency(allUnpaidSummary.totalAmount - allUnpaidSummary.priorAmount)}
@@ -1657,7 +1657,7 @@ export default function DuesManagement() {
                     borderBottom: "1px solid var(--line)",
                     display: "flex", alignItems: "center", gap: 6,
                   }}>
-                    <span style={{ fontSize: 16 }}>{"\uD83D\uDC65"}</span>
+                    <span style={{ fontSize: 16 }}>{"👥"}</span>
                     既存会員
                   </h3>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
@@ -1685,7 +1685,7 @@ export default function DuesManagement() {
                     borderBottom: "1px solid var(--line)",
                     display: "flex", alignItems: "center", gap: 6,
                   }}>
-                    <span style={{ fontSize: 16 }}>{"\uD83C\uDD95"}</span>
+                    <span style={{ fontSize: 16 }}>{"🆕"}</span>
                     新入会員
                   </h3>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>

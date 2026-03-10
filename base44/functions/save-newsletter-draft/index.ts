@@ -2,7 +2,7 @@
 
 const ALLOWED_CHANNELS = ["email", "line", "email+line"];
 const ALLOWED_STATUS = ["draft", "scheduled", "sent", "cancelled", "failed"];
-const ALLOWED_AUDIENCE_TYPES = ["all", "member_type", "status", "approval_status"];
+const ALLOWED_AUDIENCE_TYPES = ["all", "member_type", "status", "approval_status", "individual"];
 
 function normalizeString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -34,9 +34,12 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const id = normalizeString(body?.id);
-    const payload = {
+    const bodyHtml = normalizeString(body?.body_html);
+    const isTemplate = body?.is_template === true || body?.is_template === "true";
+    const payload: Record<string, unknown> = {
       title: normalizeString(body?.title),
       body: normalizeString(body?.body),
+      body_html: bodyHtml,
       channel: normalizeString(body?.channel) || "email",
       status: normalizeString(body?.status) || "draft",
       audience_type: normalizeString(body?.audience_type) || "all",
@@ -45,13 +48,15 @@ Deno.serve(async (req) => {
       last_sent_at: normalizeString(body?.last_sent_at),
       error_message: normalizeString(body?.error_message),
       attachment_info: normalizeString(body?.attachment_info),
-      attachments_json: normalizeAttachmentsJson(body?.attachments_json)
+      attachments_json: normalizeAttachmentsJson(body?.attachments_json),
+      is_template: isTemplate
     };
 
     if (!payload.title) {
       return Response.json({ ok: false, error: "title is required" }, { status: 400 });
     }
-    if (!payload.body) {
+    // body is required only when body_html is not provided
+    if (!payload.body && !bodyHtml) {
       return Response.json({ ok: false, error: "body is required" }, { status: 400 });
     }
     if (!ALLOWED_CHANNELS.includes(payload.channel)) {
@@ -75,7 +80,7 @@ Deno.serve(async (req) => {
       ? await base44.asServiceRole.entities.Newsletter.update(id, payload)
       : await base44.asServiceRole.entities.Newsletter.create(payload);
 
-    return Response.json({ ok: true, newsletter });
+    return Response.json({ ok: true, id: newsletter.id, status: newsletter.status, newsletter });
   } catch (error) {
     console.error(error);
     return Response.json({ ok: false, error: "Internal server error" }, { status: 500 });

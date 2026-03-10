@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Newsletter body"
     },
+    "body_html": {
+      "type": "string",
+      "description": "Newsletter body in HTML format"
+    },
     "channel": {
       "type": "string",
       "enum": ["email", "line", "email+line"],
@@ -24,7 +28,7 @@
     },
     "audience_type": {
       "type": "string",
-      "enum": ["all", "member_type", "status", "approval_status"],
+      "enum": ["all", "member_type", "status", "approval_status", "individual"],
       "description": "Audience selector type",
       "default": "all"
     },

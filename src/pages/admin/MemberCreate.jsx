@@ -19,44 +19,202 @@ const INITIAL_FORM = {
   show_email_in_directory: true, show_mobile_in_directory: true, show_company_in_directory: true,
 };
 
-/* ---------- section header styles (page-specific) ---------- */
-const sectionHeaderStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 8,
-  borderBottom: '1px solid var(--line)',
-  paddingBottom: 8,
-  marginBottom: 4,
-};
-const sectionIconStyle = { fontSize: 20, display: 'flex', alignItems: 'center', lineHeight: 1 };
-const sectionTitleStyle = { fontSize: 16, fontWeight: 700, margin: 0 };
+const SECTION_STEPS = ["基本情報", "会社情報", "連絡先", "自宅情報", "その他", "名簿設定"];
 
-/* ---------- toggle switch for directory settings ---------- */
-function ToggleSwitch({ checked, onChange, label }) {
+/* ---------- SVG Icon Components ---------- */
+const iconProps = { width: 20, height: 20, fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", style: { color: 'var(--primary)' } };
+
+function UserIcon() {
   return (
-    <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', padding: '10px 0' }}>
-      <button
-        type="button"
-        className={`doc-toggle${checked ? " doc-toggle-on" : ""}`}
-        onClick={(e) => { e.preventDefault(); onChange(!checked); }}
-      >
-        <span className="doc-toggle-knob" />
-      </button>
-      <span style={{ fontSize: 13, fontWeight: 500 }}>{label}</span>
-    </label>
+    <svg {...iconProps} viewBox="0 0 24 24">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
   );
 }
 
-/* ---------- section header component ---------- */
+function BuildingIcon() {
+  return (
+    <svg {...iconProps} viewBox="0 0 24 24">
+      <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+      <path d="M9 22V12h6v10" />
+      <path d="M8 6h.01M16 6h.01M12 6h.01M8 10h.01M16 10h.01M12 10h.01" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg {...iconProps} viewBox="0 0 24 24">
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </svg>
+  );
+}
+
+function HomeIcon() {
+  return (
+    <svg {...iconProps} viewBox="0 0 24 24">
+      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  );
+}
+
+function NoteIcon() {
+  return (
+    <svg {...iconProps} viewBox="0 0 24 24">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <polyline points="10 9 9 9 8 9" />
+    </svg>
+  );
+}
+
+function BookIcon() {
+  return (
+    <svg {...iconProps} viewBox="0 0 24 24">
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+    </svg>
+  );
+}
+
+/* ---------- Section Header ---------- */
 function SectionHeader({ icon, title }) {
   return (
-    <div className="mc-section-header" style={sectionHeaderStyle}>
-      <span className="mc-section-icon" style={sectionIconStyle}>{icon}</span>
-      <h2 className="mc-section-title" style={sectionTitleStyle}>{title}</h2>
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      borderBottom: '1px solid var(--line)',
+      paddingBottom: 10, marginBottom: 4,
+    }}>
+      <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>{icon}</span>
+      <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--text)' }}>{title}</h2>
     </div>
   );
 }
 
+/* ---------- Toggle Switch with description ---------- */
+function ToggleSwitch({ checked, onChange, label, description }) {
+  return (
+    <label style={{
+      display: 'flex', alignItems: 'flex-start', gap: 12,
+      cursor: 'pointer', padding: '12px 0',
+      borderBottom: '1px solid var(--line-light)',
+    }}>
+      <button
+        type="button"
+        className={`doc-toggle${checked ? " doc-toggle-on" : ""}`}
+        onClick={(e) => { e.preventDefault(); onChange(!checked); }}
+        style={{ marginTop: 2, flexShrink: 0 }}
+      >
+        <span className="doc-toggle-knob" />
+      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{label}</span>
+        {description && (
+          <span style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4 }}>{description}</span>
+        )}
+      </div>
+    </label>
+  );
+}
+
+/* ---------- Pill Selector ---------- */
+function PillSelector({ options, value, onChange, id }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }} id={id} role="radiogroup">
+      {options.map((opt) => {
+        const isActive = value === opt;
+        return (
+          <button
+            key={opt}
+            type="button"
+            role="radio"
+            aria-checked={isActive}
+            className={`nl2-pill-tab${isActive ? ' active' : ''}`}
+            onClick={() => onChange(opt)}
+          >
+            {opt}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------- Progress Indicator ---------- */
+function ProgressIndicator({ currentSection }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 0,
+      padding: '16px 0 8px', overflowX: 'auto',
+    }}>
+      {SECTION_STEPS.map((step, i) => {
+        const isCurrent = i === currentSection;
+        const isPast = i < currentSection;
+        return (
+          <div key={step} style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 12, fontWeight: 700, lineHeight: 1,
+                background: isPast ? 'var(--success)' : isCurrent ? 'var(--primary)' : 'var(--line)',
+                color: isPast || isCurrent ? '#fff' : 'var(--text-secondary)',
+                transition: 'var(--transition)',
+              }}>
+                {isPast ? (
+                  <svg width="12" height="12" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : i + 1}
+              </div>
+              <span style={{
+                fontSize: 12, fontWeight: isCurrent ? 700 : 500,
+                color: isCurrent ? 'var(--primary)' : isPast ? 'var(--success-text)' : 'var(--muted)',
+                whiteSpace: 'nowrap',
+              }}>
+                {step}
+              </span>
+            </div>
+            {i < SECTION_STEPS.length - 1 && (
+              <div style={{
+                width: 24, height: 1, margin: '0 4px',
+                background: isPast ? 'var(--success)' : 'var(--line)',
+                transition: 'var(--transition)',
+              }} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------- Error text component ---------- */
+function FieldError({ message }) {
+  if (!message) return null;
+  return (
+    <span style={{
+      color: 'var(--error)', fontSize: 12, marginTop: 4,
+      display: 'flex', alignItems: 'center', gap: 4,
+    }}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      {message}
+    </span>
+  );
+}
+
+/* ========== Main Component ========== */
 export default function MemberCreate() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ ...INITIAL_FORM });
@@ -65,10 +223,10 @@ export default function MemberCreate() {
   const [errors, setErrors] = useState({});
   const [generatingNumber, setGeneratingNumber] = useState(false);
   const [toast, setToast] = useState("");
+  const [visibleSection, setVisibleSection] = useState(0);
 
   function update(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
-    // clear field-level error on change
     if (errors[key]) {
       setErrors((prev) => { const next = { ...prev }; delete next[key]; return next; });
     }
@@ -105,7 +263,6 @@ export default function MemberCreate() {
     setErrors(fieldErrors);
 
     if (Object.keys(fieldErrors).length > 0) {
-      // scroll to first error field
       const firstKey = Object.keys(fieldErrors)[0];
       const el = document.getElementById(`mc-${firstKey}`);
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -129,115 +286,182 @@ export default function MemberCreate() {
     }
   }
 
-  /* helper: error-aware input style */
-  const fieldErrorStyle = (key) => errors[key] ? { border: '1.5px solid var(--danger, #d32f2f)' } : {};
+  /* Track which section is in view for the progress indicator */
+  function handleSectionVisible(index) {
+    setVisibleSection((prev) => Math.max(prev, index));
+  }
+
+  const fieldErrorStyle = (key) => errors[key]
+    ? { border: '1.5px solid var(--error)', background: 'var(--error-light)' }
+    : {};
+
+  const sectionStyle = {
+    marginBottom: 16,
+    borderRadius: 'var(--radius-lg)',
+    overflow: 'visible',
+  };
+
+  const requiredMark = <span style={{ color: 'var(--error)', fontWeight: 600 }}> *</span>;
 
   return (
     <section className="admin-shell">
+      {/* ---- Toast ---- */}
+      {toast && (
+        <div
+          className="nl2-toast"
+          style={{
+            position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)',
+            background: 'var(--success)', color: '#fff', padding: '12px 32px',
+            borderRadius: 'var(--radius)', fontSize: 14, fontWeight: 600, zIndex: 9999,
+            boxShadow: 'var(--shadow-lg)',
+            display: 'flex', alignItems: 'center', gap: 8,
+            animation: 'fadeIn 0.3s ease',
+          }}
+          role="status"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          {toast}
+        </div>
+      )}
+
       {/* ---- Header ---- */}
       <div className="page-header">
         <a
           href="/admin/members"
           onClick={(e) => { e.preventDefault(); navigate("/admin/members"); }}
-          style={{ fontSize: 13, color: 'var(--primary)', textDecoration: 'none', marginBottom: 4, display: 'inline-block' }}
+          style={{
+            fontSize: 13, color: 'var(--primary)', textDecoration: 'none',
+            marginBottom: 4, display: 'inline-flex', alignItems: 'center', gap: 4,
+            fontWeight: 500, transition: 'var(--transition)',
+          }}
         >
-          &larr; 会員一覧に戻る
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          会員一覧に戻る
         </a>
         <h1 className="page-title">新規会員登録</h1>
         <p className="page-description">管理者による会員の直接登録</p>
       </div>
 
-      {/* ---- Toast ---- */}
-      {toast && (
-        <div
-          style={{
-            position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)',
-            background: 'var(--success, #388e3c)', color: '#fff', padding: '10px 28px',
-            borderRadius: 8, fontSize: 14, fontWeight: 600, zIndex: 9999,
-            boxShadow: '0 4px 16px rgba(0,0,0,.18)',
-          }}
-          role="status"
-        >
-          {toast}
-        </div>
-      )}
+      {/* ---- Progress Indicator ---- */}
+      <ProgressIndicator currentSection={visibleSection} />
 
       {/* ---- Top-level error ---- */}
       {error && (
-        <p className="message error" aria-live="polite">{error}</p>
+        <div
+          style={{
+            background: 'var(--error-light)', border: '1px solid var(--error)',
+            borderRadius: 'var(--radius)', padding: '12px 16px',
+            display: 'flex', alignItems: 'center', gap: 8,
+            fontSize: 14, color: 'var(--error)', marginBottom: 16,
+          }}
+          aria-live="polite"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          {error}
+        </div>
       )}
 
       <form noValidate onSubmit={handleSubmit} style={{ paddingBottom: 80 }}>
         {/* ======== Section 1: 基本情報 ======== */}
-        <section className="card panel-card single-panel" style={{ marginBottom: 16 }}>
+        <section
+          className="card panel-card single-panel"
+          style={sectionStyle}
+          ref={() => handleSectionVisible(0)}
+        >
           <div className="card-body stack">
-            <SectionHeader icon="👤" title="基本情報" />
+            <SectionHeader icon={<UserIcon />} title="基本情報" />
             <div className="editor-grid">
-              {/* 氏名（漢字） */}
               <div className="field">
-                <label htmlFor="mc-name_kanji">氏名（漢字）<span style={{ color: 'var(--danger, #d32f2f)' }}> *</span></label>
+                <label htmlFor="mc-name_kanji">氏名（漢字）{requiredMark}</label>
                 <input id="mc-name_kanji" type="text" value={form.name_kanji}
                   onChange={(e) => update("name_kanji", e.target.value)}
+                  placeholder="例: 山田 太郎"
                   style={fieldErrorStyle("name_kanji")} required />
-                {errors.name_kanji && <span style={{ color: 'var(--danger, #d32f2f)', fontSize: 12, marginTop: 2 }}>{errors.name_kanji}</span>}
+                <FieldError message={errors.name_kanji} />
               </div>
 
-              {/* 氏名（フリガナ） */}
               <div className="field">
-                <label htmlFor="mc-name_kana">氏名（フリガナ）<span style={{ color: 'var(--danger, #d32f2f)' }}> *</span></label>
+                <label htmlFor="mc-name_kana">氏名（フリガナ）{requiredMark}</label>
                 <input id="mc-name_kana" type="text" value={form.name_kana}
                   onChange={(e) => update("name_kana", e.target.value)}
+                  placeholder="例: ヤマダ タロウ"
                   style={fieldErrorStyle("name_kana")} required />
-                {errors.name_kana && <span style={{ color: 'var(--danger, #d32f2f)', fontSize: 12, marginTop: 2 }}>{errors.name_kana}</span>}
+                <FieldError message={errors.name_kana} />
               </div>
 
-              {/* 生年月日 */}
-              <div className="field">
+              <div className="field" style={{ overflow: 'visible' }}>
                 <label htmlFor="mc-birthday">生年月日</label>
                 <DatePicker id="mc-birthday" value={form.birthday}
                   onChange={(val) => update("birthday", val)} minYear={1940} />
               </div>
 
-              {/* 会員種別 */}
               <div className="field">
-                <label htmlFor="mc-member_type">会員種別</label>
-                <select id="mc-member_type" value={form.member_type}
-                  onChange={(e) => update("member_type", e.target.value)}>
-                  {MEMBER_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
+                <label>会員種別</label>
+                <PillSelector
+                  id="mc-member_type"
+                  options={MEMBER_TYPES}
+                  value={form.member_type}
+                  onChange={(v) => update("member_type", v)}
+                />
               </div>
 
-              {/* ステータス */}
               <div className="field">
-                <label htmlFor="mc-status">ステータス</label>
-                <select id="mc-status" value={form.status}
-                  onChange={(e) => update("status", e.target.value)}>
-                  {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
+                <label>ステータス</label>
+                <PillSelector
+                  id="mc-status"
+                  options={STATUSES}
+                  value={form.status}
+                  onChange={(v) => update("status", v)}
+                />
               </div>
 
-              {/* 入会日 */}
-              <div className="field">
+              <div className="field" style={{ overflow: 'visible' }}>
                 <label htmlFor="mc-join_date">入会日</label>
                 <DatePicker id="mc-join_date" value={form.join_date}
                   onChange={(val) => update("join_date", val)} />
               </div>
 
-              {/* 会員番号 */}
               <div className="field">
                 <label htmlFor="mc-member_number">会員番号</label>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
                   <input id="mc-member_number" type="text" value={form.member_number}
                     onChange={(e) => update("member_number", e.target.value)}
+                    placeholder="例: 001"
                     style={{ flex: 1 }} />
                   <button type="button" className="btn btn-secondary" onClick={handleGenerateNumber}
-                    disabled={generatingNumber} style={{ whiteSpace: 'nowrap', fontSize: 13 }}>
-                    {generatingNumber ? "生成中..." : "自動採番"}
+                    disabled={generatingNumber}
+                    style={{
+                      whiteSpace: 'nowrap', fontSize: 13,
+                      display: 'flex', alignItems: 'center', gap: 6,
+                    }}>
+                    {generatingNumber ? (
+                      <>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
+                          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                        </svg>
+                        生成中...
+                      </>
+                    ) : (
+                      <>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                        </svg>
+                        自動採番
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
 
-              {/* 権限 */}
               <div className="field">
                 <label htmlFor="mc-role">権限（role）</label>
                 <select id="mc-role" value={form.role}
@@ -246,7 +470,6 @@ export default function MemberCreate() {
                 </select>
               </div>
 
-              {/* 新入会員 */}
               <div className="field">
                 <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                   <input type="checkbox" checked={form.is_new}
@@ -255,7 +478,6 @@ export default function MemberCreate() {
                 </label>
               </div>
 
-              {/* 卒業生 */}
               <div className="field">
                 <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                   <input type="checkbox" checked={form.is_graduate}
@@ -268,154 +490,195 @@ export default function MemberCreate() {
         </section>
 
         {/* ======== Section 2: 会社情報 ======== */}
-        <section className="card panel-card single-panel" style={{ marginBottom: 16 }}>
+        <section
+          className="card panel-card single-panel"
+          style={sectionStyle}
+          ref={() => handleSectionVisible(1)}
+        >
           <div className="card-body stack">
-            <SectionHeader icon="🏢" title="会社情報" />
+            <SectionHeader icon={<BuildingIcon />} title="会社情報" />
             <div className="editor-grid">
               <div className="field">
                 <label htmlFor="mc-company_name">会社名</label>
                 <input id="mc-company_name" type="text" value={form.company_name}
-                  onChange={(e) => update("company_name", e.target.value)} />
+                  onChange={(e) => update("company_name", e.target.value)}
+                  placeholder="例: 株式会社サンプル" />
               </div>
               <div className="field">
                 <label htmlFor="mc-company_position">役職名</label>
                 <input id="mc-company_position" type="text" value={form.company_position}
-                  onChange={(e) => update("company_position", e.target.value)} />
+                  onChange={(e) => update("company_position", e.target.value)}
+                  placeholder="例: 代表取締役" />
               </div>
               <div className="field">
                 <label htmlFor="mc-industry">業種</label>
                 <input id="mc-industry" type="text" value={form.industry}
-                  onChange={(e) => update("industry", e.target.value)} />
+                  onChange={(e) => update("industry", e.target.value)}
+                  placeholder="例: IT・情報通信" />
               </div>
               <div className="field">
                 <label htmlFor="mc-company_postal_code">会社郵便番号</label>
                 <input id="mc-company_postal_code" type="text" value={form.company_postal_code}
-                  onChange={(e) => update("company_postal_code", e.target.value)} />
+                  onChange={(e) => update("company_postal_code", e.target.value)}
+                  placeholder="例: 310-0000" />
               </div>
               <div className="field field-span-2">
                 <label htmlFor="mc-company_address">会社住所</label>
                 <input id="mc-company_address" type="text" value={form.company_address}
-                  onChange={(e) => update("company_address", e.target.value)} />
+                  onChange={(e) => update("company_address", e.target.value)}
+                  placeholder="例: 茨城県水戸市..." />
               </div>
               <div className="field">
                 <label htmlFor="mc-company_phone">会社電話</label>
                 <input id="mc-company_phone" type="tel" value={form.company_phone}
-                  onChange={(e) => update("company_phone", e.target.value)} />
+                  onChange={(e) => update("company_phone", e.target.value)}
+                  placeholder="例: 029-XXX-XXXX" />
               </div>
               <div className="field">
                 <label htmlFor="mc-company_fax">会社FAX</label>
                 <input id="mc-company_fax" type="tel" value={form.company_fax}
-                  onChange={(e) => update("company_fax", e.target.value)} />
+                  onChange={(e) => update("company_fax", e.target.value)}
+                  placeholder="例: 029-XXX-XXXX" />
               </div>
               <div className="field field-span-2">
                 <label htmlFor="mc-company_pr">会社PR</label>
                 <textarea id="mc-company_pr" rows={3} value={form.company_pr}
-                  onChange={(e) => update("company_pr", e.target.value)} />
+                  onChange={(e) => update("company_pr", e.target.value)}
+                  placeholder="会社の紹介文をご記入ください" />
               </div>
             </div>
           </div>
         </section>
 
         {/* ======== Section 3: 連絡先 ======== */}
-        <section className="card panel-card single-panel" style={{ marginBottom: 16 }}>
+        <section
+          className="card panel-card single-panel"
+          style={sectionStyle}
+          ref={() => handleSectionVisible(2)}
+        >
           <div className="card-body stack">
-            <SectionHeader icon="📧" title="連絡先" />
+            <SectionHeader icon={<MailIcon />} title="連絡先" />
             <div className="editor-grid">
               <div className="field">
-                <label htmlFor="mc-email">メールアドレス<span style={{ color: 'var(--danger, #d32f2f)' }}> *</span></label>
+                <label htmlFor="mc-email">メールアドレス{requiredMark}</label>
                 <input id="mc-email" type="email" value={form.email}
                   onChange={(e) => update("email", e.target.value)}
+                  placeholder="例: taro@example.com"
                   style={fieldErrorStyle("email")} required />
-                {errors.email && <span style={{ color: 'var(--danger, #d32f2f)', fontSize: 12, marginTop: 2 }}>{errors.email}</span>}
+                <FieldError message={errors.email} />
               </div>
               <div className="field">
-                <label htmlFor="mc-mobile_phone">携帯番号<span style={{ color: 'var(--danger, #d32f2f)' }}> *</span></label>
+                <label htmlFor="mc-mobile_phone">携帯番号{requiredMark}</label>
                 <input id="mc-mobile_phone" type="tel" value={form.mobile_phone}
                   onChange={(e) => update("mobile_phone", e.target.value)}
+                  placeholder="例: 090-XXXX-XXXX"
                   style={fieldErrorStyle("mobile_phone")} required />
-                {errors.mobile_phone && <span style={{ color: 'var(--danger, #d32f2f)', fontSize: 12, marginTop: 2 }}>{errors.mobile_phone}</span>}
+                <FieldError message={errors.mobile_phone} />
               </div>
             </div>
           </div>
         </section>
 
         {/* ======== Section 4: 自宅情報 ======== */}
-        <section className="card panel-card single-panel" style={{ marginBottom: 16 }}>
+        <section
+          className="card panel-card single-panel"
+          style={sectionStyle}
+          ref={() => handleSectionVisible(3)}
+        >
           <div className="card-body stack">
-            <SectionHeader icon="🏠" title="自宅情報" />
+            <SectionHeader icon={<HomeIcon />} title="自宅情報" />
             <div className="editor-grid">
               <div className="field">
                 <label htmlFor="mc-home_postal_code">自宅郵便番号</label>
                 <input id="mc-home_postal_code" type="text" value={form.home_postal_code}
-                  onChange={(e) => update("home_postal_code", e.target.value)} />
+                  onChange={(e) => update("home_postal_code", e.target.value)}
+                  placeholder="例: 310-0000" />
               </div>
               <div className="field field-span-2">
                 <label htmlFor="mc-home_address">自宅住所</label>
                 <input id="mc-home_address" type="text" value={form.home_address}
-                  onChange={(e) => update("home_address", e.target.value)} />
+                  onChange={(e) => update("home_address", e.target.value)}
+                  placeholder="例: 茨城県水戸市..." />
               </div>
               <div className="field">
                 <label htmlFor="mc-home_phone">自宅電話</label>
                 <input id="mc-home_phone" type="tel" value={form.home_phone}
-                  onChange={(e) => update("home_phone", e.target.value)} />
+                  onChange={(e) => update("home_phone", e.target.value)}
+                  placeholder="例: 029-XXX-XXXX" />
               </div>
               <div className="field">
                 <label htmlFor="mc-home_fax">自宅FAX</label>
                 <input id="mc-home_fax" type="tel" value={form.home_fax}
-                  onChange={(e) => update("home_fax", e.target.value)} />
+                  onChange={(e) => update("home_fax", e.target.value)}
+                  placeholder="例: 029-XXX-XXXX" />
               </div>
             </div>
           </div>
         </section>
 
         {/* ======== Section 5: その他 ======== */}
-        <section className="card panel-card single-panel" style={{ marginBottom: 16 }}>
+        <section
+          className="card panel-card single-panel"
+          style={sectionStyle}
+          ref={() => handleSectionVisible(4)}
+        >
           <div className="card-body stack">
-            <SectionHeader icon="📝" title="その他" />
+            <SectionHeader icon={<NoteIcon />} title="その他" />
             <div className="editor-grid">
               <div className="field field-span-2">
                 <label htmlFor="mc-hobbies">趣味・信条</label>
                 <textarea id="mc-hobbies" rows={3} value={form.hobbies}
-                  onChange={(e) => update("hobbies", e.target.value)} />
+                  onChange={(e) => update("hobbies", e.target.value)}
+                  placeholder="趣味や信条をご記入ください" />
               </div>
               <div className="field">
                 <label htmlFor="mc-referrer_1">紹介者1</label>
                 <input id="mc-referrer_1" type="text" value={form.referrer_1}
-                  onChange={(e) => update("referrer_1", e.target.value)} />
+                  onChange={(e) => update("referrer_1", e.target.value)}
+                  placeholder="紹介者の氏名" />
               </div>
               <div className="field">
                 <label htmlFor="mc-referrer_2">紹介者2</label>
                 <input id="mc-referrer_2" type="text" value={form.referrer_2}
-                  onChange={(e) => update("referrer_2", e.target.value)} />
+                  onChange={(e) => update("referrer_2", e.target.value)}
+                  placeholder="紹介者の氏名" />
               </div>
               <div className="field field-span-2">
                 <label htmlFor="mc-notes">備考（管理者用メモ）</label>
                 <textarea id="mc-notes" rows={3} value={form.notes}
-                  onChange={(e) => update("notes", e.target.value)} />
+                  onChange={(e) => update("notes", e.target.value)}
+                  placeholder="管理者用のメモを記入できます" />
               </div>
             </div>
           </div>
         </section>
 
         {/* ======== Section 6: 名簿設定 ======== */}
-        <section className="card panel-card single-panel" style={{ marginBottom: 24 }}>
+        <section
+          className="card panel-card single-panel"
+          style={{ ...sectionStyle, marginBottom: 24 }}
+          ref={() => handleSectionVisible(5)}
+        >
           <div className="card-body stack">
-            <SectionHeader icon="📖" title="名簿設定" />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 8 }}>
+            <SectionHeader icon={<BookIcon />} title="名簿設定" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 8 }}>
               <ToggleSwitch
                 checked={form.show_email_in_directory}
                 onChange={(v) => update("show_email_in_directory", v)}
                 label="メールアドレスの掲載"
+                description="会員名簿にメールアドレスを表示します"
               />
               <ToggleSwitch
                 checked={form.show_mobile_in_directory}
                 onChange={(v) => update("show_mobile_in_directory", v)}
                 label="携帯番号の掲載"
+                description="会員名簿に携帯番号を表示します"
               />
               <ToggleSwitch
                 checked={form.show_company_in_directory}
                 onChange={(v) => update("show_company_in_directory", v)}
                 label="会社情報の掲載"
+                description="会員名簿に会社情報を表示します"
               />
             </div>
           </div>
@@ -424,22 +687,53 @@ export default function MemberCreate() {
         {/* ======== Sticky Action Bar ======== */}
         <div style={{
           position: 'sticky', bottom: 0, left: 0, right: 0,
-          background: 'var(--surface, #fff)',
+          background: 'var(--panel)',
           borderTop: '1px solid var(--line)',
-          padding: '12px 24px',
-          display: 'flex', justifyContent: 'flex-end', gap: 12,
+          padding: '14px 24px',
+          display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 12,
           zIndex: 100,
+          boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
+          borderRadius: '0 0 var(--radius-lg) var(--radius-lg)',
         }}>
+          {Object.keys(errors).length > 0 && (
+            <span style={{
+              fontSize: 13, color: 'var(--error)',
+              display: 'flex', alignItems: 'center', gap: 4, marginRight: 'auto',
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              {Object.keys(errors).length}件の入力エラーがあります
+            </span>
+          )}
           <button type="button" className="btn btn-secondary"
             onClick={() => navigate("/admin/members")}>
             キャンセル
           </button>
           <button type="submit" className="btn btn-primary" disabled={saving}
-            style={{ minWidth: 140, fontSize: 15 }}>
-            {saving ? "登録中..." : "登録する"}
+            style={{
+              minWidth: 140, fontSize: 15,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}>
+            {saving ? (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+                登録中...
+              </>
+            ) : "登録する"}
           </button>
         </div>
       </form>
+
+      {/* Keyframe for spinner animation */}
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+      `}</style>
     </section>
   );
 }

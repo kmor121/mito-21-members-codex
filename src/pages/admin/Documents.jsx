@@ -4,15 +4,15 @@ import { apiRequest, base44, invalidateReadCache } from '../../api/base44Client'
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const DOC_TYPE_BADGE = {
-  "事業計画": { color: "#2563eb", bg: "#eff6ff", icon: "\uD83D\uDCCB" },
-  "団体理念": { color: "#7c3aed", bg: "#f5f3ff", icon: "\uD83D\uDCA1" },
-  "会則・規約": { color: "#d97706", bg: "#fffbeb", icon: "\uD83D\uDCDC" },
-  "年間スケジュール": { color: "#059669", bg: "#ecfdf5", icon: "\uD83D\uDCC5" },
-  "運用マニュアル": { color: "#4f46e5", bg: "#eef2ff", icon: "\uD83D\uDCD6" },
+  "事業計画": { color: "#2563eb", bg: "#eff6ff", icon: "📋" },
+  "団体理念": { color: "#7c3aed", bg: "#f5f3ff", icon: "💡" },
+  "会則・規約": { color: "#d97706", bg: "#fffbeb", icon: "📜" },
+  "年間スケジュール": { color: "#059669", bg: "#ecfdf5", icon: "📅" },
+  "運用マニュアル": { color: "#4f46e5", bg: "#eef2ff", icon: "📖" },
 };
 
 function getTypeBadge(type) {
-  return DOC_TYPE_BADGE[type] || { color: "var(--text-secondary)", bg: "var(--line-light)", icon: "\uD83D\uDCC4" };
+  return DOC_TYPE_BADGE[type] || { color: "var(--text-secondary)", bg: "var(--line-light)", icon: "📄" };
 }
 
 /* ── Toggle Switch ── */

@@ -2,15 +2,16 @@ import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { apiRequest, base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const RichTextEditor = lazy(() => import('../../components/common/RichTextEditor'));
 
 const DOC_TYPES = [
-  { key: "事業計画", label: "事業計画", icon: "\uD83D\uDCCB", desc: "年間の事業計画書" },
-  { key: "団体理念", label: "団体理念", icon: "\uD83D\uDCA1", desc: "ミッション・ビジョン" },
-  { key: "会則・規約", label: "会則・規約", icon: "\uD83D\uDCDC", desc: "定款・諸規則" },
-  { key: "年間スケジュール", label: "年間スケジュール", icon: "\uD83D\uDCC5", desc: "イベント予定表" },
-  { key: "運用マニュアル", label: "運用マニュアル", icon: "\uD83D\uDCD6", desc: "手順書・ガイド" },
+  { key: "事業計画", label: "事業計画", icon: "📋", desc: "年間の事業計画書" },
+  { key: "団体理念", label: "団体理念", icon: "💡", desc: "ミッション・ビジョン" },
+  { key: "会則・規約", label: "会則・規約", icon: "📜", desc: "定款・諸規則" },
+  { key: "年間スケジュール", label: "年間スケジュール", icon: "📅", desc: "イベント予定表" },
+  { key: "運用マニュアル", label: "運用マニュアル", icon: "📖", desc: "手順書・ガイド" },
 ];
 
 export default function DocumentEditor() {
@@ -32,6 +33,7 @@ export default function DocumentEditor() {
   const [formAttachment, setFormAttachment] = useState("");
   const [formCategory, setFormCategory] = useState("");
   const [attachOpen, setAttachOpen] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
   const isDirty = useRef(false);
   const initialLoad = useRef(true);
@@ -121,8 +123,16 @@ export default function DocumentEditor() {
   }
 
   function handleCancel() {
-    if (isDirty.current && !window.confirm("未保存の変更があります。破棄しますか？")) return;
+    if (isDirty.current) {
+      setConfirmCancel(true);
+      return;
+    }
+    navigate("/admin/documents");
+  }
+
+  function handleConfirmCancel() {
     isDirty.current = false;
+    setConfirmCancel(false);
     navigate("/admin/documents");
   }
 
@@ -149,6 +159,15 @@ export default function DocumentEditor() {
 
   return (
     <section className="admin-shell">
+      <ConfirmDialog
+        open={confirmCancel}
+        title="編集内容の破棄"
+        message="未保存の変更があります。破棄しますか？"
+        confirmLabel="破棄する"
+        confirmStyle={{ background: "#dc2626", borderColor: "#dc2626" }}
+        onConfirm={handleConfirmCancel}
+        onCancel={() => setConfirmCancel(false)}
+      />
       <div className="page-header">
         <p className="page-description" style={{ marginBottom: 4 }}>
           <Link className="text-link" to="/admin/documents">&larr; 資料一覧に戻る</Link>
@@ -286,7 +305,7 @@ export default function DocumentEditor() {
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ transition: "transform 0.2s", transform: attachOpen ? "rotate(90deg)" : "rotate(0)" }}>
                 <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              {"\uD83D\uDCCE"} 添付ファイル
+              {"📎"} 添付ファイル
               {formAttachment && <span className="doc-attach-badge">1</span>}
             </button>
             {attachOpen && (

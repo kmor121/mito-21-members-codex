@@ -1,101 +1,197 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { base44 } from '../../api/base44Client';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { useState, useEffect, useMemo } from "react";
+import { useSearchParams, Link } from "react-router-dom";
+import { base44 } from "../../api/base44Client";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
-function displayValue(value) {
-  if (value === null || value === undefined || value === "") return "-";
-  if (typeof value === "boolean") return value ? "はい" : "いいえ";
-  return String(value);
+/* ═══ helpers ═══ */
+const TYPE_COLORS = {
+  "幹事会": { bg: "#eef2ff", text: "#4f46e5", border: "#c7d2fe" },
+  "委員会": { bg: "#ecfdf5", text: "#059669", border: "#a7f3d0" },
+  "部会":   { bg: "#fffbeb", text: "#d97706", border: "#fde68a" },
+  "その他": { bg: "#f1f5f9", text: "#64748b", border: "#cbd5e1" },
+};
+
+const ROLE_COLORS = {
+  "会長":     { bg: "#eef2ff", text: "#4f46e5" },
+  "委員長":   { bg: "#eef2ff", text: "#4f46e5" },
+  "副会長":   { bg: "#ecfdf5", text: "#059669" },
+  "副委員長": { bg: "#ecfdf5", text: "#059669" },
+  "幹事":     { bg: "#fffbeb", text: "#d97706" },
+};
+
+function roleBadgeStyle(role) {
+  const c = ROLE_COLORS[role];
+  if (c) return { background: c.bg, color: c.text, border: `1px solid ${c.bg}` };
+  return { background: "#f1f5f9", color: "#64748b", border: "1px solid #e2e8f0" };
 }
 
-function formatFiscalYearLabel(fiscalYear) {
-  if (!fiscalYear || !fiscalYear.year) return "年度未設定";
-  return `${fiscalYear.year}年度`;
+function typeBadgeStyle(type) {
+  const c = TYPE_COLORS[type] || TYPE_COLORS["その他"];
+  return { background: c.bg, color: c.text, border: `1px solid ${c.border}` };
 }
 
-function MemberImage({ src, name, size = "detail" }) {
+function MemberAvatar({ src, name, size = 32 }) {
   const initial = (name || "M").charAt(0);
   if (src) {
     return (
-      <div className={`member-image member-image-${size}`}>
-        <img src={src} alt={name || "会員プロフィール画像"} loading="lazy" />
+      <div style={{
+        width: size, height: size, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
+        border: "2px solid #fff", boxShadow: "0 0 0 1px var(--line)",
+      }}>
+        <img src={src} alt={name || ""} loading="lazy"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       </div>
     );
   }
   return (
-    <div className={`member-image member-image-${size} is-placeholder`} aria-label="プロフィール画像未設定">
-      <span>{initial}</span>
-    </div>
-  );
-}
-
-function OrganizationAssignment({ assignment }) {
-  const member = assignment.member || {};
-  return (
-    <li className="organization-assignment">
-      <MemberImage src={member.profile_image} name={member.name_kanji} size="thumb" />
-      <div className="org-assignment-info">
-        <strong>{displayValue(assignment.role)}</strong>
-        <Link className="text-link" to={`/directory/members/${encodeURIComponent(member.id || "")}`}>
-          {displayValue(member.name_kanji)}
-        </Link>
-      </div>
-      {member.member_type && <span className="pill">{member.member_type}</span>}
-    </li>
-  );
-}
-
-function OrganizationCard({ organization, isChild }) {
-  const assignments = Array.isArray(organization.assignments) ? organization.assignments : [];
-  const children = Array.isArray(organization.children) ? organization.children : [];
-
-  return (
-    <article className={`organization-card${isChild ? " org-child" : ""}`}>
-      <div className="panel-heading">
-        <div>
-          <span className="pill">{displayValue(organization.org_type || "組織")}</span>
-          <h2>{displayValue(organization.org_name)}</h2>
-        </div>
-        <span className="muted">{assignments.length}名</span>
-      </div>
-      {assignments.length ? (
-        <ul className="organization-assignment-list">
-          {assignments.map((assignment, idx) => (
-            <OrganizationAssignment key={idx} assignment={assignment} />
-          ))}
-        </ul>
-      ) : (
-        <p className="empty-state">この組織にはまだ配属データがありません。</p>
-      )}
-      {children.length > 0 && (
-        <div className="org-children">
-          {children.map((child) => (
-            <OrganizationCard key={child.id} organization={child} isChild />
-          ))}
-        </div>
-      )}
-    </article>
+    <div style={{
+      width: size, height: size, borderRadius: "50%", background: "var(--primary-light)",
+      color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: size * 0.4, fontWeight: 700, flexShrink: 0,
+      border: "2px solid #fff", boxShadow: "0 0 0 1px var(--line)",
+    }}>{initial}</div>
   );
 }
 
 function buildTree(organizations) {
-  const orgById = new Map();
-  organizations.forEach((org) => {
-    orgById.set(org.id, { ...org, children: [] });
-  });
+  const map = new Map();
+  organizations.forEach(o => map.set(o.id, { ...o, children: [] }));
   const roots = [];
-  orgById.forEach((org) => {
-    const parentId = org.parent_id || "";
-    if (parentId && orgById.has(parentId)) {
-      orgById.get(parentId).children.push(org);
-    } else {
-      roots.push(org);
-    }
+  map.forEach(o => {
+    const pid = o.parent_id || "";
+    if (pid && map.has(pid)) map.get(pid).children.push(o);
+    else roots.push(o);
   });
+  const sortFn = (a, b) => (a.sort_order || 0) - (b.sort_order || 0);
+  roots.sort(sortFn);
+  map.forEach(o => o.children.sort(sortFn));
   return roots;
 }
 
+/* ═══ Skeleton ═══ */
+function SkeletonCard() {
+  return (
+    <div style={{ padding: 20, borderRadius: "var(--radius-lg)", border: "1px solid var(--line)", background: "#fff" }}>
+      <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16 }}>
+        <div style={{ width: 100, height: 18, borderRadius: 4, background: "var(--line-light)", animation: "pulse 1.5s ease infinite" }} />
+        <div style={{ width: 60, height: 22, borderRadius: 12, background: "var(--line-light)", animation: "pulse 1.5s ease infinite" }} />
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} style={{ width: 110, height: 36, borderRadius: 20, background: "var(--line-light)", animation: "pulse 1.5s ease infinite" }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ═══ OrgViewNode (recursive, read-only) ═══ */
+function OrgViewNode({ org, depth, expandedOrgs, toggleExpand }) {
+  const assignments = Array.isArray(org.assignments) ? org.assignments : [];
+  const children = org.children || [];
+  const isExpanded = expandedOrgs.has(org.id);
+  const tc = TYPE_COLORS[org.org_type] || TYPE_COLORS["その他"];
+  const hasContent = assignments.length > 0 || children.length > 0;
+
+  return (
+    <div style={{ position: "relative" }}>
+      {/* Connection lines for child orgs */}
+      {depth > 0 && (
+        <div style={{ position: "absolute", left: -20, top: 0, bottom: 0, width: 20 }}>
+          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 2, background: "var(--line)" }} />
+          <div style={{ position: "absolute", left: 0, top: 24, height: 2, width: 20, background: "var(--line)" }} />
+        </div>
+      )}
+
+      <div style={{
+        border: `1px solid ${tc.border}`, borderRadius: "var(--radius-lg)", background: "#fff",
+        overflow: "hidden", transition: "box-shadow 0.2s ease",
+      }}>
+        {/* Header */}
+        <div
+          onClick={() => hasContent && toggleExpand(org.id)}
+          style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            padding: "14px 18px", borderBottom: isExpanded ? `1px solid ${tc.border}` : "none",
+            background: tc.bg, cursor: hasContent ? "pointer" : "default",
+            transition: "background 0.15s",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {hasContent && (
+              <span style={{
+                fontSize: 12, color: "var(--text-secondary)", transition: "transform 0.2s ease",
+                transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)", display: "inline-block",
+              }}>▶</span>
+            )}
+            <strong style={{ fontSize: 15 }}>{org.org_name || "（名称未設定）"}</strong>
+            <span style={{
+              ...typeBadgeStyle(org.org_type), padding: "2px 10px", borderRadius: 20,
+              fontSize: 12, fontWeight: 600, whiteSpace: "nowrap",
+            }}>{org.org_type || "その他"}</span>
+          </div>
+          <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{assignments.length}名</span>
+        </div>
+
+        {/* Member chips */}
+        {isExpanded && (
+          <div style={{ padding: "16px 18px", animation: "orgViewSlide 0.2s ease" }}>
+            {assignments.length === 0 ? (
+              <p style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}>配属メンバーはいません</p>
+            ) : (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                {assignments.map((a, idx) => {
+                  const member = a.member || {};
+                  return (
+                    <Link
+                      key={idx}
+                      to={`/directory/members/${encodeURIComponent(member.id || "")}`}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 8, padding: "6px 14px 6px 6px",
+                        borderRadius: 24, border: "1px solid var(--line)", background: "#fff",
+                        textDecoration: "none", color: "var(--text)", fontSize: 13,
+                        transition: "all 0.15s",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.background = "var(--primary-light)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.background = "#fff"; }}
+                    >
+                      <MemberAvatar src={member.profile_image} name={member.name_kanji} size={28} />
+                      <span style={{ fontWeight: 500 }}>{member.name_kanji || "（名前未設定）"}</span>
+                      {a.role && (
+                        <span style={{
+                          ...roleBadgeStyle(a.role), padding: "1px 8px", borderRadius: 12,
+                          fontSize: 11, fontWeight: 600,
+                        }}>{a.role}</span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Children */}
+      {isExpanded && children.length > 0 && (
+        <div style={{ marginLeft: 40, marginTop: 12, display: "grid", gap: 12, position: "relative" }}>
+          {children.map(child => (
+            <OrgViewNode
+              key={child.id}
+              org={child}
+              depth={depth + 1}
+              expandedOrgs={expandedOrgs}
+              toggleExpand={toggleExpand}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+/* ═══════════════════════════════════════════ MAIN ═══ */
 export default function OrgChartView() {
   const [searchParams, setSearchParams] = useSearchParams();
   const fiscalYearIdParam = searchParams.get("fiscalYearId") || "";
@@ -105,8 +201,7 @@ export default function OrgChartView() {
   const [years, setYears] = useState([]);
   const [selectedFiscalYear, setSelectedFiscalYear] = useState(null);
   const [orgTree, setOrgTree] = useState([]);
-  const [organizationsCount, setOrganizationsCount] = useState(0);
-  const [assignmentsCount, setAssignmentsCount] = useState(0);
+  const [expandedOrgs, setExpandedOrgs] = useState(new Set());
 
   useEffect(() => {
     setLoading(true);
@@ -121,31 +216,32 @@ export default function OrgChartView() {
           base44.entities.Member.filter({ approval_status: "承認済", status: "活動中" }),
         ]);
 
-        const currentFy = yearsList.find((fy) => fy.is_current === true);
+        const currentFy = yearsList.find(fy => fy.is_current === true);
         const effectiveId = fiscalYearIdParam || currentFy?.id || "";
-        const selectedFy = yearsList.find((fy) => fy.id === effectiveId) || null;
+        const selectedFy = yearsList.find(fy => fy.id === effectiveId) || null;
 
         const memberMap = {};
         for (const m of allMembers) memberMap[m.id] = m;
 
-        const fyOrgs = allOrgs.filter((o) => o.fiscal_year_id === effectiveId);
-        const fyAssignments = allAssignments.filter((a) => a.fiscal_year_id === effectiveId);
+        const fyOrgs = allOrgs.filter(o => o.fiscal_year_id === effectiveId);
+        const fyAssignments = allAssignments.filter(a => a.fiscal_year_id === effectiveId);
 
-        const organizations = fyOrgs.map((org) => ({
+        const organizations = fyOrgs.map(org => ({
           ...org,
           assignments: fyAssignments
-            .filter((a) => a.organization_id === org.id)
-            .map((a) => ({
-              ...a,
-              member: memberMap[a.member_id] || {},
-            })),
+            .filter(a => a.organization_id === org.id)
+            .map(a => ({ ...a, member: memberMap[a.member_id] || {} })),
         }));
 
         setYears(yearsList);
         setSelectedFiscalYear(selectedFy);
-        setOrganizationsCount(fyOrgs.length);
-        setAssignmentsCount(fyAssignments.length);
-        setOrgTree(buildTree(organizations));
+        const tree = buildTree(organizations);
+        setOrgTree(tree);
+        // Auto-expand all
+        const allIds = new Set();
+        function collectIds(nodes) { nodes.forEach(n => { allIds.add(n.id); if (n.children) collectIds(n.children); }); }
+        collectIds(tree);
+        setExpandedOrgs(allIds);
       } catch (err) {
         setError(err.message || "組織図の取得に失敗しました。");
       } finally {
@@ -154,27 +250,44 @@ export default function OrgChartView() {
     })();
   }, [fiscalYearIdParam]);
 
-  function handleFiscalYearChange(e) {
-    const value = String(e.target.value || "").trim();
-    if (value) {
-      setSearchParams({ fiscalYearId: value });
-    } else {
-      setSearchParams({});
-    }
+  function toggleExpand(orgId) {
+    setExpandedOrgs(prev => {
+      const next = new Set(prev);
+      if (next.has(orgId)) next.delete(orgId); else next.add(orgId);
+      return next;
+    });
   }
+
+  const sortedYears = useMemo(() => [...years].sort((a, b) => (a.year || 0) - (b.year || 0)), [years]);
+  const activeFiscalYearId = selectedFiscalYear?.id || "";
+  const currentIdx = sortedYears.findIndex(fy => fy.id === activeFiscalYearId);
+  const yearLabel = selectedFiscalYear?.year_label || (selectedFiscalYear?.year ? `${selectedFiscalYear.year}年度` : "");
+
+  function goYear(delta) {
+    const next = sortedYears[currentIdx + delta];
+    if (next) setSearchParams({ fiscalYearId: next.id });
+  }
+
+  function expandAll() {
+    const allIds = new Set();
+    function collect(nodes) { nodes.forEach(n => { allIds.add(n.id); if (n.children) collect(n.children); }); }
+    collect(orgTree);
+    setExpandedOrgs(allIds);
+  }
+  function collapseAll() { setExpandedOrgs(new Set()); }
+
+  /* ═══ RENDER ═══ */
 
   if (loading) {
     return (
       <section className="admin-shell">
         <div className="page-header">
-          <h1 className="page-title">組織図</h1>
-          <p className="page-description">年度ごとの組織と配属を一覧表示</p>
+          <h1 className="page-title" style={{ display: "flex", alignItems: "center", gap: 10 }}>組織図</h1>
         </div>
-        <section className="card panel-card single-panel">
-          <div className="card-body">
-            <LoadingSpinner />
-          </div>
-        </section>
+        <div style={{ display: "grid", gap: 16 }}>
+          <SkeletonCard /><SkeletonCard /><SkeletonCard />
+        </div>
+        <style>{`@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
       </section>
     );
   }
@@ -182,88 +295,143 @@ export default function OrgChartView() {
   if (error) {
     return (
       <section className="admin-shell">
-        <div className="page-header">
-          <h1 className="page-title">組織図</h1>
-          <p className="page-description">年度ごとの組織と配属を一覧表示</p>
-        </div>
+        <div className="page-header"><h1 className="page-title">組織図</h1></div>
         <section className="card panel-card single-panel">
-          <div className="card-body stack">
-            <p className="message error">{error}</p>
-            <div className="actions">
-              <Link className="text-link" to="/directory">会員名簿へ</Link>
-              <Link className="text-link" to="/mypage">マイページへ</Link>
-              <Link className="text-link" to="/info">基本情報へ</Link>
-              <Link className="text-link" to="/manual">運用マニュアルへ</Link>
-            </div>
-          </div>
+          <div className="card-body"><p className="message error">{error}</p></div>
         </section>
       </section>
     );
   }
 
-  const selectedFiscalYearId = selectedFiscalYear?.id || "";
+  const totalMembers = orgTree.reduce((sum, org) => {
+    function count(node) {
+      let c = (node.assignments || []).length;
+      (node.children || []).forEach(child => { c += count(child); });
+      return c;
+    }
+    return sum + count(org);
+  }, 0);
 
   return (
     <section className="admin-shell">
-      <div className="page-header">
-        <h1 className="page-title">組織図</h1>
-        <p className="page-description">年度ごとの組織と配属を一覧表示</p>
+      {/* ── Page header ── */}
+      <div className="page-header" style={{ marginBottom: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <h1 className="page-title" style={{ margin: 0 }}>組織図</h1>
+          {yearLabel && (
+            <span style={{
+              padding: "3px 12px", borderRadius: 20, background: "var(--primary-light)",
+              color: "var(--primary)", fontSize: 13, fontWeight: 600,
+            }}>{yearLabel}</span>
+          )}
+        </div>
       </div>
-      <section className="card panel-card single-panel">
-        <div className="card-body stack">
-          <div className="panel-heading">
-            <div>
-              <h2>
-                {selectedFiscalYear
-                  ? `${formatFiscalYearLabel(selectedFiscalYear)}の組織図`
-                  : "組織図"}
-              </h2>
-            </div>
+
+      {/* ── Year pill navigator ── */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 6, padding: "12px 0",
+        borderBottom: "1px solid var(--line)", marginBottom: 20,
+      }}>
+        <button type="button" onClick={() => goYear(-1)} disabled={currentIdx <= 0}
+          style={{
+            background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
+            padding: "4px 10px", cursor: currentIdx <= 0 ? "default" : "pointer",
+            color: currentIdx <= 0 ? "var(--muted)" : "var(--text)", fontSize: 13,
+          }}>←</button>
+        <div className="nl2-pill-tabs" style={{ gap: 4 }}>
+          {sortedYears.map(fy => (
+            <button
+              key={fy.id}
+              type="button"
+              className={`nl2-pill-tab${fy.id === activeFiscalYearId ? " active" : ""}`}
+              onClick={() => setSearchParams({ fiscalYearId: fy.id })}
+              style={{ fontSize: 13, padding: "5px 14px" }}
+            >
+              {fy.year_label || `${fy.year}年度`}
+            </button>
+          ))}
+        </div>
+        <button type="button" onClick={() => goYear(1)} disabled={currentIdx >= sortedYears.length - 1}
+          style={{
+            background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
+            padding: "4px 10px", cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
+            color: currentIdx >= sortedYears.length - 1 ? "var(--muted)" : "var(--text)", fontSize: 13,
+          }}>→</button>
+
+        <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+          <button type="button" onClick={expandAll}
+            style={{
+              background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
+              padding: "4px 10px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
+            }}>すべて展開</button>
+          <button type="button" onClick={collapseAll}
+            style={{
+              background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
+              padding: "4px 10px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
+            }}>すべて閉じる</button>
+        </div>
+      </div>
+
+      {/* ── Summary ── */}
+      {orgTree.length > 0 && (
+        <div style={{
+          display: "flex", gap: 16, marginBottom: 20, flexWrap: "wrap",
+        }}>
+          <div style={{
+            flex: 1, minWidth: 120, padding: "14px 18px", borderRadius: "var(--radius-lg)",
+            background: "#fff", border: "1px solid var(--line)",
+          }}>
+            <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>組織数</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: "var(--primary)" }}>{orgTree.length}</div>
           </div>
-
-          <form className="basic-info-filter" noValidate>
-            <div className="field">
-              <label htmlFor="organization-fiscal-year">年度</label>
-              <select
-                id="organization-fiscal-year"
-                name="fiscal_year_id"
-                value={selectedFiscalYearId}
-                onChange={handleFiscalYearChange}
-              >
-                {years.length ? (
-                  years.map((fy) => (
-                    <option key={fy.id} value={fy.id}>
-                      {formatFiscalYearLabel(fy)}{fy.is_current ? "（現在年度）" : ""}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">年度データ未登録</option>
-                )}
-              </select>
-            </div>
-          </form>
-
-          {!years.length && (
-            <p className="empty-state">
-              年度が未登録のため、表示対象の年度を決められません。管理画面で年度を登録すると切替表示できます。
-            </p>
-          )}
-
-          {years.length > 0 && organizationsCount === 0 && (
-            <p className="empty-state">この年度の組織データはまだ登録されていません。</p>
-          )}
-
-          {years.length > 0 && organizationsCount > 0 && assignmentsCount === 0 && (
-            <p className="empty-state">この年度の配属データはまだ登録されていません。</p>
-          )}
-
-          <div className="organization-tree">
-            {orgTree.map((org) => (
-              <OrganizationCard key={org.id} organization={org} isChild={false} />
-            ))}
+          <div style={{
+            flex: 1, minWidth: 120, padding: "14px 18px", borderRadius: "var(--radius-lg)",
+            background: "#fff", border: "1px solid var(--line)",
+          }}>
+            <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>配属人数</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: "var(--success)" }}>{totalMembers}</div>
           </div>
         </div>
-      </section>
+      )}
+
+      {/* ── Empty state ── */}
+      {orgTree.length === 0 ? (
+        <div style={{
+          textAlign: "center", padding: "60px 20px", background: "#fff",
+          borderRadius: "var(--radius-lg)", border: "1px solid var(--line)",
+        }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>🏢</div>
+          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>この年度の組織図はまだ登録されていません</h3>
+          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
+            管理者が組織データを登録すると、ここに表示されます
+          </p>
+        </div>
+      ) : (
+        /* ── Org tree ── */
+        <div style={{ display: "grid", gap: 16 }}>
+          {orgTree.map(org => (
+            <OrgViewNode
+              key={org.id}
+              org={org}
+              depth={0}
+              expandedOrgs={expandedOrgs}
+              toggleExpand={toggleExpand}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* ═══ Animations ═══ */}
+      <style>{`
+        @keyframes orgViewSlide {
+          from { opacity: 0; max-height: 0; }
+          to { opacity: 1; max-height: 500px; }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+      `}</style>
     </section>
   );
 }

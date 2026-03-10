@@ -24,6 +24,11 @@ export default function Landing() {
           <p>管理者向けのダッシュボードと各種管理機能</p>
         </Link>
       </div>
+      <div style={{ marginTop: 40, fontSize: 14, color: '#64748b' }}>
+        <a href="https://mito21.net/" target="_blank" rel="noopener noreferrer" style={{ color: '#4f46e5', textDecoration: 'none', fontWeight: 600 }}>
+          水戸21の会 公式サイト
+        </a>
+      </div>
     </section>
   );
 }

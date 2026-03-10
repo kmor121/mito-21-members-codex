@@ -57,7 +57,7 @@ export default function ApplyConfirm() {
           <p className="message error">確認する申込内容がありません。先に入力画面から進んでください。</p>
           <div className="actions">
             <Link className="button" to="/apply">入会申込へ</Link>
-            <Link className="button ghost" to="/">公開トップへ</Link>
+            <Link className="button ghost" to="/">トップへ</Link>
           </div>
         </div>
       </section>

@@ -12,6 +12,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const newsletterId = normalize(body?.newsletter_id);
+    const testEmail = normalize(body?.test_email);
 
     if (!newsletterId) {
       return Response.json({ ok: false, error: "newsletter_id is required" }, { status: 400 });
@@ -23,8 +24,9 @@ Deno.serve(async (req) => {
     if (!resendApiKey || !resendFromEmail) {
       return Response.json({
         ok: false,
-        error: "Email configuration not set. Set RESEND_API_KEY and RESEND_FROM_EMAIL secrets."
-      }, { status: 500 });
+        error: "メール送信の設定がされていません。RESEND_API_KEY と RESEND_FROM_EMAIL を設定してください。",
+        skipped: true,
+      }, { status: 200 });
     }
 
     const base44 = createClientFromRequest(req);
@@ -34,14 +36,78 @@ Deno.serve(async (req) => {
       return Response.json({ ok: false, error: "Newsletter not found" }, { status: 404 });
     }
 
+    const title = normalize(newsletter.title) || "お知らせ";
+    const bodyText = normalize(newsletter.body) || "";
+    const bodyHtml = normalize(newsletter.body_html) || "";
+    const scheduledAt = normalize(newsletter.scheduled_at);
+    const channel = normalize(newsletter.channel) || "email";
+
+    // Parse attachments (supports base64 file attachments)
+    let attachments: Array<Record<string, unknown>> = [];
+    try {
+      const raw = normalize(newsletter.attachments_json);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          attachments = parsed
+            .filter((a: Record<string, unknown>) => a.filename && a.content)
+            .map((a: Record<string, unknown>) => ({
+              filename: String(a.filename),
+              content: String(a.content),
+            }));
+        }
+      }
+    } catch { /* ignore */ }
+
+    // ── Test mode ──
+    if (testEmail) {
+      const emailPayloadTest: Record<string, unknown> = {
+        from: resendFromEmail,
+        to: [testEmail],
+        subject: `【テスト】${title}`,
+        text: bodyText,
+      };
+      if (bodyHtml) emailPayloadTest.html = bodyHtml;
+      if (attachments.length > 0) emailPayloadTest.attachments = attachments;
+
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(emailPayloadTest),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        return Response.json({
+          ok: false,
+          error: `送信に失敗しました: ${response.status} ${errorBody}`,
+        }, { status: 500 });
+      }
+
+      return Response.json({
+        ok: true,
+        test: true,
+        message: `テストメールを ${testEmail} に送信しました`,
+      });
+    }
+
+    // ── Normal send mode ──
     if (newsletter.status === "sent") {
       return Response.json({ ok: false, error: "Newsletter already sent" }, { status: 400 });
+    }
+
+    if (channel !== "email" && channel !== "email+line") {
+      return Response.json({ ok: false, error: "Only email channel is currently supported" }, { status: 400 });
     }
 
     // Build recipient list
     const allMembers = await base44.asServiceRole.entities.Member.list();
     let recipients = allMembers.filter(
-      (m) => m.approval_status === "承認済" && m.status === "活動中" && m.email
+      (m: Record<string, unknown>) =>
+        m.approval_status === "承認済" && m.status === "活動中" && m.email
     );
 
     const audienceType = normalize(newsletter.audience_type) || "all";
@@ -51,57 +117,90 @@ Deno.serve(async (req) => {
       if (raw) filterJson = JSON.parse(raw);
     } catch { /* ignore */ }
 
-    if (audienceType === "member_type" && filterJson.member_type) {
-      recipients = recipients.filter((m) => m.member_type === filterJson.member_type);
-    } else if (audienceType === "status" && filterJson.status) {
-      recipients = recipients.filter((m) => m.status === filterJson.status);
+    // Individual mode: send to specific member_ids
+    if (audienceType === "individual" && Array.isArray(filterJson.member_ids)) {
+      const idSet = new Set(filterJson.member_ids.map(String));
+      recipients = recipients.filter((m: Record<string, unknown>) => idSet.has(String(m.id)));
+    } else if (audienceType !== "individual") {
+      // Segment filter (new format)
+      const segment = normalize(filterJson.segment);
+      if (segment === "正会員" || segment === "賛助会員" || segment === "OB会員" || segment === "名誉顧問") {
+        recipients = recipients.filter((m: Record<string, unknown>) => normalize(m.member_type) === segment);
+      } else if (segment === "新入会員") {
+        recipients = recipients.filter((m: Record<string, unknown>) => m.is_new === true);
+      }
+
+      // Legacy member_type filter (backward compat)
+      if (!segment && filterJson.member_type) {
+        const mt = normalize(filterJson.member_type);
+        if (mt) recipients = recipients.filter((m: Record<string, unknown>) => normalize(m.member_type) === mt);
+      }
+
+      // Compound: is_graduate
+      if (filterJson.is_graduate === true) {
+        recipients = recipients.filter((m: Record<string, unknown>) => m.is_graduate === true);
+      }
+
+      // Compound: unpaid_only
+      if (filterJson.unpaid_only === true) {
+        const dues = await base44.asServiceRole.entities.Due.list();
+        const fiscalYears = await base44.asServiceRole.entities.FiscalYear.list();
+        const currentFY = fiscalYears.find((fy: Record<string, unknown>) => fy.is_current === true);
+        if (currentFY) {
+          const paidMemberIds = new Set<string>();
+          for (const d of dues) {
+            const dr = d as Record<string, unknown>;
+            if (normalize(dr.fiscal_year_id) !== String(currentFY.id)) continue;
+            if (normalize(dr.status) === "納入済") paidMemberIds.add(normalize(dr.member_id));
+          }
+          recipients = recipients.filter((m: Record<string, unknown>) => !paidMemberIds.has(String(m.id)));
+        }
+      }
+
+      // Compound: organization_id
+      const orgId = normalize(filterJson.organization_id);
+      if (orgId) {
+        const assignments = await base44.asServiceRole.entities.OrgAssignment.list();
+        const orgMemberIds = new Set<string>();
+        for (const a of assignments) {
+          const ar = a as Record<string, unknown>;
+          if (normalize(ar.organization_id) === orgId) orgMemberIds.add(normalize(ar.member_id));
+        }
+        recipients = recipients.filter((m: Record<string, unknown>) => orgMemberIds.has(String(m.id)));
+      }
     }
 
     if (recipients.length === 0) {
       return Response.json({ ok: false, error: "No recipients found" }, { status: 400 });
     }
 
-    const title = normalize(newsletter.title) || "お知らせ";
-    const bodyText = normalize(newsletter.body) || "";
-    const scheduledAt = normalize(newsletter.scheduled_at);
-    const channel = normalize(newsletter.channel) || "email";
-
-    if (channel !== "email" && channel !== "email+line") {
-      return Response.json({
-        ok: false,
-        error: "Only email channel is currently supported"
-      }, { status: 400 });
-    }
-
-    // Send emails via Resend API
+    // Send emails via Resend API in batches
     let successCount = 0;
     let failCount = 0;
     const errors: string[] = [];
-
-    // Send in batches of 10
     const batchSize = 10;
+
     for (let i = 0; i < recipients.length; i += batchSize) {
       const batch = recipients.slice(i, i + batchSize);
       const results = await Promise.allSettled(
-        batch.map(async (member) => {
+        batch.map(async (member: Record<string, unknown>) => {
           const emailPayload: Record<string, unknown> = {
             from: resendFromEmail,
             to: [String(member.email)],
             subject: title,
-            text: bodyText
+            text: bodyText,
           };
-
-          if (scheduledAt) {
-            emailPayload.send_at = scheduledAt;
-          }
+          if (bodyHtml) emailPayload.html = bodyHtml;
+          if (attachments.length > 0) emailPayload.attachments = attachments;
+          if (scheduledAt) emailPayload.send_at = scheduledAt;
 
           const response = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
-              "Authorization": `Bearer ${resendApiKey}`,
-              "Content-Type": "application/json"
+              Authorization: `Bearer ${resendApiKey}`,
+              "Content-Type": "application/json",
             },
-            body: JSON.stringify(emailPayload)
+            body: JSON.stringify(emailPayload),
           });
 
           if (!response.ok) {
@@ -112,9 +211,8 @@ Deno.serve(async (req) => {
       );
 
       for (const result of results) {
-        if (result.status === "fulfilled") {
-          successCount++;
-        } else {
+        if (result.status === "fulfilled") successCount++;
+        else {
           failCount++;
           errors.push(String(result.reason));
         }
@@ -123,17 +221,11 @@ Deno.serve(async (req) => {
 
     // Update newsletter status
     const newStatus = scheduledAt ? "scheduled" : "sent";
-    const updateData: Record<string, unknown> = {
-      status: newStatus
-    };
-    if (!scheduledAt) {
-      updateData.last_sent_at = new Date().toISOString();
-    }
+    const updateData: Record<string, unknown> = { status: newStatus };
+    if (!scheduledAt) updateData.last_sent_at = new Date().toISOString();
     if (failCount > 0) {
       updateData.error_message = errors.slice(0, 3).join("; ");
-      if (successCount === 0) {
-        updateData.status = "failed";
-      }
+      if (successCount === 0) updateData.status = "failed";
     }
 
     await base44.asServiceRole.entities.Newsletter.update(newsletterId, updateData);
@@ -144,7 +236,7 @@ Deno.serve(async (req) => {
       success_count: successCount,
       fail_count: failCount,
       total_recipients: recipients.length,
-      errors: errors.slice(0, 5)
+      errors: errors.slice(0, 5),
     });
   } catch (error) {
     console.error(error);

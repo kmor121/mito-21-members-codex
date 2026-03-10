@@ -434,7 +434,7 @@ export default function FiscalYears() {
       <FyConfirmDialog
         open={confirmSetCurrent}
         title="現在年度の変更"
-        icon={"\uD83D\uDCC5"}
+        icon={"📅"}
         confirmLabel="変更する"
         onConfirm={handleSetCurrent}
         onCancel={() => { setConfirmSetCurrent(false); setSetCurrentTargetId(null); }}
@@ -449,7 +449,7 @@ export default function FiscalYears() {
       <FyConfirmDialog
         open={confirmTransition}
         title="年度移行の実行"
-        icon={"\uD83D\uDD04"}
+        icon={"🔄"}
         confirmLabel="移行を実行する"
         confirmDanger
         onConfirm={executeTransition}
@@ -485,7 +485,7 @@ export default function FiscalYears() {
             <LoadingSpinner />
           ) : years.length === 0 ? (
             <div className="fy-empty">
-              <span className="fy-empty-icon">{"\uD83D\uDCC6"}</span>
+              <span className="fy-empty-icon">{"📆"}</span>
               <p>年度データがありません</p>
               <button className="btn btn-primary" type="button" onClick={handleNew} style={{ marginTop: 8 }}>
                 最初の年度を追加
@@ -630,7 +630,7 @@ export default function FiscalYears() {
                 disabled={saving}
                 onClick={() => setConfirmTransition(true)}
               >
-                {"\uD83D\uDD04"} 年度移行を実行
+                {"🔄"} 年度移行を実行
               </button>
             </div>
           </div>
@@ -702,7 +702,7 @@ export default function FiscalYears() {
                 </div>
                 {formStartDate && formEndDate && (
                   <div className="fy-date-preview">
-                    {"\uD83D\uDCC5"} {formStartDate} 〜 {formEndDate}
+                    {"📅"} {formStartDate} 〜 {formEndDate}
                   </div>
                 )}
               </div>

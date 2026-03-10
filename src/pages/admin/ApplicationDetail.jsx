@@ -1,26 +1,160 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { apiRequest, base44 } from '../../api/base44Client';
+import DatePicker from '../../components/ui/DatePicker';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
+/* ── helpers ── */
 function displayValue(v) {
   if (v === null || v === undefined || v === "") return "-";
   if (typeof v === "boolean") return v ? "はい" : "いいえ";
   return String(v);
 }
-
-function statusPillClass(status) {
-  if (status === "承認済") return " pill-success";
-  if (status === "却下") return " pill-danger";
-  return " pill-warning";
+function boolMark(v) { return v ? "○" : "×"; }
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function formatDate(d) {
+  if (!d) return "-";
+  const s = d.slice(0, 10);
+  const [y, m, day] = s.split("-");
+  return `${y}年${Number(m)}月${Number(day)}日`;
 }
 
-function MemberImage({ src, name, size = "detail" }) {
-  const initial = (name || "M").charAt(0);
-  if (src) return <div className={`member-image member-image-${size}`}><img src={src} alt={name || ""} loading="lazy" /></div>;
-  return <div className={`member-image member-image-${size} is-placeholder`}><span>{initial}</span></div>;
+/* ── SVG Icons ── */
+const iconBase = { width: 18, height: 18, fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
+
+const UserIcon = () => (
+  <svg style={{ ...iconBase, color: 'var(--primary)' }} viewBox="0 0 24 24">
+    <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  </svg>
+);
+const BuildingIcon = () => (
+  <svg style={{ ...iconBase, color: 'var(--primary)' }} viewBox="0 0 24 24">
+    <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+  </svg>
+);
+const MailIcon = () => (
+  <svg style={{ ...iconBase, color: 'var(--primary)' }} viewBox="0 0 24 24">
+    <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+  </svg>
+);
+const HomeIcon = () => (
+  <svg style={{ ...iconBase, color: 'var(--primary)' }} viewBox="0 0 24 24">
+    <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" />
+  </svg>
+);
+const NoteIcon = () => (
+  <svg style={{ ...iconBase, color: 'var(--primary)' }} viewBox="0 0 24 24">
+    <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+  </svg>
+);
+const UsersIcon = () => (
+  <svg style={{ ...iconBase, color: 'var(--primary)' }} viewBox="0 0 24 24">
+    <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+  </svg>
+);
+const CheckIcon = () => (
+  <svg style={{ ...iconBase, color: 'currentColor' }} viewBox="0 0 24 24">
+    <path d="M5 13l4 4L19 7" />
+  </svg>
+);
+const XIcon = () => (
+  <svg style={{ ...iconBase, color: 'currentColor' }} viewBox="0 0 24 24">
+    <path d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
+
+/* ── Status badge ── */
+const STATUS_BADGE = {
+  "申請中": { bg: "#fffbeb", color: "#d97706" },
+  "承認済": { bg: "#ecfdf5", color: "#059669" },
+  "却下":   { bg: "#fee2e2", color: "#991b1b" },
+};
+
+function StatusBadge({ status, large }) {
+  const s = STATUS_BADGE[status] || { bg: "#f1f5f9", color: "#64748b" };
+  return (
+    <span style={{
+      display: "inline-block", padding: large ? "5px 14px" : "3px 10px",
+      borderRadius: "999px", fontSize: large ? 13 : 11, fontWeight: 600,
+      background: s.bg, color: s.color, whiteSpace: "nowrap",
+    }}>
+      {status || "-"}
+    </span>
+  );
 }
 
+/* ── Section card ── */
+function SectionCard({ title, icon, children }) {
+  return (
+    <div className="card" style={{ overflow: "visible" }}>
+      <div className="card-header" style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 20px" }}>
+        {icon}
+        <h3 style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>{title}</h3>
+      </div>
+      <div className="card-body" style={{ padding: 20 }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ── Info grid (label/value pairs) ── */
+function InfoGrid({ items }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+      {items.map((item, i) => item && (
+        <div key={i} style={{
+          padding: "10px 12px", borderRadius: "var(--radius)",
+          background: "var(--line-light)", border: "1px solid var(--line)",
+          gridColumn: item.span2 ? "span 2" : undefined,
+        }}>
+          <dt style={{ fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4 }}>
+            {item.label}
+          </dt>
+          <dd style={{ fontSize: 13, fontWeight: 600, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+            <span>{item.value || "-"}</span>
+            {item.badge}
+          </dd>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Member type pill selector ── */
+const MEMBER_TYPE_OPTIONS = [
+  { value: "正会員", color: "#4f46e5", bg: "#eef2ff" },
+  { value: "賛助会員", color: "#059669", bg: "#ecfdf5" },
+  { value: "名誉顧問", color: "#d97706", bg: "#fffbeb" },
+];
+
+function MemberTypePills({ value, onChange }) {
+  return (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      {MEMBER_TYPE_OPTIONS.map((opt) => {
+        const active = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            style={{
+              padding: "8px 20px", borderRadius: "999px", fontSize: 14, fontWeight: 600,
+              border: active ? "2px solid " + opt.color : "2px solid var(--line)",
+              background: active ? opt.bg : "#fff",
+              color: active ? opt.color : "var(--text-secondary)",
+              cursor: "pointer", transition: "all 0.15s",
+            }}
+          >
+            {opt.value}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════ */
 export default function ApplicationDetail() {
   const { applicationId } = useParams();
   const navigate = useNavigate();
@@ -29,22 +163,21 @@ export default function ApplicationDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Approve form
+  /* approve state */
   const [memberType, setMemberType] = useState("正会員");
   const [memberNumber, setMemberNumber] = useState("");
+  const [joinDate, setJoinDate] = useState(todayStr());
   const [approveSubmitting, setApproveSubmitting] = useState(false);
-  const [approveMessage, setApproveMessage] = useState("");
-  const [approveMessageType, setApproveMessageType] = useState("");
+  const [showApproveModal, setShowApproveModal] = useState(false);
 
-  // Reject form
+  /* reject state */
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectSubmitting, setRejectSubmitting] = useState(false);
-  const [rejectMessage, setRejectMessage] = useState("");
-  const [rejectMessageType, setRejectMessageType] = useState("");
+  const [showRejectModal, setShowRejectModal] = useState(false);
 
-  // Confirmation modals
-  const [showApproveConfirm, setShowApproveConfirm] = useState(false);
-  const [showRejectConfirm, setShowRejectConfirm] = useState(false);
+  /* messages */
+  const [toast, setToast] = useState(null);
+  const [fieldError, setFieldError] = useState("");
 
   const loadDetail = useCallback(async () => {
     setLoading(true);
@@ -63,24 +196,25 @@ export default function ApplicationDetail() {
     }
   }, [applicationId]);
 
-  useEffect(() => {
-    loadDetail();
-  }, [loadDetail]);
+  useEffect(() => { loadDetail(); }, [loadDetail]);
 
-  function handleApproveClick(e) {
-    e.preventDefault();
-    setApproveMessage("");
-    setApproveMessageType("");
+  function showToastMsg(msg) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }
+
+  /* ── Approve flow ── */
+  function openApproveModal() {
+    setFieldError("");
     if (!memberNumber.trim()) {
-      setApproveMessage("会員番号を入力してください。");
-      setApproveMessageType("error");
+      setFieldError("会員番号を入力してください。");
       return;
     }
-    setShowApproveConfirm(true);
+    setShowApproveModal(true);
   }
 
   async function confirmApprove() {
-    setShowApproveConfirm(false);
+    setShowApproveModal(false);
     setApproveSubmitting(true);
     try {
       await apiRequest("approve-member", {
@@ -92,306 +226,482 @@ export default function ApplicationDetail() {
           member_number: memberNumber.trim(),
         }),
       });
-      setApproveMessage("承認しました。");
-      setApproveMessageType("success");
+      showToastMsg("承認しました");
       setTimeout(() => navigate("/admin/applications"), 1500);
     } catch (err) {
-      setApproveMessage(err.message || "承認に失敗しました。");
-      setApproveMessageType("error");
+      setFieldError(err.message || "承認に失敗しました。");
     } finally {
       setApproveSubmitting(false);
     }
   }
 
-  function handleRejectClick(e) {
-    e.preventDefault();
-    setRejectMessage("");
-    setRejectMessageType("");
-    if (!rejectionReason.trim()) {
-      setRejectMessage("却下理由を入力してください。");
-      setRejectMessageType("error");
-      return;
-    }
-    setShowRejectConfirm(true);
+  /* ── Reject flow ── */
+  function openRejectModal() {
+    if (!rejectionReason.trim()) return;
+    setShowRejectModal(true);
   }
 
   async function confirmReject() {
-    setShowRejectConfirm(false);
+    setShowRejectModal(false);
     setRejectSubmitting(true);
     try {
       await apiRequest("reject-member", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: applicationId,
-          rejection_reason: rejectionReason.trim(),
-        }),
+        body: JSON.stringify({ id: applicationId, rejection_reason: rejectionReason.trim() }),
       });
-      setRejectMessage("却下しました。");
-      setRejectMessageType("success");
+      showToastMsg("却下しました");
       setTimeout(() => navigate("/admin/applications"), 1500);
     } catch (err) {
-      setRejectMessage(err.message || "却下に失敗しました。");
-      setRejectMessageType("error");
+      setFieldError(err.message || "却下に失敗しました。");
     } finally {
       setRejectSubmitting(false);
     }
   }
 
-  if (loading) {
-    return (
-      <section className="admin-shell">
-        <div className="page-header">
-          <h1 className="page-title">申込詳細</h1>
-          <p className="page-description">
-            <Link className="text-link" to="/admin/applications">&larr; 申込一覧へ戻る</Link>
-          </p>
-        </div>
-        <section className="card panel-card single-panel">
-          <div className="card-body"><LoadingSpinner /></div>
-        </section>
-      </section>
-    );
-  }
+  /* ── Loading / Error states ── */
+  if (loading) return (
+    <section className="admin-shell" style={{ maxWidth: 1080, margin: "0 auto" }}>
+      <LoadingSpinner />
+    </section>
+  );
 
-  if (error || !detail) {
-    return (
-      <section className="admin-shell">
-        <div className="page-header">
-          <h1 className="page-title">申込詳細</h1>
-          <p className="page-description">
-            <Link className="text-link" to="/admin/applications">&larr; 申込一覧へ戻る</Link>
-          </p>
-        </div>
-        <section className="card panel-card single-panel">
-          <div className="card-body"><p className="message error">{error || "データを取得できませんでした"}</p></div>
-        </section>
-      </section>
-    );
-  }
+  if (error || !detail) return (
+    <section className="admin-shell" style={{ maxWidth: 1080, margin: "0 auto" }}>
+      <a
+        href="/admin/applications"
+        onClick={(e) => { e.preventDefault(); navigate("/admin/applications"); }}
+        style={{ fontSize: 13, color: "var(--primary)", textDecoration: "none", fontWeight: 600, marginBottom: 16, display: "inline-block" }}
+      >
+        &larr; 申込一覧に戻る
+      </a>
+      <div style={{
+        background: "var(--error-light)", border: "1px solid #fecaca",
+        borderRadius: "var(--radius)", padding: 24, color: "#991b1b", fontSize: 14,
+      }}>
+        {error || "データを取得できませんでした"}
+      </div>
+    </section>
+  );
 
   const isPending = detail.approval_status === "申請中";
+  const isApproved = detail.approval_status === "承認済";
+  const isRejected = detail.approval_status === "却下";
+
+  /* ── Referrer badge ── */
+  function renderRefBadge(key) {
+    const m = detail.referrer_matches?.[key];
+    const arr = m ? (Array.isArray(m) ? m : [m]) : [];
+    if (arr.length > 0) {
+      return (
+        <span style={{
+          display: "inline-flex", alignItems: "center", gap: 4,
+          padding: "3px 10px", borderRadius: "var(--radius-sm)",
+          background: "#ecfdf5", color: "#059669", fontSize: 11, fontWeight: 600,
+        }}>
+          <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
+          {arr.map(x => `${x.name_kanji}${x.member_number ? " (" + x.member_number + ")" : ""}`).join(", ")} と一致
+        </span>
+      );
+    }
+    return (
+      <span style={{
+        display: "inline-flex", alignItems: "center", gap: 4,
+        padding: "3px 10px", borderRadius: "var(--radius-sm)",
+        background: "#fffbeb", color: "#d97706", fontSize: 11, fontWeight: 600,
+      }}>
+        <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        一致する会員が見つかりません
+      </span>
+    );
+  }
 
   return (
-    <section className="admin-shell">
-      <div className="page-header">
-        <h1 className="page-title">申込詳細</h1>
-        <p className="page-description">
-          <Link className="text-link" to="/admin/applications">&larr; 申込一覧へ戻る</Link>
-        </p>
+    <section className="admin-shell" style={{ maxWidth: 1080, margin: "0 auto", paddingBottom: isPending ? 100 : 24 }}>
+      {/* Toast */}
+      {toast && (
+        <div className="nl2-toast nl2-toast-enter" style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999 }}>
+          <span className="nl2-toast-icon">&#x2713;</span>
+          <span>{toast}</span>
+        </div>
+      )}
+
+      {/* ══ Approve Modal ══ */}
+      {showApproveModal && (
+        <div className="confirm-overlay" onClick={() => setShowApproveModal(false)}>
+          <div
+            className="modal-dialog"
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: 500, borderRadius: "var(--radius-xl)", overflow: "visible", animation: "fadeIn 0.15s ease" }}
+          >
+            <div className="modal-header" style={{ padding: "20px 24px" }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>入会を承認</h3>
+              <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{detail.name_kanji}</span>
+            </div>
+            <div className="modal-body" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20, overflow: "visible" }}>
+              {/* Member type pills */}
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>会員種別</label>
+                <MemberTypePills value={memberType} onChange={setMemberType} />
+              </div>
+              {/* Member number */}
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>会員番号</label>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    type="text"
+                    value={memberNumber}
+                    onChange={(e) => setMemberNumber(e.target.value)}
+                    style={{ flex: 1 }}
+                    placeholder="自動採番済み"
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ fontSize: 12, padding: "6px 14px", whiteSpace: "nowrap" }}
+                    onClick={async () => {
+                      try {
+                        const res = await apiRequest("generate-member-number");
+                        setMemberNumber(res.suggested_number || res.member_number || memberNumber);
+                      } catch {}
+                    }}
+                  >
+                    自動採番
+                  </button>
+                </div>
+              </div>
+              {/* Join date */}
+              <div style={{ overflow: "visible" }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>入会日</label>
+                <DatePicker value={joinDate} onChange={setJoinDate} />
+              </div>
+            </div>
+            <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "16px 24px" }}>
+              <button className="btn btn-secondary" onClick={() => setShowApproveModal(false)}>キャンセル</button>
+              <button
+                className="btn btn-primary"
+                style={{ background: "var(--primary)", display: "flex", alignItems: "center", gap: 6 }}
+                onClick={confirmApprove}
+                disabled={approveSubmitting}
+              >
+                {approveSubmitting ? (
+                  <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> 承認中...</>
+                ) : "承認する"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ Reject Modal ══ */}
+      {showRejectModal && (
+        <div className="confirm-overlay" onClick={() => setShowRejectModal(false)}>
+          <div
+            className="modal-dialog"
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: 500, borderRadius: "var(--radius-xl)", animation: "fadeIn 0.15s ease" }}
+          >
+            <div className="modal-header" style={{ padding: "20px 24px" }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--error)" }}>入会申込を却下</h3>
+              <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{detail.name_kanji}</span>
+            </div>
+            <div className="modal-body" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
+                  却下理由 <span style={{ color: "var(--error)" }}>*</span>
+                </label>
+                <textarea
+                  rows={4}
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="却下理由を入力してください（申込者に通知されます）"
+                  style={{ width: "100%", fontFamily: "inherit", resize: "vertical" }}
+                />
+                <div style={{ textAlign: "right", fontSize: 11, color: "var(--muted)", marginTop: 4 }}>
+                  {rejectionReason.length} 文字
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "16px 24px" }}>
+              <button className="btn btn-secondary" onClick={() => setShowRejectModal(false)}>キャンセル</button>
+              <button
+                className="btn"
+                style={{
+                  background: "var(--error)", color: "#fff", border: "none",
+                  opacity: rejectSubmitting ? 0.6 : 1,
+                  display: "flex", alignItems: "center", gap: 6,
+                }}
+                onClick={confirmReject}
+                disabled={rejectSubmitting || !rejectionReason.trim()}
+              >
+                {rejectSubmitting ? (
+                  <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2, borderTopColor: "#fff", borderColor: "rgba(255,255,255,0.3)" }} /> 却下中...</>
+                ) : "却下する"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ Back link ══ */}
+      <a
+        href="/admin/applications"
+        onClick={(e) => { e.preventDefault(); navigate("/admin/applications"); }}
+        style={{ fontSize: 13, color: "var(--primary)", textDecoration: "none", fontWeight: 600, marginBottom: 16, display: "inline-block" }}
+      >
+        &larr; 申込一覧に戻る
+      </a>
+
+      {/* ══ Approved / Rejected banner ══ */}
+      {isApproved && (
+        <div style={{
+          background: "#ecfdf5", border: "1px solid #a7f3d0", borderRadius: "var(--radius)",
+          padding: "14px 20px", marginBottom: 20,
+          display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 600, color: "#065f46",
+        }}>
+          <svg style={{ width: 20, height: 20, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
+          </svg>
+          承認済み{detail.approved_at ? `（${formatDate(detail.approved_at)}）` : ""}
+          {detail.member_number && <span style={{ marginLeft: 8 }}>会員番号: {detail.member_number}</span>}
+          {detail.member_type && <span>/ {detail.member_type}</span>}
+        </div>
+      )}
+      {isRejected && (
+        <div style={{
+          background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "var(--radius)",
+          padding: "14px 20px", marginBottom: 20,
+          display: "flex", alignItems: "flex-start", gap: 10, fontSize: 14, fontWeight: 600, color: "#991b1b",
+        }}>
+          <svg style={{ width: 20, height: 20, flexShrink: 0, marginTop: 1 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          <div>
+            却下{detail.rejected_at ? `（${formatDate(detail.rejected_at)}）` : ""}
+            {detail.rejection_reason && (
+              <div style={{ fontWeight: 400, fontSize: 13, marginTop: 4, color: "var(--text)", lineHeight: 1.6 }}>
+                理由: {detail.rejection_reason}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ══ Page Header ══ */}
+      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{displayValue(detail.name_kanji)}</h1>
+            <span style={{ fontSize: 13, color: "var(--muted)" }}>{displayValue(detail.name_kana)}</span>
+            <StatusBadge status={detail.approval_status} large />
+          </div>
+          {detail.applied_at && (
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
+              {formatDate(detail.applied_at)} 申込
+            </p>
+          )}
+        </div>
       </div>
 
-      {/* Approve confirmation modal */}
-      {showApproveConfirm && (
-        <div className="confirm-overlay" style={{ zIndex: 10001 }} onClick={() => setShowApproveConfirm(false)}>
-          <div className="modal-dialog" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>承認確認</h3>
-              <button type="button" className="modal-close" onClick={() => setShowApproveConfirm(false)}>&times;</button>
-            </div>
-            <div className="modal-body">
-              <p style={{ fontSize: '1.05em', marginBottom: '0.75rem' }}>
-                <strong>{detail.name_kanji}</strong>さんを<strong>{memberType}</strong>として承認しますか？
-              </p>
-              <dl className="detail-grid" style={{ fontSize: '0.9em' }}>
-                <div><dt>会員番号</dt><dd>{memberNumber}</dd></div>
-                <div><dt>会員種別</dt><dd>{memberType}</dd></div>
-              </dl>
-            </div>
-            <div className="modal-footer">
-              <button className="button" type="button" onClick={confirmApprove}>承認する</button>
-              <button className="button ghost" type="button" onClick={() => setShowApproveConfirm(false)}>キャンセル</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Reject confirmation modal */}
-      {showRejectConfirm && (
-        <div className="confirm-overlay" style={{ zIndex: 10001 }} onClick={() => setShowRejectConfirm(false)}>
-          <div className="modal-dialog" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>却下確認</h3>
-              <button type="button" className="modal-close" onClick={() => setShowRejectConfirm(false)}>&times;</button>
-            </div>
-            <div className="modal-body">
-              <p style={{ fontSize: '1.05em', marginBottom: '0.75rem' }}>
-                <strong>{detail.name_kanji}</strong>さんの申込を却下してよろしいですか？
-              </p>
-              <div style={{ background: 'var(--bg)', padding: '0.75rem 1rem', borderRadius: 8, fontSize: '0.9em' }}>
-                <strong>却下理由:</strong>
-                <p style={{ marginTop: '0.25rem', whiteSpace: 'pre-wrap' }}>{rejectionReason}</p>
+      {/* ══ Personal info card ══ */}
+      <SectionCard title="個人情報" icon={<UserIcon />}>
+        <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
+          {/* Profile image */}
+          <div style={{ flexShrink: 0 }}>
+            {detail.profile_image ? (
+              <img src={detail.profile_image} alt="" style={{
+                width: 80, height: 80, borderRadius: "50%", objectFit: "cover",
+                border: "2px solid var(--line)",
+              }} />
+            ) : (
+              <div style={{
+                width: 80, height: 80, borderRadius: "50%",
+                background: "linear-gradient(135deg, var(--primary-100), var(--primary-50))",
+                border: "2px solid var(--line)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 28, fontWeight: 700, color: "var(--primary)",
+              }}>
+                {(detail.name_kanji || "M").charAt(0)}
               </div>
-            </div>
-            <div className="modal-footer">
-              <button className="button" type="button" style={{ background: '#c53030', borderColor: '#c53030' }} onClick={confirmReject}>却下する</button>
-              <button className="button ghost" type="button" onClick={() => setShowRejectConfirm(false)}>キャンセル</button>
-            </div>
+            )}
+          </div>
+          {/* Info grid */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <InfoGrid items={[
+              { label: "氏名", value: displayValue(detail.name_kanji) },
+              { label: "フリガナ", value: displayValue(detail.name_kana) },
+              { label: "生年月日", value: displayValue(detail.birthday) },
+            ]} />
           </div>
         </div>
+      </SectionCard>
+
+      {/* ══ Company info card ══ */}
+      <SectionCard title="会社情報" icon={<BuildingIcon />}>
+        <InfoGrid items={[
+          { label: "会社名", value: displayValue(detail.company_name) },
+          { label: "役職", value: displayValue(detail.company_position) },
+          { label: "業種", value: displayValue(detail.industry) },
+          { label: "電話 / FAX", value: [detail.company_phone, detail.company_fax].filter(Boolean).join(" / ") || "-" },
+          (detail.company_postal_code || detail.company_address) ? {
+            label: "会社住所", span2: true,
+            value: [detail.company_postal_code ? `〒${detail.company_postal_code}` : "", detail.company_address].filter(Boolean).join(" "),
+          } : null,
+          detail.company_pr ? { label: "会社PR", value: detail.company_pr, span2: true } : null,
+          { label: "会社情報の名簿掲載", value: boolMark(detail.show_company_in_directory) },
+        ].filter(Boolean)} />
+      </SectionCard>
+
+      {/* ══ Contact card ══ */}
+      <SectionCard title="連絡先" icon={<MailIcon />}>
+        <InfoGrid items={[
+          { label: "メールアドレス", value: displayValue(detail.email) },
+          { label: "携帯番号", value: displayValue(detail.mobile_phone) },
+          { label: "メール掲載", value: boolMark(detail.show_email_in_directory) },
+          { label: "携帯掲載", value: boolMark(detail.show_mobile_in_directory) },
+        ]} />
+      </SectionCard>
+
+      {/* ══ Home info card ══ */}
+      {(detail.home_address || detail.home_phone || detail.home_postal_code) && (
+        <SectionCard title="自宅情報" icon={<HomeIcon />}>
+          <InfoGrid items={[
+            (detail.home_postal_code || detail.home_address) ? {
+              label: "住所", span2: true,
+              value: [detail.home_postal_code ? `〒${detail.home_postal_code}` : "", detail.home_address].filter(Boolean).join(" "),
+            } : null,
+            { label: "電話", value: displayValue(detail.home_phone) },
+            { label: "FAX", value: displayValue(detail.home_fax) },
+          ].filter(Boolean)} />
+        </SectionCard>
       )}
 
-      {/* Header card */}
-      <section className="card panel-card" style={{ marginBottom: '1rem' }}>
-        <div className="card-body stack">
-          <section className="detail-card stack-sm">
-            <div className="detail-header-row">
+      {/* ══ Other card ══ */}
+      {detail.hobbies && (
+        <SectionCard title="その他" icon={<NoteIcon />}>
+          <InfoGrid items={[
+            { label: "趣味・信条", value: detail.hobbies, span2: true },
+          ]} />
+        </SectionCard>
+      )}
+
+      {/* ══ Referrer matching card ══ */}
+      <SectionCard title="紹介者照合" icon={<UsersIcon />}>
+        <div style={{ display: "grid", gap: 12 }}>
+          {/* Referrer 1 */}
+          <div style={{
+            padding: "14px 16px", borderRadius: "var(--radius)",
+            background: detail.referrer_matches?.referrer_1 ? "#f0fdf4" : "#fffbeb",
+            border: `1px solid ${detail.referrer_matches?.referrer_1 ? "#bbf7d0" : "#fde68a"}`,
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
+          }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>紹介者 1</div>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>{displayValue(detail.referrer_1)}</div>
+            </div>
+            {detail.referrer_1 && renderRefBadge("referrer_1")}
+          </div>
+          {/* Referrer 2 */}
+          {detail.referrer_2 && (
+            <div style={{
+              padding: "14px 16px", borderRadius: "var(--radius)",
+              background: detail.referrer_matches?.referrer_2 ? "#f0fdf4" : "#fffbeb",
+              border: `1px solid ${detail.referrer_matches?.referrer_2 ? "#bbf7d0" : "#fde68a"}`,
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
+            }}>
               <div>
-                <h3>{displayValue(detail.name_kanji)}</h3>
-                <span className="muted" style={{ fontSize: '0.9em' }}>{displayValue(detail.name_kana)}</span>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>紹介者 2</div>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>{displayValue(detail.referrer_2)}</div>
               </div>
-              <MemberImage src={detail.profile_image} name={detail.name_kanji} size="thumb" />
+              {renderRefBadge("referrer_2")}
             </div>
-            <div className="pill-row" style={{ marginTop: '0.5rem', justifyContent: 'flex-start' }}>
-              <span className={`pill${statusPillClass(detail.approval_status)}`}>
-                {displayValue(detail.approval_status)}
-              </span>
-              {detail.company_name && <span className="muted" style={{ fontSize: '0.85em' }}>{detail.company_name}</span>}
-              {detail.applied_at && (
-                <span className="muted" style={{ fontSize: '0.85em' }}>
-                  申込日: {detail.applied_at.slice(0, 10)}
-                </span>
-              )}
-            </div>
-          </section>
+          )}
         </div>
-      </section>
+      </SectionCard>
 
-      {/* Personal info */}
-      <section className="card panel-card" style={{ marginBottom: '1rem' }}>
-        <div className="card-body stack">
-          <div className="panel-heading"><div><h2>個人情報</h2></div></div>
-          <dl className="detail-grid">
-            <div><dt>氏名</dt><dd>{displayValue(detail.name_kanji)}</dd></div>
-            <div><dt>フリガナ</dt><dd>{displayValue(detail.name_kana)}</dd></div>
-            <div><dt>生年月日</dt><dd>{displayValue(detail.birthday)}</dd></div>
-            <div><dt>メール</dt><dd>{displayValue(detail.email)}</dd></div>
-            <div><dt>携帯番号</dt><dd>{displayValue(detail.mobile_phone)}</dd></div>
-          </dl>
+      {/* ══ Error message ══ */}
+      {fieldError && (
+        <div style={{
+          padding: "12px 16px", borderRadius: "var(--radius)",
+          background: "#fee2e2", color: "#991b1b", fontSize: 13, fontWeight: 600,
+        }}>
+          {fieldError}
         </div>
-      </section>
+      )}
 
-      {/* Company info */}
-      <section className="card panel-card" style={{ marginBottom: '1rem' }}>
-        <div className="card-body stack">
-          <div className="panel-heading"><div><h2>会社情報</h2></div></div>
-          <dl className="detail-grid">
-            <div><dt>会社名</dt><dd>{displayValue(detail.company_name)}</dd></div>
-            <div><dt>役職名</dt><dd>{displayValue(detail.company_position)}</dd></div>
-            <div><dt>業種</dt><dd>{displayValue(detail.industry)}</dd></div>
-            <div><dt>会社電話</dt><dd>{displayValue(detail.company_phone)}</dd></div>
-            {detail.company_postal_code && <div><dt>会社郵便番号</dt><dd>{displayValue(detail.company_postal_code)}</dd></div>}
-            {detail.company_address && <div><dt>会社住所</dt><dd>{displayValue(detail.company_address)}</dd></div>}
-          </dl>
-        </div>
-      </section>
-
-      {/* Referrer matches */}
-      <section className="card panel-card" style={{ marginBottom: '1rem' }}>
-        <div className="card-body stack">
-          <div className="panel-heading"><div><h2>紹介者照合</h2></div></div>
-          <dl className="detail-grid">
-            <div>
-              <dt>紹介者1</dt>
-              <dd>
-                {displayValue(detail.referrer_1)}{" "}
-                {(() => {
-                  const m = detail.referrer_matches?.referrer_1;
-                  const arr = m ? (Array.isArray(m) ? m : [m]) : [];
-                  if (arr.length > 0) {
-                    return <span className="pill pill-success" style={{ fontSize: '0.8em' }}>一致: {arr.map(x => x.name_kanji || "-").join(", ")}</span>;
-                  }
-                  return <span className="pill pill-warning" style={{ fontSize: '0.8em' }}>未マッチ</span>;
-                })()}
-              </dd>
-            </div>
-            <div>
-              <dt>紹介者2</dt>
-              <dd>
-                {displayValue(detail.referrer_2)}{" "}
-                {(() => {
-                  const m = detail.referrer_matches?.referrer_2;
-                  const arr = m ? (Array.isArray(m) ? m : [m]) : [];
-                  if (arr.length > 0) {
-                    return <span className="pill pill-success" style={{ fontSize: '0.8em' }}>一致: {arr.map(x => x.name_kanji || "-").join(", ")}</span>;
-                  }
-                  return <span className="pill pill-warning" style={{ fontSize: '0.8em' }}>未マッチ</span>;
-                })()}
-              </dd>
-            </div>
-          </dl>
-        </div>
-      </section>
-
-      {/* Approve form - only for pending */}
+      {/* ══ Fixed Action Bar (pending only) ══ */}
       {isPending && (
-        <section className="card panel-card" style={{ marginBottom: '1rem' }}>
-          <div className="card-body stack">
-            <div className="panel-heading"><div><h2>承認</h2></div></div>
-            <form className="editor-form" noValidate onSubmit={handleApproveClick}>
-              <div className="editor-grid">
-                <div className="field">
-                  <label htmlFor="app-member-type">会員種別</label>
-                  <select id="app-member-type" value={memberType} onChange={(e) => setMemberType(e.target.value)}>
-                    <option value="正会員">正会員</option>
-                    <option value="賛助会員">賛助会員</option>
-                  </select>
-                </div>
-                <div className="field">
-                  <label htmlFor="app-member-number">会員番号</label>
-                  <input id="app-member-number" type="text" value={memberNumber}
-                    onChange={(e) => setMemberNumber(e.target.value)} placeholder="自動採番済み" />
-                </div>
-              </div>
-              {approveMessage && (
-                <p className={`message ${approveMessageType}`} aria-live="polite">{approveMessage}</p>
-              )}
-              <div className="actions">
-                <button className="button" type="submit" disabled={approveSubmitting}>
-                  {approveSubmitting ? "処理中..." : "承認する"}
-                </button>
-              </div>
-            </form>
+        <div style={{
+          position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100,
+          background: "#fff", borderTop: "1px solid var(--line)",
+          boxShadow: "0 -4px 12px rgba(0,0,0,0.06)",
+          padding: "14px 24px",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <div style={{ width: "100%", maxWidth: 1080, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            {/* Reject button (left, subdued) */}
+            <button
+              type="button"
+              onClick={() => {
+                if (!rejectionReason.trim()) {
+                  setFieldError("却下する場合は、先に却下理由を入力してください。");
+                  return;
+                }
+                openRejectModal();
+              }}
+              disabled={rejectSubmitting}
+              style={{
+                padding: "10px 24px", borderRadius: "var(--radius)", fontSize: 14, fontWeight: 600,
+                background: "#fff", color: "var(--error)", border: "1px solid var(--error)",
+                cursor: rejectSubmitting ? "not-allowed" : "pointer",
+                opacity: rejectSubmitting ? 0.6 : 1, transition: "all 0.15s",
+              }}
+            >
+              却下する
+            </button>
+
+            {/* Approve button (right, prominent) */}
+            <button
+              type="button"
+              onClick={openApproveModal}
+              disabled={approveSubmitting}
+              style={{
+                padding: "10px 32px", borderRadius: "var(--radius)", fontSize: 14, fontWeight: 700,
+                background: "var(--primary)", color: "#fff", border: "none",
+                cursor: approveSubmitting ? "not-allowed" : "pointer",
+                opacity: approveSubmitting ? 0.6 : 1, transition: "all 0.15s",
+                boxShadow: "var(--shadow-md)",
+              }}
+            >
+              承認する
+            </button>
           </div>
-        </section>
+        </div>
       )}
 
-      {/* Reject form */}
+      {/* ══ Reject reason textarea (shown inline when pending) ══ */}
       {isPending && (
-        <section className="card panel-card" style={{ marginBottom: '1rem' }}>
-          <div className="card-body stack">
-            <div className="panel-heading"><div><h2>却下</h2></div></div>
-            <form className="editor-form" noValidate onSubmit={handleRejectClick}>
-              <div className="editor-grid">
-                <div className="field field-span-2">
-                  <label htmlFor="app-rejection-reason">却下理由 *</label>
-                  <textarea id="app-rejection-reason" rows="3" value={rejectionReason}
-                    onChange={(e) => setRejectionReason(e.target.value)}
-                    placeholder="却下理由を入力してください（必須）" />
-                </div>
-              </div>
-              {rejectMessage && (
-                <p className={`message ${rejectMessageType}`} aria-live="polite">{rejectMessage}</p>
-              )}
-              <div className="actions">
-                <button className="button" type="submit" disabled={rejectSubmitting} style={{ background: '#c53030', borderColor: '#c53030' }}>
-                  {rejectSubmitting ? "処理中..." : "却下する"}
-                </button>
-              </div>
-            </form>
+        <div className="card" style={{ marginTop: 4 }}>
+          <div className="card-body" style={{ padding: 20 }}>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
+              却下理由（却下する場合に入力）
+            </label>
+            <textarea
+              rows={3}
+              value={rejectionReason}
+              onChange={(e) => { setRejectionReason(e.target.value); setFieldError(""); }}
+              placeholder="却下理由を入力してください（申込者に通知されます）"
+              style={{ width: "100%", fontFamily: "inherit", resize: "vertical" }}
+            />
+            <div style={{ textAlign: "right", fontSize: 11, color: "var(--muted)", marginTop: 4 }}>
+              {rejectionReason.length} 文字
+            </div>
           </div>
-        </section>
+        </div>
       )}
 
-      {/* Show rejection reason for rejected */}
-      {detail.approval_status === "却下" && detail.rejection_reason && (
-        <section className="card panel-card">
-          <div className="card-body stack">
-            <div className="panel-heading"><div><h2>却下理由</h2></div></div>
-            <p style={{ whiteSpace: 'pre-wrap' }}>{detail.rejection_reason}</p>
-          </div>
-        </section>
-      )}
+      {/* fadeIn keyframe */}
+      <style>{`@keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }`}</style>
     </section>
   );
 }

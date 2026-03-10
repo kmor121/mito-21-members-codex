@@ -10,9 +10,9 @@ export default function ApplyComplete() {
       <section className="detail-card stack-sm">
         <p className="message success">受付処理は完了しました。必要な連絡がある場合のみ、後日ご案内します。</p>
         <div className="actions application-actions">
-          <Link className="button" to="/">公開トップ</Link>
+          <Link className="button" to="/">トップ</Link>
           <Link className="button ghost" to="/apply">新規申込</Link>
-          <Link className="text-link subtle-link" to="/directory">名簿</Link>
+          <a className="button ghost" href="https://mito21.net/" target="_blank" rel="noopener noreferrer">公式サイト</a>
         </div>
       </section>
     </section>
