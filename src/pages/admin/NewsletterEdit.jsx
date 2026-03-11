@@ -432,18 +432,23 @@ export default function NewsletterEdit() {
               if (fj.organization_id) { setFilterOrgId(fj.organization_id); setCompoundOpen(true); }
             } catch { /* ignore */ }
           }
-          // Restore attachments
+          // Restore attachments (meta only — Base64 is not stored in DB)
           try {
             const aj = JSON.parse(data.attachments_json || "[]");
             if (Array.isArray(aj) && aj.length > 0) {
-              // Check if they have base64 content or just url
-              const hasContent = aj.some((a) => a.content);
-              if (hasContent) {
-                setAttachments(aj.map((a) => ({ filename: a.filename || a.name || "", content: a.content || "", size: a.size || 0 })));
-              } else if (aj[0]?.url) {
+              if (aj[0]?.url) {
                 setAttachUrlMode(true);
                 setAttachUrlName(aj[0].name || "");
                 setAttachUrl(aj[0].url || "");
+              } else {
+                // Meta-only attachments (need re-selection), or legacy with content
+                setAttachments(aj.map((a) => ({
+                  filename: a.filename || a.name || "",
+                  content: a.content || "",
+                  size: a.size || 0,
+                  type: a.type || "",
+                  needsReselect: !a.content,
+                })));
               }
             }
           } catch { /* ignore */ }
@@ -511,7 +516,18 @@ export default function NewsletterEdit() {
     return `${schedDate}T${pad2(schedHour)}:${pad2(schedMin)}:00`;
   }, [isScheduled, schedDate, schedHour, schedMin]);
 
-  /* ── Build attachments JSON for save ── */
+  /* ── Build attachments JSON (meta only, for draft save) ── */
+  const buildAttachmentsMetaJson = useCallback(() => {
+    if (attachments.length > 0) {
+      return JSON.stringify(attachments.map((a) => ({ filename: a.filename, size: a.size, type: a.type || "" })));
+    }
+    if (attachUrlMode && attachUrl) {
+      return JSON.stringify([{ name: attachUrlName || "添付", url: attachUrl }]);
+    }
+    return "[]";
+  }, [attachments, attachUrlMode, attachUrl, attachUrlName]);
+
+  /* ── Build attachments JSON (with Base64 content, for send) ── */
   const buildAttachmentsJson = useCallback(() => {
     if (attachments.length > 0) {
       return JSON.stringify(attachments.map((a) => ({ filename: a.filename, content: a.content, size: a.size })));
@@ -522,7 +538,7 @@ export default function NewsletterEdit() {
     return "[]";
   }, [attachments, attachUrlMode, attachUrl, attachUrlName]);
 
-  /* ── Save Draft ── */
+  /* ── Save Draft (SDK direct — no backend function needed) ── */
   const handleSaveDraft = useCallback(async (opts = {}) => {
     if (!form.title.trim()) {
       setErrorDialog("件名を入力してください");
@@ -532,24 +548,24 @@ export default function NewsletterEdit() {
     try {
       const af = buildAudienceFilter();
       const payload = {
-        id: form.id || undefined,
         title: form.title,
         body: form.body,
+        body_html: editorMode === "rich" ? (form.body_html || "") : "",
         channel: form.channel,
+        status: opts.status || form.status || "draft",
         audience_type: af.type,
         audience_filter_json: af.json,
-        scheduled_at: buildScheduleAt() || undefined,
-        attachments_json: buildAttachmentsJson(),
+        scheduled_at: buildScheduleAt() || "",
+        attachments_json: buildAttachmentsMetaJson(),
         is_template: form.is_template || isTemplate || false,
-        body_html: editorMode === "rich" ? (form.body_html || "") : "",
       };
-      if (opts.status) payload.status = opts.status;
 
-      const result = await apiRequest("save-newsletter-draft", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      let result;
+      if (form.id) {
+        result = await base44.entities.Newsletter.update(form.id, payload);
+      } else {
+        result = await base44.entities.Newsletter.create(payload);
+      }
       invalidateReadCache("Newsletter");
 
       if (!form.id && result.id) {
@@ -571,7 +587,7 @@ export default function NewsletterEdit() {
     } finally {
       setSaving(false);
     }
-  }, [form, editorMode, isTemplate, buildScheduleAt, buildAudienceFilter, buildAttachmentsJson, navigate, updateForm]);
+  }, [form, editorMode, isTemplate, buildScheduleAt, buildAudienceFilter, buildAttachmentsMetaJson, navigate, updateForm]);
 
   /* ── Preview ── */
   const handlePreview = useCallback(async () => {
@@ -602,34 +618,41 @@ export default function NewsletterEdit() {
       setErrorDialog("件名を入力してください");
       return;
     }
+    if (attachments.some((a) => a.needsReselect)) {
+      setErrorDialog("添付ファイルを再選択してください。下書き保存ではファイルデータは保持されません。");
+      return;
+    }
     setConfirmSend(true);
-  }, [form.id, form.title]);
+  }, [form.id, form.title, attachments]);
 
   const executeSend = useCallback(async () => {
     setSending(true);
     try {
+      // Save draft first (meta only, no Base64)
       const af = buildAudienceFilter();
-      await apiRequest("save-newsletter-draft", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: form.id,
-          title: form.title,
-          body: form.body,
-          channel: form.channel,
-          audience_type: af.type,
-          audience_filter_json: af.json,
-          scheduled_at: buildScheduleAt() || undefined,
-          attachments_json: buildAttachmentsJson(),
-          is_template: false,
-          body_html: editorMode === "rich" ? (form.body_html || "") : "",
-        }),
-      });
+      const draftPayload = {
+        title: form.title,
+        body: form.body,
+        body_html: editorMode === "rich" ? (form.body_html || "") : "",
+        channel: form.channel,
+        audience_type: af.type,
+        audience_filter_json: af.json,
+        scheduled_at: buildScheduleAt() || "",
+        attachments_json: buildAttachmentsMetaJson(),
+        is_template: false,
+      };
+      if (form.id) {
+        await base44.entities.Newsletter.update(form.id, draftPayload);
+      }
 
+      // Send with full Base64 attachments
       await apiRequest("send-newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ newsletter_id: form.id }),
+        body: JSON.stringify({
+          newsletter_id: form.id,
+          attachments_json: buildAttachmentsJson(),
+        }),
       });
       invalidateReadCache("Newsletter");
       setSendComplete(true);
@@ -640,7 +663,7 @@ export default function NewsletterEdit() {
       setSending(false);
       setErrorDialog("送信に失敗しました: " + (err.message || ""));
     }
-  }, [form, editorMode, buildScheduleAt, buildAudienceFilter, buildAttachmentsJson, navigate]);
+  }, [form, editorMode, buildScheduleAt, buildAudienceFilter, buildAttachmentsMetaJson, buildAttachmentsJson, navigate]);
 
   /* ── Test Send ── */
   const [testEmail, setTestEmail] = useState("");
@@ -652,12 +675,37 @@ export default function NewsletterEdit() {
       setErrorDialog("先に下書きを保存してください");
       return;
     }
+    if (attachments.some((a) => a.needsReselect)) {
+      setErrorDialog("添付ファイルを再選択してください。下書き保存ではファイルデータは保持されません。");
+      return;
+    }
     setTestSending(true);
     try {
+      // Save draft first (meta only, no Base64)
+      const af = buildAudienceFilter();
+      const draftPayload = {
+        title: form.title,
+        body: form.body,
+        body_html: editorMode === "rich" ? (form.body_html || "") : "",
+        channel: form.channel,
+        audience_type: af.type,
+        audience_filter_json: af.json,
+        attachments_json: buildAttachmentsMetaJson(),
+        is_template: form.is_template || isTemplate || false,
+      };
+      if (form.id) {
+        await base44.entities.Newsletter.update(form.id, draftPayload);
+      }
+
+      // Send test with full Base64 attachments
       await apiRequest("send-newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ newsletter_id: form.id, test_email: testEmail.trim() }),
+        body: JSON.stringify({
+          newsletter_id: form.id,
+          test_email: testEmail.trim(),
+          attachments_json: buildAttachmentsJson(),
+        }),
       });
       setToast({ type: "success", message: "テスト送信しました" });
       setShowTestSend(false);
@@ -667,7 +715,7 @@ export default function NewsletterEdit() {
     } finally {
       setTestSending(false);
     }
-  }, [testEmail, form.id]);
+  }, [testEmail, form, editorMode, isTemplate, attachments, buildAudienceFilter, buildAttachmentsMetaJson, buildAttachmentsJson]);
 
   /* ── Member toggle for individual selection ── */
   const handleToggleMember = useCallback((member) => {
@@ -695,12 +743,13 @@ export default function NewsletterEdit() {
         setErrorDialog(`「${file.name}」はファイルサイズ上限(10MB)を超えています`);
         continue;
       }
+      const fileType = file.type;
       const reader = new FileReader();
       reader.onload = () => {
         const base64 = reader.result.split(",")[1]; // Remove data:...;base64, prefix
         setAttachments((prev) => {
           if (prev.length >= MAX_FILES) return prev;
-          return [...prev, { filename: file.name, content: base64, size: file.size }];
+          return [...prev, { filename: file.name, content: base64, size: file.size, type: fileType, needsReselect: false }];
         });
       };
       reader.readAsDataURL(file);
@@ -850,7 +899,7 @@ export default function NewsletterEdit() {
           {!isTemplate && (
             <button
               className="button ghost"
-              style={{ fontSize: 13, padding: "6px 14px", border: "1px solid var(--line)" }}
+              style={{ fontSize: 13, padding: "6px 14px", border: "1px solid var(--line)", color: "var(--text-secondary)" }}
               onClick={() => handleSaveDraft()}
               disabled={saving}
             >
@@ -858,11 +907,14 @@ export default function NewsletterEdit() {
             </button>
           )}
 
-          {form.id && !isTemplate && (
+          {!isTemplate && (
             <button
               className="button ghost"
-              style={{ fontSize: 13, padding: "6px 14px", border: "1px solid var(--primary)", color: "var(--primary)" }}
-              onClick={() => setShowTestSend(true)}
+              style={{ fontSize: 13, padding: "6px 14px", border: "1px solid #10b981", color: "#10b981" }}
+              onClick={() => {
+                if (!form.id) { setErrorDialog("先に下書きを保存してください"); return; }
+                setShowTestSend(true);
+              }}
             >
               テスト送信
             </button>
@@ -871,27 +923,31 @@ export default function NewsletterEdit() {
           {!isTemplate && (
             <button
               className="button ghost"
-              style={{ fontSize: 13, padding: "6px 14px", border: "1px solid var(--primary)", color: "var(--primary)" }}
+              style={{ fontSize: 13, padding: "6px 14px", border: "1px solid #6366f1", color: "#6366f1" }}
               onClick={handlePreview}
             >
               プレビュー
             </button>
           )}
 
-          {form.id && !isTemplate && (
-            <button
-              className="button"
-              style={{
-                fontSize: 14, padding: "8px 20px",
-                background: "#4f46e5", color: "#fff", border: "none", borderRadius: "var(--radius)",
-                display: "flex", alignItems: "center", gap: 6, fontWeight: 600,
-              }}
-              onClick={handleSendClick}
-            >
-              <SendIcon />
-              {isScheduled && schedDate ? "予約する" : "送信"}
-            </button>
-          )}
+          {!isTemplate && (() => {
+            const scheduled = isScheduled && schedDate;
+            return (
+              <button
+                className="button"
+                style={{
+                  fontSize: 14, padding: "8px 22px",
+                  background: scheduled ? "#f59e0b" : "#4f46e5",
+                  color: "#fff", border: "none", borderRadius: "var(--radius)",
+                  display: "flex", alignItems: "center", gap: 6, fontWeight: 600,
+                }}
+                onClick={handleSendClick}
+              >
+                <SendIcon />
+                {scheduled ? "予約する" : "送信"}
+              </button>
+            );
+          })()}
 
           {isTemplate && (
             <button
@@ -1322,7 +1378,9 @@ export default function NewsletterEdit() {
                   {attachments.map((att, idx) => (
                     <div key={idx} style={{
                       display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
-                      background: "#fff", border: "1px solid var(--line)", borderRadius: "var(--radius)",
+                      background: att.needsReselect ? "#fffbeb" : "#fff",
+                      border: `1px solid ${att.needsReselect ? "#f59e0b" : "var(--line)"}`,
+                      borderRadius: "var(--radius)",
                       marginBottom: 4,
                     }}>
                       <ClipIcon />
@@ -1330,7 +1388,9 @@ export default function NewsletterEdit() {
                         <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {att.filename}
                         </div>
-                        <div style={{ fontSize: 11, color: "var(--muted)" }}>{formatFileSize(att.size)}</div>
+                        <div style={{ fontSize: 11, color: att.needsReselect ? "#d97706" : "var(--muted)" }}>
+                          {att.needsReselect ? "再選択が必要です" : formatFileSize(att.size)}
+                        </div>
                       </div>
                       <button
                         type="button"

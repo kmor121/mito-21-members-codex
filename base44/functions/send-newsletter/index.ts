@@ -43,21 +43,45 @@ Deno.serve(async (req) => {
     const channel = normalize(newsletter.channel) || "email";
 
     // Parse attachments (supports base64 file attachments)
+    // Priority: request body > entity field (body is more reliable for large base64 data)
     let attachments: Array<Record<string, unknown>> = [];
-    try {
-      const raw = normalize(newsletter.attachments_json);
-      if (raw) {
-        const parsed = JSON.parse(raw);
+    const attachmentsSources = [
+      normalize(body?.attachments_json),
+      normalize(newsletter.attachments_json),
+    ];
+    for (const src of attachmentsSources) {
+      if (!src) continue;
+      try {
+        const parsed = JSON.parse(src);
         if (Array.isArray(parsed)) {
-          attachments = parsed
+          const filtered = parsed
             .filter((a: Record<string, unknown>) => a.filename && a.content)
-            .map((a: Record<string, unknown>) => ({
-              filename: String(a.filename),
-              content: String(a.content),
-            }));
+            .map((a: Record<string, unknown>) => {
+              let content = String(a.content);
+              // Strip data URI prefix if present (e.g. "data:application/pdf;base64,...")
+              const commaIdx = content.indexOf(",");
+              if (commaIdx !== -1 && content.substring(0, commaIdx).includes("base64")) {
+                content = content.substring(commaIdx + 1);
+              }
+              return {
+                filename: String(a.filename),
+                content,
+              };
+            });
+          if (filtered.length > 0) {
+            attachments = filtered;
+            break; // use first valid source
+          }
         }
-      }
-    } catch { /* ignore */ }
+      } catch { /* ignore */ }
+    }
+
+    // Log attachment info for debugging
+    console.log(`[send-newsletter] Attachments count: ${attachments.length}`);
+    for (const att of attachments) {
+      const c = String(att.content);
+      console.log(`[send-newsletter] File: "${att.filename}", content length: ${c.length}, first 50 chars: ${c.substring(0, 50)}`);
+    }
 
     // ── Test mode ──
     if (testEmail) {
@@ -69,6 +93,13 @@ Deno.serve(async (req) => {
       };
       if (bodyHtml) emailPayloadTest.html = bodyHtml;
       if (attachments.length > 0) emailPayloadTest.attachments = attachments;
+
+      console.log(`[send-newsletter] Test email payload attachments:`, JSON.stringify(
+        (emailPayloadTest.attachments as Array<Record<string, unknown>> || []).map((a) => ({
+          filename: a.filename,
+          contentLength: String(a.content).length,
+        }))
+      ));
 
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
