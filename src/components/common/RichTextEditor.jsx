@@ -277,9 +277,14 @@ function ImageToolbar({ editor, wrapRef }) {
         if (imgEl && wrapEl) {
           const imgRect = imgEl.getBoundingClientRect();
           const wrapRect = wrapEl.getBoundingClientRect();
+          let leftVal = imgRect.left - wrapRect.left + imgRect.width / 2;
+          
+          // ツールバーの幅(約280px)の半分ほどを考慮し、左右の端で見切れないように制限する
+          leftVal = Math.max(140, Math.min(wrapRect.width - 140, leftVal));
+
           setPos({
             top: imgRect.top - wrapRect.top - 42,
-            left: imgRect.left - wrapRect.left + imgRect.width / 2,
+            left: leftVal,
           });
         }
       } catch {
