@@ -432,7 +432,7 @@ export default function NewsletterEdit() {
               if (fj.organization_id) { setFilterOrgId(fj.organization_id); setCompoundOpen(true); }
             } catch { /* ignore */ }
           }
-          // Restore attachments (meta only — Base64 is not stored in DB)
+          // Restore attachments (Base64 persisted for files ≤ 2MB)
           try {
             const aj = JSON.parse(data.attachments_json || "[]");
             if (Array.isArray(aj) && aj.length > 0) {
@@ -441,7 +441,6 @@ export default function NewsletterEdit() {
                 setAttachUrlName(aj[0].name || "");
                 setAttachUrl(aj[0].url || "");
               } else {
-                // Meta-only attachments (need re-selection), or legacy with content
                 setAttachments(aj.map((a) => ({
                   filename: a.filename || a.name || "",
                   content: a.content || "",
@@ -516,10 +515,17 @@ export default function NewsletterEdit() {
     return `${schedDate}T${pad2(schedHour)}:${pad2(schedMin)}:00`;
   }, [isScheduled, schedDate, schedHour, schedMin]);
 
-  /* ── Build attachments JSON (meta only, for draft save) ── */
+  /* ── Build attachments JSON (for draft save — include Base64 for files ≤ 2MB) ── */
+  const PERSIST_THRESHOLD = 2 * 1024 * 1024; // 2MB
   const buildAttachmentsMetaJson = useCallback(() => {
     if (attachments.length > 0) {
-      return JSON.stringify(attachments.map((a) => ({ filename: a.filename, size: a.size, type: a.type || "" })));
+      return JSON.stringify(attachments.map((a) => {
+        const entry = { filename: a.filename, size: a.size, type: a.type || "" };
+        if (a.content && a.size <= PERSIST_THRESHOLD) {
+          entry.content = a.content;
+        }
+        return entry;
+      }));
     }
     if (attachUrlMode && attachUrl) {
       return JSON.stringify([{ name: attachUrlName || "添付", url: attachUrl }]);
@@ -539,17 +545,18 @@ export default function NewsletterEdit() {
   }, [attachments, attachUrlMode, attachUrl, attachUrlName]);
 
   /* ── Save Draft (SDK direct — no backend function needed) ── */
+  /* Returns true on success, false on failure */
   const handleSaveDraft = useCallback(async (opts = {}) => {
     if (!form.title.trim()) {
       setErrorDialog("件名を入力してください");
-      return;
+      return false;
     }
     setSaving(true);
     try {
       const af = buildAudienceFilter();
       const payload = {
         title: form.title,
-        body: form.body,
+        body: form.body || (editorMode === "rich" && form.body_html ? "(リッチテキスト)" : ""),
         body_html: editorMode === "rich" ? (form.body_html || "") : "",
         channel: form.channel,
         status: opts.status || form.status || "draft",
@@ -580,10 +587,14 @@ export default function NewsletterEdit() {
         if (result.status) updateForm("status", result.status);
       }
 
-      setToast({ type: "success", message: isTemplate ? "テンプレートを保存しました" : "下書きを保存しました" });
+      if (!opts.silent) {
+        setToast({ type: "success", message: isTemplate ? "テンプレートを保存しました" : "下書きを保存しました" });
+      }
+      return true;
     } catch (err) {
       console.error("Save error:", err);
       setErrorDialog("保存に失敗しました: " + (err.message || ""));
+      return false;
     } finally {
       setSaving(false);
     }
@@ -609,21 +620,22 @@ export default function NewsletterEdit() {
   }, [buildAudienceFilter]);
 
   /* ── Send ── */
-  const handleSendClick = useCallback(() => {
-    if (!form.id) {
-      setErrorDialog("先に下書きを保存してください");
-      return;
-    }
+  const handleSendClick = useCallback(async () => {
     if (!form.title.trim()) {
       setErrorDialog("件名を入力してください");
       return;
     }
     if (attachments.some((a) => a.needsReselect)) {
-      setErrorDialog("添付ファイルを再選択してください。下書き保存ではファイルデータは保持されません。");
+      setErrorDialog("添付ファイルを再選択してください（2MBを超えるファイルは下書きに保持されません）。");
       return;
     }
+    // Auto-save if not yet persisted
+    if (!form.id) {
+      const ok = await handleSaveDraft({ silent: true });
+      if (!ok) return;
+    }
     setConfirmSend(true);
-  }, [form.id, form.title, attachments]);
+  }, [form.id, form.title, attachments, handleSaveDraft]);
 
   const executeSend = useCallback(async () => {
     setSending(true);
@@ -632,7 +644,7 @@ export default function NewsletterEdit() {
       const af = buildAudienceFilter();
       const draftPayload = {
         title: form.title,
-        body: form.body,
+        body: form.body || (editorMode === "rich" && form.body_html ? "(リッチテキスト)" : ""),
         body_html: editorMode === "rich" ? (form.body_html || "") : "",
         channel: form.channel,
         audience_type: af.type,
@@ -671,13 +683,14 @@ export default function NewsletterEdit() {
 
   const handleTestSend = useCallback(async () => {
     if (!testEmail.trim()) return;
-    if (!form.id) {
-      setErrorDialog("先に下書きを保存してください");
+    if (attachments.some((a) => a.needsReselect)) {
+      setErrorDialog("添付ファイルを再選択してください（2MBを超えるファイルは下書きに保持されません）。");
       return;
     }
-    if (attachments.some((a) => a.needsReselect)) {
-      setErrorDialog("添付ファイルを再選択してください。下書き保存ではファイルデータは保持されません。");
-      return;
+    // Auto-save if not yet persisted
+    if (!form.id) {
+      const ok = await handleSaveDraft({ silent: true });
+      if (!ok) return;
     }
     setTestSending(true);
     try {
@@ -685,7 +698,7 @@ export default function NewsletterEdit() {
       const af = buildAudienceFilter();
       const draftPayload = {
         title: form.title,
-        body: form.body,
+        body: form.body || (editorMode === "rich" && form.body_html ? "(リッチテキスト)" : ""),
         body_html: editorMode === "rich" ? (form.body_html || "") : "",
         channel: form.channel,
         audience_type: af.type,
@@ -715,7 +728,7 @@ export default function NewsletterEdit() {
     } finally {
       setTestSending(false);
     }
-  }, [testEmail, form, editorMode, isTemplate, attachments, buildAudienceFilter, buildAttachmentsMetaJson, buildAttachmentsJson]);
+  }, [testEmail, form, editorMode, isTemplate, attachments, handleSaveDraft, buildAudienceFilter, buildAttachmentsMetaJson, buildAttachmentsJson]);
 
   /* ── Member toggle for individual selection ── */
   const handleToggleMember = useCallback((member) => {
@@ -911,8 +924,12 @@ export default function NewsletterEdit() {
             <button
               className="button ghost"
               style={{ fontSize: 13, padding: "6px 14px", border: "1px solid #10b981", color: "#10b981" }}
-              onClick={() => {
-                if (!form.id) { setErrorDialog("先に下書きを保存してください"); return; }
+              onClick={async () => {
+                if (!form.title.trim()) { setErrorDialog("件名を入力してください"); return; }
+                if (!form.id) {
+                  const ok = await handleSaveDraft({ silent: true });
+                  if (!ok) return;
+                }
                 setShowTestSend(true);
               }}
             >
@@ -1389,7 +1406,7 @@ export default function NewsletterEdit() {
                           {att.filename}
                         </div>
                         <div style={{ fontSize: 11, color: att.needsReselect ? "#d97706" : "var(--muted)" }}>
-                          {att.needsReselect ? "再選択が必要です" : formatFileSize(att.size)}
+                          {att.needsReselect ? "2MB超のため再選択が必要です" : formatFileSize(att.size)}
                         </div>
                       </div>
                       <button
@@ -1598,42 +1615,93 @@ export default function NewsletterEdit() {
             ) : (
               <>
                 <div className="modal-header">
-                  <h3>送信確認</h3>
+                  <h3>{isScheduled && schedDate ? "予約送信の確認" : "送信確認"}</h3>
                   <button type="button" className="modal-close" onClick={() => { if (!sending) setConfirmSend(false); }}>&times;</button>
                 </div>
-                <div className="modal-body">
-                  <p style={{ margin: "0.5rem 0", fontSize: 14 }}>
-                    {previewCount !== null ? (
-                      <><strong>{previewCount}名</strong>に配信します。</>
-                    ) : (
-                      <>対象者に配信します。</>
-                    )}
-                  </p>
-                  {attachments.length > 0 && (
-                    <p style={{ margin: "0.5rem 0", fontSize: 13, color: "var(--text-secondary)" }}>
-                      添付ファイル: {attachments.length}件
-                    </p>
-                  )}
+                <div className="modal-body" style={{ padding: "16px 20px" }}>
+                  {/* 件名 */}
+                  <div style={{ marginBottom: 16, padding: "12px 16px", background: "#f8f9fa", borderRadius: "var(--radius)", border: "1px solid var(--line)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 4 }}>件名</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text)" }}>{form.title}</div>
+                  </div>
+
+                  {/* 配信情報 */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+                    <div style={{ padding: "10px 14px", background: "#f8f9fa", borderRadius: "var(--radius)", border: "1px solid var(--line)" }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 4 }}>チャネル</div>
+                      <div style={{ fontSize: 14, color: "var(--text)", display: "flex", alignItems: "center", gap: 6 }}>
+                        <MailIcon /> {channelLabel(form.channel)}
+                      </div>
+                    </div>
+                    <div style={{ padding: "10px 14px", background: "#f8f9fa", borderRadius: "var(--radius)", border: "1px solid var(--line)" }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 4 }}>対象人数</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "#4f46e5" }}>
+                        {previewCount !== null ? `${previewCount}名` : "取得中..."}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 予約送信 */}
                   {isScheduled && schedDate && (
-                    <p style={{ margin: "0.5rem 0", fontSize: 14, color: "#4f46e5" }}>
-                      予約: {formatScheduleDisplay(schedDate, schedHour, schedMin)}
-                    </p>
+                    <div style={{
+                      marginBottom: 16, padding: "12px 16px",
+                      background: "#fffbeb", borderRadius: "var(--radius)", border: "1px solid #fde68a",
+                      display: "flex", alignItems: "center", gap: 8,
+                    }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e" }}>予約送信</div>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: "#92400e" }}>
+                          {formatScheduleDisplay(schedDate, schedHour, schedMin)}
+                        </div>
+                      </div>
+                    </div>
                   )}
-                  <p style={{ margin: "0.5rem 0", fontSize: 13, color: "var(--text-secondary)" }}>
-                    この操作は取り消せません。
-                  </p>
+
+                  {/* 添付ファイル */}
+                  {attachments.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 6 }}>添付ファイル</div>
+                      {attachments.map((att, idx) => (
+                        <div key={idx} style={{
+                          display: "flex", alignItems: "center", gap: 8, padding: "6px 10px",
+                          background: "#f8f9fa", borderRadius: "var(--radius)", border: "1px solid var(--line)",
+                          marginBottom: 4, fontSize: 13,
+                        }}>
+                          <ClipIcon />
+                          <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{att.filename}</span>
+                          <span style={{ color: "var(--muted)", fontSize: 12, whiteSpace: "nowrap" }}>{formatFileSize(att.size)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 警告 */}
+                  <div style={{
+                    padding: "10px 14px", background: "#fef2f2", borderRadius: "var(--radius)",
+                    border: "1px solid #fecaca", fontSize: 13, color: "#991b1b",
+                  }}>
+                    {isScheduled && schedDate
+                      ? "予約後の取り消しはできません。送信日時をご確認ください。"
+                      : "送信後の取り消しはできません。内容をご確認ください。"}
+                  </div>
                 </div>
                 <div className="modal-footer">
+                  <button className="button ghost" onClick={() => setConfirmSend(false)} disabled={sending}>
+                    キャンセル
+                  </button>
                   <button
                     className="button"
-                    style={{ background: "#4f46e5", color: "#fff" }}
+                    style={{
+                      background: isScheduled && schedDate ? "#f59e0b" : "#4f46e5",
+                      color: "#fff", fontWeight: 600, display: "flex", alignItems: "center", gap: 6,
+                    }}
                     onClick={executeSend}
                     disabled={sending}
                   >
-                    {sending ? "送信中..." : (isScheduled && schedDate ? "予約を確定" : "送信する")}
-                  </button>
-                  <button className="button ghost" onClick={() => setConfirmSend(false)} disabled={sending}>
-                    キャンセル
+                    {sending ? "送信中..." : (isScheduled && schedDate ? "予約を確定" : (<><SendIcon /> 送信する</>))}
                   </button>
                 </div>
               </>

@@ -662,22 +662,28 @@ export default function Newsletters() {
     e.preventDefault();
     setSaving(true);
     try {
-      const attachments = (form.attachment_name || form.attachment_url)
+      const attachmentsMeta = (form.attachment_name || form.attachment_url)
         ? [{ name: form.attachment_name, url: form.attachment_url }] : [];
+      const bodyHtml = editorMode === "rich" ? (form.body_html || "") : "";
       const payload = {
-        id: form.id || undefined,
-        title: form.title, body: form.body, channel: form.channel,
-        audience_type: form.audience_type, audience_filter_json: form.audience_filter_json,
-        scheduled_at: form.scheduled_at || undefined,
-        attachments_json: JSON.stringify(attachments),
+        title: form.title,
+        body: form.body || (bodyHtml ? "(リッチテキスト)" : ""),
+        body_html: bodyHtml,
+        channel: form.channel || "email",
+        status: form.status || "draft",
+        audience_type: form.audience_type || "all",
+        audience_filter_json: form.audience_filter_json || "",
+        scheduled_at: form.scheduled_at || "",
+        attachments_json: JSON.stringify(attachmentsMeta),
         is_template: form.is_template || false,
-        body_html: editorMode === "rich" ? (form.body_html || "") : "",
       };
-      const result = await apiRequest("save-newsletter-draft", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+
+      let result;
+      if (form.id) {
+        result = await base44.entities.Newsletter.update(form.id, payload);
+      } else {
+        result = await base44.entities.Newsletter.create(payload);
+      }
       showToast(form.is_template ? "テンプレートを保存しました" : "下書きを保存しました");
       if (result.id) {
         setForm(prev => ({ ...prev, id: result.id, status: result.status || "draft" }));
