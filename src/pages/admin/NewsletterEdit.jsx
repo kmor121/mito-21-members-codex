@@ -544,6 +544,17 @@ export default function NewsletterEdit() {
     return "[]";
   }, [attachments, attachUrlMode, attachUrl, attachUrlName]);
 
+  /* ── Build attachments JSON (meta only, no Base64 — fallback for large payloads) ── */
+  const buildAttachmentsMetaOnlyJson = useCallback(() => {
+    if (attachments.length > 0) {
+      return JSON.stringify(attachments.map((a) => ({ filename: a.filename, size: a.size, type: a.type || "" })));
+    }
+    if (attachUrlMode && attachUrl) {
+      return JSON.stringify([{ name: attachUrlName || "添付", url: attachUrl }]);
+    }
+    return "[]";
+  }, [attachments, attachUrlMode, attachUrl, attachUrlName]);
+
   /* ── Save Draft (SDK direct — no backend function needed) ── */
   /* Returns true on success, false on failure */
   const handleSaveDraft = useCallback(async (opts = {}) => {
@@ -568,10 +579,21 @@ export default function NewsletterEdit() {
       };
 
       let result;
-      if (form.id) {
-        result = await base44.entities.Newsletter.update(form.id, payload);
-      } else {
-        result = await base44.entities.Newsletter.create(payload);
+      try {
+        if (form.id) {
+          result = await base44.entities.Newsletter.update(form.id, payload);
+        } else {
+          result = await base44.entities.Newsletter.create(payload);
+        }
+      } catch (saveErr) {
+        // Fallback: if save fails (likely Base64 too large), retry with meta only
+        console.warn("Save with Base64 failed, retrying meta-only:", saveErr);
+        payload.attachments_json = buildAttachmentsMetaOnlyJson();
+        if (form.id) {
+          result = await base44.entities.Newsletter.update(form.id, payload);
+        } else {
+          result = await base44.entities.Newsletter.create(payload);
+        }
       }
       invalidateReadCache("Newsletter");
 
@@ -598,7 +620,44 @@ export default function NewsletterEdit() {
     } finally {
       setSaving(false);
     }
-  }, [form, editorMode, isTemplate, buildScheduleAt, buildAudienceFilter, buildAttachmentsMetaJson, navigate, updateForm]);
+  }, [form, editorMode, isTemplate, buildScheduleAt, buildAudienceFilter, buildAttachmentsMetaJson, buildAttachmentsMetaOnlyJson, navigate, updateForm]);
+
+  /* ── Build audience description for confirm modal ── */
+  const buildAudienceDescription = useCallback(() => {
+    if (individualMode) {
+      const names = selectedMembers.map((m) => m.name_kanji || m.name_kana || "");
+      const count = selectedMembers.length;
+      if (count <= 4) {
+        return `個人指定（${count}名）: ${names.join("、")}`;
+      }
+      return `個人指定（${count}名）: ${names.slice(0, 4).join("、")}、他${count - 4}名`;
+    }
+    const segLabel = selectedSegment === "all" ? "全員" : selectedSegment;
+    const conditions = [];
+    if (unpaidOnly) conditions.push("会費未納者");
+    if (graduateOnly) conditions.push("卒業生");
+    if (filterOrgId) {
+      const org = organizations.find((o) => o.id === filterOrgId);
+      conditions.push(org ? org.org_name : "特定組織");
+    }
+    if (conditions.length > 0) {
+      return `${segLabel} + ${conditions.join(" + ")}`;
+    }
+    return segLabel;
+  }, [individualMode, selectedMembers, selectedSegment, unpaidOnly, graduateOnly, filterOrgId, organizations]);
+
+  /* ── Get body preview text (first 100 chars) ── */
+  const getBodyPreview = useCallback(() => {
+    if (editorMode === "rich" && form.body_html) {
+      // Strip HTML tags
+      const tmp = document.createElement("div");
+      tmp.innerHTML = form.body_html;
+      const text = (tmp.textContent || tmp.innerText || "").trim();
+      return text.length > 100 ? text.slice(0, 100) + "..." : text;
+    }
+    const text = (form.body || "").trim();
+    return text.length > 100 ? text.slice(0, 100) + "..." : text;
+  }, [editorMode, form.body, form.body_html]);
 
   /* ── Preview ── */
   const handlePreview = useCallback(async () => {
@@ -1598,131 +1657,160 @@ export default function NewsletterEdit() {
       )}
 
       {/* ── Send Confirm Dialog ── */}
-      {confirmSend && (
-        <div className="confirm-overlay" onClick={() => { if (!sending) setConfirmSend(false); }}>
-          <div className="modal-dialog" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
-            {sendComplete ? (
-              <div style={{ textAlign: "center", padding: "40px 20px" }}>
-                <svg width="64" height="64" viewBox="0 0 64 64" style={{ margin: "0 auto 16px" }}>
-                  <circle cx="32" cy="32" r="30" fill="#ecfdf5" stroke="#10b981" strokeWidth="2" />
-                  <path d="M20 32l8 8 16-16" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <animate attributeName="stroke-dasharray" from="0 50" to="50 0" dur="0.5s" fill="freeze" />
-                  </path>
-                </svg>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "var(--text)" }}>送信しました</div>
-                <div style={{ fontSize: 14, color: "var(--text-secondary)", marginTop: 8 }}>配信一覧に戻ります...</div>
-              </div>
-            ) : (
-              <>
-                <div className="modal-header">
-                  <h3>{isScheduled && schedDate ? "予約送信の確認" : "送信確認"}</h3>
-                  <button type="button" className="modal-close" onClick={() => { if (!sending) setConfirmSend(false); }}>&times;</button>
+      {confirmSend && (() => {
+        const scheduled = isScheduled && schedDate;
+        const audienceDesc = buildAudienceDescription();
+        const countStr = previewCount !== null ? `${previewCount}名` : "対象者";
+        const bodyPreview = getBodyPreview();
+        const schedDisplay = scheduled ? formatScheduleDisplay(schedDate, schedHour, schedMin) : "";
+        const modalItemStyle = { marginBottom: 14 };
+        const labelStyle = { fontSize: 12, color: "#6b7280", marginBottom: 3 };
+        const valueStyle = { fontSize: 14, color: "#111827" };
+        const dividerStyle = { borderTop: "1px solid #e5e7eb", margin: "16px 0" };
+
+        return (
+          <div className="confirm-overlay" onClick={() => { if (!sending) setConfirmSend(false); }}>
+            <div style={{
+              background: "#fff", borderRadius: 16, maxWidth: 520, width: "90%",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.15)", animation: "nlFade 0.2s ease",
+            }} onClick={(e) => e.stopPropagation()}>
+              {sendComplete ? (
+                <div style={{ textAlign: "center", padding: "48px 20px" }}>
+                  <svg width="64" height="64" viewBox="0 0 64 64" style={{ margin: "0 auto 16px" }}>
+                    <circle cx="32" cy="32" r="30" fill="#ecfdf5" stroke="#10b981" strokeWidth="2" />
+                    <path d="M20 32l8 8 16-16" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <animate attributeName="stroke-dasharray" from="0 50" to="50 0" dur="0.5s" fill="freeze" />
+                    </path>
+                  </svg>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#111827" }}>
+                    {scheduled ? "予約しました" : "送信しました"}
+                  </div>
+                  <div style={{ fontSize: 14, color: "#6b7280", marginTop: 8 }}>配信一覧に戻ります...</div>
                 </div>
-                <div className="modal-body" style={{ padding: "16px 20px" }}>
+              ) : (
+                <div style={{ padding: "24px 28px" }}>
                   {/* 件名 */}
-                  <div style={{ marginBottom: 16, padding: "12px 16px", background: "#f8f9fa", borderRadius: "var(--radius)", border: "1px solid var(--line)" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 4 }}>件名</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text)" }}>{form.title}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 20, lineHeight: 1.4 }}>
+                    {form.title}
                   </div>
 
-                  {/* 配信情報 */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-                    <div style={{ padding: "10px 14px", background: "#f8f9fa", borderRadius: "var(--radius)", border: "1px solid var(--line)" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 4 }}>チャネル</div>
-                      <div style={{ fontSize: 14, color: "var(--text)", display: "flex", alignItems: "center", gap: 6 }}>
-                        <MailIcon /> {channelLabel(form.channel)}
-                      </div>
-                    </div>
-                    <div style={{ padding: "10px 14px", background: "#f8f9fa", borderRadius: "var(--radius)", border: "1px solid var(--line)" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 4 }}>対象人数</div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#4f46e5" }}>
-                        {previewCount !== null ? `${previewCount}名` : "取得中..."}
-                      </div>
+                  {/* 配信チャネル */}
+                  <div style={modalItemStyle}>
+                    <div style={labelStyle}>配信チャネル</div>
+                    <div style={{ ...valueStyle, display: "flex", alignItems: "center", gap: 6 }}>
+                      <MailIcon /> {channelLabel(form.channel)}
                     </div>
                   </div>
 
-                  {/* 予約送信 */}
-                  {isScheduled && schedDate && (
-                    <div style={{
-                      marginBottom: 16, padding: "12px 16px",
-                      background: "#fffbeb", borderRadius: "var(--radius)", border: "1px solid #fde68a",
-                      display: "flex", alignItems: "center", gap: 8,
-                    }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-                      </svg>
-                      <div>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e" }}>予約送信</div>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: "#92400e" }}>
-                          {formatScheduleDisplay(schedDate, schedHour, schedMin)}
-                        </div>
-                      </div>
+                  {/* 配信対象 */}
+                  <div style={modalItemStyle}>
+                    <div style={labelStyle}>配信対象</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#4f46e5" }}>
+                      {audienceDesc}（{countStr}）
                     </div>
-                  )}
+                  </div>
 
                   {/* 添付ファイル */}
-                  {attachments.length > 0 && (
-                    <div style={{ marginBottom: 16 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 6 }}>添付ファイル</div>
-                      {attachments.map((att, idx) => (
-                        <div key={idx} style={{
-                          display: "flex", alignItems: "center", gap: 8, padding: "6px 10px",
-                          background: "#f8f9fa", borderRadius: "var(--radius)", border: "1px solid var(--line)",
-                          marginBottom: 4, fontSize: 13,
-                        }}>
-                          <ClipIcon />
-                          <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{att.filename}</span>
-                          <span style={{ color: "var(--muted)", fontSize: 12, whiteSpace: "nowrap" }}>{formatFileSize(att.size)}</span>
-                        </div>
-                      ))}
+                  <div style={modalItemStyle}>
+                    <div style={labelStyle}>添付ファイル</div>
+                    {attachments.length > 0 ? (
+                      <div>
+                        <span style={valueStyle}>{attachments.length}件: </span>
+                        <span style={{ fontSize: 13, color: "#6b7280" }}>
+                          {attachments.map((a) => a.filename).join("、")}
+                        </span>
+                      </div>
+                    ) : (
+                      <div style={valueStyle}>なし</div>
+                    )}
+                  </div>
+
+                  {/* 予約日時 (scheduled only) */}
+                  {scheduled && (
+                    <div style={modalItemStyle}>
+                      <div style={labelStyle}>予約日時</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: "#4f46e5" }}>
+                        {(() => {
+                          try {
+                            const d = new Date(schedDate);
+                            const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+                            return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${weekdays[d.getDay()]}）${pad2(schedHour)}:${pad2(schedMin)}`;
+                          } catch { return schedDisplay; }
+                        })()}
+                      </div>
                     </div>
                   )}
 
-                  {/* 警告 */}
-                  <div style={{
-                    padding: "10px 14px", background: "#fef2f2", borderRadius: "var(--radius)",
-                    border: "1px solid #fecaca", fontSize: 13, color: "#991b1b",
-                  }}>
-                    {isScheduled && schedDate
-                      ? "予約後の取り消しはできません。送信日時をご確認ください。"
-                      : "送信後の取り消しはできません。内容をご確認ください。"}
+                  {/* 本文プレビュー */}
+                  {bodyPreview && (
+                    <div style={modalItemStyle}>
+                      <div style={labelStyle}>本文プレビュー</div>
+                      <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.6 }}>{bodyPreview}</div>
+                    </div>
+                  )}
+
+                  {/* 区切り線 */}
+                  <div style={dividerStyle} />
+
+                  {/* 注意文 */}
+                  <div style={{ fontSize: 14, color: "#dc2626", fontWeight: 600, marginBottom: 20, lineHeight: 1.5 }}>
+                    {scheduled
+                      ? `${countStr}に ${schedDisplay} に${channelLabel(form.channel) === "メール" ? "メール" : ""}送信を予約します。`
+                      : `${countStr}に${channelLabel(form.channel) === "メール" ? "メール" : ""}を配信します。この操作は取り消せません。`}
+                  </div>
+
+                  {/* ボタン */}
+                  <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+                    <button
+                      onClick={() => setConfirmSend(false)} disabled={sending}
+                      style={{
+                        padding: "10px 20px", fontSize: 14, borderRadius: 8, cursor: "pointer",
+                        background: "#fff", border: "1px solid #d1d5db", color: "#374151",
+                      }}
+                    >
+                      キャンセル
+                    </button>
+                    <button
+                      onClick={executeSend} disabled={sending}
+                      style={{
+                        padding: "10px 28px", fontSize: 15, fontWeight: 700, borderRadius: 8, cursor: "pointer",
+                        background: scheduled ? "#f59e0b" : "#4f46e5",
+                        color: "#fff", border: "none",
+                        display: "flex", alignItems: "center", gap: 6,
+                        opacity: sending ? 0.7 : 1,
+                      }}
+                    >
+                      {sending ? "送信中..." : scheduled ? "予約する" : (<><SendIcon /> 送信する</>)}
+                    </button>
                   </div>
                 </div>
-                <div className="modal-footer">
-                  <button className="button ghost" onClick={() => setConfirmSend(false)} disabled={sending}>
-                    キャンセル
-                  </button>
-                  <button
-                    className="button"
-                    style={{
-                      background: isScheduled && schedDate ? "#f59e0b" : "#4f46e5",
-                      color: "#fff", fontWeight: 600, display: "flex", alignItems: "center", gap: 6,
-                    }}
-                    onClick={executeSend}
-                    disabled={sending}
-                  >
-                    {sending ? "送信中..." : (isScheduled && schedDate ? "予約を確定" : (<><SendIcon /> 送信する</>))}
-                  </button>
-                </div>
-              </>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── Test Send Modal ── */}
-      {showTestSend && (
-        <div className="confirm-overlay" onClick={() => { if (!testSending) setShowTestSend(false); }}>
-          <div className="modal-dialog" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>テスト送信</h3>
-              <button type="button" className="modal-close" onClick={() => { if (!testSending) setShowTestSend(false); }}>&times;</button>
-            </div>
-            <div className="modal-body">
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", display: "block", marginBottom: 6 }}>
-                  送信先メールアドレス
-                </label>
+      {showTestSend && (() => {
+        const labelStyle = { fontSize: 12, color: "#6b7280", marginBottom: 3 };
+        const valueStyle = { fontSize: 14, color: "#111827" };
+        const dividerStyle = { borderTop: "1px solid #e5e7eb", margin: "16px 0" };
+
+        return (
+          <div className="confirm-overlay" onClick={() => { if (!testSending) setShowTestSend(false); }}>
+            <div style={{
+              background: "#fff", borderRadius: 16, maxWidth: 520, width: "90%",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.15)", animation: "nlFade 0.2s ease",
+              padding: "24px 28px",
+            }} onClick={(e) => e.stopPropagation()}>
+              {/* 件名 */}
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 20, lineHeight: 1.4 }}>
+                {"【テスト】" + form.title}
+              </div>
+
+              {/* 送信先 */}
+              <div style={{ marginBottom: 14 }}>
+                <div style={labelStyle}>送信先メールアドレス</div>
                 <input
                   type="email"
                   value={testEmail}
@@ -1730,31 +1818,56 @@ export default function NewsletterEdit() {
                   placeholder="test@example.com"
                   style={{
                     width: "100%", padding: "10px 12px", fontSize: 14,
-                    border: "1px solid var(--line)", borderRadius: "var(--radius)",
-                    boxSizing: "border-box",
+                    border: "1px solid #d1d5db", borderRadius: 8,
+                    boxSizing: "border-box", marginTop: 4,
                   }}
                 />
               </div>
-              <p style={{ margin: 0, fontSize: 12, color: "var(--text-secondary)" }}>
-                件名に【テスト】が付与されます
-              </p>
-            </div>
-            <div className="modal-footer">
-              <button
-                className="button"
-                style={{ background: "#4f46e5", color: "#fff" }}
-                onClick={handleTestSend}
-                disabled={testSending || !testEmail.trim()}
-              >
-                {testSending ? "送信中..." : "テスト送信"}
-              </button>
-              <button className="button ghost" onClick={() => setShowTestSend(false)} disabled={testSending}>
-                キャンセル
-              </button>
+
+              {/* 添付ファイル */}
+              <div style={{ marginBottom: 14 }}>
+                <div style={labelStyle}>添付ファイル</div>
+                <div style={valueStyle}>
+                  {attachments.length > 0
+                    ? `${attachments.length}件: ${attachments.map((a) => a.filename).join("、")}`
+                    : "なし"}
+                </div>
+              </div>
+
+              {/* 区切り線 */}
+              <div style={dividerStyle} />
+
+              {/* 説明文 */}
+              <div style={{ fontSize: 14, color: "#374151", marginBottom: 20 }}>
+                テストメールを1通送信します。
+              </div>
+
+              {/* ボタン */}
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+                <button
+                  onClick={() => setShowTestSend(false)} disabled={testSending}
+                  style={{
+                    padding: "10px 20px", fontSize: 14, borderRadius: 8, cursor: "pointer",
+                    background: "#fff", border: "1px solid #d1d5db", color: "#374151",
+                  }}
+                >
+                  キャンセル
+                </button>
+                <button
+                  onClick={handleTestSend} disabled={testSending || !testEmail.trim()}
+                  style={{
+                    padding: "10px 28px", fontSize: 15, fontWeight: 700, borderRadius: 8, cursor: "pointer",
+                    background: "#10b981", color: "#fff", border: "none",
+                    opacity: (testSending || !testEmail.trim()) ? 0.7 : 1,
+                  }}
+                >
+                  {testSending ? "送信中..." : "テスト送信する"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── Error Dialog ── */}
       <ConfirmDialog

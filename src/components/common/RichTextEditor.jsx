@@ -6,6 +6,7 @@ import Image from '@tiptap/extension-image';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Placeholder from '@tiptap/extension-placeholder';
+import TextAlign from '@tiptap/extension-text-align';
 import { useEffect, useRef, useState, useCallback } from 'react';
 
 const PRESET_COLORS = [
@@ -17,6 +18,13 @@ const PRESET_COLORS = [
   { color: '#2563eb', label: '青' },
   { color: '#7c3aed', label: '紫' },
   { color: '#6b7280', label: 'グレー' },
+];
+
+const IMAGE_SIZES = [
+  { label: '小', width: '200px' },
+  { label: '中', width: '400px' },
+  { label: '大', width: '600px' },
+  { label: '元', width: '100%' },
 ];
 
 /* ── Link Insert Modal ── */
@@ -223,6 +231,171 @@ function ColorPicker({ editor }) {
   );
 }
 
+/* ── Inline SVG icons for alignment ── */
+function AlignLeftIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="18" y2="18" />
+    </svg>
+  );
+}
+function AlignCenterIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <line x1="3" y1="6" x2="21" y2="6" /><line x1="6" y1="12" x2="18" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
+    </svg>
+  );
+}
+function AlignRightIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <line x1="3" y1="6" x2="21" y2="6" /><line x1="9" y1="12" x2="21" y2="12" /><line x1="6" y1="18" x2="21" y2="18" />
+    </svg>
+  );
+}
+
+/* ── Image Floating Toolbar (positioned above selected image) ── */
+function ImageToolbar({ editor, wrapRef }) {
+  const [pos, setPos] = useState(null);
+  const [attrs, setAttrs] = useState({});
+
+  useEffect(() => {
+    if (!editor) return;
+    const update = () => {
+      const { state } = editor;
+      const node = state.doc.nodeAt(state.selection.from);
+      if (!node || node.type.name !== 'image') {
+        setPos(null);
+        return;
+      }
+      setAttrs(node.attrs);
+      // Find the DOM node for positioning
+      try {
+        const domNode = editor.view.nodeDOM(state.selection.from);
+        const imgEl = domNode?.tagName === 'IMG' ? domNode : domNode?.querySelector?.('img');
+        const wrapEl = wrapRef?.current;
+        if (imgEl && wrapEl) {
+          const imgRect = imgEl.getBoundingClientRect();
+          const wrapRect = wrapEl.getBoundingClientRect();
+          setPos({
+            top: imgRect.top - wrapRect.top - 42,
+            left: imgRect.left - wrapRect.left + imgRect.width / 2,
+          });
+        }
+      } catch {
+        setPos(null);
+      }
+    };
+    editor.on('selectionUpdate', update);
+    editor.on('transaction', update);
+    return () => {
+      editor.off('selectionUpdate', update);
+      editor.off('transaction', update);
+    };
+  }, [editor, wrapRef]);
+
+  if (!pos || !editor) return null;
+
+  const updateImageAttr = (newAttrs) => {
+    const { state, dispatch } = editor.view;
+    const { selection } = state;
+    const node = state.doc.nodeAt(selection.from);
+    if (!node || node.type.name !== 'image') return;
+    const tr = state.tr.setNodeMarkup(selection.from, undefined, { ...node.attrs, ...newAttrs });
+    dispatch(tr);
+  };
+
+  const currentWidth = attrs.style?.match(/max-width:\s*([^;]+)/)?.[1] || '400px';
+  const currentAlign = attrs['data-align'] || 'center';
+
+  return (
+    <div
+      className="tiptap-img-toolbar"
+      style={{ position: 'absolute', top: pos.top, left: pos.left, transform: 'translateX(-50%)', zIndex: 30 }}
+    >
+      <div className="tiptap-img-toolbar-group">
+        {IMAGE_SIZES.map(({ label, width }) => (
+          <button
+            key={label}
+            type="button"
+            className={currentWidth === width ? 'is-active' : ''}
+            onMouseDown={(e) => { e.preventDefault(); updateImageAttr({ style: `max-width: ${width}; height: auto;` }); }}
+            title={`サイズ: ${label}`}
+          >{label}</button>
+        ))}
+      </div>
+      <span className="tiptap-img-toolbar-sep" />
+      <div className="tiptap-img-toolbar-group">
+        <button type="button" className={currentAlign === 'left' ? 'is-active' : ''}
+          onMouseDown={(e) => { e.preventDefault(); updateImageAttr({ 'data-align': 'left' }); }} title="左寄せ"
+        ><AlignLeftIcon /></button>
+        <button type="button" className={currentAlign === 'center' ? 'is-active' : ''}
+          onMouseDown={(e) => { e.preventDefault(); updateImageAttr({ 'data-align': 'center' }); }} title="中央"
+        ><AlignCenterIcon /></button>
+        <button type="button" className={currentAlign === 'right' ? 'is-active' : ''}
+          onMouseDown={(e) => { e.preventDefault(); updateImageAttr({ 'data-align': 'right' }); }} title="右寄せ"
+        ><AlignRightIcon /></button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Custom Image Extension with alignment and size attributes ── */
+const CustomImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      'data-align': {
+        default: 'center',
+        parseHTML: (el) => el.getAttribute('data-align') || 'center',
+        renderHTML: (attrs) => ({ 'data-align': attrs['data-align'] || 'center' }),
+      },
+      style: {
+        default: 'max-width: 400px; height: auto;',
+        parseHTML: (el) => el.getAttribute('style') || 'max-width: 400px; height: auto;',
+        renderHTML: (attrs) => ({ style: attrs.style || 'max-width: 400px; height: auto;' }),
+      },
+    };
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    const align = HTMLAttributes['data-align'] || 'center';
+    const wrapStyle =
+      align === 'center' ? 'text-align: center;'
+      : align === 'right' ? 'text-align: right;'
+      : 'text-align: left;';
+
+    return ['div', { style: wrapStyle, 'data-image-wrap': '' }, ['img', HTMLAttributes]];
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'div[data-image-wrap] img',
+        getAttrs: (el) => {
+          const wrap = el.closest('[data-image-wrap]');
+          const wrapAlign = wrap?.style?.textAlign;
+          return {
+            src: el.getAttribute('src'),
+            alt: el.getAttribute('alt'),
+            style: el.getAttribute('style') || 'max-width: 400px; height: auto;',
+            'data-align': wrapAlign === 'right' ? 'right' : wrapAlign === 'left' ? 'left' : 'center',
+          };
+        },
+      },
+      {
+        tag: 'img[src]',
+        getAttrs: (el) => ({
+          src: el.getAttribute('src'),
+          alt: el.getAttribute('alt'),
+          style: el.getAttribute('style') || 'max-width: 400px; height: auto;',
+          'data-align': el.getAttribute('data-align') || 'center',
+        }),
+      },
+    ];
+  },
+});
+
 /* ── Menu Bar ── */
 function MenuBar({ editor, onLinkClick, onImageClick }) {
   if (!editor) return null;
@@ -289,7 +462,26 @@ function MenuBar({ editor, onLinkClick, onImageClick }) {
 
       <span className="tiptap-separator" />
 
-      {/* Group 5: Insert */}
+      {/* Group 5: Text Align */}
+      <TBtn
+        onClick={() => editor.chain().focus().setTextAlign('left').run()}
+        active={editor.isActive({ textAlign: 'left' })}
+        title="左揃え"
+      ><AlignLeftIcon /></TBtn>
+      <TBtn
+        onClick={() => editor.chain().focus().setTextAlign('center').run()}
+        active={editor.isActive({ textAlign: 'center' })}
+        title="中央揃え"
+      ><AlignCenterIcon /></TBtn>
+      <TBtn
+        onClick={() => editor.chain().focus().setTextAlign('right').run()}
+        active={editor.isActive({ textAlign: 'right' })}
+        title="右揃え"
+      ><AlignRightIcon /></TBtn>
+
+      <span className="tiptap-separator" />
+
+      {/* Group 6: Insert */}
       <TBtn
         onClick={onLinkClick}
         active={editor.isActive('link')}
@@ -333,11 +525,12 @@ export default function RichTextEditor({ content, onChange, placeholder }) {
         HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer' },
       }),
       Underline,
-      Image.configure({
-        HTMLAttributes: { style: 'max-width: 100%; height: auto;' },
-      }),
+      CustomImage,
       TextStyle,
       Color,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
       Placeholder.configure({
         placeholder: placeholder || '本文を入力してください...',
       }),
@@ -391,7 +584,15 @@ export default function RichTextEditor({ content, onChange, placeholder }) {
     if (!editor || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
     reader.onload = () => {
-      editor.chain().focus().setImage({ src: reader.result }).run();
+      editor
+        .chain()
+        .focus()
+        .setImage({
+          src: reader.result,
+          style: 'max-width: 400px; height: auto;',
+          'data-align': 'center',
+        })
+        .run();
     };
     reader.readAsDataURL(file);
   }, [editor]);
@@ -433,7 +634,15 @@ export default function RichTextEditor({ content, onChange, placeholder }) {
 
   function handleImageInsert(url) {
     if (editor && url) {
-      editor.chain().focus().setImage({ src: url }).run();
+      editor
+        .chain()
+        .focus()
+        .setImage({
+          src: url,
+          style: 'max-width: 400px; height: auto;',
+          'data-align': 'center',
+        })
+        .run();
     }
     setImageModal(false);
   }
@@ -449,6 +658,7 @@ export default function RichTextEditor({ content, onChange, placeholder }) {
         onDrop={handleDrop}
       >
         <MenuBar editor={editor} onLinkClick={handleLinkClick} onImageClick={handleImageClick} />
+        <ImageToolbar editor={editor} wrapRef={editorWrapRef} />
         <EditorContent editor={editor} className="tiptap-content" />
         {dragging && (
           <div className="tiptap-drop-overlay">

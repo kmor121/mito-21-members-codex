@@ -2006,6 +2006,24 @@ textarea { resize: vertical; }
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   color: var(--primary); font-size: 14px; font-weight: 600;
 }
+/* Image floating toolbar (BubbleMenu) */
+.tiptap-img-toolbar {
+  display: flex; align-items: center; gap: 2px;
+  padding: 4px 6px; background: #fff; border: 1px solid var(--line);
+  border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.tiptap-img-toolbar-group { display: flex; gap: 2px; }
+.tiptap-img-toolbar-sep {
+  width: 1px; align-self: stretch; background: var(--line); margin: 2px 4px; flex-shrink: 0;
+}
+.tiptap-img-toolbar button {
+  min-width: 32px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 8px; background: #f3f4f6; border: none; border-radius: 6px;
+  cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  transition: all 0.12s; white-space: nowrap;
+}
+.tiptap-img-toolbar button:hover { background: var(--primary-light); color: var(--primary); }
+.tiptap-img-toolbar button.is-active { background: var(--primary); color: #fff; }
 /* Content area */
 .tiptap-content {
   padding: 16px;
@@ -2018,7 +2036,9 @@ textarea { resize: vertical; }
 .tiptap-content .tiptap p { margin: 0.4em 0; }
 .tiptap-content .tiptap ul, .tiptap-content .tiptap ol { padding-left: 1.5em; margin: 0.4em 0; }
 .tiptap-content .tiptap a { color: var(--primary); text-decoration: underline; }
-.tiptap-content .tiptap img { max-width: 100%; height: auto; border-radius: var(--radius); margin: 0.5em 0; display: block; }
+.tiptap-content .tiptap img { max-width: 100%; height: auto; border-radius: var(--radius); margin: 0.5em 0; display: inline-block; cursor: pointer; transition: outline 0.1s; }
+.tiptap-content .tiptap img.ProseMirror-selectednode { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: var(--radius); }
+.tiptap-content .tiptap div[data-image-wrap] { margin: 0.5em 0; }
 .tiptap-content .tiptap hr { border: none; border-top: 2px solid var(--line); margin: 1em 0; }
 .tiptap-content .tiptap blockquote { border-left: 3px solid var(--primary); padding-left: 12px; margin: 0.6em 0; color: var(--text-secondary); }
 .tiptap-content .tiptap p.is-editor-empty:first-child::before {

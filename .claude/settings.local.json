@@ -21,7 +21,8 @@
       "Bash(node -e \"const m = require\\('@tiptap/extension-text-style'\\); console.log\\(Object.keys\\(m\\).join\\(', '\\)\\)\" 2>&1)",
       "Bash(node -e \"const m = require\\('@tiptap/extension-color'\\); console.log\\(Object.keys\\(m\\).join\\(', '\\)\\)\" 2>&1 && node -e \"const m = require\\('@tiptap/extension-image'\\); console.log\\(Object.keys\\(m\\).join\\(', '\\)\\)\" 2>&1 && node -e \"const m = require\\('@tiptap/extension-placeholder'\\); console.log\\(Object.keys\\(m\\).join\\(', '\\)\\)\" 2>&1)",
       "Bash(find /c/dev/mito-21-members-codex/base44/entities -type f -name \"*.jsonc\" | xargs ls -lh)",
-      "Bash(grep -r \"newsletter\\\\|配信\" /c/dev/mito-21-members-codex/docs --include=\"*.md\" 2>/dev/null | head -20)"
+      "Bash(grep -r \"newsletter\\\\|配信\" /c/dev/mito-21-members-codex/docs --include=\"*.md\" 2>/dev/null | head -20)",
+      "Bash(bash deploy.sh 2>&1)"
     ]
   }
 }
