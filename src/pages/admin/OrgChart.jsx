@@ -11,18 +11,50 @@ const TYPE_COLORS = {
   "幹事会": { bg: "#eef2ff", text: "#4f46e5", border: "#c7d2fe" },
   "委員会": { bg: "#ecfdf5", text: "#059669", border: "#a7f3d0" },
   "部会":   { bg: "#fffbeb", text: "#d97706", border: "#fde68a" },
+  "室":     { bg: "#fdf2f8", text: "#db2777", border: "#fbcfe8" },
   "その他": { bg: "#f1f5f9", text: "#64748b", border: "#cbd5e1" },
 };
 
 const ROLE_COLORS = {
-  "会長":   { bg: "#eef2ff", text: "#4f46e5" },
-  "委員長": { bg: "#eef2ff", text: "#4f46e5" },
-  "副会長": { bg: "#ecfdf5", text: "#059669" },
+  "会長":     { bg: "#eef2ff", text: "#4f46e5" },
+  "直前会長": { bg: "#eef2ff", text: "#6366f1" },
+  "副会長":   { bg: "#ecfdf5", text: "#059669" },
+  "代表幹事": { bg: "#fef3c7", text: "#b45309" },
+  "会計幹事": { bg: "#fef3c7", text: "#b45309" },
+  "会計副幹事": { bg: "#fef3c7", text: "#b45309" },
+  "事務局":   { bg: "#f1f5f9", text: "#475569" },
+  "室長":     { bg: "#fdf2f8", text: "#db2777" },
+  "委員長":   { bg: "#eef2ff", text: "#4f46e5" },
   "副委員長": { bg: "#ecfdf5", text: "#059669" },
-  "幹事":   { bg: "#fffbeb", text: "#d97706" },
+  "総括幹事": { bg: "#fffbeb", text: "#d97706" },
+  "運営幹事": { bg: "#fffbeb", text: "#d97706" },
+  "名誉顧問": { bg: "#faf5ff", text: "#7c3aed" },
+  "監事":     { bg: "#faf5ff", text: "#7c3aed" },
+  "委員":     { bg: "#f1f5f9", text: "#64748b" },
 };
 
-const QUICK_ROLES = ["会長", "副会長", "委員長", "副委員長", "幹事", "委員"];
+/* Role display order (lower = higher rank) */
+const ROLE_SORT_ORDER = {
+  "会長": 1, "直前会長": 2, "副会長": 3,
+  "代表幹事": 4, "会計幹事": 5, "会計副幹事": 6, "事務局": 7,
+  "室長": 10,
+  "委員長": 11, "副委員長": 12, "総括幹事": 13, "運営幹事": 14,
+  "名誉顧問": 20, "監事": 21,
+  "委員": 50,
+};
+
+function roleSortValue(role) {
+  return ROLE_SORT_ORDER[role] ?? 99;
+}
+
+/* Quick role suggestions per org type */
+const ROLES_BY_ORG_TYPE = {
+  "幹事会": ["会長", "直前会長", "副会長", "代表幹事", "会計幹事", "会計副幹事", "事務局"],
+  "室":     ["室長"],
+  "委員会": ["委員長", "副委員長", "総括幹事", "運営幹事", "会計幹事", "委員"],
+  "部会":   ["委員長", "副委員長", "総括幹事", "運営幹事", "会計幹事", "委員"],
+  "その他": ["名誉顧問", "監事", "委員"],
+};
 
 function roleBadgeStyle(role) {
   const c = ROLE_COLORS[role];
@@ -175,7 +207,7 @@ function OrgTreeNode({
             animation: "orgSlideDown 0.2s ease",
           }}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-              {assignments.map(a => (
+              {[...assignments].sort((a, b) => roleSortValue(a.role) - roleSortValue(b.role)).map(a => (
                 <div
                   key={a.id}
                   onClick={() => onEditAssignment(org, a)}
@@ -812,7 +844,7 @@ export default function OrgChart() {
                     種別
                   </label>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {["幹事会", "委員会", "部会", "その他"].map(t => {
+                    {["幹事会", "委員会", "部会", "室", "その他"].map(t => {
                       const isActive = orgForm.org_type === t;
                       const tc = TYPE_COLORS[t];
                       return (
@@ -962,7 +994,7 @@ export default function OrgChart() {
                     }}
                   />
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    {QUICK_ROLES.map(r => (
+                    {(ROLES_BY_ORG_TYPE[assignOrg.org_type] || ROLES_BY_ORG_TYPE["その他"]).map(r => (
                       <button
                         key={r} type="button"
                         onClick={() => setAssignForm(p => ({ ...p, role: r }))}

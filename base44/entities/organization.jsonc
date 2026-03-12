@@ -12,7 +12,7 @@
     },
     "org_type": {
       "type": "string",
-      "enum": ["幹事会", "委員会", "部会", "その他"],
+      "enum": ["幹事会", "委員会", "部会", "室", "その他"],
       "description": "Organization type"
     },
     "parent_id": {

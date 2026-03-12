@@ -1,6 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 
-const ALLOWED_ORG_TYPES = ["幹事会", "委員会", "部会", "その他"];
+const ALLOWED_ORG_TYPES = ["幹事会", "委員会", "部会", "室", "その他"];
 
 function normalizeString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";

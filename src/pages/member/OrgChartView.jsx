@@ -8,16 +8,41 @@ const TYPE_COLORS = {
   "幹事会": { bg: "#eef2ff", text: "#4f46e5", border: "#c7d2fe" },
   "委員会": { bg: "#ecfdf5", text: "#059669", border: "#a7f3d0" },
   "部会":   { bg: "#fffbeb", text: "#d97706", border: "#fde68a" },
+  "室":     { bg: "#fdf2f8", text: "#db2777", border: "#fbcfe8" },
   "その他": { bg: "#f1f5f9", text: "#64748b", border: "#cbd5e1" },
 };
 
 const ROLE_COLORS = {
   "会長":     { bg: "#eef2ff", text: "#4f46e5" },
-  "委員長":   { bg: "#eef2ff", text: "#4f46e5" },
+  "直前会長": { bg: "#eef2ff", text: "#6366f1" },
   "副会長":   { bg: "#ecfdf5", text: "#059669" },
+  "代表幹事": { bg: "#fef3c7", text: "#b45309" },
+  "会計幹事": { bg: "#fef3c7", text: "#b45309" },
+  "会計副幹事": { bg: "#fef3c7", text: "#b45309" },
+  "事務局":   { bg: "#f1f5f9", text: "#475569" },
+  "室長":     { bg: "#fdf2f8", text: "#db2777" },
+  "委員長":   { bg: "#eef2ff", text: "#4f46e5" },
   "副委員長": { bg: "#ecfdf5", text: "#059669" },
-  "幹事":     { bg: "#fffbeb", text: "#d97706" },
+  "総括幹事": { bg: "#fffbeb", text: "#d97706" },
+  "運営幹事": { bg: "#fffbeb", text: "#d97706" },
+  "名誉顧問": { bg: "#faf5ff", text: "#7c3aed" },
+  "監事":     { bg: "#faf5ff", text: "#7c3aed" },
+  "委員":     { bg: "#f1f5f9", text: "#64748b" },
 };
+
+/* Role display order (lower = higher rank) */
+const ROLE_SORT_ORDER = {
+  "会長": 1, "直前会長": 2, "副会長": 3,
+  "代表幹事": 4, "会計幹事": 5, "会計副幹事": 6, "事務局": 7,
+  "室長": 10,
+  "委員長": 11, "副委員長": 12, "総括幹事": 13, "運営幹事": 14,
+  "名誉顧問": 20, "監事": 21,
+  "委員": 50,
+};
+
+function roleSortValue(role) {
+  return ROLE_SORT_ORDER[role] ?? 99;
+}
 
 function roleBadgeStyle(role) {
   const c = ROLE_COLORS[role];
@@ -140,7 +165,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand }) {
               <p style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}>配属メンバーはいません</p>
             ) : (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                {assignments.map((a, idx) => {
+                {[...assignments].sort((a, b) => roleSortValue(a.role) - roleSortValue(b.role)).map((a, idx) => {
                   const member = a.member || {};
                   return (
                     <Link
