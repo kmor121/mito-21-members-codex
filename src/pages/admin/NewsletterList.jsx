@@ -74,6 +74,75 @@ function LineIcon() {
   );
 }
 
+function TrashIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+    </svg>
+  );
+}
+
+/* ── Delete Confirm Modal ── */
+function DeleteConfirmModal({ label, onConfirm, onCancel }) {
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 1000,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        animation: "nlModalFade 0.2s ease",
+      }}
+      onClick={onCancel}
+    >
+      <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.5)" }} />
+      <div
+        style={{
+          position: "relative", zIndex: 1, width: "100%", maxWidth: 420,
+          background: "var(--card-bg, #fff)", borderRadius: 16,
+          boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
+          animation: "nlModalScale 0.2s ease",
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div style={{ padding: "28px 28px 0" }}>
+          <h3 style={{ margin: "0 0 8px", fontSize: 17, fontWeight: 700, color: "var(--text, #1e293b)" }}>
+            {label}を削除しますか？
+          </h3>
+          <p style={{ margin: 0, fontSize: 14, color: "#dc2626", fontWeight: 500 }}>
+            削除すると元に戻せません。
+          </p>
+        </div>
+        <div style={{
+          display: "flex", justifyContent: "flex-end", gap: 10,
+          padding: "20px 28px 24px",
+        }}>
+          <button
+            onClick={onCancel}
+            style={{
+              padding: "9px 20px", borderRadius: 8,
+              border: "1px solid var(--line, #e2e8f0)",
+              background: "var(--card-bg, #fff)", color: "var(--text, #1e293b)",
+              fontSize: 14, fontWeight: 600, cursor: "pointer",
+            }}
+          >
+            キャンセル
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              padding: "9px 20px", borderRadius: 8, border: "none",
+              background: "#dc2626", color: "#fff",
+              fontSize: 14, fontWeight: 600, cursor: "pointer",
+            }}
+          >
+            削除する
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Helper Functions ── */
 function statusLabel(s) {
   return { draft: "下書き", scheduled: "予約中", sent: "送信済", cancelled: "取消", failed: "失敗" }[s] || s || "-";
@@ -434,6 +503,10 @@ export default function NewsletterList() {
   const [historyChannel, setHistoryChannel] = useState("all");
   const [selectedHistory, setSelectedHistory] = useState(null);
 
+  /* Delete state */
+  const [deleteTarget, setDeleteTarget] = useState(null); // { id, label }
+  const [deleting, setDeleting] = useState(false);
+
   const debouncedQuery = useDebounce(searchQuery, 300);
 
   /* ── Data Loading ── */
@@ -461,6 +534,24 @@ export default function NewsletterList() {
     const timer = setTimeout(() => setToast(null), 3000);
     return () => clearTimeout(timer);
   }, [toast]);
+
+  /* ── Delete Handler ── */
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await base44.entities.Newsletter.delete(deleteTarget.id);
+      invalidateReadCache();
+      setDeleteTarget(null);
+      setToast({ type: "success", msg: "削除しました" });
+      setNewsletters(prev => prev.filter(nl => nl.id !== deleteTarget.id));
+    } catch (err) {
+      console.error("Delete error:", err);
+      setToast({ type: "error", msg: "削除に失敗しました" });
+    } finally {
+      setDeleting(false);
+    }
+  }, [deleteTarget]);
 
   /* ── Derived Data ── */
   const templates = useMemo(() => newsletters.filter(nl => nl.is_template === true), [newsletters]);
@@ -653,6 +744,15 @@ export default function NewsletterList() {
             setSelectedHistory(null);
             navigate(`/admin/newsletters/new?from=${nl.id}`);
           }}
+        />
+      )}
+
+      {/* ── Delete Confirm Modal ── */}
+      {deleteTarget && (
+        <DeleteConfirmModal
+          label={deleteTarget.label}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
         />
       )}
 
@@ -977,20 +1077,39 @@ export default function NewsletterList() {
                         <td>{audienceLabel(tmpl)}</td>
                         <td>{formatDate(tmpl.created_date)}</td>
                         <td>
-                          <button
-                            onClick={e => {
-                              e.stopPropagation();
-                              navigate(`/admin/newsletters/new?from=${tmpl.id}`);
-                            }}
-                            style={{
-                              whiteSpace: "nowrap", padding: "5px 12px",
-                              background: "#ecfdf5", color: "#065f46",
-                              border: "1px solid #a7f3d0", borderRadius: 6,
-                              fontSize: 12, fontWeight: 600, cursor: "pointer",
-                            }}
-                          >
-                            この内容で配信作成
-                          </button>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
+                            <button
+                              onClick={e => {
+                                e.stopPropagation();
+                                navigate(`/admin/newsletters/new?from=${tmpl.id}`);
+                              }}
+                              style={{
+                                whiteSpace: "nowrap", padding: "5px 12px",
+                                background: "#ecfdf5", color: "#065f46",
+                                border: "1px solid #a7f3d0", borderRadius: 6,
+                                fontSize: 12, fontWeight: 600, cursor: "pointer",
+                              }}
+                            >
+                              この内容で配信作成
+                            </button>
+                            <button
+                              onClick={e => {
+                                e.stopPropagation();
+                                setDeleteTarget({ id: tmpl.id, label: "このテンプレート" });
+                              }}
+                              title="削除"
+                              style={{
+                                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                width: 30, height: 30, borderRadius: 6,
+                                border: "none", background: "transparent", color: "#94a3b8",
+                                cursor: "pointer", transition: "all 0.15s",
+                              }}
+                              onMouseEnter={e => { e.currentTarget.style.background = "#fef2f2"; e.currentTarget.style.color = "#dc2626"; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#94a3b8"; }}
+                            >
+                              <TrashIcon />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -1009,12 +1128,14 @@ export default function NewsletterList() {
                       <th>ステータス</th>
                       <th>日時</th>
                       <th>作成日</th>
+                      <th style={{ width: 1 }}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredItems.map(nl => {
                       const sc = statusColor(nl.status);
                       const dateVal = nl.last_sent_at || nl.scheduled_at || nl.created_date;
+                      const canDelete = nl.status === "draft" || nl.status === "cancelled" || nl.status === "failed";
                       return (
                         <tr
                           key={nl.id}
@@ -1036,6 +1157,27 @@ export default function NewsletterList() {
                           </td>
                           <td>{formatDate(dateVal)}</td>
                           <td>{formatDate(nl.created_date)}</td>
+                          <td>
+                            {canDelete && (
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  setDeleteTarget({ id: nl.id, label: "この下書き" });
+                                }}
+                                title="削除"
+                                style={{
+                                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                  width: 30, height: 30, borderRadius: 6,
+                                  border: "none", background: "transparent", color: "#94a3b8",
+                                  cursor: "pointer", transition: "all 0.15s",
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = "#fef2f2"; e.currentTarget.style.color = "#dc2626"; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#94a3b8"; }}
+                              >
+                                <TrashIcon />
+                              </button>
+                            )}
+                          </td>
                         </tr>
                       );
                     })}

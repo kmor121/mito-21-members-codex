@@ -305,6 +305,8 @@ export default function NewsletterEdit() {
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useState({
     id: "", title: "", body: "", body_html: "", channel: "email",
     audience_type: "all", audience_filter_json: "", audience_detail: "",
@@ -789,6 +791,25 @@ export default function NewsletterEdit() {
     }
   }, [testEmail, form, editorMode, isTemplate, attachments, handleSaveDraft, buildAudienceFilter, buildAttachmentsMetaJson, buildAttachmentsJson]);
 
+  /* ── Delete handler ── */
+  const handleDelete = useCallback(async () => {
+    if (!form.id) return;
+    setDeleting(true);
+    try {
+      await base44.entities.Newsletter.delete(form.id);
+      invalidateReadCache();
+      setShowDeleteConfirm(false);
+      navigate("/admin/newsletters");
+      if (window.__showToast) window.__showToast("削除しました", "success");
+    } catch (err) {
+      console.error("Delete error:", err);
+      setToast({ type: "error", message: "削除に失敗しました" });
+      setShowDeleteConfirm(false);
+    } finally {
+      setDeleting(false);
+    }
+  }, [form.id, navigate]);
+
   /* ── Member toggle for individual selection ── */
   const handleToggleMember = useCallback((member) => {
     setSelectedMembers((prev) => {
@@ -943,6 +964,62 @@ export default function NewsletterEdit() {
         </div>
       )}
 
+      {/* ── Delete Confirm Modal ── */}
+      {showDeleteConfirm && (
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 1000,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            animation: "nlFade 0.2s ease",
+          }}
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.5)" }} />
+          <div
+            style={{
+              position: "relative", zIndex: 1, width: "100%", maxWidth: 420,
+              background: "#fff", borderRadius: 16,
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ padding: "28px 28px 0" }}>
+              <h3 style={{ margin: "0 0 8px", fontSize: 17, fontWeight: 700 }}>
+                {isTemplate ? "このテンプレート" : "この下書き"}を削除しますか？
+              </h3>
+              <p style={{ margin: 0, fontSize: 14, color: "#dc2626", fontWeight: 500 }}>
+                削除すると元に戻せません。
+              </p>
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "20px 28px 24px" }}>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                style={{
+                  padding: "9px 20px", borderRadius: 8,
+                  border: "1px solid var(--line, #e2e8f0)",
+                  background: "#fff", color: "var(--text, #1e293b)",
+                  fontSize: 14, fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                style={{
+                  padding: "9px 20px", borderRadius: 8, border: "none",
+                  background: "#dc2626", color: "#fff",
+                  fontSize: 14, fontWeight: 600, cursor: "pointer",
+                  opacity: deleting ? 0.6 : 1,
+                }}
+              >
+                {deleting ? "削除中..." : "削除する"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Top Header Bar ── */}
       <div style={{
         position: "sticky", top: 0, zIndex: 20, background: "#fff",
@@ -1037,6 +1114,27 @@ export default function NewsletterEdit() {
               disabled={saving}
             >
               {saving ? "保存中..." : (form.id ? "テンプレートを更新" : "テンプレートを保存")}
+            </button>
+          )}
+
+          {/* Delete button - only for existing drafts/templates */}
+          {form.id && (isTemplate || form.status === "draft" || form.status === "cancelled" || form.status === "failed") && (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              title={isTemplate ? "テンプレートを削除" : "下書きを削除"}
+              style={{
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                width: 34, height: 34, borderRadius: 8,
+                border: "1px solid #fecaca", background: "transparent", color: "#94a3b8",
+                cursor: "pointer", transition: "all 0.15s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "#fef2f2"; e.currentTarget.style.color = "#dc2626"; e.currentTarget.style.borderColor = "#fca5a5"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#94a3b8"; e.currentTarget.style.borderColor = "#fecaca"; }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+              </svg>
             </button>
           )}
         </div>
