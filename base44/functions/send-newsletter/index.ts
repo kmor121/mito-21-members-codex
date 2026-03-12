@@ -4,36 +4,6 @@ function normalize(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-/**
- * Convert Base64 inline images in HTML to CID-based inline attachments.
- * Many email clients (Gmail, Outlook) block Base64 data URLs but support CID.
- */
-function convertInlineImages(html: string): {
-  html: string;
-  inlineAttachments: Array<Record<string, unknown>>;
-} {
-  const inlineAttachments: Array<Record<string, unknown>> = [];
-  let index = 0;
-
-  const convertedHtml = html.replace(
-    /(<img[^>]+src=")data:image\/(png|jpeg|jpg|gif|webp);base64,([^"]+)("[^>]*>)/gi,
-    (_match, before, type, base64Data, after) => {
-      const cid = `image${String(index++).padStart(3, "0")}@newsletter`;
-      const ext = type.toLowerCase() === "jpeg" ? "jpg" : type.toLowerCase();
-      inlineAttachments.push({
-        filename: `image${inlineAttachments.length + 1}.${ext}`,
-        content: base64Data,
-        content_type: `image/${type.toLowerCase()}`,
-        disposition: "inline",
-        id: cid,
-      });
-      return `${before}cid:${cid}${after}`;
-    }
-  );
-
-  return { html: convertedHtml, inlineAttachments };
-}
-
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return Response.json({ ok: false, error: "Method not allowed" }, { status: 405 });
@@ -121,14 +91,8 @@ Deno.serve(async (req) => {
         subject: `【テスト】${title}`,
         text: bodyText,
       };
-      if (bodyHtml) {
-        const { html: convertedHtml, inlineAttachments } = convertInlineImages(bodyHtml);
-        emailPayloadTest.html = convertedHtml;
-        const allAttachments = [...attachments, ...inlineAttachments];
-        if (allAttachments.length > 0) emailPayloadTest.attachments = allAttachments;
-      } else {
-        if (attachments.length > 0) emailPayloadTest.attachments = attachments;
-      }
+      if (bodyHtml) emailPayloadTest.html = bodyHtml;
+      if (attachments.length > 0) emailPayloadTest.attachments = attachments;
 
       console.log(`[send-newsletter] Test email payload attachments:`, JSON.stringify(
         (emailPayloadTest.attachments as Array<Record<string, unknown>> || []).map((a) => ({
@@ -241,15 +205,6 @@ Deno.serve(async (req) => {
       return Response.json({ ok: false, error: "No recipients found" }, { status: 400 });
     }
 
-    // Convert inline Base64 images to CID attachments (once, shared across all recipients)
-    let sendHtml = bodyHtml;
-    let allAttachments = [...attachments];
-    if (bodyHtml) {
-      const { html: convertedHtml, inlineAttachments } = convertInlineImages(bodyHtml);
-      sendHtml = convertedHtml;
-      allAttachments = [...attachments, ...inlineAttachments];
-    }
-
     // Send emails via Resend API in batches
     let successCount = 0;
     let failCount = 0;
@@ -266,8 +221,8 @@ Deno.serve(async (req) => {
             subject: title,
             text: bodyText,
           };
-          if (sendHtml) emailPayload.html = sendHtml;
-          if (allAttachments.length > 0) emailPayload.attachments = allAttachments;
+          if (bodyHtml) emailPayload.html = bodyHtml;
+          if (attachments.length > 0) emailPayload.attachments = attachments;
           if (scheduledAt) emailPayload.send_at = scheduledAt;
 
           const response = await fetch("https://api.resend.com/emails", {
