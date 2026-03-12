@@ -463,6 +463,17 @@ export default function OrgChart() {
     if (!org?.id) return;
     setSaving(true);
     try {
+      // Cascade: delete all assignments for this org first
+      const orgAssignments = Array.isArray(org.assignments) ? org.assignments : [];
+      for (const a of orgAssignments) {
+        if (!a.id) continue;
+        await apiRequest("delete-org-assignment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: a.id }),
+        });
+      }
+      // Then delete the organization itself
       await apiRequest("delete-organization", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1113,7 +1124,11 @@ export default function OrgChart() {
       <ConfirmDialog
         open={!!confirmDeleteOrg}
         title="組織の削除"
-        message={`「${confirmDeleteOrg?.org_name || ""}」を削除しますか？配属メンバーも解除されます。`}
+        message={(() => {
+          const cnt = (confirmDeleteOrg?.assignments || []).length;
+          if (cnt > 0) return `「${confirmDeleteOrg?.org_name || ""}」には${cnt}名のメンバーが配属されています。配属情報も含めて削除しますか？`;
+          return `「${confirmDeleteOrg?.org_name || ""}」を削除しますか？`;
+        })()}
         confirmLabel="削除する"
         confirmStyle={{ background: "#dc2626", borderColor: "#dc2626" }}
         onConfirm={executeDeleteOrg}
