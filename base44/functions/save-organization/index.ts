@@ -1,6 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 
-const ALLOWED_ORG_TYPES = ["\u5f79\u54e1\u4f1a", "\u59d4\u54e1\u4f1a", "\u90e8\u4f1a", "\u305d\u306e\u4ed6"];
+const ALLOWED_ORG_TYPES = ["幹事会", "委員会", "部会", "その他"];
 
 function normalizeString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     const payload = {
       fiscal_year_id: normalizeString(body?.fiscal_year_id),
       org_name: normalizeString(body?.org_name),
-      org_type: normalizeString(body?.org_type) || "\u305d\u306e\u4ed6",
+      org_type: normalizeString(body?.org_type) || "その他",
       parent_id: normalizeString(body?.parent_id),
       sort_order: normalizeSortOrder(body?.sort_order)
     };
