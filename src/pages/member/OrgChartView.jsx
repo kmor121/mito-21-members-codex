@@ -161,7 +161,7 @@ function ChevronRight({ size = 14, color = "var(--text-secondary)" }) {
 }
 
 /* ═══ OrgViewNode (recursive, read-only) ═══ */
-function OrgViewNode({ org, depth, expandedOrgs, toggleExpand }) {
+function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap }) {
   const assignments = Array.isArray(org.assignments) ? org.assignments : [];
   const children = org.children || [];
   const isExpanded = expandedOrgs.has(org.id);
@@ -211,6 +211,21 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand }) {
               fontSize: 11, fontWeight: 600, whiteSpace: "nowrap",
               background: "transparent", color: tc.text, border: `1px solid ${tc.border}`,
             }}>{org.org_type || "その他"}</span>
+            {org.supervisor_id && memberMap?.[org.supervisor_id] && (
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 4,
+                padding: "2px 10px 2px 6px", borderRadius: 12,
+                fontSize: 11, fontWeight: 500, whiteSpace: "nowrap",
+                color: "#7c3aed", background: "transparent",
+                border: "1px dashed #c4b5fd",
+              }}>
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="8" cy="5" r="3"/>
+                  <path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
+                </svg>
+                担当: {memberMap[org.supervisor_id].name_kanji || ""}
+              </span>
+            )}
           </div>
           <span style={{
             fontSize: 12, color: "var(--text-secondary)", background: "var(--bg)",
@@ -289,6 +304,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand }) {
               depth={depth + 1}
               expandedOrgs={expandedOrgs}
               toggleExpand={toggleExpand}
+              memberMap={memberMap}
             />
           ))}
         </div>
@@ -308,6 +324,7 @@ export default function OrgChartView() {
   const [years, setYears] = useState([]);
   const [selectedFiscalYear, setSelectedFiscalYear] = useState(null);
   const [orgTree, setOrgTree] = useState([]);
+  const [memberMap, setMemberMap] = useState({});
   const [expandedOrgs, setExpandedOrgs] = useState(new Set());
 
   useEffect(() => {
@@ -327,8 +344,9 @@ export default function OrgChartView() {
         const effectiveId = fiscalYearIdParam || currentFy?.id || "";
         const selectedFy = yearsList.find(fy => fy.id === effectiveId) || null;
 
-        const memberMap = {};
-        for (const m of allMembers) memberMap[m.id] = m;
+        const mMap = {};
+        for (const m of allMembers) mMap[m.id] = m;
+        setMemberMap(mMap);
 
         const fyOrgs = allOrgs.filter(o => o.fiscal_year_id === effectiveId);
         const fyAssignments = allAssignments.filter(a => a.fiscal_year_id === effectiveId);
@@ -337,7 +355,7 @@ export default function OrgChartView() {
           ...org,
           assignments: fyAssignments
             .filter(a => a.organization_id === org.id)
-            .map(a => ({ ...a, member: memberMap[a.member_id] || {} })),
+            .map(a => ({ ...a, member: mMap[a.member_id] || {} })),
         }));
 
         setYears(yearsList);
@@ -590,6 +608,7 @@ export default function OrgChartView() {
               depth={0}
               expandedOrgs={expandedOrgs}
               toggleExpand={toggleExpand}
+              memberMap={memberMap}
             />
           ))}
         </div>

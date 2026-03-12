@@ -49,7 +49,7 @@ function roleSortValue(role) {
 
 /* Quick role suggestions per org type */
 const ROLES_BY_ORG_TYPE = {
-  "幹事会": ["会長", "直前会長", "副会長", "代表幹事", "会計幹事", "会計副幹事", "事務局"],
+  "幹事会": ["会長", "直前会長", "副会長", "代表幹事", "会計幹事", "会計副幹事", "事務局", "室長", "委員長", "委員"],
   "室":     ["室長"],
   "委員会": ["委員長", "副委員長", "総括幹事", "運営幹事", "会計幹事", "委員"],
   "部会":   ["室長", "委員長", "副委員長", "総括幹事", "運営幹事", "会計幹事", "委員"],
@@ -182,7 +182,7 @@ function SkeletonCard() {
 function OrgTreeNode({
   org, depth, expandedOrgs, toggleExpand,
   onEditOrg, onDeleteOrg, onAddMember, onEditAssignment, onRemoveAssignment,
-  dragHandlers,
+  dragHandlers, memberMap,
 }) {
   const assignments = Array.isArray(org.assignments) ? org.assignments : [];
   const children = org.children || [];
@@ -254,6 +254,21 @@ function OrgTreeNode({
               ...typeBadgeStyle(org.org_type), padding: "2px 8px", borderRadius: 6,
               fontSize: 11, fontWeight: 500, whiteSpace: "nowrap", lineHeight: "18px",
             }}>{org.org_type || "その他"}</span>
+            {org.supervisor_id && memberMap?.[org.supervisor_id] && (
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 4,
+                padding: "2px 10px 2px 6px", borderRadius: 12,
+                fontSize: 11, fontWeight: 500, whiteSpace: "nowrap",
+                color: "#7c3aed", background: "transparent",
+                border: "1px dashed #c4b5fd",
+              }}>
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="8" cy="5" r="3"/>
+                  <path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
+                </svg>
+                担当: {memberMap[org.supervisor_id].name_kanji || ""}
+              </span>
+            )}
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -398,6 +413,7 @@ function OrgTreeNode({
               onEditAssignment={onEditAssignment}
               onRemoveAssignment={onRemoveAssignment}
               dragHandlers={{}}
+              memberMap={memberMap}
             />
           ))}
         </div>
@@ -424,13 +440,16 @@ export default function OrgChart() {
 
   /* ── Org modal ── */
   const [showOrgModal, setShowOrgModal] = useState(false);
-  const [orgForm, setOrgForm] = useState({ id: "", org_name: "", org_type: "幹事会", parent_id: "", sort_order: 0 });
+  const [orgForm, setOrgForm] = useState({ id: "", org_name: "", org_type: "幹事会", parent_id: "", sort_order: 0, supervisor_id: "" });
 
   /* ── Assignment modal ── */
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignOrg, setAssignOrg] = useState(null);
   const [assignForm, setAssignForm] = useState({ id: "", member_id: "", role: "", sort_order: 0 });
   const [assignSearch, setAssignSearch] = useState("");
+
+  /* ── Supervisor search ── */
+  const [supervisorSearch, setSupervisorSearch] = useState("");
 
   /* ── Copy modal ── */
   const [showCopyModal, setShowCopyModal] = useState(false);
@@ -541,7 +560,8 @@ export default function OrgChart() {
 
   /* ── Org modal ── */
   function openNewOrg() {
-    setOrgForm({ id: "", org_name: "", org_type: "幹事会", parent_id: "", sort_order: organizations.length });
+    setOrgForm({ id: "", org_name: "", org_type: "幹事会", parent_id: "", sort_order: organizations.length, supervisor_id: "" });
+    setSupervisorSearch("");
     setShowOrgModal(true);
   }
 
@@ -549,7 +569,9 @@ export default function OrgChart() {
     setOrgForm({
       id: org.id || "", org_name: org.org_name || "", org_type: org.org_type || "幹事会",
       parent_id: org.parent_id || "", sort_order: org.sort_order || 0,
+      supervisor_id: org.supervisor_id || "",
     });
+    setSupervisorSearch("");
     setShowOrgModal(true);
   }
 
@@ -708,8 +730,24 @@ export default function OrgChart() {
     });
   }, [memberOptions, assignSearch]);
 
+  /* ── Member map for supervisor display ── */
+  const memberMapById = useMemo(() => {
+    const map = {};
+    for (const m of memberOptions) map[m.id] = m;
+    return map;
+  }, [memberOptions]);
+
   /* ── Org hierarchy for parent selector ── */
   const orgHierarchyOptions = useMemo(() => buildOrgHierarchy(organizations, orgForm.id), [organizations, orgForm.id]);
+
+  /* ── Filtered member options for supervisor selector ── */
+  const filteredSupervisors = useMemo(() => {
+    const q = supervisorSearch.toLowerCase().trim();
+    return memberOptions.filter(m => {
+      if (!q) return true;
+      return (m.name_kanji || "").toLowerCase().includes(q) || (m.name_kana || "").toLowerCase().includes(q);
+    });
+  }, [memberOptions, supervisorSearch]);
 
   /* ═══ RENDER ═══ */
 
@@ -951,6 +989,7 @@ export default function OrgChart() {
               onAddMember={openAddMember}
               onEditAssignment={openEditAssignment}
               onRemoveAssignment={handleRemoveAssignment}
+              memberMap={memberMapById}
               dragHandlers={{
                 draggable: true,
                 onDragStart: () => { dragOrgId.current = org.id; },
@@ -1115,7 +1154,7 @@ export default function OrgChart() {
                 </div>
 
                 {/* Sort order */}
-                <div>
+                <div style={{ marginBottom: 20 }}>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
                     表示順
                   </label>
@@ -1130,6 +1169,54 @@ export default function OrgChart() {
                     onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
                     onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
                   />
+                </div>
+
+                {/* Supervisor */}
+                <div>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
+                    担当者（上位監督者）
+                  </label>
+                  <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "0 0 8px", lineHeight: 1.5 }}>
+                    この組織を統括する副会長・代表幹事等を設定できます（任意）
+                  </p>
+                  <div style={{ position: "relative", marginBottom: 8 }}>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                      style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+                      <circle cx="7" cy="7" r="5"/>
+                      <path d="M14 14l-3.5-3.5"/>
+                    </svg>
+                    <input
+                      type="text"
+                      placeholder="氏名で検索..."
+                      value={supervisorSearch}
+                      onChange={e => setSupervisorSearch(e.target.value)}
+                      style={{
+                        width: "100%", padding: "8px 12px 8px 34px", borderRadius: "var(--radius)",
+                        border: "1px solid var(--line)", fontSize: 13,
+                        transition: "border-color var(--transition)", outline: "none",
+                      }}
+                      onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
+                      onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
+                    />
+                  </div>
+                  <select
+                    value={orgForm.supervisor_id}
+                    onChange={e => setOrgForm(p => ({ ...p, supervisor_id: e.target.value }))}
+                    style={{
+                      width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
+                      border: "1px solid var(--line)", fontSize: 14,
+                      transition: "border-color var(--transition)", outline: "none",
+                    }}
+                    onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
+                    onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
+                  >
+                    <option value="">なし</option>
+                    {filteredSupervisors.map(m => (
+                      <option key={m.id} value={m.id}>
+                        {m.name_kanji}{m.name_kana ? ` (${m.name_kana})` : ""}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="modal-footer" style={{ justifyContent: "space-between" }}>

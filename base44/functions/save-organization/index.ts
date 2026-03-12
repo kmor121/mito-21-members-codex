@@ -24,7 +24,8 @@ Deno.serve(async (req) => {
       org_name: normalizeString(body?.org_name),
       org_type: normalizeString(body?.org_type) || "その他",
       parent_id: normalizeString(body?.parent_id),
-      sort_order: normalizeSortOrder(body?.sort_order)
+      sort_order: normalizeSortOrder(body?.sort_order),
+      supervisor_id: normalizeString(body?.supervisor_id),
     };
 
     if (!payload.fiscal_year_id) {
