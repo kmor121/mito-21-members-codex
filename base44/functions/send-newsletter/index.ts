@@ -292,7 +292,7 @@ Deno.serve(async (req) => {
 
     // Update newsletter status
     const newStatus = scheduledAt ? "scheduled" : "sent";
-    const updateData: Record<string, unknown> = { status: newStatus };
+    const updateData: Record<string, unknown> = { status: newStatus, sent_count: successCount };
     if (!scheduledAt) updateData.last_sent_at = new Date().toISOString();
     if (failCount > 0) {
       updateData.error_message = errors.slice(0, 3).join("; ");
