@@ -55,6 +55,35 @@ function typeBadgeStyle(type) {
   return { background: c.bg, color: c.text, border: `1px solid ${c.border}` };
 }
 
+/* Accent border color by org type */
+const TYPE_ACCENT = {
+  "幹事会": "#818cf8",
+  "委員会": "#6ee7b7",
+  "部会":   "#fbbf24",
+  "室":     "#f472b6",
+  "その他": "#94a3b8",
+};
+
+/* High-rank roles get filled badge style */
+const HIGH_RANK_ROLES = new Set(["会長", "委員長", "室長", "代表幹事"]);
+
+/* Avatar gradient palettes based on character code */
+const AVATAR_GRADIENTS = [
+  ["#818cf8", "#6366f1"],
+  ["#6ee7b7", "#34d399"],
+  ["#fbbf24", "#f59e0b"],
+  ["#f472b6", "#ec4899"],
+  ["#a78bfa", "#8b5cf6"],
+  ["#67e8f9", "#22d3ee"],
+  ["#fb923c", "#f97316"],
+];
+
+function getAvatarGradient(name) {
+  const code = (name || "M").charCodeAt(0);
+  const pair = AVATAR_GRADIENTS[code % AVATAR_GRADIENTS.length];
+  return `linear-gradient(135deg, ${pair[0]}, ${pair[1]})`;
+}
+
 function MemberAvatar({ src, name, size = 32 }) {
   const initial = (name || "M").charAt(0);
   if (src) {
@@ -70,8 +99,9 @@ function MemberAvatar({ src, name, size = 32 }) {
   }
   return (
     <div style={{
-      width: size, height: size, borderRadius: "50%", background: "var(--primary-light)",
-      color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center",
+      width: size, height: size, borderRadius: "50%",
+      background: getAvatarGradient(name),
+      color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
       fontSize: size * 0.4, fontWeight: 700, flexShrink: 0,
       border: "2px solid #fff", boxShadow: "0 0 0 1px var(--line)",
     }}>{initial}</div>
@@ -94,19 +124,39 @@ function buildTree(organizations) {
 }
 
 /* ═══ Skeleton ═══ */
-function SkeletonCard() {
+function SkeletonCard({ delay = 0 }) {
+  const shimmer = { animation: `pulse 1.5s ease infinite ${delay}ms` };
   return (
-    <div style={{ padding: 20, borderRadius: "var(--radius-lg)", border: "1px solid var(--line)", background: "#fff" }}>
-      <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16 }}>
-        <div style={{ width: 100, height: 18, borderRadius: 4, background: "var(--line-light)", animation: "pulse 1.5s ease infinite" }} />
-        <div style={{ width: 60, height: 22, borderRadius: 12, background: "var(--line-light)", animation: "pulse 1.5s ease infinite" }} />
+    <div style={{
+      padding: "18px 20px", borderRadius: "var(--radius-lg)", border: "1px solid var(--line-light)",
+      background: "#fff", borderLeft: "4px solid var(--line-light)",
+      animation: `orgViewSlide 0.3s ease ${delay}ms both`,
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div style={{ width: 120, height: 16, borderRadius: 4, background: "var(--line-light)", ...shimmer }} />
+          <div style={{ width: 48, height: 20, borderRadius: 6, background: "var(--line-light)", ...shimmer }} />
+        </div>
+        <div style={{ width: 32, height: 16, borderRadius: 8, background: "var(--line-light)", ...shimmer }} />
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} style={{ width: 110, height: 36, borderRadius: 20, background: "var(--line-light)", animation: "pulse 1.5s ease infinite" }} />
+        {[1, 2, 3].map(i => (
+          <div key={i} style={{
+            width: 130, height: 38, borderRadius: 20,
+            background: "var(--line-light)", ...shimmer,
+          }} />
         ))}
       </div>
     </div>
+  );
+}
+
+/* ═══ Chevron SVG ═══ */
+function ChevronRight({ size = 14, color = "var(--text-secondary)" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ display: "block" }}>
+      <path d="M6 3l5 5-5 5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
@@ -117,45 +167,55 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand }) {
   const isExpanded = expandedOrgs.has(org.id);
   const tc = TYPE_COLORS[org.org_type] || TYPE_COLORS["その他"];
   const hasContent = assignments.length > 0 || children.length > 0;
+  const accentColor = TYPE_ACCENT[org.org_type] || TYPE_ACCENT["その他"];
 
   return (
-    <div style={{ position: "relative" }}>
-      {/* Connection lines for child orgs */}
-      {depth > 0 && (
-        <div style={{ position: "absolute", left: -20, top: 0, bottom: 0, width: 20 }}>
-          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 2, background: "var(--line)" }} />
-          <div style={{ position: "absolute", left: 0, top: 24, height: 2, width: 20, background: "var(--line)" }} />
-        </div>
-      )}
-
-      <div style={{
-        border: `1px solid ${tc.border}`, borderRadius: "var(--radius-lg)", background: "#fff",
-        overflow: "hidden", transition: "box-shadow 0.2s ease",
-      }}>
+    <div style={{ animation: "orgViewSlide 0.25s ease both" }}>
+      <div
+        className="orgview-card"
+        style={{
+          borderRadius: "var(--radius-lg)", background: "#fff",
+          border: "1px solid var(--line)", borderLeft: `4px solid ${accentColor}`,
+          overflow: "hidden", transition: "box-shadow var(--transition)",
+        }}
+      >
         {/* Header */}
         <div
           onClick={() => hasContent && toggleExpand(org.id)}
           style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
-            padding: "14px 18px", borderBottom: isExpanded ? `1px solid ${tc.border}` : "none",
-            background: tc.bg, cursor: hasContent ? "pointer" : "default",
-            transition: "background 0.15s",
+            padding: "14px 18px",
+            borderBottom: isExpanded ? "1px solid var(--line-light)" : "none",
+            cursor: hasContent ? "pointer" : "default",
+            transition: "background var(--transition)",
+            userSelect: "none",
           }}
+          onMouseEnter={e => { if (hasContent) e.currentTarget.style.background = "var(--bg)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
             {hasContent && (
               <span style={{
-                fontSize: 12, color: "var(--text-secondary)", transition: "transform 0.2s ease",
-                transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)", display: "inline-block",
-              }}>▶</span>
+                transition: "transform 0.2s ease",
+                transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                display: "flex", alignItems: "center", flexShrink: 0,
+              }}>
+                <ChevronRight size={13} color="var(--text-secondary)" />
+              </span>
             )}
-            <strong style={{ fontSize: 15 }}>{org.org_name || "（名称未設定）"}</strong>
+            <span style={{ fontWeight: 600, fontSize: 15, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {org.org_name || "（名称未設定）"}
+            </span>
             <span style={{
-              ...typeBadgeStyle(org.org_type), padding: "2px 10px", borderRadius: 20,
-              fontSize: 12, fontWeight: 600, whiteSpace: "nowrap",
+              padding: "2px 8px", borderRadius: 6,
+              fontSize: 11, fontWeight: 600, whiteSpace: "nowrap",
+              background: "transparent", color: tc.text, border: `1px solid ${tc.border}`,
             }}>{org.org_type || "その他"}</span>
           </div>
-          <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{assignments.length}名</span>
+          <span style={{
+            fontSize: 12, color: "var(--text-secondary)", background: "var(--bg)",
+            padding: "2px 10px", borderRadius: 10, fontWeight: 500, flexShrink: 0, marginLeft: 8,
+          }}>{assignments.length}名</span>
         </div>
 
         {/* Member chips */}
@@ -167,25 +227,42 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand }) {
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                 {[...assignments].sort((a, b) => roleSortValue(a.role) - roleSortValue(b.role)).map((a, idx) => {
                   const member = a.member || {};
+                  const isHighRank = HIGH_RANK_ROLES.has(a.role);
+                  const rc = ROLE_COLORS[a.role];
+                  const roleSt = isHighRank && rc
+                    ? { background: rc.text, color: "#fff", border: `1px solid ${rc.text}` }
+                    : roleBadgeStyle(a.role);
+
                   return (
                     <Link
                       key={idx}
                       to={`/directory/members/${encodeURIComponent(member.id || "")}`}
+                      className="orgview-chip"
                       style={{
-                        display: "flex", alignItems: "center", gap: 8, padding: "6px 14px 6px 6px",
+                        display: "flex", alignItems: "center", gap: 8,
+                        padding: "6px 14px 6px 6px",
                         borderRadius: 24, border: "1px solid var(--line)", background: "#fff",
                         textDecoration: "none", color: "var(--text)", fontSize: 13,
-                        transition: "all 0.15s",
+                        transition: "all var(--transition)",
+                        animation: `chipEnter 0.25s ease ${idx * 30}ms both`,
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.background = "var(--primary-light)"; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.background = "#fff"; }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.borderColor = "var(--primary)";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                        e.currentTarget.style.boxShadow = "var(--shadow-sm)";
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.borderColor = "var(--line)";
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}
                     >
                       <MemberAvatar src={member.profile_image} name={member.name_kanji} size={28} />
-                      <span style={{ fontWeight: 500 }}>{member.name_kanji || "（名前未設定）"}</span>
+                      <span style={{ fontWeight: 500, fontSize: 13 }}>{member.name_kanji || "（名前未設定）"}</span>
                       {a.role && (
                         <span style={{
-                          ...roleBadgeStyle(a.role), padding: "1px 8px", borderRadius: 12,
-                          fontSize: 11, fontWeight: 600,
+                          ...roleSt, padding: "1px 8px", borderRadius: 12,
+                          fontSize: 11, fontWeight: 600, lineHeight: "18px",
                         }}>{a.role}</span>
                       )}
                     </Link>
@@ -199,7 +276,12 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand }) {
 
       {/* Children */}
       {isExpanded && children.length > 0 && (
-        <div style={{ marginLeft: 40, marginTop: 12, display: "grid", gap: 12, position: "relative" }}>
+        <div style={{
+          marginTop: 10, paddingLeft: 28,
+          borderLeft: "2px solid var(--line)",
+          marginLeft: 14,
+          display: "grid", gap: 10,
+        }}>
           {children.map(child => (
             <OrgViewNode
               key={child.id}
@@ -309,10 +391,15 @@ export default function OrgChartView() {
         <div className="page-header">
           <h1 className="page-title" style={{ display: "flex", alignItems: "center", gap: 10 }}>組織図</h1>
         </div>
-        <div style={{ display: "grid", gap: 16 }}>
-          <SkeletonCard /><SkeletonCard /><SkeletonCard />
+        <div style={{ display: "grid", gap: 12 }}>
+          <SkeletonCard delay={0} />
+          <SkeletonCard delay={80} />
+          <SkeletonCard delay={160} />
         </div>
-        <style>{`@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
+        <style>{`
+          @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+          @keyframes orgViewSlide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        `}</style>
       </section>
     );
   }
@@ -356,14 +443,22 @@ export default function OrgChartView() {
       <div style={{
         display: "flex", alignItems: "center", gap: 6, padding: "12px 0",
         borderBottom: "1px solid var(--line)", marginBottom: 20,
+        flexWrap: "wrap",
       }}>
         <button type="button" onClick={() => goYear(-1)} disabled={currentIdx <= 0}
           style={{
             background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-            padding: "4px 10px", cursor: currentIdx <= 0 ? "default" : "pointer",
+            padding: "6px 10px", cursor: currentIdx <= 0 ? "default" : "pointer",
             color: currentIdx <= 0 ? "var(--muted)" : "var(--text)", fontSize: 13,
-          }}>←</button>
-        <div className="nl2-pill-tabs" style={{ gap: 4 }}>
+            display: "flex", alignItems: "center", transition: "all var(--transition)",
+            opacity: currentIdx <= 0 ? 0.4 : 1,
+          }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
+        <div className="nl2-pill-tabs" style={{ gap: 4, flexWrap: "wrap" }}>
           {sortedYears.map(fy => (
             <button
               key={fy.id}
@@ -376,45 +471,89 @@ export default function OrgChartView() {
             </button>
           ))}
         </div>
+
         <button type="button" onClick={() => goYear(1)} disabled={currentIdx >= sortedYears.length - 1}
           style={{
             background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-            padding: "4px 10px", cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
+            padding: "6px 10px", cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
             color: currentIdx >= sortedYears.length - 1 ? "var(--muted)" : "var(--text)", fontSize: 13,
-          }}>→</button>
+            display: "flex", alignItems: "center", transition: "all var(--transition)",
+            opacity: currentIdx >= sortedYears.length - 1 ? 0.4 : 1,
+          }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
 
         <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
           <button type="button" onClick={expandAll}
             style={{
               background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-              padding: "4px 10px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
-            }}>すべて展開</button>
+              padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
+              transition: "all var(--transition)", fontWeight: 500,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+          >すべて展開</button>
           <button type="button" onClick={collapseAll}
             style={{
               background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-              padding: "4px 10px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
-            }}>すべて閉じる</button>
+              padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
+              transition: "all var(--transition)", fontWeight: 500,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+          >すべて閉じる</button>
         </div>
       </div>
 
-      {/* ── Summary ── */}
+      {/* ── Summary cards ── */}
       {orgTree.length > 0 && (
         <div style={{
-          display: "flex", gap: 16, marginBottom: 20, flexWrap: "wrap",
+          display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+          gap: 14, marginBottom: 24,
         }}>
           <div style={{
-            flex: 1, minWidth: 120, padding: "14px 18px", borderRadius: "var(--radius-lg)",
+            padding: "16px 20px", borderRadius: "var(--radius-lg)",
             background: "#fff", border: "1px solid var(--line)",
+            display: "flex", alignItems: "center", gap: 14,
           }}>
-            <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>組織数</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: "var(--primary)" }}>{orgTree.length}</div>
+            <div style={{
+              width: 36, height: 36, borderRadius: "var(--radius)",
+              background: "var(--primary-light)", display: "flex",
+              alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="var(--primary)" strokeWidth="2" />
+                <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="var(--primary)" strokeWidth="2" />
+                <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="var(--primary)" strokeWidth="2" />
+                <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="var(--primary)" strokeWidth="2" />
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 2, fontWeight: 500 }}>組織数</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "var(--text)", lineHeight: 1 }}>{orgTree.length}</div>
+            </div>
           </div>
           <div style={{
-            flex: 1, minWidth: 120, padding: "14px 18px", borderRadius: "var(--radius-lg)",
+            padding: "16px 20px", borderRadius: "var(--radius-lg)",
             background: "#fff", border: "1px solid var(--line)",
+            display: "flex", alignItems: "center", gap: 14,
           }}>
-            <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>配属人数</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: "var(--success)" }}>{totalMembers}</div>
+            <div style={{
+              width: 36, height: 36, borderRadius: "var(--radius)",
+              background: "#ecfdf5", display: "flex",
+              alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="4" stroke="#059669" strokeWidth="2" />
+                <path d="M5 20c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 2, fontWeight: 500 }}>配属人数</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "var(--text)", lineHeight: 1 }}>{totalMembers}</div>
+            </div>
           </div>
         </div>
       )}
@@ -422,18 +561,28 @@ export default function OrgChartView() {
       {/* ── Empty state ── */}
       {orgTree.length === 0 ? (
         <div style={{
-          textAlign: "center", padding: "60px 20px", background: "#fff",
+          textAlign: "center", padding: "64px 24px", background: "#fff",
           borderRadius: "var(--radius-lg)", border: "1px solid var(--line)",
         }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🏢</div>
-          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>この年度の組織図はまだ登録されていません</h3>
-          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style={{ marginBottom: 20, opacity: 0.6 }}>
+            <rect x="8" y="6" width="20" height="14" rx="3" stroke="var(--line)" strokeWidth="2" fill="var(--bg)" />
+            <rect x="36" y="6" width="20" height="14" rx="3" stroke="var(--line)" strokeWidth="2" fill="var(--bg)" />
+            <rect x="8" y="44" width="20" height="14" rx="3" stroke="var(--line)" strokeWidth="2" fill="var(--bg)" />
+            <rect x="36" y="44" width="20" height="14" rx="3" stroke="var(--line)" strokeWidth="2" fill="var(--bg)" />
+            <line x1="18" y1="20" x2="18" y2="44" stroke="var(--line)" strokeWidth="2" strokeDasharray="4 3" />
+            <line x1="46" y1="20" x2="46" y2="44" stroke="var(--line)" strokeWidth="2" strokeDasharray="4 3" />
+            <line x1="18" y1="32" x2="46" y2="32" stroke="var(--line)" strokeWidth="2" strokeDasharray="4 3" />
+          </svg>
+          <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 8, color: "var(--text)" }}>
+            この年度の組織図はまだ登録されていません
+          </h3>
+          <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0, lineHeight: 1.6 }}>
             管理者が組織データを登録すると、ここに表示されます
           </p>
         </div>
       ) : (
         /* ── Org tree ── */
-        <div style={{ display: "grid", gap: 16 }}>
+        <div style={{ display: "grid", gap: 12 }}>
           {orgTree.map(org => (
             <OrgViewNode
               key={org.id}
@@ -446,15 +595,28 @@ export default function OrgChartView() {
         </div>
       )}
 
-      {/* ═══ Animations ═══ */}
+      {/* ═══ Animations & Responsive ═══ */}
       <style>{`
         @keyframes orgViewSlide {
-          from { opacity: 0; max-height: 0; }
-          to { opacity: 1; max-height: 500px; }
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
+        }
+        @keyframes chipEnter {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .orgview-card:hover {
+          box-shadow: var(--shadow-sm) !important;
+        }
+        @media (max-width: 640px) {
+          .orgview-chip {
+            padding: 5px 10px 5px 5px !important;
+            font-size: 12px !important;
+          }
         }
       `}</style>
     </section>

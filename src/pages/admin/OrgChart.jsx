@@ -56,24 +56,49 @@ const ROLES_BY_ORG_TYPE = {
   "その他": ["名誉顧問", "監事", "委員"],
 };
 
+/* High-rank roles get filled badge style */
+const HIGH_RANK_ROLES = new Set(["会長", "直前会長", "副会長", "委員長", "室長", "代表幹事"]);
+
 function roleBadgeStyle(role) {
   const c = ROLE_COLORS[role];
-  if (c) return { background: c.bg, color: c.text, border: `1px solid ${c.bg}` };
-  return { background: "#f1f5f9", color: "#64748b", border: "1px solid #e2e8f0" };
+  if (c && HIGH_RANK_ROLES.has(role)) {
+    return { background: c.text, color: "#fff", border: `1px solid ${c.text}` };
+  }
+  if (c) return { background: "transparent", color: c.text, border: `1px solid ${c.text}40` };
+  return { background: "transparent", color: "#64748b", border: "1px solid #e2e8f0" };
 }
 
 function typeBadgeStyle(type) {
   const c = TYPE_COLORS[type] || TYPE_COLORS["その他"];
-  return { background: c.bg, color: c.text, border: `1px solid ${c.border}` };
+  return { background: "transparent", color: c.text, border: `1px solid ${c.text}50` };
 }
 
-function MemberAvatar({ name, size = 28 }) {
+/* Simple hash for avatar gradient */
+function nameHash(name) {
+  let h = 0;
+  for (let i = 0; i < (name || "").length; i++) h = ((h << 5) - h + name.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+const AVATAR_GRADIENTS = [
+  "linear-gradient(135deg, #667eea, #764ba2)",
+  "linear-gradient(135deg, #f093fb, #f5576c)",
+  "linear-gradient(135deg, #4facfe, #00f2fe)",
+  "linear-gradient(135deg, #43e97b, #38f9d7)",
+  "linear-gradient(135deg, #fa709a, #fee140)",
+  "linear-gradient(135deg, #a18cd1, #fbc2eb)",
+  "linear-gradient(135deg, #fccb90, #d57eeb)",
+  "linear-gradient(135deg, #84fab0, #8fd3f4)",
+];
+
+function MemberAvatar({ name, size = 26 }) {
   const initial = (name || "M").charAt(0);
+  const gradient = AVATAR_GRADIENTS[nameHash(name) % AVATAR_GRADIENTS.length];
   return (
     <div style={{
-      width: size, height: size, borderRadius: "50%", background: "var(--primary-light)",
-      color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.42, fontWeight: 700, flexShrink: 0,
+      width: size, height: size, borderRadius: "50%", background: gradient,
+      color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: size * 0.42, fontWeight: 700, flexShrink: 0, letterSpacing: 0,
     }}>{initial}</div>
   );
 }
@@ -95,17 +120,58 @@ function buildOrgTree(orgs) {
   return roots;
 }
 
+/* ═══ Build hierarchy indent for parent select ═══ */
+function buildOrgHierarchy(orgs, excludeId) {
+  const map = new Map();
+  orgs.forEach(o => map.set(o.id, { ...o, children: [] }));
+  const roots = [];
+  map.forEach(o => {
+    const pid = o.parent_id || "";
+    if (pid && map.has(pid)) map.get(pid).children.push(o);
+    else roots.push(o);
+  });
+  const sortFn = (a, b) => (a.sort_order || 0) - (b.sort_order || 0);
+  roots.sort(sortFn);
+  map.forEach(o => o.children.sort(sortFn));
+
+  const result = [];
+  function walk(nodes, depth) {
+    for (const n of nodes) {
+      if (n.id === excludeId) continue;
+      const prefix = depth > 0 ? "\u00A0\u00A0".repeat(depth) + "\u2514 " : "";
+      result.push({ id: n.id, label: prefix + (n.org_name || "\uFF08\u540D\u79F0\u672A\u8A2D\u5B9A\uFF09"), depth });
+      walk(n.children, depth + 1);
+    }
+  }
+  walk(roots, 0);
+  return result;
+}
+
 /* ═══ Skeleton ═══ */
 function SkeletonCard() {
   return (
-    <div style={{ padding: 20, borderRadius: "var(--radius-lg)", border: "1px solid var(--line)", background: "#fff" }}>
-      <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
-        <div style={{ width: 120, height: 18, borderRadius: 4, background: "var(--line-light)", animation: "pulse 1.5s ease infinite" }} />
-        <div style={{ width: 60, height: 22, borderRadius: 12, background: "var(--line-light)", animation: "pulse 1.5s ease infinite" }} />
+    <div style={{
+      borderRadius: "var(--radius-lg)", border: "1px solid var(--line-light)",
+      background: "#fff", overflow: "hidden",
+    }}>
+      {/* Header skeleton */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 12, padding: "14px 18px",
+        borderLeft: "4px solid var(--line-light)",
+      }}>
+        <div style={{ width: 14, height: 14, borderRadius: 3, background: "var(--line-light)", animation: "pulse 1.8s ease infinite" }} />
+        <div style={{ width: 130, height: 16, borderRadius: 4, background: "var(--line-light)", animation: "pulse 1.8s ease infinite 0.1s" }} />
+        <div style={{ width: 48, height: 20, borderRadius: 6, background: "var(--line-light)", animation: "pulse 1.8s ease infinite 0.2s" }} />
+        <div style={{ flex: 1 }} />
+        <div style={{ width: 36, height: 18, borderRadius: 10, background: "var(--line-light)", animation: "pulse 1.8s ease infinite 0.3s" }} />
       </div>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {[1, 2, 3].map(i => (
-          <div key={i} style={{ width: 100, height: 32, borderRadius: 20, background: "var(--line-light)", animation: "pulse 1.5s ease infinite" }} />
+      {/* Body skeleton */}
+      <div style={{ padding: "14px 18px", display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} style={{
+            width: 90 + i * 12, height: 34, borderRadius: 20,
+            background: "var(--line-light)", animation: `pulse 1.8s ease infinite ${0.1 * i}s`,
+          }} />
         ))}
       </div>
     </div>
@@ -125,40 +191,43 @@ function OrgTreeNode({
   const hasChildren = children.length > 0;
 
   return (
-    <div style={{ position: "relative" }}>
-      {/* Connection lines for child orgs */}
-      {depth > 0 && (
-        <div style={{
-          position: "absolute", left: -20, top: 0, bottom: 0, width: 20,
-        }}>
-          <div style={{
-            position: "absolute", left: 0, top: 0, bottom: 0, width: 2, background: "var(--line)",
-          }} />
-          <div style={{
-            position: "absolute", left: 0, top: 24, height: 2, width: 20, background: "var(--line)",
-          }} />
-        </div>
-      )}
-
+    <div style={{ position: "relative", animation: "orgSlideDown 0.25s ease" }}>
       {/* Org card */}
       <div
         style={{
-          border: `1px solid ${tc.border}`, borderRadius: "var(--radius-lg)", background: "#fff",
-          transition: "box-shadow 0.2s ease, transform 0.2s ease", overflow: "hidden",
+          borderRadius: "var(--radius-lg)", background: "#fff",
+          border: "1px solid var(--line-light)",
+          borderLeft: `4px solid ${tc.text}`,
+          transition: "box-shadow var(--transition), border-color var(--transition)",
+          overflow: "hidden",
         }}
+        onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"; }}
+        onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; }}
         {...dragHandlers}
       >
         {/* Card header */}
         <div style={{
           display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "14px 18px", borderBottom: `1px solid ${tc.border}`, background: tc.bg,
+          padding: "12px 18px", borderBottom: isExpanded ? "1px solid var(--line-light)" : "none",
+          background: "#fff",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
             {/* Drag handle */}
             <span style={{
-              cursor: "grab", color: "var(--muted)", fontSize: 16, userSelect: "none",
-              display: "flex", alignItems: "center",
-            }} title="ドラッグで並び替え">≡</span>
+              cursor: "grab", color: "var(--muted)", fontSize: 15, userSelect: "none",
+              display: "flex", alignItems: "center", opacity: 0.5,
+              transition: "opacity var(--transition)",
+            }}
+              onMouseEnter={e => e.currentTarget.style.opacity = "1"}
+              onMouseLeave={e => e.currentTarget.style.opacity = "0.5"}
+              title="ドラッグで並び替え"
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                <circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>
+                <circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/>
+                <circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/>
+              </svg>
+            </span>
 
             {/* Collapse toggle */}
             {(hasChildren || assignments.length > 0) && (
@@ -167,36 +236,65 @@ function OrgTreeNode({
                 onClick={() => toggleExpand(org.id)}
                 style={{
                   background: "none", border: "none", cursor: "pointer", padding: "2px 4px",
-                  fontSize: 12, color: "var(--text-secondary)", transition: "transform 0.2s ease",
+                  fontSize: 11, color: "var(--text-secondary)", transition: "transform 0.2s ease",
                   transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                  display: "flex", alignItems: "center",
                 }}
-              >▶</button>
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                  <path d="M4.5 2L9 6L4.5 10" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
             )}
 
-            <strong style={{ fontSize: 15 }}>{org.org_name || "（名称未設定）"}</strong>
+            <span style={{ fontWeight: 600, fontSize: 15, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {org.org_name || "\uFF08\u540D\u79F0\u672A\u8A2D\u5B9A\uFF09"}
+            </span>
             <span style={{
-              ...typeBadgeStyle(org.org_type), padding: "2px 10px", borderRadius: 20,
-              fontSize: 12, fontWeight: 600, whiteSpace: "nowrap",
+              ...typeBadgeStyle(org.org_type), padding: "2px 8px", borderRadius: 6,
+              fontSize: 11, fontWeight: 500, whiteSpace: "nowrap", lineHeight: "18px",
             }}>{org.org_type || "その他"}</span>
-            <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{assignments.length}名</span>
           </div>
-          <div style={{ display: "flex", gap: 4 }}>
-            <button type="button" onClick={() => onEditOrg(org)}
-              style={{
-                background: "none", border: "none", cursor: "pointer", padding: "4px 8px",
-                borderRadius: "var(--radius)", fontSize: 14, transition: "background 0.15s",
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.06)"}
-              onMouseLeave={e => e.currentTarget.style.background = "none"}
-              title="編集">✏️</button>
-            <button type="button" onClick={() => onDeleteOrg(org)}
-              style={{
-                background: "none", border: "none", cursor: "pointer", padding: "4px 8px",
-                borderRadius: "var(--radius)", fontSize: 14, transition: "background 0.15s",
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = "rgba(220,38,38,0.08)"}
-              onMouseLeave={e => e.currentTarget.style.background = "none"}
-              title="削除">🗑️</button>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {/* Member count pill */}
+            <span style={{
+              fontSize: 11, color: "var(--text-secondary)", background: "var(--bg)",
+              padding: "2px 8px", borderRadius: 10, fontWeight: 500,
+              whiteSpace: "nowrap",
+            }}>{assignments.length}名</span>
+
+            {/* Edit/delete actions */}
+            <div style={{ display: "flex", gap: 2 }}>
+              <button type="button" onClick={() => onEditOrg(org)}
+                style={{
+                  background: "none", border: "none", cursor: "pointer", padding: "4px 6px",
+                  borderRadius: "var(--radius)", fontSize: 13, color: "var(--text-secondary)",
+                  opacity: 0.4, transition: "all var(--transition)",
+                  display: "flex", alignItems: "center",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.background = "var(--bg)"; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = "0.4"; e.currentTarget.style.background = "none"; }}
+                title="編集">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z"/>
+                </svg>
+              </button>
+              <button type="button" onClick={() => onDeleteOrg(org)}
+                style={{
+                  background: "none", border: "none", cursor: "pointer", padding: "4px 6px",
+                  borderRadius: "var(--radius)", fontSize: 13, color: "var(--text-secondary)",
+                  opacity: 0.4, transition: "all var(--transition)",
+                  display: "flex", alignItems: "center",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.color = "var(--error)"; e.currentTarget.style.background = "#fef2f2"; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = "0.4"; e.currentTarget.style.color = "var(--text-secondary)"; e.currentTarget.style.background = "none"; }}
+                title="削除">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 4h12M5.33 4V2.67a1.33 1.33 0 011.34-1.34h2.66a1.33 1.33 0 011.34 1.34V4M13.33 4v9.33a1.33 1.33 0 01-1.33 1.34H4a1.33 1.33 0 01-1.33-1.34V4"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -212,32 +310,48 @@ function OrgTreeNode({
                   key={a.id}
                   onClick={() => onEditAssignment(org, a)}
                   style={{
-                    display: "flex", alignItems: "center", gap: 8, padding: "5px 12px 5px 6px",
+                    display: "flex", alignItems: "center", gap: 7, padding: "5px 10px 5px 5px",
                     borderRadius: 20, border: "1px solid var(--line)", background: "#fff",
-                    cursor: "pointer", transition: "all 0.15s", fontSize: 13,
+                    cursor: "pointer", transition: "all 0.15s ease", fontSize: 13,
+                    animation: "chipEnter 0.2s ease",
+                    position: "relative",
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.background = "var(--primary-light)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.background = "#fff"; }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                    e.currentTarget.style.borderColor = "var(--primary)";
+                    const rmBtn = e.currentTarget.querySelector("[data-rm]");
+                    if (rmBtn) rmBtn.style.opacity = "1";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
+                    e.currentTarget.style.borderColor = "var(--line)";
+                    const rmBtn = e.currentTarget.querySelector("[data-rm]");
+                    if (rmBtn) rmBtn.style.opacity = "0";
+                  }}
                 >
-                  <MemberAvatar name={a.member_name} size={24} />
-                  <span style={{ fontWeight: 500 }}>{a.member_name || "（名前未設定）"}</span>
+                  <MemberAvatar name={a.member_name} size={26} />
+                  <span style={{ fontWeight: 500, fontSize: 13 }}>{a.member_name || "\uFF08\u540D\u524D\u672A\u8A2D\u5B9A\uFF09"}</span>
                   {a.role && (
                     <span style={{
-                      ...roleBadgeStyle(a.role), padding: "1px 8px", borderRadius: 12,
-                      fontSize: 11, fontWeight: 600,
+                      ...roleBadgeStyle(a.role), padding: "1px 7px", borderRadius: 6,
+                      fontSize: 11, fontWeight: 500, lineHeight: "17px",
                     }}>{a.role}</span>
                   )}
                   <button
+                    data-rm="1"
                     type="button"
                     onClick={(e) => { e.stopPropagation(); onRemoveAssignment(org, a); }}
                     style={{
                       background: "none", border: "none", cursor: "pointer", padding: "0 2px",
-                      fontSize: 14, color: "var(--muted)", lineHeight: 1,
+                      fontSize: 12, color: "var(--muted)", lineHeight: 1, opacity: 0,
+                      transition: "all var(--transition)", marginLeft: 2,
                     }}
                     onMouseEnter={e => e.currentTarget.style.color = "var(--error)"}
                     onMouseLeave={e => e.currentTarget.style.color = "var(--muted)"}
                     title="配属解除"
-                  >×</button>
+                  >&times;</button>
                 </div>
               ))}
 
@@ -246,15 +360,18 @@ function OrgTreeNode({
                 type="button"
                 onClick={() => onAddMember(org)}
                 style={{
-                  display: "flex", alignItems: "center", gap: 4, padding: "5px 12px",
+                  display: "flex", alignItems: "center", gap: 5, padding: "5px 12px",
                   borderRadius: 20, border: "1px dashed var(--line)", background: "transparent",
                   cursor: "pointer", fontSize: 13, color: "var(--text-secondary)",
-                  transition: "all 0.15s",
+                  transition: "all var(--transition)",
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; e.currentTarget.style.background = "var(--primary-light)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; e.currentTarget.style.background = "transparent"; }}
               >
-                <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> メンバーを追加
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M8 3v10M3 8h10"/>
+                </svg>
+                メンバーを追加
               </button>
             </div>
           </div>
@@ -263,7 +380,11 @@ function OrgTreeNode({
 
       {/* Children (recursive) */}
       {isExpanded && children.length > 0 && (
-        <div style={{ marginLeft: 40, marginTop: 12, display: "grid", gap: 12, position: "relative" }}>
+        <div style={{
+          marginLeft: 18, marginTop: 0, paddingLeft: 28,
+          borderLeft: "2px solid var(--line)",
+          display: "grid", gap: 10, paddingTop: 10, position: "relative",
+        }}>
           {children.map(child => (
             <OrgTreeNode
               key={child.id}
@@ -587,6 +708,9 @@ export default function OrgChart() {
     });
   }, [memberOptions, assignSearch]);
 
+  /* ── Org hierarchy for parent selector ── */
+  const orgHierarchyOptions = useMemo(() => buildOrgHierarchy(organizations, orgForm.id), [organizations, orgForm.id]);
+
   /* ═══ RENDER ═══ */
 
   if (loading) {
@@ -599,10 +723,12 @@ export default function OrgChart() {
             </h1>
           </div>
         </div>
-        <div style={{ display: "grid", gap: 16, padding: "0" }}>
+        <div style={{ display: "grid", gap: 12 }}>
           <SkeletonCard /><SkeletonCard /><SkeletonCard />
         </div>
-        <style>{`@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
+        <style>{`
+          @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        `}</style>
       </section>
     );
   }
@@ -624,8 +750,9 @@ export default function OrgChart() {
       {toast && (
         <div className="nl2-toast" style={{
           borderLeft: `4px solid ${toast.type === "error" ? "var(--error)" : "var(--success)"}`,
+          animation: "orgSlideUp 0.3s ease",
         }}>
-          <span className="nl2-toast-icon">{toast.type === "error" ? "⚠️" : "✅"}</span>
+          <span className="nl2-toast-icon">{toast.type === "error" ? "\u26A0" : "\u2713"}</span>
           <span>{toast.msg}</span>
         </div>
       )}
@@ -636,7 +763,7 @@ export default function OrgChart() {
           <h1 className="page-title" style={{ margin: 0 }}>組織図管理</h1>
           {yearLabel && (
             <span style={{
-              padding: "3px 12px", borderRadius: 20, background: "var(--primary-light)",
+              padding: "3px 12px", borderRadius: 6, background: "var(--primary-light)",
               color: "var(--primary)", fontSize: 13, fontWeight: 600,
             }}>{yearLabel}</span>
           )}
@@ -648,7 +775,11 @@ export default function OrgChart() {
             onClick={() => setShowCopyModal(true)}
             style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}
           >
-            📋 前年度からコピー
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="5" width="9" height="9" rx="1.5"/>
+              <path d="M3 11V3a1.5 1.5 0 011.5-1.5H11"/>
+            </svg>
+            前年度からコピー
           </button>
           <button
             className="btn"
@@ -659,7 +790,10 @@ export default function OrgChart() {
               display: "flex", alignItems: "center", gap: 6, fontSize: 13,
             }}
           >
-            <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> 新規組織追加
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M8 3v10M3 8h10"/>
+            </svg>
+            新規組織追加
           </button>
         </div>
       </div>
@@ -667,57 +801,108 @@ export default function OrgChart() {
       {/* ── Year pill navigator ── */}
       <div style={{
         display: "flex", alignItems: "center", gap: 6, padding: "12px 0",
-        borderBottom: "1px solid var(--line)", marginBottom: 20,
+        borderBottom: "1px solid var(--line-light)", marginBottom: 20,
       }}>
         <button type="button" onClick={() => goYear(-1)} disabled={currentIdx <= 0}
           style={{
             background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-            padding: "4px 10px", cursor: currentIdx <= 0 ? "default" : "pointer",
+            padding: "4px 8px", cursor: currentIdx <= 0 ? "default" : "pointer",
             color: currentIdx <= 0 ? "var(--muted)" : "var(--text)", fontSize: 13,
-          }}>←</button>
-        <div className="nl2-pill-tabs" style={{ gap: 4 }}>
-          {sortedYears.map(fy => (
-            <button
-              key={fy.id}
-              type="button"
-              className={`nl2-pill-tab${fy.id === activeFiscalYearId ? " active" : ""}`}
-              onClick={() => setSearchParams({ fiscalYearId: fy.id })}
-              style={{ fontSize: 13, padding: "5px 14px" }}
-            >
-              {fy.year_label || `${fy.year}年度`}
-            </button>
-          ))}
+            display: "flex", alignItems: "center", transition: "all var(--transition)",
+          }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 3L5 8l5 5"/>
+          </svg>
+        </button>
+        <div style={{ display: "flex", gap: 4 }}>
+          {sortedYears.map(fy => {
+            const isActive = fy.id === activeFiscalYearId;
+            return (
+              <button
+                key={fy.id}
+                type="button"
+                onClick={() => setSearchParams({ fiscalYearId: fy.id })}
+                style={{
+                  fontSize: 13, padding: "5px 14px", borderRadius: 20, border: "none",
+                  cursor: "pointer", fontWeight: isActive ? 600 : 400,
+                  background: isActive ? "var(--primary)" : "transparent",
+                  color: isActive ? "#fff" : "var(--text-secondary)",
+                  transition: "all var(--transition)",
+                }}
+                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--bg)"; }}
+                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+              >
+                {fy.year_label || `${fy.year}年度`}
+              </button>
+            );
+          })}
         </div>
         <button type="button" onClick={() => goYear(1)} disabled={currentIdx >= sortedYears.length - 1}
           style={{
             background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-            padding: "4px 10px", cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
+            padding: "4px 8px", cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
             color: currentIdx >= sortedYears.length - 1 ? "var(--muted)" : "var(--text)", fontSize: 13,
-          }}>→</button>
+            display: "flex", alignItems: "center", transition: "all var(--transition)",
+          }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 3l5 5-5 5"/>
+          </svg>
+        </button>
 
-        <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
           <button type="button" onClick={expandAll}
+            title="すべて展開"
             style={{
               background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-              padding: "4px 10px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
-            }}>すべて展開</button>
+              padding: "4px 8px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
+              display: "flex", alignItems: "center", gap: 4, transition: "all var(--transition)",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 4l4 4 4-4"/>
+            </svg>
+            展開
+          </button>
           <button type="button" onClick={collapseAll}
+            title="すべて閉じる"
             style={{
               background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-              padding: "4px 10px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
-            }}>すべて閉じる</button>
+              padding: "4px 8px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
+              display: "flex", alignItems: "center", gap: 4, transition: "all var(--transition)",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 8l4-4 4 4"/>
+            </svg>
+            閉じる
+          </button>
         </div>
       </div>
 
       {/* ── Empty state ── */}
       {orgTree.length === 0 ? (
         <div style={{
-          textAlign: "center", padding: "60px 20px", background: "#fff",
-          borderRadius: "var(--radius-lg)", border: "1px solid var(--line)",
+          textAlign: "center", padding: "72px 24px", background: "#fff",
+          borderRadius: "var(--radius-lg)", border: "1px solid var(--line-light)",
         }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🏢</div>
-          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>この年度の組織はまだありません</h3>
-          <p style={{ color: "var(--text-secondary)", marginBottom: 24, fontSize: 14 }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: 16, background: "var(--bg)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            margin: "0 auto 20px",
+          }}>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4" y="4" width="10" height="10" rx="2"/>
+              <rect x="18" y="4" width="10" height="10" rx="2"/>
+              <rect x="11" y="18" width="10" height="10" rx="2"/>
+              <path d="M9 14v4h7M23 14v8h-7" strokeDasharray="2 2"/>
+            </svg>
+          </div>
+          <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 8, color: "var(--text)" }}>この年度の組織はまだありません</h3>
+          <p style={{ color: "var(--text-secondary)", marginBottom: 28, fontSize: 14, lineHeight: 1.6 }}>
             新規組織を追加するか、前年度のデータをコピーして始めましょう
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
@@ -725,9 +910,15 @@ export default function OrgChart() {
               className="btn"
               type="button"
               onClick={openNewOrg}
-              style={{ background: "var(--primary)", color: "#fff", border: "none", display: "flex", alignItems: "center", gap: 6 }}
+              style={{
+                background: "var(--primary)", color: "#fff", border: "none",
+                display: "flex", alignItems: "center", gap: 6,
+              }}
             >
-              <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> 新規組織を追加
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M8 3v10M3 8h10"/>
+              </svg>
+              新規組織を追加
             </button>
             {prevYear && (
               <button
@@ -736,14 +927,18 @@ export default function OrgChart() {
                 onClick={() => setShowCopyModal(true)}
                 style={{ display: "flex", alignItems: "center", gap: 6 }}
               >
-                📋 前年度からコピー
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="5" y="5" width="9" height="9" rx="1.5"/>
+                  <path d="M3 11V3a1.5 1.5 0 011.5-1.5H11"/>
+                </svg>
+                前年度からコピー
               </button>
             )}
           </div>
         </div>
       ) : (
         /* ── Org tree ── */
-        <div style={{ display: "grid", gap: 16 }}>
+        <div style={{ display: "grid", gap: 12 }}>
           {orgTree.map(org => (
             <OrgTreeNode
               key={org.id}
@@ -786,11 +981,16 @@ export default function OrgChart() {
       {unsavedOrder && (
         <div style={{
           position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
-          background: "#fff", border: "1px solid var(--primary)", borderRadius: "var(--radius-lg)",
-          padding: "12px 20px", display: "flex", alignItems: "center", gap: 12,
-          boxShadow: "var(--shadow-lg)", zIndex: 100, animation: "orgSlideUp 0.3s ease",
+          background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+          border: "1px solid var(--line)", borderRadius: "var(--radius-xl)",
+          padding: "12px 24px", display: "flex", alignItems: "center", gap: 14,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.12)", zIndex: 100, animation: "orgSlideUp 0.3s ease",
         }}>
-          <span style={{ fontSize: 13, color: "var(--text)" }}>未保存の並び順変更があります</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="8" cy="8" r="7"/>
+            <path d="M8 5v3.5l2.5 1.5"/>
+          </svg>
+          <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 500 }}>未保存の並び順変更があります</span>
           <button
             className="btn"
             type="button"
@@ -812,20 +1012,30 @@ export default function OrgChart() {
                 showToast("並び順の保存に失敗しました", "error");
               } finally { setSaving(false); }
             }}
-            style={{ background: "var(--primary)", color: "#fff", border: "none", fontSize: 13, padding: "6px 16px" }}
+            style={{
+              background: "var(--primary)", color: "#fff", border: "none",
+              fontSize: 13, padding: "6px 16px", borderRadius: "var(--radius)",
+            }}
           >{saving ? "保存中..." : "並び順を保存"}</button>
           <button
             type="button"
             onClick={() => { setUnsavedOrder(false); reloadData(); }}
-            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--text-secondary)" }}
+            style={{
+              background: "none", border: "none", cursor: "pointer", fontSize: 13,
+              color: "var(--text-secondary)", padding: "6px 8px",
+              transition: "color var(--transition)",
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = "var(--text)"}
+            onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}
           >取り消す</button>
         </div>
       )}
 
       {/* ═══ Org Edit Modal ═══ */}
       {showOrgModal && (
-        <div className="confirm-overlay" onClick={() => setShowOrgModal(false)}>
-          <div className="modal-dialog" style={{ maxWidth: 600 }} onClick={e => e.stopPropagation()}>
+        <div className="confirm-overlay" onClick={() => setShowOrgModal(false)}
+          style={{ animation: "modalFadeIn 0.2s ease" }}>
+          <div className="modal-dialog" style={{ maxWidth: 600, animation: "modalSlideIn 0.25s ease" }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{orgForm.id ? "組織を編集" : "新規組織作成"}</h3>
               <button type="button" className="modal-close" onClick={() => setShowOrgModal(false)}>&times;</button>
@@ -834,7 +1044,7 @@ export default function OrgChart() {
               <div className="modal-body" style={{ padding: 24 }}>
                 {/* Name */}
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
                     組織名
                   </label>
                   <input
@@ -844,14 +1054,18 @@ export default function OrgChart() {
                     style={{
                       width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
                       border: "1px solid var(--line)", fontSize: 15, fontWeight: 500,
+                      transition: "border-color var(--transition)",
+                      outline: "none",
                     }}
+                    onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
+                    onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
                     autoFocus
                   />
                 </div>
 
                 {/* Type - pill selector */}
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
                     種別
                   </label>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -865,9 +1079,11 @@ export default function OrgChart() {
                           style={{
                             padding: "7px 18px", borderRadius: 20, fontSize: 13, fontWeight: 600,
                             cursor: "pointer", transition: "all 0.15s",
-                            background: isActive ? tc.bg : "#fff",
-                            color: isActive ? tc.text : "var(--text-secondary)",
-                            border: `2px solid ${isActive ? tc.text : "var(--line)"}`,
+                            transform: isActive ? "scale(1.02)" : "scale(1)",
+                            background: isActive ? tc.text : "#fff",
+                            color: isActive ? "#fff" : "var(--text-secondary)",
+                            border: `1.5px solid ${isActive ? tc.text : "var(--line)"}`,
+                            boxShadow: isActive ? `0 2px 8px ${tc.text}30` : "none",
                           }}
                         >{t}</button>
                       );
@@ -877,7 +1093,7 @@ export default function OrgChart() {
 
                 {/* Parent */}
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
                     親組織
                   </label>
                   <select
@@ -886,18 +1102,21 @@ export default function OrgChart() {
                     style={{
                       width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
                       border: "1px solid var(--line)", fontSize: 14,
+                      transition: "border-color var(--transition)", outline: "none",
                     }}
+                    onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
+                    onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
                   >
                     <option value="">なし（ルート）</option>
-                    {organizations.filter(o => o.id !== orgForm.id).map(o => (
-                      <option key={o.id} value={o.id}>{o.org_name || "（名称未設定）"}</option>
+                    {orgHierarchyOptions.map(o => (
+                      <option key={o.id} value={o.id}>{o.label}</option>
                     ))}
                   </select>
                 </div>
 
                 {/* Sort order */}
                 <div>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
                     表示順
                   </label>
                   <input
@@ -906,7 +1125,10 @@ export default function OrgChart() {
                     style={{
                       width: 100, padding: "10px 14px", borderRadius: "var(--radius)",
                       border: "1px solid var(--line)", fontSize: 14,
+                      transition: "border-color var(--transition)", outline: "none",
                     }}
+                    onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
+                    onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
                   />
                 </div>
               </div>
@@ -917,7 +1139,10 @@ export default function OrgChart() {
                       style={{
                         background: "none", border: "1px solid var(--error)", color: "var(--error)",
                         borderRadius: "var(--radius)", padding: "8px 16px", cursor: "pointer", fontSize: 13,
+                        transition: "all var(--transition)",
                       }}
+                      onMouseEnter={e => { e.currentTarget.style.background = "#fef2f2"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "none"; }}
                       disabled={saving}
                     >この組織を削除</button>
                   )}
@@ -936,10 +1161,11 @@ export default function OrgChart() {
 
       {/* ═══ Assignment Modal ═══ */}
       {showAssignModal && assignOrg && (
-        <div className="confirm-overlay" onClick={() => setShowAssignModal(false)}>
-          <div className="modal-dialog" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
+        <div className="confirm-overlay" onClick={() => setShowAssignModal(false)}
+          style={{ animation: "modalFadeIn 0.2s ease" }}>
+          <div className="modal-dialog" style={{ maxWidth: 520, animation: "modalSlideIn 0.25s ease" }} onClick={e => e.stopPropagation()}>
             <div className="modal-header" style={{
-              background: TYPE_COLORS[assignOrg.org_type]?.bg || "var(--line-light)",
+              borderLeft: `4px solid ${TYPE_COLORS[assignOrg.org_type]?.text || "var(--muted)"}`,
             }}>
               <h3 style={{ fontSize: "1rem" }}>
                 {assignForm.id ? "配属を編集" : `${assignOrg.org_name || "組織"}にメンバーを追加`}
@@ -950,20 +1176,30 @@ export default function OrgChart() {
               <div className="modal-body" style={{ padding: 24 }}>
                 {/* Member selection */}
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
                     会員
                   </label>
                   {!assignForm.id && (
-                    <input
-                      type="text"
-                      placeholder="氏名で検索..."
-                      value={assignSearch}
-                      onChange={e => setAssignSearch(e.target.value)}
-                      style={{
-                        width: "100%", padding: "8px 12px", borderRadius: "var(--radius)",
-                        border: "1px solid var(--line)", fontSize: 13, marginBottom: 8,
-                      }}
-                    />
+                    <div style={{ position: "relative", marginBottom: 8 }}>
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                        style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+                        <circle cx="7" cy="7" r="5"/>
+                        <path d="M14 14l-3.5-3.5"/>
+                      </svg>
+                      <input
+                        type="text"
+                        placeholder="氏名で検索..."
+                        value={assignSearch}
+                        onChange={e => setAssignSearch(e.target.value)}
+                        style={{
+                          width: "100%", padding: "8px 12px 8px 34px", borderRadius: "var(--radius)",
+                          border: "1px solid var(--line)", fontSize: 13,
+                          transition: "border-color var(--transition)", outline: "none",
+                        }}
+                        onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
+                        onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
+                      />
+                    </div>
                   )}
                   <select
                     value={assignForm.member_id}
@@ -973,7 +1209,10 @@ export default function OrgChart() {
                       width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
                       border: "1px solid var(--line)", fontSize: 14,
                       background: assignForm.id ? "var(--line-light)" : "#fff",
+                      transition: "border-color var(--transition)", outline: "none",
                     }}
+                    onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
+                    onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
                   >
                     <option value="">-- 会員を選択 --</option>
                     {filteredMembers.map(m => {
@@ -991,7 +1230,7 @@ export default function OrgChart() {
 
                 {/* Role */}
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
                     役職
                   </label>
                   <input
@@ -1002,22 +1241,29 @@ export default function OrgChart() {
                     style={{
                       width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
                       border: "1px solid var(--line)", fontSize: 14, marginBottom: 8,
+                      transition: "border-color var(--transition)", outline: "none",
                     }}
+                    onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
+                    onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
                   />
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    {(ROLES_BY_ORG_TYPE[assignOrg.org_type] || ROLES_BY_ORG_TYPE["その他"]).map(r => (
-                      <button
-                        key={r} type="button"
-                        onClick={() => setAssignForm(p => ({ ...p, role: r }))}
-                        style={{
-                          padding: "3px 10px", borderRadius: 16, fontSize: 12, fontWeight: 500,
-                          cursor: "pointer", transition: "all 0.15s",
-                          background: assignForm.role === r ? "var(--primary-light)" : "#fff",
-                          color: assignForm.role === r ? "var(--primary)" : "var(--text-secondary)",
-                          border: `1px solid ${assignForm.role === r ? "var(--primary)" : "var(--line)"}`,
-                        }}
-                      >{r}</button>
-                    ))}
+                    {(ROLES_BY_ORG_TYPE[assignOrg.org_type] || ROLES_BY_ORG_TYPE["その他"]).map(r => {
+                      const isActive = assignForm.role === r;
+                      return (
+                        <button
+                          key={r} type="button"
+                          onClick={() => setAssignForm(p => ({ ...p, role: r }))}
+                          style={{
+                            padding: "3px 10px", borderRadius: 16, fontSize: 12, fontWeight: 500,
+                            cursor: "pointer", transition: "all 0.15s",
+                            transform: isActive ? "scale(1.02)" : "scale(1)",
+                            background: isActive ? "var(--primary)" : "#fff",
+                            color: isActive ? "#fff" : "var(--text-secondary)",
+                            border: `1px solid ${isActive ? "var(--primary)" : "var(--line)"}`,
+                          }}
+                        >{r}</button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -1035,7 +1281,10 @@ export default function OrgChart() {
                       style={{
                         background: "none", border: "1px solid var(--error)", color: "var(--error)",
                         borderRadius: "var(--radius)", padding: "8px 16px", cursor: "pointer", fontSize: 13,
+                        transition: "all var(--transition)",
                       }}
+                      onMouseEnter={e => e.currentTarget.style.background = "#fef2f2"}
+                      onMouseLeave={e => e.currentTarget.style.background = "none"}
                       disabled={saving}
                     >配属解除</button>
                   )}
@@ -1054,68 +1303,107 @@ export default function OrgChart() {
 
       {/* ═══ Copy Modal ═══ */}
       {showCopyModal && (
-        <div className="confirm-overlay" onClick={() => setShowCopyModal(false)}>
-          <div className="modal-dialog" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header" style={{ background: "var(--primary-light)", borderBottom: "none" }}>
+        <div className="confirm-overlay" onClick={() => setShowCopyModal(false)}
+          style={{ animation: "modalFadeIn 0.2s ease" }}>
+          <div className="modal-dialog" style={{ maxWidth: 480, animation: "modalSlideIn 0.25s ease" }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header" style={{ borderBottom: "none" }}>
               <h3 style={{ fontSize: "1rem" }}>前年度の組織構成をコピー</h3>
               <button type="button" className="modal-close" onClick={() => setShowCopyModal(false)}>&times;</button>
             </div>
             <div className="modal-body" style={{ padding: 24 }}>
-              <div style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
-                padding: 16, background: "var(--bg)", borderRadius: "var(--radius)", marginBottom: 20,
-              }}>
-                <span style={{
-                  padding: "4px 14px", borderRadius: 20, background: "var(--line-light)",
-                  fontSize: 14, fontWeight: 600,
-                }}>{prevYearLabel}</span>
-                <span style={{ fontSize: 20, color: "var(--muted)" }}>→</span>
-                <span style={{
-                  padding: "4px 14px", borderRadius: 20, background: "var(--primary-light)",
-                  color: "var(--primary)", fontSize: 14, fontWeight: 600,
-                }}>{yearLabel}</span>
-              </div>
-
-              <div style={{ display: "grid", gap: 10, fontSize: 14 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ color: "var(--success)", fontSize: 16 }}>✅</span>
-                  <span>組織構成（幹事会、委員会、部会）</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ color: "var(--success)", fontSize: 16 }}>✅</span>
-                  <span>配属メンバーと役職</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-secondary)" }}>
-                  <span style={{ fontSize: 16 }}>ℹ️</span>
-                  <span>コピー後に個別に編集できます</span>
-                </div>
-              </div>
-
-              {organizations.length > 0 && (
+              {copying ? (
                 <div style={{
-                  marginTop: 16, padding: "10px 14px", borderRadius: "var(--radius)",
-                  background: "var(--warning-light)", border: "1px solid #fde68a", fontSize: 13,
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  padding: "40px 20px", gap: 16,
                 }}>
-                  <strong style={{ color: "var(--warning)" }}>注意:</strong> 現在の年度に既に{organizations.length}件の組織があります。
+                  <div style={{
+                    width: 40, height: 40, border: "3px solid var(--line)", borderTopColor: "var(--primary)",
+                    borderRadius: "50%", animation: "spin 0.8s linear infinite",
+                  }} />
+                  <span style={{ fontSize: 14, color: "var(--text-secondary)", fontWeight: 500 }}>コピー中...</span>
                 </div>
+              ) : (
+                <>
+                  <div style={{
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 16,
+                    padding: 20, background: "var(--bg)", borderRadius: "var(--radius-lg)", marginBottom: 20,
+                  }}>
+                    <span style={{
+                      padding: "5px 16px", borderRadius: "var(--radius)", background: "#fff",
+                      border: "1px solid var(--line)", fontSize: 14, fontWeight: 600,
+                    }}>{prevYearLabel}</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 10h12M12 6l4 4-4 4"/>
+                    </svg>
+                    <span style={{
+                      padding: "5px 16px", borderRadius: "var(--radius)", background: "var(--primary-light)",
+                      color: "var(--primary)", fontSize: 14, fontWeight: 600, border: "1px solid transparent",
+                    }}>{yearLabel}</span>
+                  </div>
+
+                  <div style={{ display: "grid", gap: 10, fontSize: 14 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{
+                        width: 20, height: 20, borderRadius: "50%", background: "#ecfdf5",
+                        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                      }}>
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M2 6l3 3 5-5"/>
+                        </svg>
+                      </div>
+                      <span>組織構成（幹事会、委員会、部会）</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{
+                        width: 20, height: 20, borderRadius: "50%", background: "#ecfdf5",
+                        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                      }}>
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M2 6l3 3 5-5"/>
+                        </svg>
+                      </div>
+                      <span>配属メンバーと役職</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--text-secondary)" }}>
+                      <div style={{
+                        width: 20, height: 20, borderRadius: "50%", background: "var(--bg)",
+                        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                      }}>
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="6" cy="6" r="5"/>
+                          <path d="M6 4v3M6 8.5v0"/>
+                        </svg>
+                      </div>
+                      <span>コピー後に個別に編集できます</span>
+                    </div>
+                  </div>
+
+                  {organizations.length > 0 && (
+                    <div style={{
+                      marginTop: 16, padding: "10px 14px", borderRadius: "var(--radius)",
+                      background: "#fffbeb", border: "1px solid #fde68a", fontSize: 13,
+                      display: "flex", alignItems: "center", gap: 8,
+                    }}>
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#d97706" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M8 1L1 14h14L8 1zM8 6v4M8 12v0"/>
+                      </svg>
+                      <span><strong style={{ color: "#b45309" }}>注意:</strong> 現在の年度に既に{organizations.length}件の組織があります。</span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
-            <div className="modal-footer" style={{ justifyContent: "flex-end", gap: 8 }}>
-              <button type="button" className="btn btn-secondary" onClick={() => setShowCopyModal(false)}>キャンセル</button>
-              <button
-                type="button" className="btn"
-                onClick={executeCopy}
-                disabled={copying}
-                style={{ background: "var(--primary)", color: "#fff", border: "none" }}
-              >
-                {copying ? (
-                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ display: "inline-block", width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
-                    コピー中...
-                  </span>
-                ) : "コピーする"}
-              </button>
-            </div>
+            {!copying && (
+              <div className="modal-footer" style={{ justifyContent: "flex-end", gap: 8 }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowCopyModal(false)}>キャンセル</button>
+                <button
+                  type="button" className="btn"
+                  onClick={executeCopy}
+                  disabled={copying}
+                  style={{ background: "var(--primary)", color: "#fff", border: "none" }}
+                >コピーする</button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1146,9 +1434,17 @@ export default function OrgChart() {
 
       {/* ═══ Animations ═══ */}
       <style>{`
+        @keyframes modalFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes modalSlideIn {
+          from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
         @keyframes orgSlideDown {
-          from { opacity: 0; max-height: 0; }
-          to { opacity: 1; max-height: 500px; }
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         @keyframes orgSlideUp {
           from { opacity: 0; transform: translateX(-50%) translateY(20px); }
@@ -1160,6 +1456,10 @@ export default function OrgChart() {
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
+        }
+        @keyframes chipEnter {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
         }
       `}</style>
     </section>

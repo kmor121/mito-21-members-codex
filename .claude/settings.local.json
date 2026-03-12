@@ -24,7 +24,10 @@
       "Bash(grep -r \"newsletter\\\\|配信\" /c/dev/mito-21-members-codex/docs --include=\"*.md\" 2>/dev/null | head -20)",
       "Bash(bash deploy.sh 2>&1)",
       "Bash(find /c/dev/mito-21-members-codex/base44/functions -type f -name \"*.js\" -o -name \"*.ts\" 2>/dev/null | head -202)",
-      "Bash(bash deploy.sh)"
+      "Bash(bash deploy.sh)",
+      "Bash(cd C:/dev/mito-21-members-codex && base44 --help 2>&1 | head -40)",
+      "Bash(curl -s -X POST \"https://mito21-members-codex-da487265.base44.app/functions/save-organization\" -H \"Content-Type: application/json\" -d '{\"org_name\":\"test\",\"fiscal_year_id\":\"test\",\"org_type\":\"その他\"}' 2>&1 | head -5)",
+      "Bash(curl -s -X POST \"https://mito21-members.base44.app/functions/save-organization\" -H \"Content-Type: application/json\" -d '{\"org_name\":\"test\",\"fiscal_year_id\":\"test\",\"org_type\":\"その他\"}' 2>&1 | head -5)"
     ]
   }
 }
