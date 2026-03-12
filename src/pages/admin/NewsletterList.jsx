@@ -188,9 +188,8 @@ const TABS = [
   { key: "all", label: "全て" },
   { key: "draft", label: "下書き" },
   { key: "scheduled", label: "予約中" },
-  { key: "sent", label: "送信済" },
-  { key: "template", label: "テンプレート" },
   { key: "history", label: "送信履歴" },
+  { key: "template", label: "テンプレート" },
 ];
 
 /* ── Period Filter ── */
@@ -471,11 +470,10 @@ export default function NewsletterList() {
   ), [regularNewsletters]);
 
   const tabCounts = useMemo(() => {
-    const counts = { all: regularNewsletters.length, draft: 0, scheduled: 0, sent: 0, template: templates.length, history: 0 };
+    const counts = { all: regularNewsletters.length, draft: 0, scheduled: 0, template: templates.length, history: 0 };
     regularNewsletters.forEach(nl => {
       if (nl.status === "draft") counts.draft++;
       else if (nl.status === "scheduled") counts.scheduled++;
-      else if (nl.status === "sent") counts.sent++;
     });
     counts.history = sentNewsletters.length;
     return counts;
