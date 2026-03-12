@@ -473,6 +473,7 @@ export default function OrgChart() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...assignForm, organization_id: assignOrg.id,
+          fiscal_year_id: activeFiscalYearId,
           sort_order: Number(assignForm.sort_order) || 0,
         }),
       });
