@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     try { auth.logout(); } catch { /* ignore */ }
     setUser(null);
-    window.location.href = "/login";
+    window.location.href = "/signin";
   }, []);
 
   const value = useMemo(() => {

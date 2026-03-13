@@ -20,7 +20,7 @@ export function ProtectedRoute({ children }) {
 
   if (loading) return <AuthLoading />;
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ returnTo: location.pathname }} replace />;
+    return <Navigate to="/signin" state={{ returnTo: location.pathname }} replace />;
   }
   return children;
 }
@@ -32,7 +32,7 @@ export function AdminRoute({ children }) {
 
   if (loading) return <AuthLoading />;
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ returnTo: location.pathname }} replace />;
+    return <Navigate to="/signin" state={{ returnTo: location.pathname }} replace />;
   }
   if (!canAccessAdmin) {
     return <Navigate to="/directory" replace />;
@@ -47,7 +47,7 @@ export function ManagerRoute({ children }) {
 
   if (loading) return <AuthLoading />;
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ returnTo: location.pathname }} replace />;
+    return <Navigate to="/signin" state={{ returnTo: location.pathname }} replace />;
   }
   if (!canAccessManagerPages) {
     return <Navigate to="/directory" replace />;
@@ -71,7 +71,7 @@ export function RootRedirect() {
   const { isAuthenticated, canAccessAdmin, loading } = useAuth();
 
   if (loading) return <AuthLoading />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/signin" replace />;
   if (canAccessAdmin) return <Navigate to="/admin" replace />;
   return <Navigate to="/directory" replace />;
 }

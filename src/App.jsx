@@ -72,7 +72,7 @@ export default function App() {
             <Route path="/" element={<RootRedirect />} />
 
             {/* Login */}
-            <Route path="/login" element={
+            <Route path="/signin" element={
               <PublicOnlyRoute><Login /></PublicOnlyRoute>
             } />
 
