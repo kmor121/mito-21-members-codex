@@ -853,16 +853,22 @@ export default function OrgChart() {
 
       {/* ── Year pill navigator ── */}
       <div style={{
-        display: "flex", alignItems: "center", gap: 6, padding: "12px 0",
+        display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
         borderBottom: "1px solid var(--line-light)", marginBottom: 20,
       }}>
         <button type="button" onClick={() => goYear(-1)} disabled={currentIdx <= 0}
           style={{
-            background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-            padding: "4px 8px", cursor: currentIdx <= 0 ? "default" : "pointer",
+            background: "none", border: "1px solid var(--line)", borderRadius: 6,
+            width: 32, height: 32, cursor: currentIdx <= 0 ? "default" : "pointer",
             color: currentIdx <= 0 ? "var(--muted)" : "var(--text)", fontSize: 13,
-            display: "flex", alignItems: "center", transition: "all var(--transition)",
-          }}>
+            display: "flex", alignItems: "center", justifyContent: "center",
+            transition: "all var(--transition)",
+            opacity: currentIdx <= 0 ? 0.4 : 1,
+            pointerEvents: currentIdx <= 0 ? "none" : "auto",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
+        >
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10 3L5 8l5 5"/>
           </svg>
@@ -876,7 +882,7 @@ export default function OrgChart() {
                 type="button"
                 onClick={() => setSearchParams({ fiscalYearId: fy.id })}
                 style={{
-                  fontSize: 13, padding: "5px 14px", borderRadius: 20, border: "none",
+                  fontSize: 13, padding: "5px 18px", borderRadius: 20, border: "none",
                   cursor: "pointer", fontWeight: isActive ? 600 : 400,
                   background: isActive ? "var(--primary)" : "transparent",
                   color: isActive ? "#fff" : "var(--text-secondary)",
@@ -892,11 +898,17 @@ export default function OrgChart() {
         </div>
         <button type="button" onClick={() => goYear(1)} disabled={currentIdx >= sortedYears.length - 1}
           style={{
-            background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-            padding: "4px 8px", cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
+            background: "none", border: "1px solid var(--line)", borderRadius: 6,
+            width: 32, height: 32, cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
             color: currentIdx >= sortedYears.length - 1 ? "var(--muted)" : "var(--text)", fontSize: 13,
-            display: "flex", alignItems: "center", transition: "all var(--transition)",
-          }}>
+            display: "flex", alignItems: "center", justifyContent: "center",
+            transition: "all var(--transition)",
+            opacity: currentIdx >= sortedYears.length - 1 ? 0.4 : 1,
+            pointerEvents: currentIdx >= sortedYears.length - 1 ? "none" : "auto",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
+        >
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 3l5 5-5 5"/>
           </svg>
