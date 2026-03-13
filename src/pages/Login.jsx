@@ -18,13 +18,15 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [mode, setMode] = useState("login"); // "login" | "reset" | "resetSent" | "register" | "registerDone"
+  const [mode, setMode] = useState("login"); // "login" | "register" | "verify" | "verifyDone" | "reset" | "resetSent"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [resetEmail, setResetEmail] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regPasswordConfirm, setRegPasswordConfirm] = useState("");
+  const [verifyEmail, setVerifyEmail] = useState("");
+  const [otpCode, setOtpCode] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -95,8 +97,12 @@ export default function Login() {
       }
       // Step 2: フロントSDKでアカウント作成
       await auth.register({ email: regEmail, password: regPassword, full_name: data.member_name || regEmail });
-      setEmail(regEmail); // pre-fill login form
-      setMode("registerDone");
+      // 登録成功 → OTP認証画面へ
+      setVerifyEmail(regEmail);
+      setEmail(regEmail);
+      setOtpCode("");
+      setError("");
+      setMode("verify");
     } catch (err) {
       const msg = err?.message || "";
       if (msg.includes("already") || msg.includes("exist") || msg.includes("duplicate")) {
@@ -104,6 +110,21 @@ export default function Login() {
       } else {
         setError(msg || "登録に失敗しました");
       }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleVerifyOtp(e) {
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
+    try {
+      await auth.verifyOtp({ email: verifyEmail, otpCode });
+      setEmail(verifyEmail);
+      setMode("verifyDone");
+    } catch (err) {
+      setError("認証コードが無効または期限切れです。再度お試しください。");
     } finally {
       setSubmitting(false);
     }
@@ -118,6 +139,13 @@ export default function Login() {
   function switchToRegister() {
     setMode("register");
     setRegEmail(email);
+    setError("");
+  }
+
+  function switchToVerify() {
+    setMode("verify");
+    setVerifyEmail(email);
+    setOtpCode("");
     setError("");
   }
 
@@ -219,6 +247,14 @@ export default function Login() {
                 新規登録はこちら
               </button>
             </div>
+            <div style={{ textAlign: "center", marginTop: 10 }}>
+              <button type="button" onClick={switchToVerify} style={{
+                background: "none", border: "none", color: "#6366f1",
+                fontSize: 13, cursor: "pointer", textDecoration: "underline",
+              }}>
+                認証コードを入力
+              </button>
+            </div>
           </>
         )}
 
@@ -286,15 +322,79 @@ export default function Login() {
           </>
         )}
 
-        {/* ── Register done ── */}
-        {mode === "registerDone" && (
+        {/* ── OTP Verify ── */}
+        {mode === "verify" && (
+          <>
+            <p style={{ fontSize: 14, color: "#374151", marginBottom: 20, lineHeight: 1.6 }}>
+              <strong>{verifyEmail}</strong> に認証コードを送信しました。メールに記載された6桁のコードを入力してください。
+            </p>
+            <form onSubmit={handleVerifyOtp}>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                  メールアドレス
+                </label>
+                <input
+                  type="email" value={verifyEmail} onChange={(e) => setVerifyEmail(e.target.value)}
+                  required autoComplete="email" placeholder="example@email.com"
+                  style={inputStyle} onFocus={focusBorder} onBlur={blurBorder}
+                />
+              </div>
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                  認証コード
+                </label>
+                <input
+                  type="text" value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
+                  required placeholder="000000"
+                  maxLength={6}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  style={{
+                    ...inputStyle,
+                    fontSize: 24, fontWeight: 600, textAlign: "center",
+                    letterSpacing: "0.5em", padding: "12px 16px",
+                  }}
+                  onFocus={focusBorder} onBlur={blurBorder}
+                />
+                <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 8 }}>
+                  コードの有効期限は10分です
+                </p>
+              </div>
+              <button
+                type="submit" disabled={submitting || otpCode.length !== 6}
+                style={{
+                  width: "100%", padding: "11px 0", fontSize: 15, fontWeight: 600,
+                  color: "#fff", background: (submitting || otpCode.length !== 6) ? "#a5b4fc" : "#4f46e5",
+                  border: "none", borderRadius: 8,
+                  cursor: (submitting || otpCode.length !== 6) ? "not-allowed" : "pointer",
+                  transition: "background 0.2s",
+                }}
+                onMouseEnter={(e) => { if (!submitting && otpCode.length === 6) e.target.style.background = "#4338ca"; }}
+                onMouseLeave={(e) => { if (!submitting && otpCode.length === 6) e.target.style.background = "#4f46e5"; }}
+              >
+                {submitting ? "認証中..." : "認証"}
+              </button>
+            </form>
+            <div style={{ textAlign: "center", marginTop: 20 }}>
+              <button type="button" onClick={switchToLogin} style={{
+                background: "none", border: "none", color: "#6366f1",
+                fontSize: 13, cursor: "pointer", textDecoration: "underline",
+              }}>
+                ログインに戻る
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── Verify done ── */}
+        {mode === "verifyDone" && (
           <>
             <div style={{
               padding: "14px 16px", borderRadius: 8, marginBottom: 20,
               background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#15803d",
               fontSize: 13, lineHeight: 1.6,
             }}>
-              登録が完了しました。ログインしてください。
+              認証が完了しました。ログインしてください。
             </div>
             <div style={{ textAlign: "center" }}>
               <button type="button" onClick={switchToLogin} style={{
