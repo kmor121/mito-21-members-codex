@@ -83,19 +83,27 @@ export default function Login() {
     }
     setSubmitting(true);
     try {
+      // Step 1: バックエンドでメール存在チェック
       const res = await fetch(`${FUNCTION_BASE}/register-member`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: regEmail, password: regPassword }),
+        body: JSON.stringify({ email: regEmail }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.ok === false) {
         throw new Error(data.error || "登録に失敗しました");
       }
+      // Step 2: フロントSDKでアカウント作成
+      await auth.register({ email: regEmail, password: regPassword, full_name: data.member_name || regEmail });
       setEmail(regEmail); // pre-fill login form
       setMode("registerDone");
     } catch (err) {
-      setError(err.message || "登録に失敗しました");
+      const msg = err?.message || "";
+      if (msg.includes("already") || msg.includes("exist") || msg.includes("duplicate")) {
+        setError("このメールアドレスは既にアカウント登録済みです。ログインしてください。");
+      } else {
+        setError(msg || "登録に失敗しました");
+      }
     } finally {
       setSubmitting(false);
     }
