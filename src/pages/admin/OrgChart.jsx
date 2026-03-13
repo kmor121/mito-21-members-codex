@@ -865,7 +865,7 @@ export default function OrgChart() {
             <path d="M10 3L5 8l5 5"/>
           </svg>
         </button>
-        <div style={{ display: "flex", gap: 4 }}>
+        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
           {sortedYears.map(fy => {
             const isActive = fy.id === activeFiscalYearId;
             return (
@@ -874,7 +874,7 @@ export default function OrgChart() {
                 type="button"
                 onClick={() => setSearchParams({ fiscalYearId: fy.id })}
                 style={{
-                  fontSize: 13, padding: "5px 18px", borderRadius: 20, border: "none",
+                  fontSize: 13, height: 32, padding: "0 18px", borderRadius: 20, border: "none",
                   cursor: "pointer", fontWeight: isActive ? 600 : 400,
                   background: isActive ? "var(--primary)" : "transparent",
                   color: isActive ? "#fff" : "var(--text-secondary)",
