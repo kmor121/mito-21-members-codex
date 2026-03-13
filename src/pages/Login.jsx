@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { auth } from "../api/base44Client";
+import { auth, apiRequest } from "../api/base44Client";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const inputStyle = {
@@ -18,10 +18,14 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [mode, setMode] = useState("login"); // "login" | "reset" | "resetSent"
+  const [mode, setMode] = useState("login"); // "login" | "reset" | "resetSent" | "register" | "registerDone"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [resetEmail, setResetEmail] = useState("");
+  const [regName, setRegName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regPasswordConfirm, setRegPasswordConfirm] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -67,9 +71,41 @@ export default function Login() {
     }
   }
 
+  async function handleRegister(e) {
+    e.preventDefault();
+    setError("");
+    if (regPassword.length < 8) {
+      setError("パスワードは8文字以上で入力してください");
+      return;
+    }
+    if (regPassword !== regPasswordConfirm) {
+      setError("パスワードが一致しません");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await apiRequest("register-member", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: regEmail, password: regPassword, full_name: regName }),
+      });
+      setMode("registerDone");
+    } catch (err) {
+      setError(err.message || "登録に失敗しました");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   function switchToReset() {
     setMode("reset");
     setResetEmail(email); // pre-fill from login form
+    setError("");
+  }
+
+  function switchToRegister() {
+    setMode("register");
+    setRegEmail(email); // pre-fill from login form
     setError("");
   }
 
@@ -155,12 +191,113 @@ export default function Login() {
                 {submitting ? "ログイン中..." : "ログイン"}
               </button>
             </form>
-            <div style={{ textAlign: "center", marginTop: 20 }}>
+            <div style={{ textAlign: "center", marginTop: 20, display: "flex", justifyContent: "center", gap: 16 }}>
               <button type="button" onClick={switchToReset} style={{
                 background: "none", border: "none", color: "#6366f1",
                 fontSize: 13, cursor: "pointer", textDecoration: "underline",
               }}>
                 パスワードを忘れた方
+              </button>
+              <button type="button" onClick={switchToRegister} style={{
+                background: "none", border: "none", color: "#6366f1",
+                fontSize: 13, cursor: "pointer", textDecoration: "underline",
+              }}>
+                新規登録はこちら
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── Register form ── */}
+        {mode === "register" && (
+          <>
+            <p style={{ fontSize: 14, color: "#374151", marginBottom: 20, lineHeight: 1.6 }}>
+              会員として登録済みのメールアドレスでアカウントを作成できます。
+            </p>
+            <form onSubmit={handleRegister}>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                  氏名
+                </label>
+                <input
+                  type="text" value={regName} onChange={(e) => setRegName(e.target.value)}
+                  required placeholder="山田 太郎"
+                  style={inputStyle} onFocus={focusBorder} onBlur={blurBorder}
+                />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                  メールアドレス
+                </label>
+                <input
+                  type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)}
+                  required autoComplete="email" placeholder="example@email.com"
+                  style={inputStyle} onFocus={focusBorder} onBlur={blurBorder}
+                />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                  パスワード（8文字以上）
+                </label>
+                <input
+                  type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)}
+                  required autoComplete="new-password" placeholder="8文字以上のパスワード"
+                  minLength={8}
+                  style={inputStyle} onFocus={focusBorder} onBlur={blurBorder}
+                />
+              </div>
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                  パスワード（確認）
+                </label>
+                <input
+                  type="password" value={regPasswordConfirm} onChange={(e) => setRegPasswordConfirm(e.target.value)}
+                  required autoComplete="new-password" placeholder="もう一度入力してください"
+                  minLength={8}
+                  style={inputStyle} onFocus={focusBorder} onBlur={blurBorder}
+                />
+              </div>
+              <button
+                type="submit" disabled={submitting}
+                style={{
+                  width: "100%", padding: "11px 0", fontSize: 15, fontWeight: 600,
+                  color: "#fff", background: submitting ? "#a5b4fc" : "#4f46e5",
+                  border: "none", borderRadius: 8, cursor: submitting ? "not-allowed" : "pointer",
+                  transition: "background 0.2s",
+                }}
+                onMouseEnter={(e) => { if (!submitting) e.target.style.background = "#4338ca"; }}
+                onMouseLeave={(e) => { if (!submitting) e.target.style.background = "#4f46e5"; }}
+              >
+                {submitting ? "登録中..." : "登録"}
+              </button>
+            </form>
+            <div style={{ textAlign: "center", marginTop: 20 }}>
+              <button type="button" onClick={switchToLogin} style={{
+                background: "none", border: "none", color: "#6366f1",
+                fontSize: 13, cursor: "pointer", textDecoration: "underline",
+              }}>
+                ログインに戻る
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── Register done ── */}
+        {mode === "registerDone" && (
+          <>
+            <div style={{
+              padding: "14px 16px", borderRadius: 8, marginBottom: 20,
+              background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#15803d",
+              fontSize: 13, lineHeight: 1.6,
+            }}>
+              登録が完了しました。ログインしてください。
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <button type="button" onClick={switchToLogin} style={{
+                background: "none", border: "none", color: "#6366f1",
+                fontSize: 13, cursor: "pointer", textDecoration: "underline",
+              }}>
+                ログインに戻る
               </button>
             </div>
           </>

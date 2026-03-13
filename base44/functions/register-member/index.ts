@@ -1,186 +1,67 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 
-const PROFILE_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
-const PROFILE_IMAGE_ALLOWED_TYPES = new Set(["image/jpeg", "image/png"]);
-const PROFILE_IMAGE_ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"];
-
-function normalizeString(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function normalizeBoolean(value: unknown) {
-  return value === true || value === "true";
-}
-
-function getStringEntry(source: FormData | Record<string, unknown>, key: string) {
-  if (source instanceof FormData) {
-    const value = source.get(key);
-    return typeof value === "string" ? value.trim() : "";
-  }
-
-  return normalizeString(source?.[key]);
-}
-
-function getBooleanEntry(source: FormData | Record<string, unknown>, key: string) {
-  if (source instanceof FormData) {
-    return source.get(key) === "true";
-  }
-
-  return normalizeBoolean(source?.[key]);
-}
-
-function profileImageHasAllowedType(file: File) {
-  const lowerName = file.name.toLowerCase();
-  return (
-    PROFILE_IMAGE_ALLOWED_TYPES.has(file.type) ||
-    PROFILE_IMAGE_ALLOWED_EXTENSIONS.some((extension) => lowerName.endsWith(extension))
-  );
-}
-
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
-    return Response.json(
-      { ok: false, error: "Method not allowed" },
-      { status: 405 }
-    );
+    return Response.json({ ok: false, error: "Method not allowed" }, { status: 405 });
   }
 
   try {
-    const contentType = req.headers.get("content-type") || "";
-    const body = contentType.includes("multipart/form-data")
-      ? await req.formData()
-      : await req.json();
-    const payload = {
-      name_kanji: getStringEntry(body, "name_kanji"),
-      name_kana: getStringEntry(body, "name_kana"),
-      birthday: getStringEntry(body, "birthday"),
-      company_name: getStringEntry(body, "company_name"),
-      company_postal_code: getStringEntry(body, "company_postal_code"),
-      company_position: getStringEntry(body, "company_position"),
-      industry: getStringEntry(body, "industry"),
-      company_address: getStringEntry(body, "company_address"),
-      company_phone: getStringEntry(body, "company_phone"),
-      company_fax: getStringEntry(body, "company_fax"),
-      company_pr: getStringEntry(body, "company_pr"),
-      email: getStringEntry(body, "email"),
-      show_email_in_directory: getBooleanEntry(body, "show_email_in_directory"),
-      mobile_phone: getStringEntry(body, "mobile_phone"),
-      show_mobile_in_directory: getBooleanEntry(body, "show_mobile_in_directory"),
-      show_company_in_directory: getBooleanEntry(body, "show_company_in_directory"),
-      home_postal_code: getStringEntry(body, "home_postal_code"),
-      home_address: getStringEntry(body, "home_address"),
-      home_phone: getStringEntry(body, "home_phone"),
-      home_fax: getStringEntry(body, "home_fax"),
-      hobbies: getStringEntry(body, "hobbies"),
-      referrer_1: getStringEntry(body, "referrer_1"),
-      referrer_2: getStringEntry(body, "referrer_2")
-    };
-
-    const requiredFields = [
-      ["name_kanji", "name_kanji"],
-      ["name_kana", "name_kana"],
-      ["birthday", "birthday"],
-      ["email", "email"],
-      ["mobile_phone", "mobile_phone"],
-      ["referrer_1", "referrer_1"],
-      ["referrer_2", "referrer_2"]
-    ] as const;
-
-    for (const [fieldName, label] of requiredFields) {
-      if (!payload[fieldName]) {
-        return Response.json(
-          { ok: false, error: `${label} is required` },
-          { status: 400 }
-        );
-      }
-    }
-
-    if (!payload.email.includes("@")) {
-      return Response.json(
-        { ok: false, error: "Email is invalid" },
-        { status: 400 }
-      );
-    }
-
     const base44 = createClientFromRequest(req);
-    const profileImageFile = body instanceof FormData ? body.get("profile_image") : null;
-    const existingMembers = await base44.asServiceRole.entities.Member.filter({
-      email: payload.email,
-      approval_status: {
-        "$in": ["申請中", "承認済"]
-      }
-    });
+    const body = await req.json();
+    const email = (body?.email || "").trim().toLowerCase();
+    const password = body?.password || "";
+    const full_name = (body?.full_name || "").trim();
 
-    if (existingMembers.length > 0) {
-      return Response.json(
-        { ok: false, error: "Email already exists" },
-        { status: 409 }
-      );
+    if (!email || !password || !full_name) {
+      return Response.json({ ok: false, error: "全ての項目を入力してください" }, { status: 400 });
     }
 
-    let profileImageUrl = "";
-
-    if (profileImageFile instanceof File && profileImageFile.size > 0) {
-      if (!profileImageHasAllowedType(profileImageFile)) {
-        return Response.json(
-          { ok: false, error: "Profile image must be JPG or PNG" },
-          { status: 400 }
-        );
-      }
-
-      if (profileImageFile.size > PROFILE_IMAGE_MAX_BYTES) {
-        return Response.json(
-          { ok: false, error: "Profile image must be 5MB or smaller" },
-          { status: 400 }
-        );
-      }
-
-      const uploadResult = await base44.asServiceRole.integrations.Core.UploadFile({
-        file: profileImageFile,
-        fileName: profileImageFile.name
-      });
-
-      profileImageUrl = normalizeString(uploadResult?.file_url || uploadResult?.url);
+    if (password.length < 8) {
+      return Response.json({ ok: false, error: "パスワードは8文字以上で入力してください" }, { status: 400 });
     }
 
-    const member = await base44.asServiceRole.entities.Member.create({
-      ...payload,
-      ...(profileImageUrl ? { profile_image: profileImageUrl } : {}),
-      approval_status: "申請中",
-      applied_at: new Date().toISOString()
-    });
-
-    try {
-      const notificationResult = await base44.asServiceRole.functions.invoke(
-        "send-application-notification",
-        {
-          name_kanji: payload.name_kanji,
-          name_kana: payload.name_kana,
-          birthday: payload.birthday,
-          company_name: payload.company_name,
-          email: payload.email,
-          mobile_phone: payload.mobile_phone,
-          referrer_1: payload.referrer_1,
-          referrer_2: payload.referrer_2
-        }
-      );
-
-      if (!notificationResult?.ok && !notificationResult?.skipped) {
-        console.error("send-application-notification failed", notificationResult);
-      }
-    } catch (notificationError) {
-      console.error("send-application-notification failed", notificationError);
+    // Check if email exists in Members entity (service role for full access)
+    const members = await base44.asServiceRole.entities.Members.filter({ email });
+    if (!members || members.length === 0) {
+      return Response.json({
+        ok: false,
+        error: "このメールアドレスは会員として登録されていません。管理者にお問い合わせください。",
+      }, { status: 403 });
     }
 
-    return Response.json({
-      ok: true,
-      member
-    });
-  } catch (_error) {
-    console.error(_error);
-    return Response.json(
-      { ok: false, error: "Internal server error" },
-      { status: 500 }
-    );
+    const member = members[0];
+
+    // Check if member already has a linked user
+    if (member.user_id) {
+      return Response.json({
+        ok: false,
+        error: "この会員は既にアカウントが紐付けられています。ログインしてください。",
+      }, { status: 409 });
+    }
+
+    // Register the user account
+    await base44.auth.register({ email, password, full_name });
+
+    // Get the newly created user to link
+    const newUser = await base44.auth.me();
+
+    if (newUser?.id) {
+      // Link member to user
+      try {
+        await base44.asServiceRole.entities.Members.update(member.id, { user_id: newUser.id });
+      } catch (linkErr) {
+        console.error("[register-member] link error:", linkErr);
+        // Registration succeeded even if linking fails
+      }
+    }
+
+    return Response.json({ ok: true, registered: true });
+  } catch (error) {
+    console.error("[register-member]", error);
+    const msg = (error?.message || "").toLowerCase();
+    if (msg.includes("already") || msg.includes("exist") || msg.includes("duplicate")) {
+      return Response.json({ ok: false, error: "このメールアドレスは既にアカウント登録済みです。ログインしてください。" }, { status: 409 });
+    }
+    return Response.json({ ok: false, error: error?.message || "登録に失敗しました" }, { status: 500 });
   }
 });
