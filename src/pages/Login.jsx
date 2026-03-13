@@ -1,32 +1,39 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { auth } from "../api/base44Client";
 import { useNavigate, useLocation } from "react-router-dom";
 
+const inputStyle = {
+  width: "100%", padding: "10px 12px", fontSize: 14,
+  border: "1px solid #d1d5db", borderRadius: 8,
+  outline: "none", transition: "border-color 0.2s",
+  boxSizing: "border-box",
+};
+
+function focusBorder(e) { e.target.style.borderColor = "#6366f1"; }
+function blurBorder(e) { e.target.style.borderColor = "#d1d5db"; }
+
 export default function Login() {
-  const { login, canAccessAdmin } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [mode, setMode] = useState("login"); // "login" | "reset" | "resetSent"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [resetEmail, setResetEmail] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const returnTo = location.state?.returnTo;
 
-  async function handleSubmit(e) {
+  async function handleLogin(e) {
     e.preventDefault();
     setError("");
     setSubmitting(true);
     try {
       await login(email, password);
-      // After login, canAccessAdmin may not be updated yet in this render,
-      // so we navigate and let the router redirect logic handle it
-      if (returnTo) {
-        navigate(returnTo, { replace: true });
-      } else {
-        // Will be handled by the root redirect
-        navigate("/", { replace: true });
-      }
+      navigate(returnTo || "/", { replace: true });
     } catch (err) {
       const msg = err?.message || "";
       if (msg.includes("Invalid") || msg.includes("credentials") || msg.includes("password")) {
@@ -39,6 +46,36 @@ export default function Login() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleResetRequest(e) {
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
+    try {
+      await auth.resetPasswordRequest(resetEmail);
+      setMode("resetSent");
+    } catch (err) {
+      const msg = err?.message || "";
+      if (msg.includes("not found") || msg.includes("user")) {
+        setError("このメールアドレスは登録されていません");
+      } else {
+        setError("送信に失敗しました。もう一度お試しください。");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function switchToReset() {
+    setMode("reset");
+    setResetEmail(email); // pre-fill from login form
+    setError("");
+  }
+
+  function switchToLogin() {
+    setMode("login");
+    setError("");
   }
 
   return (
@@ -80,81 +117,120 @@ export default function Login() {
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
-              メールアドレス
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              placeholder="example@email.com"
-              style={{
-                width: "100%", padding: "10px 12px", fontSize: 14,
-                border: "1px solid #d1d5db", borderRadius: 8,
-                outline: "none", transition: "border-color 0.2s",
-                boxSizing: "border-box",
-              }}
-              onFocus={(e) => { e.target.style.borderColor = "#6366f1"; }}
-              onBlur={(e) => { e.target.style.borderColor = "#d1d5db"; }}
-            />
-          </div>
+        {/* ── Login form ── */}
+        {mode === "login" && (
+          <>
+            <form onSubmit={handleLogin}>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                  メールアドレス
+                </label>
+                <input
+                  type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                  required autoComplete="email" placeholder="example@email.com"
+                  style={inputStyle} onFocus={focusBorder} onBlur={blurBorder}
+                />
+              </div>
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                  パスワード
+                </label>
+                <input
+                  type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                  required autoComplete="current-password" placeholder="パスワードを入力"
+                  style={inputStyle} onFocus={focusBorder} onBlur={blurBorder}
+                />
+              </div>
+              <button
+                type="submit" disabled={submitting}
+                style={{
+                  width: "100%", padding: "11px 0", fontSize: 15, fontWeight: 600,
+                  color: "#fff", background: submitting ? "#a5b4fc" : "#4f46e5",
+                  border: "none", borderRadius: 8, cursor: submitting ? "not-allowed" : "pointer",
+                  transition: "background 0.2s",
+                }}
+                onMouseEnter={(e) => { if (!submitting) e.target.style.background = "#4338ca"; }}
+                onMouseLeave={(e) => { if (!submitting) e.target.style.background = "#4f46e5"; }}
+              >
+                {submitting ? "ログイン中..." : "ログイン"}
+              </button>
+            </form>
+            <div style={{ textAlign: "center", marginTop: 20 }}>
+              <button type="button" onClick={switchToReset} style={{
+                background: "none", border: "none", color: "#6366f1",
+                fontSize: 13, cursor: "pointer", textDecoration: "underline",
+              }}>
+                パスワードを忘れた方
+              </button>
+            </div>
+          </>
+        )}
 
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
-              パスワード
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              placeholder="パスワードを入力"
-              style={{
-                width: "100%", padding: "10px 12px", fontSize: 14,
-                border: "1px solid #d1d5db", borderRadius: 8,
-                outline: "none", transition: "border-color 0.2s",
-                boxSizing: "border-box",
-              }}
-              onFocus={(e) => { e.target.style.borderColor = "#6366f1"; }}
-              onBlur={(e) => { e.target.style.borderColor = "#d1d5db"; }}
-            />
-          </div>
+        {/* ── Password reset form ── */}
+        {mode === "reset" && (
+          <>
+            <p style={{ fontSize: 14, color: "#374151", marginBottom: 20, lineHeight: 1.6 }}>
+              登録済みのメールアドレスを入力してください。パスワードリセット用のメールをお送りします。
+            </p>
+            <form onSubmit={handleResetRequest}>
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                  メールアドレス
+                </label>
+                <input
+                  type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)}
+                  required autoComplete="email" placeholder="example@email.com"
+                  style={inputStyle} onFocus={focusBorder} onBlur={blurBorder}
+                />
+              </div>
+              <button
+                type="submit" disabled={submitting}
+                style={{
+                  width: "100%", padding: "11px 0", fontSize: 15, fontWeight: 600,
+                  color: "#fff", background: submitting ? "#a5b4fc" : "#4f46e5",
+                  border: "none", borderRadius: 8, cursor: submitting ? "not-allowed" : "pointer",
+                  transition: "background 0.2s",
+                }}
+                onMouseEnter={(e) => { if (!submitting) e.target.style.background = "#4338ca"; }}
+                onMouseLeave={(e) => { if (!submitting) e.target.style.background = "#4f46e5"; }}
+              >
+                {submitting ? "送信中..." : "リセットメールを送信"}
+              </button>
+            </form>
+            <div style={{ textAlign: "center", marginTop: 20 }}>
+              <button type="button" onClick={switchToLogin} style={{
+                background: "none", border: "none", color: "#6366f1",
+                fontSize: 13, cursor: "pointer", textDecoration: "underline",
+              }}>
+                ログインに戻る
+              </button>
+            </div>
+          </>
+        )}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            style={{
-              width: "100%", padding: "11px 0", fontSize: 15, fontWeight: 600,
-              color: "#fff", background: submitting ? "#a5b4fc" : "#4f46e5",
-              border: "none", borderRadius: 8, cursor: submitting ? "not-allowed" : "pointer",
-              transition: "background 0.2s",
-            }}
-            onMouseEnter={(e) => { if (!submitting) e.target.style.background = "#4338ca"; }}
-            onMouseLeave={(e) => { if (!submitting) e.target.style.background = "#4f46e5"; }}
-          >
-            {submitting ? "ログイン中..." : "ログイン"}
-          </button>
-        </form>
-
-        {/* Footer links */}
-        <div style={{ textAlign: "center", marginTop: 20 }}>
-          <button
-            type="button"
-            onClick={() => {/* TODO: password reset */}}
-            style={{
-              background: "none", border: "none", color: "#6366f1",
-              fontSize: 13, cursor: "pointer", textDecoration: "underline",
-            }}
-          >
-            パスワードを忘れた方
-          </button>
-        </div>
+        {/* ── Reset sent confirmation ── */}
+        {mode === "resetSent" && (
+          <>
+            <div style={{
+              padding: "14px 16px", borderRadius: 8, marginBottom: 20,
+              background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#15803d",
+              fontSize: 13, lineHeight: 1.6,
+            }}>
+              パスワードリセットメールを送信しました。メールを確認してください。
+            </div>
+            <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, marginBottom: 20 }}>
+              メールが届かない場合は、迷惑メールフォルダを確認するか、再度お試しください。
+            </p>
+            <div style={{ textAlign: "center" }}>
+              <button type="button" onClick={switchToLogin} style={{
+                background: "none", border: "none", color: "#6366f1",
+                fontSize: 13, cursor: "pointer", textDecoration: "underline",
+              }}>
+                ログインに戻る
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
