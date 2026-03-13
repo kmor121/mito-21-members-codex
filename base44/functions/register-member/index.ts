@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
     }
 
     // Check if email exists in Members entity (service role for full access)
-    const members = await base44.asServiceRole.entities.Members.filter({ email });
+    const members = await base44.asServiceRole.entities.Member.filter({ email });
     if (!members || members.length === 0) {
       return Response.json({
         ok: false,
@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
 
     if (newUser?.id) {
       try {
-        await base44.asServiceRole.entities.Members.update(member.id, { user_id: newUser.id });
+        await base44.asServiceRole.entities.Member.update(member.id, { user_id: newUser.id });
       } catch (linkErr) {
         console.error("[register-member] link error:", linkErr);
       }
