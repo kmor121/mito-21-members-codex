@@ -562,6 +562,62 @@ export default function MemberDetail() {
                 </dl>
               </div>
             </section>
+
+            {/* アカウント紐付け */}
+            <section className="card panel-card">
+              <div className="card-body" style={{ padding: "1.25rem" }}>
+                <SectionHeader icon="🔗" title="アカウント紐付け" />
+                {member.user_id ? (
+                  <div style={{ padding: "0 0.5rem" }}>
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: 8, padding: "10px 14px",
+                      background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8,
+                      fontSize: 13, color: "#15803d", marginBottom: 12,
+                    }}>
+                      <span>✅</span>
+                      <span>Base44ユーザーと紐付け済み</span>
+                      <span style={{ color: "#64748b", fontSize: 12, marginLeft: 8 }}>ID: {member.user_id}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!window.confirm("アカウント紐付けを解除しますか？")) return;
+                        try {
+                          await apiRequest("update-member-detail", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ id: member.id, user_id: "" }),
+                          });
+                          invalidateReadCache("Member");
+                          setMember(prev => ({ ...prev, user_id: "" }));
+                          window.__showToast?.("紐付けを解除しました", "success");
+                        } catch (err) {
+                          window.__showToast?.(err.message || "解除に失敗しました", "error");
+                        }
+                      }}
+                      style={{
+                        background: "none", border: "1px solid #fca5a5", borderRadius: 6,
+                        padding: "6px 14px", fontSize: 13, color: "#dc2626", cursor: "pointer",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      紐付け解除
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ padding: "0 0.5rem" }}>
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: 8, padding: "10px 14px",
+                      background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8,
+                      fontSize: 13, color: "#92400e", marginBottom: 12,
+                    }}>
+                      <span>⚠️</span>
+                      <span>Base44ユーザーと未紐付け（ログイン時にメールアドレスで自動紐付けされます）</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
           </div>
         ) : (
           /* ── EDIT MODE ── */

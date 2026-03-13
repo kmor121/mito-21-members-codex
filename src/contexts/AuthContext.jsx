@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
-import { auth } from "../api/base44Client";
+import { auth, apiRequest } from "../api/base44Client";
 
 const AuthContext = createContext(null);
 
@@ -25,6 +25,8 @@ export function AuthProvider({ children }) {
     // After login, fetch full user profile
     const me = await auth.me();
     setUser(me || null);
+    // Best-effort: try to link user to member record
+    try { await apiRequest("link-user-to-member", { method: "POST" }); } catch { /* ignore */ }
     return result;
   }, []);
 

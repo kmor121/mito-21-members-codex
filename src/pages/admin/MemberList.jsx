@@ -695,6 +695,10 @@ export default function MemberList() {
                           <span style={{ fontWeight: 600, fontSize: "13px" }}>
                             {displayValue(m.name_kanji)}
                           </span>
+                          <span title={m.user_id ? "アカウント紐付け済み" : "アカウント未紐付け"} style={{
+                            fontSize: 11, cursor: "default",
+                            opacity: m.user_id ? 1 : 0.5,
+                          }}>{m.user_id ? "\u2705" : "\u26A0\uFE0F"}</span>
                           {m.is_new && (
                             <span style={{
                               display: "inline-block",
