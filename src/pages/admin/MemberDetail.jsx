@@ -620,10 +620,10 @@ export default function MemberDetail() {
                         onClick={async () => {
                           if (!window.confirm(`${member.email} に招待メールを送信しますか？`)) return;
                           try {
-                            await apiRequest("invite-app-user", {
+                            await apiRequest("invite-member", {
                               method: "POST",
                               headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ email: member.email, role: "user" }),
+                              body: JSON.stringify({ email: member.email }),
                             });
                             window.__showToast?.("招待メールを送信しました", "success");
                           } catch (err) {
