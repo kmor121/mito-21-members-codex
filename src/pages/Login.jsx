@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { auth, apiRequest } from "../api/base44Client";
+import { auth, FUNCTION_BASE } from "../api/base44Client";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const inputStyle = {
@@ -22,7 +22,6 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [resetEmail, setResetEmail] = useState("");
-  const [regName, setRegName] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regPasswordConfirm, setRegPasswordConfirm] = useState("");
@@ -84,11 +83,16 @@ export default function Login() {
     }
     setSubmitting(true);
     try {
-      await apiRequest("register-member", {
+      const res = await fetch(`${FUNCTION_BASE}/register-member`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: regEmail, password: regPassword, full_name: regName }),
+        body: JSON.stringify({ email: regEmail, password: regPassword }),
       });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) {
+        throw new Error(data.error || "登録に失敗しました");
+      }
+      setEmail(regEmail); // pre-fill login form
       setMode("registerDone");
     } catch (err) {
       setError(err.message || "登録に失敗しました");
@@ -99,13 +103,13 @@ export default function Login() {
 
   function switchToReset() {
     setMode("reset");
-    setResetEmail(email); // pre-fill from login form
+    setResetEmail(email);
     setError("");
   }
 
   function switchToRegister() {
     setMode("register");
-    setRegEmail(email); // pre-fill from login form
+    setRegEmail(email);
     setError("");
   }
 
@@ -191,13 +195,15 @@ export default function Login() {
                 {submitting ? "ログイン中..." : "ログイン"}
               </button>
             </form>
-            <div style={{ textAlign: "center", marginTop: 20, display: "flex", justifyContent: "center", gap: 16 }}>
+            <div style={{ textAlign: "center", marginTop: 16 }}>
               <button type="button" onClick={switchToReset} style={{
                 background: "none", border: "none", color: "#6366f1",
                 fontSize: 13, cursor: "pointer", textDecoration: "underline",
               }}>
                 パスワードを忘れた方
               </button>
+            </div>
+            <div style={{ textAlign: "center", marginTop: 10 }}>
               <button type="button" onClick={switchToRegister} style={{
                 background: "none", border: "none", color: "#6366f1",
                 fontSize: 13, cursor: "pointer", textDecoration: "underline",
@@ -215,16 +221,6 @@ export default function Login() {
               会員として登録済みのメールアドレスでアカウントを作成できます。
             </p>
             <form onSubmit={handleRegister}>
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
-                  氏名
-                </label>
-                <input
-                  type="text" value={regName} onChange={(e) => setRegName(e.target.value)}
-                  required placeholder="山田 太郎"
-                  style={inputStyle} onFocus={focusBorder} onBlur={blurBorder}
-                />
-              </div>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
                   メールアドレス

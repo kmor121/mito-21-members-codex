@@ -10,10 +10,9 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const email = (body?.email || "").trim().toLowerCase();
     const password = body?.password || "";
-    const full_name = (body?.full_name || "").trim();
 
-    if (!email || !password || !full_name) {
-      return Response.json({ ok: false, error: "全ての項目を入力してください" }, { status: 400 });
+    if (!email || !password) {
+      return Response.json({ ok: false, error: "メールアドレスとパスワードを入力してください" }, { status: 400 });
     }
 
     if (password.length < 8) {
@@ -39,19 +38,18 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
-    // Register the user account
-    await base44.auth.register({ email, password, full_name });
+    // Register the user account using member's name_kanji as full_name
+    const full_name = member.name_kanji || email;
+    const result = await base44.auth.register({ email, password, full_name });
 
-    // Get the newly created user to link
+    // Get the newly created user to link member
     const newUser = await base44.auth.me();
 
     if (newUser?.id) {
-      // Link member to user
       try {
         await base44.asServiceRole.entities.Members.update(member.id, { user_id: newUser.id });
       } catch (linkErr) {
         console.error("[register-member] link error:", linkErr);
-        // Registration succeeded even if linking fails
       }
     }
 
