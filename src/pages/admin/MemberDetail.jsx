@@ -615,31 +615,38 @@ export default function MemberDetail() {
                       <span>Base44ユーザーと未紐付け（ログイン時にメールアドレスで自動紐付けされます）</span>
                     </div>
                     {member.email && (
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (!window.confirm(`${member.email} に招待メールを送信しますか？`)) return;
-                          try {
-                            await apiRequest("invite-member", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ email: member.email }),
-                            });
-                            window.__showToast?.("招待メールを送信しました", "success");
-                          } catch (err) {
-                            window.__showToast?.(err.message || "送信に失敗しました", "error");
-                          }
-                        }}
-                        style={{
-                          background: "none", border: "1px solid var(--line)", borderRadius: 6,
-                          padding: "6px 14px", fontSize: 13, color: "var(--primary)", cursor: "pointer",
-                          display: "inline-flex", alignItems: "center", gap: 6,
-                          transition: "all 0.15s",
-                        }}
-                      >
-                        <span style={{ fontSize: 14 }}>✉</span>
-                        招待メール送信
-                      </button>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(member.email);
+                            window.__showToast?.("メールアドレスをコピーしました", "success");
+                          }}
+                          style={{
+                            background: "none", border: "1px solid var(--line)", borderRadius: 6,
+                            padding: "6px 14px", fontSize: 13, color: "var(--text)", cursor: "pointer",
+                            display: "inline-flex", alignItems: "center", gap: 6,
+                            transition: "all 0.15s",
+                          }}
+                        >
+                          <span style={{ fontSize: 14 }}>📋</span>
+                          メールアドレスをコピー
+                        </button>
+                        <a
+                          href="https://app.base44.com/apps/69ad0dadda7f546dda487265/editor/workspace/users"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            background: "none", border: "1px solid var(--line)", borderRadius: 6,
+                            padding: "6px 14px", fontSize: 13, color: "var(--primary)", cursor: "pointer",
+                            display: "inline-flex", alignItems: "center", gap: 6,
+                            textDecoration: "none", transition: "all 0.15s",
+                          }}
+                        >
+                          <span style={{ fontSize: 14 }}>↗</span>
+                          ダッシュボードで招待
+                        </a>
+                      </div>
                     )}
                   </div>
                 )}
