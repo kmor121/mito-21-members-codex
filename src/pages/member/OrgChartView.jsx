@@ -161,7 +161,7 @@ function ChevronRight({ size = 14, color = "var(--text-secondary)" }) {
 }
 
 /* ═══ OrgViewNode (recursive, read-only) ═══ */
-function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap }) {
+function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, supervisorRoleMap }) {
   const assignments = Array.isArray(org.assignments) ? org.assignments : [];
   const children = org.children || [];
   const isExpanded = expandedOrgs.has(org.id);
@@ -211,21 +211,25 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap }) {
               fontSize: 11, fontWeight: 600, whiteSpace: "nowrap",
               background: "transparent", color: tc.text, border: `1px solid ${tc.border}`,
             }}>{org.org_type || "その他"}</span>
-            {org.supervisor_id && memberMap?.[org.supervisor_id] && (
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: 4,
-                padding: "2px 10px 2px 6px", borderRadius: 12,
-                fontSize: 11, fontWeight: 500, whiteSpace: "nowrap",
-                color: "#7c3aed", background: "transparent",
-                border: "1px dashed #c4b5fd",
-              }}>
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="8" cy="5" r="3"/>
-                  <path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
-                </svg>
-                担当: {memberMap[org.supervisor_id].name_kanji || ""}
-              </span>
-            )}
+            {org.supervisor_id && memberMap?.[org.supervisor_id] && (() => {
+              const svRole = supervisorRoleMap?.[org.supervisor_id];
+              const label = svRole ? `担当${svRole}` : "担当";
+              return (
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 4,
+                  padding: "2px 10px 2px 6px", borderRadius: 12,
+                  fontSize: 11, fontWeight: 500, whiteSpace: "nowrap",
+                  color: "#7c3aed", background: "transparent",
+                  border: "1px dashed #c4b5fd",
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="8" cy="5" r="3"/>
+                    <path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
+                  </svg>
+                  {label}: {memberMap[org.supervisor_id].name_kanji || ""}
+                </span>
+              );
+            })()}
           </div>
           <span style={{
             fontSize: 12, color: "var(--text-secondary)", background: "var(--bg)",
@@ -305,6 +309,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap }) {
               expandedOrgs={expandedOrgs}
               toggleExpand={toggleExpand}
               memberMap={memberMap}
+              supervisorRoleMap={supervisorRoleMap}
             />
           ))}
         </div>
@@ -325,6 +330,7 @@ export default function OrgChartView() {
   const [selectedFiscalYear, setSelectedFiscalYear] = useState(null);
   const [orgTree, setOrgTree] = useState([]);
   const [memberMap, setMemberMap] = useState({});
+  const [supervisorRoleMap, setSupervisorRoleMap] = useState({});
   const [expandedOrgs, setExpandedOrgs] = useState(new Set());
 
   useEffect(() => {
@@ -357,6 +363,16 @@ export default function OrgChartView() {
             .filter(a => a.organization_id === org.id)
             .map(a => ({ ...a, member: mMap[a.member_id] || {} })),
         }));
+
+        // Build supervisor role map from 幹事会 assignments
+        const svRoleMap = {};
+        for (const org of organizations) {
+          if (org.org_type !== "幹事会") continue;
+          for (const a of (org.assignments || [])) {
+            if (a.member_id && a.role) svRoleMap[a.member_id] = a.role;
+          }
+        }
+        setSupervisorRoleMap(svRoleMap);
 
         setYears(yearsList);
         setSelectedFiscalYear(selectedFy);
@@ -609,6 +625,7 @@ export default function OrgChartView() {
               expandedOrgs={expandedOrgs}
               toggleExpand={toggleExpand}
               memberMap={memberMap}
+              supervisorRoleMap={supervisorRoleMap}
             />
           ))}
         </div>

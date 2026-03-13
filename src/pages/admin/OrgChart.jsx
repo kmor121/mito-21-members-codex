@@ -182,7 +182,7 @@ function SkeletonCard() {
 function OrgTreeNode({
   org, depth, expandedOrgs, toggleExpand,
   onEditOrg, onDeleteOrg, onAddMember, onEditAssignment, onRemoveAssignment,
-  dragHandlers, memberMap,
+  dragHandlers, memberMap, supervisorRoleMap,
 }) {
   const assignments = Array.isArray(org.assignments) ? org.assignments : [];
   const children = org.children || [];
@@ -254,21 +254,25 @@ function OrgTreeNode({
               ...typeBadgeStyle(org.org_type), padding: "2px 8px", borderRadius: 6,
               fontSize: 11, fontWeight: 500, whiteSpace: "nowrap", lineHeight: "18px",
             }}>{org.org_type || "その他"}</span>
-            {org.supervisor_id && memberMap?.[org.supervisor_id] && (
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: 4,
-                padding: "2px 10px 2px 6px", borderRadius: 12,
-                fontSize: 11, fontWeight: 500, whiteSpace: "nowrap",
-                color: "#7c3aed", background: "transparent",
-                border: "1px dashed #c4b5fd",
-              }}>
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="8" cy="5" r="3"/>
-                  <path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
-                </svg>
-                担当: {memberMap[org.supervisor_id].name_kanji || ""}
-              </span>
-            )}
+            {org.supervisor_id && memberMap?.[org.supervisor_id] && (() => {
+              const svRole = supervisorRoleMap?.[org.supervisor_id];
+              const label = svRole ? `担当${svRole}` : "担当";
+              return (
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 4,
+                  padding: "2px 10px 2px 6px", borderRadius: 12,
+                  fontSize: 11, fontWeight: 500, whiteSpace: "nowrap",
+                  color: "#7c3aed", background: "transparent",
+                  border: "1px dashed #c4b5fd",
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="8" cy="5" r="3"/>
+                    <path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
+                  </svg>
+                  {label}: {memberMap[org.supervisor_id].name_kanji || ""}
+                </span>
+              );
+            })()}
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -414,6 +418,7 @@ function OrgTreeNode({
               onRemoveAssignment={onRemoveAssignment}
               dragHandlers={{}}
               memberMap={memberMap}
+              supervisorRoleMap={supervisorRoleMap}
             />
           ))}
         </div>
@@ -737,6 +742,18 @@ export default function OrgChart() {
     return map;
   }, [memberOptions]);
 
+  /* ── Supervisor role map: memberId → role in 幹事会-type org ── */
+  const supervisorRoleMap = useMemo(() => {
+    const map = {};
+    for (const org of organizations) {
+      if (org.org_type !== "幹事会") continue;
+      for (const a of (org.assignments || [])) {
+        if (a.member_id && a.role) map[a.member_id] = a.role;
+      }
+    }
+    return map;
+  }, [organizations]);
+
   /* ── Org hierarchy for parent selector ── */
   const orgHierarchyOptions = useMemo(() => buildOrgHierarchy(organizations, orgForm.id), [organizations, orgForm.id]);
 
@@ -990,6 +1007,7 @@ export default function OrgChart() {
               onEditAssignment={openEditAssignment}
               onRemoveAssignment={handleRemoveAssignment}
               memberMap={memberMapById}
+              supervisorRoleMap={supervisorRoleMap}
               dragHandlers={{
                 draggable: true,
                 onDragStart: () => { dragOrgId.current = org.id; },
