@@ -155,6 +155,10 @@
     "notes": {
       "type": "string",
       "description": "Admin notes"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Base44認証ユーザーのID（紐付け用）"
     }
   },
   "required": [
@@ -167,5 +171,11 @@
     "referrer_2",
     "approval_status",
     "applied_at"
-  ]
+  ],
+  "rls": {
+    "create": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "read": true,
+    "update": { "$or": [{ "data.user_id": "{{user.id}}" }, { "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "delete": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] }
+  }
 }

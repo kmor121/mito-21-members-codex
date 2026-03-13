@@ -39,5 +39,11 @@
       "description": "Name used for bank transfer (振込名義)"
     }
   },
-  "required": ["fiscal_year_id", "member_id", "amount", "status"]
+  "required": ["fiscal_year_id", "member_id", "amount", "status"],
+  "rls": {
+    "create": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "read": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "update": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "delete": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] }
+  }
 }

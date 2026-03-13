@@ -58,5 +58,11 @@
       "description": "Business update timestamp"
     }
   },
-  "required": ["doc_type", "title", "published"]
+  "required": ["doc_type", "title", "published"],
+  "rls": {
+    "create": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "read": true,
+    "update": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "delete": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] }
+  }
 }

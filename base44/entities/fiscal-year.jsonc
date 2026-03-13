@@ -22,5 +22,11 @@
       "default": false
     }
   },
-  "required": ["year", "start_date", "end_date", "is_current"]
+  "required": ["year", "start_date", "end_date", "is_current"],
+  "rls": {
+    "create": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "read": true,
+    "update": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "delete": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] }
+  }
 }

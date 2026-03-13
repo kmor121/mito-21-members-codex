@@ -33,5 +33,11 @@
       "description": "Value after the change"
     }
   },
-  "required": ["member_id", "changed_by", "changed_by_role", "changed_at", "field_name"]
+  "required": ["member_id", "changed_by", "changed_by_role", "changed_at", "field_name"],
+  "rls": {
+    "create": true,
+    "read": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "update": false,
+    "delete": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] }
+  }
 }

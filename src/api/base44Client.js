@@ -165,4 +165,7 @@ export function cacheClear() {
   _readCache.clear();
 }
 
-export { base44, FUNCTION_BASE, API_ORIGIN };
+// Expose raw SDK auth methods
+const auth = _base44.auth;
+
+export { base44, auth, FUNCTION_BASE, API_ORIGIN };

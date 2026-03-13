@@ -4,9 +4,14 @@ import { useToast } from './hooks/useToast';
 import ToastContainer from './components/common/Toast';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute, AdminRoute, PublicOnlyRoute, RootRedirect } from './components/auth/RouteGuards';
 import PublicLayout from './components/layout/PublicLayout';
 import AdminLayout from './components/layout/AdminLayout';
 import MemberLayout from './components/layout/MemberLayout';
+
+// Login page
+const Login = lazy(() => import('./pages/Login'));
 
 // Public pages
 const Landing = lazy(() => import('./pages/public/Landing'));
@@ -58,61 +63,68 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <ToastContainer toasts={toasts} />
-      <ErrorBoundary>
-      <Suspense fallback={<PageFallback />}>
-        <Routes>
-          {/* Public routes */}
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<Landing />} />
-            <Route path="/apply" element={<Apply />} />
-            <Route path="/apply/confirm" element={<ApplyConfirm />} />
-            <Route path="/apply/complete" element={<ApplyComplete />} />
-            <Route path="/complete" element={<ApplyComplete />} />
-          </Route>
+      <AuthProvider>
+        <ToastContainer toasts={toasts} />
+        <ErrorBoundary>
+        <Suspense fallback={<PageFallback />}>
+          <Routes>
+            {/* Root redirect */}
+            <Route path="/" element={<RootRedirect />} />
 
-          {/* Admin routes */}
-          <Route element={<AdminLayout />}>
-            <Route path="/admin" element={<Dashboard />} />
-            <Route path="/admin/dashboard" element={<Dashboard />} />
-            <Route path="/admin/members" element={<MemberList />} />
-            <Route path="/admin/members/new" element={<MemberCreate />} />
-            <Route path="/admin/members/:memberId" element={<MemberDetail />} />
-            <Route path="/admin/applications" element={<Applications />} />
-            <Route path="/admin/applications/:applicationId" element={<ApplicationDetail />} />
-            <Route path="/admin/dues" element={<DuesManagement />} />
-            <Route path="/admin/dues-management" element={<DuesManagement />} />
-            <Route path="/admin/organization" element={<OrgChart />} />
-            <Route path="/admin/organization-chart" element={<OrgChart />} />
-            <Route path="/admin/delivery" element={<NewsletterList />} />
-            <Route path="/admin/newsletters" element={<NewsletterList />} />
-            <Route path="/admin/newsletters/new" element={<NewsletterEdit />} />
-            <Route path="/admin/newsletters/:id/edit" element={<NewsletterEdit />} />
-            <Route path="/admin/newsletters/template/:id/edit" element={<NewsletterEdit />} />
-            <Route path="/admin/fiscal-years" element={<FiscalYears />} />
-            <Route path="/admin/settings" element={<Settings />} />
-            <Route path="/admin/documents" element={<Documents />} />
-            <Route path="/admin/documents/new" element={<DocumentEditor />} />
-            <Route path="/admin/documents/:documentId/edit" element={<DocumentEditor />} />
-          </Route>
+            {/* Login */}
+            <Route path="/login" element={
+              <PublicOnlyRoute><Login /></PublicOnlyRoute>
+            } />
 
-          {/* Member routes */}
-          <Route element={<MemberLayout />}>
-            <Route path="/directory" element={<Directory />} />
-            <Route path="/directory/members/:memberId" element={<MemberProfile />} />
-            <Route path="/mypage" element={<MyPage />} />
-            <Route path="/info" element={<BasicInfo />} />
-            <Route path="/organization" element={<OrgChartView />} />
-            <Route path="/manual" element={<Manual />} />
-          </Route>
+            {/* Public routes - no auth required */}
+            <Route element={<PublicLayout />}>
+              <Route path="/apply" element={<Apply />} />
+              <Route path="/apply/confirm" element={<ApplyConfirm />} />
+              <Route path="/apply/complete" element={<ApplyComplete />} />
+              <Route path="/complete" element={<ApplyComplete />} />
+            </Route>
 
-          {/* Catch-all */}
-          <Route element={<PublicLayout />}>
-            <Route path="*" element={<Landing />} />
-          </Route>
-        </Routes>
-      </Suspense>
-      </ErrorBoundary>
+            {/* Admin routes - requires admin/admin_member */}
+            <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
+              <Route path="/admin" element={<Dashboard />} />
+              <Route path="/admin/dashboard" element={<Dashboard />} />
+              <Route path="/admin/members" element={<MemberList />} />
+              <Route path="/admin/members/new" element={<MemberCreate />} />
+              <Route path="/admin/members/:memberId" element={<MemberDetail />} />
+              <Route path="/admin/applications" element={<Applications />} />
+              <Route path="/admin/applications/:applicationId" element={<ApplicationDetail />} />
+              <Route path="/admin/dues" element={<DuesManagement />} />
+              <Route path="/admin/dues-management" element={<DuesManagement />} />
+              <Route path="/admin/organization" element={<OrgChart />} />
+              <Route path="/admin/organization-chart" element={<OrgChart />} />
+              <Route path="/admin/delivery" element={<NewsletterList />} />
+              <Route path="/admin/newsletters" element={<NewsletterList />} />
+              <Route path="/admin/newsletters/new" element={<NewsletterEdit />} />
+              <Route path="/admin/newsletters/:id/edit" element={<NewsletterEdit />} />
+              <Route path="/admin/newsletters/template/:id/edit" element={<NewsletterEdit />} />
+              <Route path="/admin/fiscal-years" element={<FiscalYears />} />
+              <Route path="/admin/settings" element={<Settings />} />
+              <Route path="/admin/documents" element={<Documents />} />
+              <Route path="/admin/documents/new" element={<DocumentEditor />} />
+              <Route path="/admin/documents/:documentId/edit" element={<DocumentEditor />} />
+            </Route>
+
+            {/* Member routes - requires authentication */}
+            <Route element={<ProtectedRoute><MemberLayout /></ProtectedRoute>}>
+              <Route path="/directory" element={<Directory />} />
+              <Route path="/directory/members/:memberId" element={<MemberProfile />} />
+              <Route path="/mypage" element={<MyPage />} />
+              <Route path="/info" element={<BasicInfo />} />
+              <Route path="/organization" element={<OrgChartView />} />
+              <Route path="/manual" element={<Manual />} />
+            </Route>
+
+            {/* Catch-all */}
+            <Route path="*" element={<RootRedirect />} />
+          </Routes>
+        </Suspense>
+        </ErrorBoundary>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

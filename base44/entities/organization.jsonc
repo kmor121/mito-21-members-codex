@@ -28,5 +28,11 @@
       "description": "Supervisor member id (e.g. vice president overseeing this org)"
     }
   },
-  "required": ["fiscal_year_id", "org_name"]
+  "required": ["fiscal_year_id", "org_name"],
+  "rls": {
+    "create": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "read": true,
+    "update": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "delete": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] }
+  }
 }

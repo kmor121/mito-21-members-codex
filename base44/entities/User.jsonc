@@ -1,0 +1,16 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "app_role": {
+      "type": "string",
+      "enum": ["admin_member", "manager", "member"],
+      "default": "member",
+      "description": "アプリ内ロール。admin_member=管理者メンバー, manager=幹事会メンバー, member=一般メンバー"
+    },
+    "member_id": {
+      "type": "string",
+      "description": "紐付けられたMembersエンティティの_id"
+    }
+  }
+}

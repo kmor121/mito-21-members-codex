@@ -23,5 +23,11 @@
       "description": "Display order"
     }
   },
-  "required": ["fiscal_year_id", "organization_id", "member_id", "role"]
+  "required": ["fiscal_year_id", "organization_id", "member_id", "role"],
+  "rls": {
+    "create": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "read": true,
+    "update": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] },
+    "delete": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] }
+  }
 }
