@@ -420,15 +420,7 @@ export default function OrgChartView() {
     <section className="admin-shell">
       {/* ── Page header ── */}
       <div className="page-header" style={{ marginBottom: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <h1 className="page-title" style={{ margin: 0 }}>組織図</h1>
-          {yearLabel && (
-            <span style={{
-              padding: "3px 12px", borderRadius: 20, background: "var(--primary-light)",
-              color: "var(--primary)", fontSize: 13, fontWeight: 600,
-            }}>{yearLabel}</span>
-          )}
-        </div>
+        <h1 className="page-title" style={{ margin: 0 }}>組織図</h1>
       </div>
 
       {/* ── Year pill navigator ── */}
@@ -455,18 +447,28 @@ export default function OrgChartView() {
           </svg>
         </button>
 
-        <div className="nl2-pill-tabs" style={{ gap: 4, flexWrap: "wrap" }}>
-          {sortedYears.map(fy => (
-            <button
-              key={fy.id}
-              type="button"
-              className={`nl2-pill-tab${fy.id === activeFiscalYearId ? " active" : ""}`}
-              onClick={() => setSearchParams({ fiscalYearId: fy.id })}
-              style={{ fontSize: 13, padding: "5px 18px" }}
-            >
-              {fy.year_label || `${fy.year}年度`}
-            </button>
-          ))}
+        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+          {sortedYears.map(fy => {
+            const isActive = fy.id === activeFiscalYearId;
+            return (
+              <button
+                key={fy.id}
+                type="button"
+                onClick={() => setSearchParams({ fiscalYearId: fy.id })}
+                style={{
+                  fontSize: 13, padding: "5px 18px", borderRadius: 20, border: "none",
+                  cursor: "pointer", fontWeight: isActive ? 600 : 400,
+                  background: isActive ? "var(--primary)" : "transparent",
+                  color: isActive ? "#fff" : "var(--text-secondary)",
+                  transition: "all var(--transition)",
+                }}
+                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--bg)"; }}
+                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+              >
+                {fy.year_label || `${fy.year}年度`}
+              </button>
+            );
+          })}
         </div>
 
         <button type="button" onClick={() => goYear(1)} disabled={currentIdx >= sortedYears.length - 1}

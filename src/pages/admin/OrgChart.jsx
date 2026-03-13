@@ -812,15 +812,7 @@ export default function OrgChart() {
 
       {/* ── Page header ── */}
       <div className="page-header" style={{ marginBottom: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <h1 className="page-title" style={{ margin: 0 }}>組織図管理</h1>
-          {yearLabel && (
-            <span style={{
-              padding: "3px 12px", borderRadius: 6, background: "var(--primary-light)",
-              color: "var(--primary)", fontSize: 13, fontWeight: 600,
-            }}>{yearLabel}</span>
-          )}
-        </div>
+        <h1 className="page-title" style={{ margin: 0 }}>組織図管理</h1>
         <div style={{ display: "flex", gap: 8 }}>
           <button
             className="btn btn-secondary"
