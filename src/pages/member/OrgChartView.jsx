@@ -4,30 +4,14 @@ import { base44 } from "../../api/base44Client";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 /* ═══ helpers ═══ */
-const TYPE_COLORS = {
-  "幹事会": { bg: "#eef2ff", text: "#4f46e5", border: "#c7d2fe" },
-  "委員会": { bg: "#ecfdf5", text: "#059669", border: "#a7f3d0" },
-  "部会":   { bg: "#fffbeb", text: "#d97706", border: "#fde68a" },
-  "室":     { bg: "#fdf2f8", text: "#db2777", border: "#fbcfe8" },
-  "その他": { bg: "#f1f5f9", text: "#64748b", border: "#cbd5e1" },
-};
-
-const ROLE_COLORS = {
-  "会長":     { bg: "#eef2ff", text: "#4f46e5" },
-  "直前会長": { bg: "#eef2ff", text: "#6366f1" },
-  "副会長":   { bg: "#ecfdf5", text: "#059669" },
-  "代表幹事": { bg: "#fef3c7", text: "#b45309" },
-  "会計幹事": { bg: "#fef3c7", text: "#b45309" },
-  "会計副幹事": { bg: "#fef3c7", text: "#b45309" },
-  "事務局":   { bg: "#f1f5f9", text: "#475569" },
-  "室長":     { bg: "#fdf2f8", text: "#db2777" },
-  "委員長":   { bg: "#eef2ff", text: "#4f46e5" },
-  "副委員長": { bg: "#ecfdf5", text: "#059669" },
-  "総括幹事": { bg: "#fffbeb", text: "#d97706" },
-  "運営幹事": { bg: "#fffbeb", text: "#d97706" },
-  "名誉顧問": { bg: "#faf5ff", text: "#7c3aed" },
-  "監事":     { bg: "#faf5ff", text: "#7c3aed" },
-  "委員":     { bg: "#f1f5f9", text: "#64748b" },
+/* Role badge tiers (3-tier system) */
+const ROLE_TIER = {
+  "会長": "top", "委員長": "top", "室長": "top",
+  "直前会長": "sub", "副会長": "sub", "副委員長": "sub",
+  "代表幹事": "exec", "総括幹事": "exec", "運営幹事": "exec",
+  "会計幹事": "exec", "会計副幹事": "exec", "事務局": "exec",
+  "名誉顧問": "honor", "監事": "honor",
+  "委員": "member",
 };
 
 /* Role display order (lower = higher rank) */
@@ -45,14 +29,19 @@ function roleSortValue(role) {
 }
 
 function roleBadgeStyle(role) {
-  const c = ROLE_COLORS[role];
-  if (c) return { background: c.bg, color: c.text, border: `1px solid ${c.bg}` };
-  return { background: "#f1f5f9", color: "#64748b", border: "1px solid #e2e8f0" };
-}
-
-function typeBadgeStyle(type) {
-  const c = TYPE_COLORS[type] || TYPE_COLORS["その他"];
-  return { background: c.bg, color: c.text, border: `1px solid ${c.border}` };
+  const tier = ROLE_TIER[role] || "member";
+  switch (tier) {
+    case "top":
+      return { background: "#4338ca", color: "#fff", border: "1px solid #4338ca" };
+    case "sub":
+      return { background: "transparent", color: "#4338ca", border: "1px solid #a5b4fc" };
+    case "exec":
+    case "honor":
+      return { background: "transparent", color: "#475569", border: "1px solid #cbd5e1" };
+    case "member":
+    default:
+      return { background: "#f1f5f9", color: "#64748b", border: "1px solid #f1f5f9" };
+  }
 }
 
 /* Accent border color by org type */
@@ -64,27 +53,16 @@ const TYPE_ACCENT = {
   "その他": "#94a3b8",
 };
 
-/* High-rank roles get filled badge style */
-const HIGH_RANK_ROLES = new Set(["会長", "委員長", "室長", "代表幹事"]);
+/* Avatar colors - 2 muted tones */
+const AVATAR_COLORS = ["#6366f1", "#64748b"];
 
-/* Avatar gradient palettes based on character code */
-const AVATAR_GRADIENTS = [
-  ["#818cf8", "#6366f1"],
-  ["#6ee7b7", "#34d399"],
-  ["#fbbf24", "#f59e0b"],
-  ["#f472b6", "#ec4899"],
-  ["#a78bfa", "#8b5cf6"],
-  ["#67e8f9", "#22d3ee"],
-  ["#fb923c", "#f97316"],
-];
-
-function getAvatarGradient(name) {
-  const code = (name || "M").charCodeAt(0);
-  const pair = AVATAR_GRADIENTS[code % AVATAR_GRADIENTS.length];
-  return `linear-gradient(135deg, ${pair[0]}, ${pair[1]})`;
+function nameHash(name) {
+  let h = 0;
+  for (let i = 0; i < (name || "").length; i++) h = ((h << 5) - h + name.charCodeAt(i)) | 0;
+  return Math.abs(h);
 }
 
-function MemberAvatar({ src, name, size = 32 }) {
+function MemberAvatar({ src, name, size = 26 }) {
   const initial = (name || "M").charAt(0);
   if (src) {
     return (
@@ -100,10 +78,9 @@ function MemberAvatar({ src, name, size = 32 }) {
   return (
     <div style={{
       width: size, height: size, borderRadius: "50%",
-      background: getAvatarGradient(name),
+      background: AVATAR_COLORS[nameHash(name) % AVATAR_COLORS.length],
       color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.4, fontWeight: 700, flexShrink: 0,
-      border: "2px solid #fff", boxShadow: "0 0 0 1px var(--line)",
+      fontSize: size * 0.4, fontWeight: 600, flexShrink: 0,
     }}>{initial}</div>
   );
 }
@@ -165,9 +142,12 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
   const assignments = Array.isArray(org.assignments) ? org.assignments : [];
   const children = org.children || [];
   const isExpanded = expandedOrgs.has(org.id);
-  const tc = TYPE_COLORS[org.org_type] || TYPE_COLORS["その他"];
   const hasContent = assignments.length > 0 || children.length > 0;
   const accentColor = TYPE_ACCENT[org.org_type] || TYPE_ACCENT["その他"];
+
+  /* Font sizing by depth: 幹事会=large, 室/部会=medium, 委員会=standard */
+  const nameSize = depth === 0 ? 16 : depth === 1 ? 15 : 14;
+  const nameWeight = depth === 0 ? 700 : depth === 1 ? 600 : 500;
 
   return (
     <div style={{ animation: "orgViewSlide 0.25s ease both" }}>
@@ -184,7 +164,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
           onClick={() => hasContent && toggleExpand(org.id)}
           style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
-            padding: "14px 18px",
+            padding: "12px 18px",
             borderBottom: isExpanded ? "1px solid var(--line-light)" : "none",
             cursor: hasContent ? "pointer" : "default",
             transition: "background var(--transition)",
@@ -193,36 +173,31 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
           onMouseEnter={e => { if (hasContent) e.currentTarget.style.background = "var(--bg)"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
             {hasContent && (
               <span style={{
                 transition: "transform 0.2s ease",
                 transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
                 display: "flex", alignItems: "center", flexShrink: 0,
               }}>
-                <ChevronRight size={13} color="var(--text-secondary)" />
+                <ChevronRight size={12} color="var(--text-secondary)" />
               </span>
             )}
-            <span style={{ fontWeight: 600, fontSize: 15, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <span style={{ fontWeight: nameWeight, fontSize: nameSize, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {org.org_name || "（名称未設定）"}
             </span>
-            <span style={{
-              padding: "2px 8px", borderRadius: 6,
-              fontSize: 11, fontWeight: 600, whiteSpace: "nowrap",
-              background: "transparent", color: tc.text, border: `1px solid ${tc.border}`,
-            }}>{org.org_type || "その他"}</span>
             {org.supervisor_id && memberMap?.[org.supervisor_id] && (() => {
               const svRole = supervisorRoleMap?.[org.supervisor_id];
               const label = svRole ? `担当${svRole}` : "担当";
               return (
                 <span style={{
-                  display: "inline-flex", alignItems: "center", gap: 4,
-                  padding: "2px 10px 2px 6px", borderRadius: 12,
-                  fontSize: 11, fontWeight: 500, whiteSpace: "nowrap",
-                  color: "#7c3aed", background: "transparent",
-                  border: "1px dashed #c4b5fd",
+                  display: "inline-flex", alignItems: "center", gap: 3,
+                  padding: "1px 8px 1px 5px", borderRadius: 10,
+                  fontSize: 10, fontWeight: 500, whiteSpace: "nowrap",
+                  color: "#64748b", background: "transparent",
+                  border: "1px dashed #cbd5e1",
                 }}>
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="8" cy="5" r="3"/>
                     <path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
                   </svg>
@@ -231,64 +206,56 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
               );
             })()}
           </div>
-          <span style={{
-            fontSize: 12, color: "var(--text-secondary)", background: "var(--bg)",
-            padding: "2px 10px", borderRadius: 10, fontWeight: 500, flexShrink: 0, marginLeft: 8,
-          }}>{assignments.length}名</span>
+          {assignments.length > 0 && (
+            <span style={{
+              fontSize: 11, color: "var(--text-secondary)", background: "var(--bg)",
+              padding: "2px 8px", borderRadius: 10, fontWeight: 500, flexShrink: 0, marginLeft: 8,
+            }}>{assignments.length}名</span>
+          )}
         </div>
 
         {/* Member chips */}
-        {isExpanded && (
-          <div style={{ padding: "16px 18px", animation: "orgViewSlide 0.2s ease" }}>
-            {assignments.length === 0 ? (
-              <p style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}>配属メンバーはいません</p>
-            ) : (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                {[...assignments].sort((a, b) => roleSortValue(a.role) - roleSortValue(b.role)).map((a, idx) => {
-                  const member = a.member || {};
-                  const isHighRank = HIGH_RANK_ROLES.has(a.role);
-                  const rc = ROLE_COLORS[a.role];
-                  const roleSt = isHighRank && rc
-                    ? { background: rc.text, color: "#fff", border: `1px solid ${rc.text}` }
-                    : roleBadgeStyle(a.role);
-
-                  return (
-                    <Link
-                      key={idx}
-                      to={`/directory/members/${encodeURIComponent(member.id || "")}`}
-                      className="orgview-chip"
-                      style={{
-                        display: "flex", alignItems: "center", gap: 8,
-                        padding: "6px 14px 6px 6px",
-                        borderRadius: 24, border: "1px solid var(--line)", background: "#fff",
-                        textDecoration: "none", color: "var(--text)", fontSize: 13,
-                        transition: "all var(--transition)",
-                        animation: `chipEnter 0.25s ease ${idx * 30}ms both`,
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.borderColor = "var(--primary)";
-                        e.currentTarget.style.transform = "translateY(-1px)";
-                        e.currentTarget.style.boxShadow = "var(--shadow-sm)";
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.borderColor = "var(--line)";
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "none";
-                      }}
-                    >
-                      <MemberAvatar src={member.profile_image} name={member.name_kanji} size={28} />
-                      <span style={{ fontWeight: 500, fontSize: 13 }}>{member.name_kanji || "（名前未設定）"}</span>
-                      {a.role && (
-                        <span style={{
-                          ...roleSt, padding: "1px 8px", borderRadius: 12,
-                          fontSize: 11, fontWeight: 600, lineHeight: "18px",
-                        }}>{a.role}</span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
+        {isExpanded && assignments.length > 0 && (
+          <div style={{ padding: "10px 18px 12px", animation: "orgViewSlide 0.2s ease" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {[...assignments].sort((a, b) => roleSortValue(a.role) - roleSortValue(b.role)).map((a, idx) => {
+                const member = a.member || {};
+                return (
+                  <Link
+                    key={idx}
+                    to={`/directory/members/${encodeURIComponent(member.id || "")}`}
+                    className="orgview-chip"
+                    style={{
+                      display: "flex", alignItems: "center", gap: 5,
+                      padding: "3px 10px 3px 3px",
+                      borderRadius: 16, border: "1px solid var(--line)", background: "#fff",
+                      textDecoration: "none", color: "var(--text)", fontSize: 12,
+                      transition: "all var(--transition)",
+                      animation: `chipEnter 0.25s ease ${idx * 30}ms both`,
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.borderColor = "var(--primary)";
+                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.06)";
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.borderColor = "var(--line)";
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  >
+                    <MemberAvatar src={member.profile_image} name={member.name_kanji} size={22} />
+                    <span style={{ fontWeight: 500, fontSize: 12 }}>{member.name_kanji || "（名前未設定）"}</span>
+                    {a.role && (
+                      <span style={{
+                        ...roleBadgeStyle(a.role), padding: "0px 6px", borderRadius: 4,
+                        fontSize: 10, fontWeight: 500, lineHeight: "16px",
+                      }}>{a.role}</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
@@ -296,10 +263,10 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
       {/* Children */}
       {isExpanded && children.length > 0 && (
         <div style={{
-          marginTop: 10, paddingLeft: 28,
+          marginTop: 8, paddingLeft: 24,
           borderLeft: "2px solid var(--line)",
           marginLeft: 14,
-          display: "grid", gap: 10,
+          display: "grid", gap: 8,
         }}>
           {children.map(child => (
             <OrgViewNode
@@ -449,15 +416,6 @@ export default function OrgChartView() {
     );
   }
 
-  const totalMembers = orgTree.reduce((sum, org) => {
-    function count(node) {
-      let c = (node.assignments || []).length;
-      (node.children || []).forEach(child => { c += count(child); });
-      return c;
-    }
-    return sum + count(org);
-  }, 0);
-
   return (
     <section className="admin-shell">
       {/* ── Page header ── */}
@@ -541,57 +499,6 @@ export default function OrgChartView() {
         </div>
       </div>
 
-      {/* ── Summary cards ── */}
-      {orgTree.length > 0 && (
-        <div style={{
-          display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-          gap: 14, marginBottom: 24,
-        }}>
-          <div style={{
-            padding: "16px 20px", borderRadius: "var(--radius-lg)",
-            background: "#fff", border: "1px solid var(--line)",
-            display: "flex", alignItems: "center", gap: 14,
-          }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: "var(--radius)",
-              background: "var(--primary-light)", display: "flex",
-              alignItems: "center", justifyContent: "center", flexShrink: 0,
-            }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="var(--primary)" strokeWidth="2" />
-                <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="var(--primary)" strokeWidth="2" />
-                <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="var(--primary)" strokeWidth="2" />
-                <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="var(--primary)" strokeWidth="2" />
-              </svg>
-            </div>
-            <div>
-              <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 2, fontWeight: 500 }}>組織数</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: "var(--text)", lineHeight: 1 }}>{orgTree.length}</div>
-            </div>
-          </div>
-          <div style={{
-            padding: "16px 20px", borderRadius: "var(--radius-lg)",
-            background: "#fff", border: "1px solid var(--line)",
-            display: "flex", alignItems: "center", gap: 14,
-          }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: "var(--radius)",
-              background: "#ecfdf5", display: "flex",
-              alignItems: "center", justifyContent: "center", flexShrink: 0,
-            }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="8" r="4" stroke="#059669" strokeWidth="2" />
-                <path d="M5 20c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </div>
-            <div>
-              <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 2, fontWeight: 500 }}>配属人数</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: "var(--text)", lineHeight: 1 }}>{totalMembers}</div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ── Empty state ── */}
       {orgTree.length === 0 ? (
         <div style={{
@@ -616,7 +523,7 @@ export default function OrgChartView() {
         </div>
       ) : (
         /* ── Org tree ── */
-        <div style={{ display: "grid", gap: 12 }}>
+        <div style={{ display: "grid", gap: 10 }}>
           {orgTree.map(org => (
             <OrgViewNode
               key={org.id}

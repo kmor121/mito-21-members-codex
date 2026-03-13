@@ -15,22 +15,21 @@ const TYPE_COLORS = {
   "その他": { bg: "#f1f5f9", text: "#64748b", border: "#cbd5e1" },
 };
 
-const ROLE_COLORS = {
-  "会長":     { bg: "#eef2ff", text: "#4f46e5" },
-  "直前会長": { bg: "#eef2ff", text: "#6366f1" },
-  "副会長":   { bg: "#ecfdf5", text: "#059669" },
-  "代表幹事": { bg: "#fef3c7", text: "#b45309" },
-  "会計幹事": { bg: "#fef3c7", text: "#b45309" },
-  "会計副幹事": { bg: "#fef3c7", text: "#b45309" },
-  "事務局":   { bg: "#f1f5f9", text: "#475569" },
-  "室長":     { bg: "#fdf2f8", text: "#db2777" },
-  "委員長":   { bg: "#eef2ff", text: "#4f46e5" },
-  "副委員長": { bg: "#ecfdf5", text: "#059669" },
-  "総括幹事": { bg: "#fffbeb", text: "#d97706" },
-  "運営幹事": { bg: "#fffbeb", text: "#d97706" },
-  "名誉顧問": { bg: "#faf5ff", text: "#7c3aed" },
-  "監事":     { bg: "#faf5ff", text: "#7c3aed" },
-  "委員":     { bg: "#f1f5f9", text: "#64748b" },
+/*
+ * Role badge tiers (3-tier system):
+ *   top:    filled indigo (会長,委員長,室長)
+ *   sub:    outline indigo (副会長,直前会長,副委員長)
+ *   exec:   outline slate (代表幹事,総括幹事,運営幹事,会計幹事,会計副幹事,事務局)
+ *   honor:  outline slate (名誉顧問,監事)
+ *   member: subtle gray bg (委員)
+ */
+const ROLE_TIER = {
+  "会長": "top", "委員長": "top", "室長": "top",
+  "直前会長": "sub", "副会長": "sub", "副委員長": "sub",
+  "代表幹事": "exec", "総括幹事": "exec", "運営幹事": "exec",
+  "会計幹事": "exec", "会計副幹事": "exec", "事務局": "exec",
+  "名誉顧問": "honor", "監事": "honor",
+  "委員": "member",
 };
 
 /* Role display order (lower = higher rank) */
@@ -56,16 +55,20 @@ const ROLES_BY_ORG_TYPE = {
   "その他": ["名誉顧問", "監事", "委員"],
 };
 
-/* High-rank roles get filled badge style */
-const HIGH_RANK_ROLES = new Set(["会長", "直前会長", "副会長", "委員長", "室長", "代表幹事"]);
-
 function roleBadgeStyle(role) {
-  const c = ROLE_COLORS[role];
-  if (c && HIGH_RANK_ROLES.has(role)) {
-    return { background: c.text, color: "#fff", border: `1px solid ${c.text}` };
+  const tier = ROLE_TIER[role] || "member";
+  switch (tier) {
+    case "top":
+      return { background: "#4338ca", color: "#fff", border: "1px solid #4338ca" };
+    case "sub":
+      return { background: "transparent", color: "#4338ca", border: "1px solid #a5b4fc" };
+    case "exec":
+    case "honor":
+      return { background: "transparent", color: "#475569", border: "1px solid #cbd5e1" };
+    case "member":
+    default:
+      return { background: "#f1f5f9", color: "#64748b", border: "1px solid #f1f5f9" };
   }
-  if (c) return { background: "transparent", color: c.text, border: `1px solid ${c.text}40` };
-  return { background: "transparent", color: "#64748b", border: "1px solid #e2e8f0" };
 }
 
 function typeBadgeStyle(type) {
@@ -81,24 +84,18 @@ function nameHash(name) {
 }
 
 const AVATAR_GRADIENTS = [
-  "linear-gradient(135deg, #667eea, #764ba2)",
-  "linear-gradient(135deg, #f093fb, #f5576c)",
-  "linear-gradient(135deg, #4facfe, #00f2fe)",
-  "linear-gradient(135deg, #43e97b, #38f9d7)",
-  "linear-gradient(135deg, #fa709a, #fee140)",
-  "linear-gradient(135deg, #a18cd1, #fbc2eb)",
-  "linear-gradient(135deg, #fccb90, #d57eeb)",
-  "linear-gradient(135deg, #84fab0, #8fd3f4)",
+  "#6366f1",
+  "#64748b",
 ];
 
-function MemberAvatar({ name, size = 26 }) {
+function MemberAvatar({ name, size = 24 }) {
   const initial = (name || "M").charAt(0);
-  const gradient = AVATAR_GRADIENTS[nameHash(name) % AVATAR_GRADIENTS.length];
+  const bg = AVATAR_GRADIENTS[nameHash(name) % AVATAR_GRADIENTS.length];
   return (
     <div style={{
-      width: size, height: size, borderRadius: "50%", background: gradient,
+      width: size, height: size, borderRadius: "50%", background: bg,
       color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.42, fontWeight: 700, flexShrink: 0, letterSpacing: 0,
+      fontSize: size * 0.42, fontWeight: 600, flexShrink: 0, letterSpacing: 0,
     }}>{initial}</div>
   );
 }
@@ -251,21 +248,22 @@ function OrgTreeNode({
               {org.org_name || "\uFF08\u540D\u79F0\u672A\u8A2D\u5B9A\uFF09"}
             </span>
             <span style={{
-              ...typeBadgeStyle(org.org_type), padding: "2px 8px", borderRadius: 6,
-              fontSize: 11, fontWeight: 500, whiteSpace: "nowrap", lineHeight: "18px",
+              padding: "1px 7px", borderRadius: 4,
+              fontSize: 10, fontWeight: 500, whiteSpace: "nowrap", lineHeight: "16px",
+              color: "#94a3b8", border: "1px solid #e2e8f0", background: "transparent",
             }}>{org.org_type || "その他"}</span>
             {org.supervisor_id && memberMap?.[org.supervisor_id] && (() => {
               const svRole = supervisorRoleMap?.[org.supervisor_id];
               const label = svRole ? `担当${svRole}` : "担当";
               return (
                 <span style={{
-                  display: "inline-flex", alignItems: "center", gap: 4,
-                  padding: "2px 10px 2px 6px", borderRadius: 12,
-                  fontSize: 11, fontWeight: 500, whiteSpace: "nowrap",
-                  color: "#7c3aed", background: "transparent",
-                  border: "1px dashed #c4b5fd",
+                  display: "inline-flex", alignItems: "center", gap: 3,
+                  padding: "1px 8px 1px 5px", borderRadius: 10,
+                  fontSize: 10, fontWeight: 500, whiteSpace: "nowrap",
+                  color: "#64748b", background: "transparent",
+                  border: "1px dashed #cbd5e1",
                 }}>
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="8" cy="5" r="3"/>
                     <path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
                   </svg>
@@ -320,24 +318,24 @@ function OrgTreeNode({
         {/* Card body - member chips */}
         {isExpanded && (
           <div style={{
-            padding: "14px 18px",
+            padding: "10px 18px 12px",
             animation: "orgSlideDown 0.2s ease",
           }}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
               {[...assignments].sort((a, b) => roleSortValue(a.role) - roleSortValue(b.role)).map(a => (
                 <div
                   key={a.id}
                   onClick={() => onEditAssignment(org, a)}
                   style={{
-                    display: "flex", alignItems: "center", gap: 7, padding: "5px 10px 5px 5px",
-                    borderRadius: 20, border: "1px solid var(--line)", background: "#fff",
-                    cursor: "pointer", transition: "all 0.15s ease", fontSize: 13,
+                    display: "flex", alignItems: "center", gap: 5, padding: "3px 8px 3px 3px",
+                    borderRadius: 16, border: "1px solid var(--line)", background: "#fff",
+                    cursor: "pointer", transition: "all 0.15s ease", fontSize: 12,
                     animation: "chipEnter 0.2s ease",
                     position: "relative",
                   }}
                   onMouseEnter={e => {
                     e.currentTarget.style.transform = "translateY(-1px)";
-                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                    e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.06)";
                     e.currentTarget.style.borderColor = "var(--primary)";
                     const rmBtn = e.currentTarget.querySelector("[data-rm]");
                     if (rmBtn) rmBtn.style.opacity = "1";
@@ -350,12 +348,12 @@ function OrgTreeNode({
                     if (rmBtn) rmBtn.style.opacity = "0";
                   }}
                 >
-                  <MemberAvatar name={a.member_name} size={26} />
-                  <span style={{ fontWeight: 500, fontSize: 13 }}>{a.member_name || "\uFF08\u540D\u524D\u672A\u8A2D\u5B9A\uFF09"}</span>
+                  <MemberAvatar name={a.member_name} size={22} />
+                  <span style={{ fontWeight: 500, fontSize: 12 }}>{a.member_name || "\uFF08\u540D\u524D\u672A\u8A2D\u5B9A\uFF09"}</span>
                   {a.role && (
                     <span style={{
-                      ...roleBadgeStyle(a.role), padding: "1px 7px", borderRadius: 6,
-                      fontSize: 11, fontWeight: 500, lineHeight: "17px",
+                      ...roleBadgeStyle(a.role), padding: "0px 6px", borderRadius: 4,
+                      fontSize: 10, fontWeight: 500, lineHeight: "16px",
                     }}>{a.role}</span>
                   )}
                   <button
@@ -364,8 +362,8 @@ function OrgTreeNode({
                     onClick={(e) => { e.stopPropagation(); onRemoveAssignment(org, a); }}
                     style={{
                       background: "none", border: "none", cursor: "pointer", padding: "0 2px",
-                      fontSize: 12, color: "var(--muted)", lineHeight: 1, opacity: 0,
-                      transition: "all var(--transition)", marginLeft: 2,
+                      fontSize: 11, color: "var(--muted)", lineHeight: 1, opacity: 0,
+                      transition: "all var(--transition)", marginLeft: 1,
                     }}
                     onMouseEnter={e => e.currentTarget.style.color = "var(--error)"}
                     onMouseLeave={e => e.currentTarget.style.color = "var(--muted)"}
@@ -374,14 +372,14 @@ function OrgTreeNode({
                 </div>
               ))}
 
-              {/* Add member button */}
-              <button
+              {/* Add member button - hide for root その他 orgs (e.g. 総会) */}
+              {!(org.org_type === "その他" && !org.parent_id) && <button
                 type="button"
                 onClick={() => onAddMember(org)}
                 style={{
-                  display: "flex", alignItems: "center", gap: 5, padding: "5px 12px",
-                  borderRadius: 20, border: "1px dashed var(--line)", background: "transparent",
-                  cursor: "pointer", fontSize: 13, color: "var(--text-secondary)",
+                  display: "flex", alignItems: "center", gap: 4, padding: "3px 10px",
+                  borderRadius: 16, border: "1px dashed var(--line)", background: "transparent",
+                  cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
                   transition: "all var(--transition)",
                 }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; e.currentTarget.style.background = "var(--primary-light)"; }}
@@ -391,7 +389,7 @@ function OrgTreeNode({
                   <path d="M8 3v10M3 8h10"/>
                 </svg>
                 メンバーを追加
-              </button>
+              </button>}
             </div>
           </div>
         )}

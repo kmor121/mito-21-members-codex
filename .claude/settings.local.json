@@ -27,7 +27,8 @@
       "Bash(bash deploy.sh)",
       "Bash(cd C:/dev/mito-21-members-codex && base44 --help 2>&1 | head -40)",
       "Bash(curl -s -X POST \"https://mito21-members-codex-da487265.base44.app/functions/save-organization\" -H \"Content-Type: application/json\" -d '{\"org_name\":\"test\",\"fiscal_year_id\":\"test\",\"org_type\":\"その他\"}' 2>&1 | head -5)",
-      "Bash(curl -s -X POST \"https://mito21-members.base44.app/functions/save-organization\" -H \"Content-Type: application/json\" -d '{\"org_name\":\"test\",\"fiscal_year_id\":\"test\",\"org_type\":\"その他\"}' 2>&1 | head -5)"
+      "Bash(curl -s -X POST \"https://mito21-members.base44.app/functions/save-organization\" -H \"Content-Type: application/json\" -d '{\"org_name\":\"test\",\"fiscal_year_id\":\"test\",\"org_type\":\"その他\"}' 2>&1 | head -5)",
+      "Bash(bash scripts/deploy.sh 2>&1)"
     ]
   }
 }
