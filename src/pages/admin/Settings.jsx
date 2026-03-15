@@ -329,8 +329,14 @@ export default function Settings() {
     setUsersError("");
     try {
       await base44.entities.Member.update(memberId, { app_role: newRole });
+      invalidateReadCache("Member");
+      // Update local state directly so UI reflects the change immediately
+      setAppUsers((prev) =>
+        prev.map((m) =>
+          (m.id || m._id) === memberId ? { ...m, app_role: newRole } : m
+        )
+      );
       showToast("ロールを変更しました");
-      await loadAppUsers();
     } catch (err) {
       setUsersError(err.message || "ロール変更に失敗しました");
     } finally {
