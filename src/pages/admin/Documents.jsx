@@ -270,7 +270,7 @@ export default function Documents() {
               </button>
             </div>
           ) : (
-            <div className="table-wrap">
+            <div className="table-wrap" style={{ WebkitOverflowScrolling: "touch" }}>
               <table className="data-table doc-table">
                 <thead>
                   <tr>

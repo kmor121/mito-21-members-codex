@@ -876,8 +876,8 @@ export default function NewsletterEdit() {
         <style>{ANIMATIONS}</style>
         <div style={{
           position: "sticky", top: 0, zIndex: 20, background: "#fff",
-          borderBottom: "1px solid var(--line)", padding: "12px 28px",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
+          borderBottom: "1px solid var(--line)", padding: isMobile ? "12px 12px" : "12px 28px",
+          display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap",
         }}>
           <Link to="/admin/newsletters" style={{ fontSize: 13, color: "var(--primary)", textDecoration: "none" }}>
             &larr; 配信一覧に戻る
@@ -1018,8 +1018,8 @@ export default function NewsletterEdit() {
       {/* ── Top Header Bar ── */}
       <div style={{
         position: "sticky", top: 0, zIndex: 20, background: "#fff",
-        borderBottom: "1px solid var(--line)", padding: "12px 28px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
+        borderBottom: "1px solid var(--line)", padding: isMobile ? "12px 12px" : "12px 28px",
+        display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap",
       }}>
         <Link to="/admin/newsletters" style={{ fontSize: 13, color: "var(--primary)", textDecoration: "none", whiteSpace: "nowrap" }}>
           &larr; 配信一覧に戻る
