@@ -114,6 +114,9 @@ export function AuthProvider({ children }) {
   }, [revalidateMember]);
 
   const login = useCallback(async (email, password) => {
+    // Reset memberCheckDone so computed loading stays true until fetchMemberInfo completes.
+    // This prevents LinkedMemberRoute from flashing the "no access" screen.
+    setMemberCheckDone(false);
     const result = await auth.loginViaEmailPassword(email, password);
     // Save token via SDK + localStorage
     if (result?.access_token) {
