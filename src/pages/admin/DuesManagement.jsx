@@ -121,7 +121,7 @@ function DueTypeBadge({ type }) {
     <span style={{
       display: "inline-block", padding: "3px 10px",
       borderRadius: 999, fontSize: 12, fontWeight: 600,
-      color: badge.color, background: badge.bg, whiteSpace: "nowrap",
+      color: badge.color, background: badge.bg, whiteSpace: "nowrap", flexShrink: 0,
     }}>
       {type || "年会費"}
     </span>
@@ -135,7 +135,7 @@ function MemberTypeBadge({ type }) {
     <span style={{
       display: "inline-block", padding: "2px 8px",
       borderRadius: 999, fontSize: 12, fontWeight: 600,
-      color: badge.color, background: badge.bg, whiteSpace: "nowrap",
+      color: badge.color, background: badge.bg, whiteSpace: "nowrap", flexShrink: 0,
     }}>
       {type || "-"}
     </span>
@@ -158,7 +158,7 @@ function StatusBadge({ status, onClick, disabled }) {
           padding: "4px 12px", borderRadius: 999,
           border: "none",
           fontSize: 12, fontWeight: 600,
-          background: bg, color, whiteSpace: "nowrap",
+          background: bg, color, whiteSpace: "nowrap", flexShrink: 0,
         }}
       >
         {label}
@@ -175,7 +175,7 @@ function StatusBadge({ status, onClick, disabled }) {
         padding: "4px 12px", borderRadius: 999,
         border: "none", cursor: "pointer",
         fontSize: 12, fontWeight: 600,
-        background: bg, color, whiteSpace: "nowrap",
+        background: bg, color, whiteSpace: "nowrap", flexShrink: 0,
         transition: "all 0.15s",
       }}
       onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.8"; e.currentTarget.style.transform = "scale(1.05)"; }}
@@ -1379,6 +1379,7 @@ export default function DuesManagement() {
                                 fontWeight: 600, fontSize: 14, padding: 0,
                                 border: "none", background: "none", cursor: "pointer",
                                 color: "var(--primary)", textDecoration: "none",
+                                minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                               }}
                               onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
                             >
@@ -1389,18 +1390,18 @@ export default function DuesManagement() {
                               <span style={{
                                 padding: "1px 6px", borderRadius: 999,
                                 background: "#dbeafe", color: "#1d4ed8",
-                                fontSize: 12, fontWeight: 700, whiteSpace: "nowrap",
+                                fontSize: 12, fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0,
                               }}>新入</span>
                             )}
                             {!isVirtual && priorCount > 0 && (
-                              <span style={{ fontSize: 13, lineHeight: 1 }}>{"\u26A0\uFE0F"}</span>
+                              <span style={{ fontSize: 13, lineHeight: 1, flexShrink: 0 }}>{"\u26A0\uFE0F"}</span>
                             )}
                           </div>
                           <StatusBadge status={due.status} disabled={isVirtual} onClick={isVirtual ? undefined : (e) => { e.stopPropagation(); openReconcileModal(due); }} />
                         </div>
                         <div className="mobile-card-item-row">
                           <span className="card-label">会費種別</span>
-                          <span className="card-value">{isVirtual ? "-" : <DueTypeBadge type={due.due_type || "年会費"} />}</span>
+                          <span className="card-value" style={{ overflow: "visible", whiteSpace: "normal", flexShrink: 0 }}>{isVirtual ? "-" : <DueTypeBadge type={due.due_type || "年会費"} />}</span>
                         </div>
                         <div className="mobile-card-item-row">
                           <span className="card-label">金額</span>
@@ -1410,7 +1411,7 @@ export default function DuesManagement() {
                         </div>
                         <div className="mobile-card-item-row">
                           <span className="card-label">ステータス</span>
-                          <span className="card-value">
+                          <span className="card-value" style={{ overflow: "visible", whiteSpace: "normal", flexShrink: 0 }}>
                             <StatusBadge status={due.status} disabled />
                           </span>
                         </div>
@@ -1711,6 +1712,7 @@ export default function DuesManagement() {
                                       fontWeight: 600, fontSize: 14, padding: 0,
                                       border: "none", background: "none", cursor: "pointer",
                                       color: "var(--primary)",
+                                      minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                                     }}
                                     onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
                                   >
@@ -1721,7 +1723,7 @@ export default function DuesManagement() {
                                     <span style={{
                                       padding: "1px 6px", borderRadius: 999,
                                       background: "#dbeafe", color: "#1d4ed8",
-                                      fontSize: 12, fontWeight: 700,
+                                      fontSize: 12, fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0,
                                     }}>新入</span>
                                   )}
                                 </div>
@@ -1729,7 +1731,7 @@ export default function DuesManagement() {
                               </div>
                               <div className="mobile-card-item-row">
                                 <span className="card-label">会費種別</span>
-                                <span className="card-value"><DueTypeBadge type={due.due_type || "年会費"} /></span>
+                                <span className="card-value" style={{ overflow: "visible", whiteSpace: "normal", flexShrink: 0 }}><DueTypeBadge type={due.due_type || "年会費"} /></span>
                               </div>
                               <div className="mobile-card-item-row">
                                 <span className="card-label">金額</span>
@@ -1739,7 +1741,7 @@ export default function DuesManagement() {
                               </div>
                               <div className="mobile-card-item-row">
                                 <span className="card-label">ステータス</span>
-                                <span className="card-value">
+                                <span className="card-value" style={{ overflow: "visible", whiteSpace: "normal", flexShrink: 0 }}>
                                   <StatusBadge status="未納" disabled />
                                 </span>
                               </div>
