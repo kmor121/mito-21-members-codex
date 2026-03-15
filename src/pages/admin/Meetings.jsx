@@ -377,12 +377,12 @@ export default function Meetings() {
                     <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--text)' }}>{m.title}</span>
                     <span style={{
                       fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
-                      background: badge.bg, color: badge.color,
+                      background: badge.bg, color: badge.color, whiteSpace: 'nowrap',
                     }}>{STATUS_LABEL[m.status] || m.status}</span>
                     {isNext && (
                       <span style={{
                         fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
-                        background: 'var(--primary-light)', color: 'var(--primary)',
+                        background: 'var(--primary-light)', color: 'var(--primary)', whiteSpace: 'nowrap',
                       }}>次回</span>
                     )}
                   </div>

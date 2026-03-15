@@ -190,6 +190,7 @@ function OrgTreeNode({
   onEditOrg, onDeleteOrg, onAddMember, onEditAssignment, onRemoveAssignment,
   dragHandlers, memberMap, supervisorRoleMap,
 }) {
+  const isMobile = useIsMobile();
   const assignments = Array.isArray(org.assignments) ? org.assignments : [];
   const children = org.children || [];
   const isExpanded = expandedOrgs.has(org.id);
@@ -217,7 +218,7 @@ function OrgTreeNode({
           padding: "12px 18px", borderBottom: isExpanded ? "1px solid var(--line-light)" : "none",
           background: "#fff",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flexWrap: "wrap" }}>
             {/* Drag handle */}
             <span style={{
               cursor: "grab", color: "var(--muted)", fontSize: 15, userSelect: "none",
@@ -253,7 +254,7 @@ function OrgTreeNode({
               </button>
             )}
 
-            <span style={{ fontWeight: 600, fontSize: 15, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <span style={{ fontWeight: 600, fontSize: 15, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>
               {org.org_name || "\uFF08\u540D\u79F0\u672A\u8A2D\u5B9A\uFF09"}
             </span>
             <span style={{
@@ -407,7 +408,7 @@ function OrgTreeNode({
       {/* Children (recursive) */}
       {isExpanded && children.length > 0 && (
         <div style={{
-          marginLeft: 18, marginTop: 0, paddingLeft: 28,
+          marginLeft: isMobile ? 8 : 18, marginTop: 0, paddingLeft: isMobile ? 12 : 28,
           borderLeft: "2px solid var(--line)",
           display: "grid", gap: 10, paddingTop: 10, position: "relative",
         }}>
@@ -833,7 +834,7 @@ export default function OrgChart() {
       {/* ── Page header ── */}
       <div className="page-header" style={{ marginBottom: 0 }}>
         <h1 className="page-title" style={{ margin: 0 }}>組織図管理</h1>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button
             className="btn btn-secondary"
             type="button"
@@ -867,6 +868,8 @@ export default function OrgChart() {
       <div style={{
         display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
         borderBottom: "1px solid var(--line-light)", marginBottom: 20,
+        overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none",
+        flexWrap: "nowrap",
       }}>
         <button type="button" onClick={() => goYear(-1)} disabled={currentIdx <= 0}
           style={{
@@ -885,7 +888,7 @@ export default function OrgChart() {
             <path d="M10 3L5 8l5 5"/>
           </svg>
         </button>
-        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "nowrap" }}>
           {sortedYears.map(fy => {
             const isActive = fy.id === activeFiscalYearId;
             return (
@@ -1064,6 +1067,7 @@ export default function OrgChart() {
           border: "1px solid var(--line)", borderRadius: "var(--radius-xl)",
           padding: "12px 24px", display: "flex", alignItems: "center", gap: 14,
           boxShadow: "0 8px 32px rgba(0,0,0,0.12)", zIndex: 100, animation: "orgSlideUp 0.3s ease",
+          maxWidth: "calc(100vw - 32px)", flexWrap: "wrap",
         }}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="8" cy="8" r="7"/>

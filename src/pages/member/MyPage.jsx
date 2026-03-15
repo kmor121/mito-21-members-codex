@@ -664,6 +664,7 @@ export default function MyPage() {
                   return (
                     <div key={dueId} style={{
                       display: "flex", justifyContent: "space-between", alignItems: "center",
+                      flexWrap: "wrap", gap: 8,
                       padding: "0.75rem 1rem", borderRadius: 8,
                       background: isPaid ? "#f0fdf4" : "#fef2f2",
                       border: isPaid ? "1px solid #bbf7d0" : "1px solid #fecaca",
@@ -715,10 +716,11 @@ export default function MyPage() {
                   return (
                     <div key={aId} style={{
                       display: "flex", justifyContent: "space-between", alignItems: "center",
+                      flexWrap: "wrap", gap: 6,
                       padding: "0.6rem 1rem", borderRadius: 8,
                       background: "#f8fafc", border: "1px solid #e2e8f0",
                     }}>
-                      <span style={{ fontWeight: 600, fontSize: 14 }}>
+                      <span style={{ fontWeight: 600, fontSize: 14, minWidth: 0 }}>
                         {org?.org_name || "不明な組織"}
                       </span>
                       <span className="pill" style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe" }}>

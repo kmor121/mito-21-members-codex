@@ -121,7 +121,7 @@ function DueTypeBadge({ type }) {
     <span style={{
       display: "inline-block", padding: "3px 10px",
       borderRadius: 999, fontSize: 12, fontWeight: 600,
-      color: badge.color, background: badge.bg,
+      color: badge.color, background: badge.bg, whiteSpace: "nowrap",
     }}>
       {type || "年会費"}
     </span>
@@ -135,7 +135,7 @@ function MemberTypeBadge({ type }) {
     <span style={{
       display: "inline-block", padding: "2px 8px",
       borderRadius: 999, fontSize: 12, fontWeight: 600,
-      color: badge.color, background: badge.bg,
+      color: badge.color, background: badge.bg, whiteSpace: "nowrap",
     }}>
       {type || "-"}
     </span>
@@ -158,7 +158,7 @@ function StatusBadge({ status, onClick, disabled }) {
           padding: "4px 12px", borderRadius: 999,
           border: "none",
           fontSize: 12, fontWeight: 600,
-          background: bg, color,
+          background: bg, color, whiteSpace: "nowrap",
         }}
       >
         {label}
@@ -175,7 +175,7 @@ function StatusBadge({ status, onClick, disabled }) {
         padding: "4px 12px", borderRadius: 999,
         border: "none", cursor: "pointer",
         fontSize: 12, fontWeight: 600,
-        background: bg, color,
+        background: bg, color, whiteSpace: "nowrap",
         transition: "all 0.15s",
       }}
       onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.8"; e.currentTarget.style.transform = "scale(1.05)"; }}
@@ -359,6 +359,7 @@ function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, curren
               <p style={{ margin: 0, color: "var(--text-secondary)" }}>会費データがありません</p>
             </div>
           ) : (
+            <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
             <table className="data-table" style={{ width: "100%" }}>
               <thead>
                 <tr>
@@ -386,7 +387,7 @@ function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, curren
                           <span style={{
                             marginLeft: 4, padding: "1px 6px", borderRadius: 999,
                             background: "var(--primary-light)", color: "var(--primary)",
-                            fontSize: 12, fontWeight: 600,
+                            fontSize: 12, fontWeight: 600, whiteSpace: "nowrap",
                           }}>当年度</span>
                         )}
                       </td>
@@ -395,7 +396,7 @@ function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, curren
                       <td style={{ textAlign: "center" }}>
                         <span style={{
                           display: "inline-block", padding: "3px 10px", borderRadius: 999,
-                          fontSize: 12, fontWeight: 600,
+                          fontSize: 12, fontWeight: 600, whiteSpace: "nowrap",
                           background: isUnpaid ? "#fef2f2" : "#ecfdf5",
                           color: isUnpaid ? "#991b1b" : "#065f46",
                         }}>
@@ -409,6 +410,7 @@ function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, curren
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </div>
         <div className="modal-footer" style={{ justifyContent: "flex-end" }}>
@@ -1272,7 +1274,7 @@ export default function DuesManagement() {
                 </select>
 
                 {/* Status filter pills */}
-                <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
                   <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", whiteSpace: "nowrap", marginRight: 2 }}>ステータス</span>
                   {[
                     { key: "all", label: "全て" },
@@ -1293,7 +1295,7 @@ export default function DuesManagement() {
 
                 {/* Due type filter pills */}
                 {dueTypes.length > 1 && (
-                  <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
                     <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", whiteSpace: "nowrap", marginRight: 2 }}>種類</span>
                     <button
                       type="button"
@@ -1387,7 +1389,7 @@ export default function DuesManagement() {
                               <span style={{
                                 padding: "1px 6px", borderRadius: 999,
                                 background: "#dbeafe", color: "#1d4ed8",
-                                fontSize: 12, fontWeight: 700,
+                                fontSize: 12, fontWeight: 700, whiteSpace: "nowrap",
                               }}>新入</span>
                             )}
                             {!isVirtual && priorCount > 0 && (
@@ -1528,7 +1530,7 @@ export default function DuesManagement() {
               borderTop: "1px solid var(--line)",
               boxShadow: "0 -4px 12px rgba(0,0,0,0.08)",
               padding: "12px 24px",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 16,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: isMobile ? 8 : 16, flexWrap: "wrap",
             }}
           >
             <span style={{ fontSize: 14, fontWeight: 600, color: "var(--primary)" }}>
@@ -1655,14 +1657,14 @@ export default function DuesManagement() {
                         <span style={{
                           padding: "2px 8px", borderRadius: 999,
                           background: "var(--primary)", color: "#fff",
-                          fontSize: 12, fontWeight: 700,
+                          fontSize: 12, fontWeight: 700, whiteSpace: "nowrap",
                         }}>当年度</span>
                       )}
                       {isPrior && (
                         <span style={{
                           padding: "2px 8px", borderRadius: 999,
                           background: "#fde68a", color: "#92400e",
-                          fontSize: 12, fontWeight: 700,
+                          fontSize: 12, fontWeight: 700, whiteSpace: "nowrap",
                         }}>前年度以前</span>
                       )}
                     </div>
@@ -1856,7 +1858,7 @@ export default function DuesManagement() {
             borderTop: "1px solid var(--line)",
             boxShadow: "0 -4px 12px rgba(0,0,0,0.08)",
             padding: "12px 24px",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 16,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: isMobile ? 8 : 16, flexWrap: "wrap",
           }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: "var(--primary)" }}>
               {selectedIds.size}件選択中
@@ -1936,7 +1938,7 @@ export default function DuesManagement() {
                     <span style={{ fontSize: 16 }}>{"👥"}</span>
                     既存会員
                   </h3>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 20 }}>
                     <SettingsField
                       id="s-regular" label="正会員 年会費"
                       description="正会員の年間会費です"
@@ -1964,7 +1966,7 @@ export default function DuesManagement() {
                     <span style={{ fontSize: 16 }}>{"🆕"}</span>
                     新入会員
                   </h3>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 20 }}>
                     <SettingsField
                       id="s-admission" label="入会金"
                       description="入会時に一度だけ徴収"
@@ -1993,7 +1995,7 @@ export default function DuesManagement() {
                   marginBottom: 20,
                 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: "var(--text)" }}>会費生成ルール (プレビュー)</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 24px", fontSize: 13 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "6px 24px", fontSize: 13 }}>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <span style={{ color: "var(--text-secondary)" }}>正会員</span>
                       <span style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{formatCurrency(settingsForm.regular_annual_fee)}</span>

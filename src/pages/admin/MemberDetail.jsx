@@ -76,6 +76,7 @@ function Badge({ label, styleMap }) {
         padding: "0.25rem 0.75rem",
         borderRadius: "9999px",
         lineHeight: 1.4,
+        whiteSpace: "nowrap",
       }}
     >
       {label}
@@ -560,12 +561,12 @@ export default function MemberDetail() {
                 {member.member_type && <Badge label={member.member_type} styleMap={MEMBER_TYPE_BADGE} />}
                 {member.status && <Badge label={member.status} styleMap={STATUS_BADGE} />}
                 {member.is_new && (
-                  <span className="pill" style={{ backgroundColor: "#dbeafe", color: "#1d4ed8", fontWeight: 600, fontSize: "0.75rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                  <span className="pill" style={{ backgroundColor: "#dbeafe", color: "#1d4ed8", fontWeight: 600, fontSize: "0.75rem", padding: "0.2rem 0.6rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
                     新入
                   </span>
                 )}
                 {member.is_graduate && (
-                  <span className="pill" style={{ backgroundColor: "#fef3c7", color: "#92400e", fontWeight: 600, fontSize: "0.75rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                  <span className="pill" style={{ backgroundColor: "#fef3c7", color: "#92400e", fontWeight: 600, fontSize: "0.75rem", padding: "0.2rem 0.6rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
                     卒業生
                   </span>
                 )}
@@ -686,7 +687,7 @@ export default function MemberDetail() {
                     <div style={{
                       display: "flex", alignItems: "center", gap: 8, padding: "10px 14px",
                       background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8,
-                      fontSize: 13, color: "#15803d", marginBottom: 12,
+                      fontSize: 13, color: "#15803d", marginBottom: 12, flexWrap: "wrap",
                     }}>
                       <span>✅</span>
                       <span>Base44ユーザーと紐付け済み</span>
@@ -709,7 +710,7 @@ export default function MemberDetail() {
                     <div style={{
                       display: "flex", alignItems: "center", gap: 8, padding: "10px 14px",
                       background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8,
-                      fontSize: 13, color: "#92400e", marginBottom: 12,
+                      fontSize: 13, color: "#92400e", marginBottom: 12, flexWrap: "wrap",
                     }}>
                       <span>⚠️</span>
                       <span>Base44ユーザーと未紐付け（ログイン時にメールアドレスで自動紐付けされます）</span>

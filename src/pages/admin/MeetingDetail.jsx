@@ -602,7 +602,7 @@ export default function MeetingDetail() {
       {/* Confirm Modal */}
       {confirmModal && (
         <div className="confirm-overlay" onClick={() => setConfirmModal(null)}>
-          <div className="modal-dialog" style={{ maxWidth: 440 }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-dialog" style={{ maxWidth: "min(440px, calc(100vw - 32px))" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--line)" }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>{confirmModal.title}</h3>
             </div>
@@ -1110,7 +1110,7 @@ export default function MeetingDetail() {
                 <>
                   {/* Bulk actions - only in draft */}
                   {canEditAttendance && (
-                    <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                    <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
                       <button type="button" onClick={() => setAttendeeIds(boardMembers.map((m) => m.id || m._id))}
                         style={{ height: 32, padding: "0 12px", fontSize: 12, fontWeight: 500, background: "none", border: "1px solid var(--line)", borderRadius: 6, cursor: "pointer", color: "var(--text)" }}>
                         全員出席
@@ -1160,7 +1160,7 @@ export default function MeetingDetail() {
                             style={{ width: 18, height: 18, accentColor: "#059669", cursor: canEditAttendance ? "pointer" : "default", flexShrink: 0 }}
                           />
                           <MemberAvatar member={m} size={isMobile ? 28 : 32} />
-                          <span style={{ fontWeight: 600, fontSize: 13, whiteSpace: "nowrap" }}>{fullName(m)}</span>
+                          <span style={{ fontWeight: 600, fontSize: 13, whiteSpace: "nowrap", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{fullName(m)}</span>
                           {!isMobile && memberRoleMap[mid] && (
                             <span style={{ fontSize: 12, color: "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                               {memberRoleMap[mid]}
@@ -1180,7 +1180,7 @@ export default function MeetingDetail() {
                   </div>
 
                   {/* Section: オブザーバー */}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, paddingBottom: 4, borderBottom: "1px solid var(--line)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, paddingBottom: 4, borderBottom: "1px solid var(--line)", flexWrap: "wrap" }}>
                     <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)" }}>オブザーバー</span>
                     {canEditAttendance && (
                       <div style={{ width: isMobile ? "100%" : 220, marginTop: isMobile ? 4 : 0 }}>
@@ -1211,7 +1211,7 @@ export default function MeetingDetail() {
                             borderBottom: idx < observerIds.length - 1 ? "1px solid var(--line-light, #f1f5f9)" : "none",
                           }}>
                             <MemberAvatar member={m} />
-                            <span style={{ fontWeight: 600, fontSize: 13, whiteSpace: "nowrap" }}>{fullName(m)}</span>
+                            <span style={{ fontWeight: 600, fontSize: 13, whiteSpace: "nowrap", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{fullName(m)}</span>
                             {memberRoleMap[oid] && (
                               <span style={{ fontSize: 12, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>{memberRoleMap[oid]}</span>
                             )}

@@ -177,7 +177,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
           onMouseEnter={e => { if (hasContent) e.currentTarget.style.background = "var(--bg)"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
             {hasContent && (
               <span style={{
                 transition: "transform 0.2s ease",

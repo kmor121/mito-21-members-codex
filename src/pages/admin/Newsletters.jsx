@@ -4,6 +4,7 @@ import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import DatePicker from "../../components/ui/DatePicker";
 import RichTextEditor from "../../components/common/RichTextEditor";
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 /* ═══ helpers ═══ */
 function statusLabel(s) {
@@ -431,6 +432,7 @@ function EditorModeTabs({ mode, onChange }) {
    MAIN COMPONENT
    ══════════════════════════════════════════════════════ */
 export default function Newsletters() {
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState("");
@@ -849,7 +851,7 @@ export default function Newsletters() {
 
       <div className="nl2-layout" style={{ marginTop: 16 }}>
         {/* ═══ LEFT PANEL (340px) ═══ */}
-        <div className={`nl2-master${mobileView === "list" ? " nl2-mobile-show" : " nl2-mobile-hide"}`} style={{ width: 340, minWidth: 340 }}>
+        <div className={`nl2-master${mobileView === "list" ? " nl2-mobile-show" : " nl2-mobile-hide"}`} style={{ width: isMobile ? "100%" : 340, minWidth: isMobile ? 0 : 340 }}>
           <div className="nl2-master-inner">
             {/* ── Status pill tabs ── */}
             <div style={{ padding: "12px 12px 0" }}>
@@ -1503,7 +1505,7 @@ export default function Newsletters() {
               {/* ═══ Action bar (fixed bottom) ═══ */}
               <div style={{
                 padding: "14px 28px", borderTop: "1px solid var(--line)", background: "#fff",
-                display: "flex", alignItems: "center", gap: 8, flexShrink: 0,
+                display: "flex", alignItems: "center", gap: 8, flexShrink: 0, flexWrap: "wrap",
               }}>
                 {isTemplate ? (
                   <>

@@ -142,7 +142,7 @@ const styles = {
   expandedBody: { borderTop: '1px solid #E8E6DF', padding: '20px 24px' },
   moderatorLine: { margin: '0 0 16px', fontSize: 13, color: '#5F5E5A' },
   ceremonyRow: (idx) => ({
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', padding: '10px 12px',
     borderRadius: 6, background: idx % 2 === 0 ? '#FAFAF8' : '#fff',
   }),
   numberBadge: {
@@ -151,7 +151,7 @@ const styles = {
     flexShrink: 0,
   },
   ceremonyTitle: { fontSize: 13, color: '#2C2C2A', marginLeft: 10, flex: 1 },
-  ceremonyPerson: { fontSize: 13, color: '#5F5E5A', textAlign: 'right', paddingLeft: 16, flexShrink: 0 },
+  ceremonyPerson: { fontSize: 13, color: '#5F5E5A', textAlign: 'right', paddingLeft: 16, minWidth: 0 },
   agendaSection: {
     margin: '8px 0', padding: '16px', background: '#F9F8F6', borderRadius: 10,
   },
@@ -166,7 +166,7 @@ const styles = {
     display: 'inline-block', padding: '1px 8px', borderRadius: 8, fontSize: 12, fontWeight: 500,
     background: tagBadge.bg, color: tagBadge.color, marginLeft: 6,
   }),
-  agendaPerson: { fontSize: 13, color: '#5F5E5A', textAlign: 'right', flexShrink: 0 },
+  agendaPerson: { fontSize: 13, color: '#5F5E5A', textAlign: 'right', minWidth: 0 },
   attendanceBox: {
     marginTop: 20, padding: '16px', borderRadius: 10, background: '#F9F8F6', border: '1px solid #E8E6DF',
   },
@@ -487,7 +487,7 @@ export default function MeetingsView() {
                 {isExpanded && (
                   <div style={styles.expandedBody} onClick={(e) => e.stopPropagation()}>
                     {/* Copy button + Moderator */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
                       {m.moderator_id ? (
                         <p style={{ ...styles.moderatorLine, margin: 0 }}>
                           司会: {getMemberName(m.moderator_id)}

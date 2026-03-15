@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { base44 } from '../../api/base44Client';
 import { fullName, fullNameKana } from '../../utils/formatName';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const STATUS_BADGE = {
   "申請中": { bg: "#fffbeb", color: "#d97706", border: "#fde68a" },
@@ -18,6 +19,7 @@ const STATUS_TABS = [
 ];
 
 export default function MemberApplicationsView() {
+  const isMobile = useIsMobile();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("申請中");
@@ -103,7 +105,7 @@ export default function MemberApplicationsView() {
                   onClick={() => setExpandedId(isExpanded ? null : m.id)}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 2 }}>
                       <span style={{ fontWeight: 600, fontSize: 14 }}>{fullName(m)}</span>
                       <span style={{
                         display: "inline-flex", alignItems: "center", gap: 4,
@@ -124,7 +126,7 @@ export default function MemberApplicationsView() {
 
                 {isExpanded && (
                   <div style={{ borderTop: "1px solid var(--line)", padding: "16px 20px" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "10px 24px" }}>
                       <DetailItem label="氏名" value={fullName(m)} />
                       <DetailItem label="フリガナ" value={fullNameKana(m)} />
                       <DetailItem label="会社名" value={m.company_name} />

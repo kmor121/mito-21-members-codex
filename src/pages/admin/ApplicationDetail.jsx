@@ -460,7 +460,7 @@ export default function ApplicationDetail() {
         <div style={{
           background: "#ecfdf5", border: "1px solid #a7f3d0", borderRadius: "var(--radius)",
           padding: "14px 20px", marginBottom: 20,
-          display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 600, color: "#065f46",
+          display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 600, color: "#065f46", flexWrap: "wrap",
         }}>
           <svg style={{ width: 20, height: 20, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
@@ -493,7 +493,7 @@ export default function ApplicationDetail() {
       {/* ══ Page Header ══ */}
       <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4, flexWrap: "wrap" }}>
             <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{displayValue(fullName(detail))}</h1>
             <span style={{ fontSize: 13, color: "var(--muted)" }}>{displayValue(fullNameKana(detail))}</span>
             <StatusBadge status={detail.approval_status} large />
