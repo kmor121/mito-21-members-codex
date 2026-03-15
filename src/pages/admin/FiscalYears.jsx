@@ -403,7 +403,7 @@ export default function FiscalYears() {
     <section className="admin-shell">
       <div className="page-header">
         <h1 className="page-title">年度管理</h1>
-        <p className="page-description">年度の登録・管理と年度移行処理</p>
+        {!isMobile && <p className="page-description">年度の登録・管理と年度移行処理</p>}
       </div>
 
       {/* Toast */}

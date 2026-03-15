@@ -374,7 +374,7 @@ export default function MeetingsView() {
 
       {/* ── Summary stats ── */}
       {isMobile ? (
-        <div className="stat-chip-bar" style={{ marginBottom: 16 }}>
+        <div className="stat-chip-bar" style={{ marginBottom: 8 }}>
           <span className="stat-chip">開催済み <span className="stat-chip-value" style={{ color: '#1D9E75' }}>{confirmedCount}</span></span>
           <span className="stat-chip">議題合計 <span className="stat-chip-value" style={{ color: '#5F5E5A' }}>{totalAgenda}</span></span>
         </div>

@@ -350,7 +350,7 @@ export default function Settings() {
     <section className="admin-shell">
       <div className="page-header">
         <h1 className="page-title">設定</h1>
-        <p className="page-description">管理者設定</p>
+        {!isMobile && <p className="page-description">管理者設定</p>}
       </div>
 
       {/* Main tabs */}

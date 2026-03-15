@@ -101,7 +101,7 @@ export default function MemberApplicationsView() {
             return (
               <section key={m.id} className="card detail-card" style={{ overflow: "hidden" }}>
                 <div
-                  style={{ padding: "14px 20px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
+                  style={{ padding: isMobile ? "10px 16px" : "14px 20px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
                   onClick={() => setExpandedId(isExpanded ? null : m.id)}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -125,7 +125,7 @@ export default function MemberApplicationsView() {
                 </div>
 
                 {isExpanded && (
-                  <div style={{ borderTop: "1px solid var(--line)", padding: "16px 20px" }}>
+                  <div style={{ borderTop: "1px solid var(--line)", padding: isMobile ? "12px 16px" : "16px 20px" }}>
                     <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "10px 24px" }}>
                       <DetailItem label="氏名" value={fullName(m)} />
                       <DetailItem label="フリガナ" value={fullNameKana(m)} />

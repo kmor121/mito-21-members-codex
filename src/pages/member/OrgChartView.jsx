@@ -464,92 +464,125 @@ export default function OrgChartView() {
         <h1 className="page-title" style={{ margin: 0 }}>組織図</h1>
       </div>
 
-      {/* ── Year pill navigator ── */}
+      {/* ── Year navigator ── */}
       <div style={{
-        display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
         borderBottom: "1px solid var(--line)", marginBottom: 20,
-        flexWrap: "wrap",
       }}>
-        <button type="button" onClick={() => goYear(-1)} disabled={currentIdx <= 0}
-          style={{
-            background: "none", border: "1px solid var(--line)", borderRadius: 6,
-            width: 44, height: 44, cursor: currentIdx <= 0 ? "default" : "pointer",
-            color: currentIdx <= 0 ? "var(--muted)" : "var(--text)", fontSize: 13,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "all var(--transition)",
-            opacity: currentIdx <= 0 ? 0.4 : 1,
-            pointerEvents: currentIdx <= 0 ? "none" : "auto",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
-        >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-            <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-
-        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center" }}>
-          {sortedYears.map(fy => {
-            const isActive = fy.id === activeFiscalYearId;
-            return (
-              <button
-                key={fy.id}
-                type="button"
-                onClick={() => setSearchParams({ fiscalYearId: fy.id })}
+        {isMobile ? (
+          /* Mobile: compact inline year switcher */
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 0 8px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+              <button type="button" disabled={currentIdx <= 0} onClick={() => goYear(-1)}
+                style={{ background: "none", border: "none", padding: "4px", fontSize: 14, color: currentIdx <= 0 ? "var(--text-muted)" : "var(--primary)", cursor: currentIdx <= 0 ? "default" : "pointer" }}>◂</button>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)", whiteSpace: "nowrap" }}>{yearLabel}</span>
+              <button type="button" disabled={currentIdx >= sortedYears.length - 1} onClick={() => goYear(1)}
+                style={{ background: "none", border: "none", padding: "4px", fontSize: 14, color: currentIdx >= sortedYears.length - 1 ? "var(--text-muted)" : "var(--primary)", cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer" }}>▸</button>
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button type="button" onClick={expandAll}
                 style={{
-                  fontSize: 13, minHeight: 44, padding: "0 18px", borderRadius: 20, border: "none",
-                  cursor: "pointer", fontWeight: isActive ? 600 : 400,
-                  background: isActive ? "var(--primary)" : "transparent",
-                  color: isActive ? "#fff" : "var(--text-secondary)",
-                  transition: "all var(--transition)",
+                  background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
+                  padding: "4px 10px", cursor: "pointer", fontSize: 11, color: "var(--text-secondary)",
+                  fontWeight: 500,
                 }}
-                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--bg)"; }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
-              >
-                {fy.year_label || `${fy.year}年度`}
-              </button>
-            );
-          })}
-        </div>
+              >展開</button>
+              <button type="button" onClick={collapseAll}
+                style={{
+                  background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
+                  padding: "4px 10px", cursor: "pointer", fontSize: 11, color: "var(--text-secondary)",
+                  fontWeight: 500,
+                }}
+              >閉じる</button>
+            </div>
+          </div>
+        ) : (
+          /* Desktop: full pill navigator */
+          <div style={{
+            display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
+            flexWrap: "wrap",
+          }}>
+            <button type="button" onClick={() => goYear(-1)} disabled={currentIdx <= 0}
+              style={{
+                background: "none", border: "1px solid var(--line)", borderRadius: 6,
+                width: 44, height: 44, cursor: currentIdx <= 0 ? "default" : "pointer",
+                color: currentIdx <= 0 ? "var(--muted)" : "var(--text)", fontSize: 13,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all var(--transition)",
+                opacity: currentIdx <= 0 ? 0.4 : 1,
+                pointerEvents: currentIdx <= 0 ? "none" : "auto",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
 
-        <button type="button" onClick={() => goYear(1)} disabled={currentIdx >= sortedYears.length - 1}
-          style={{
-            background: "none", border: "1px solid var(--line)", borderRadius: 6,
-            width: 44, height: 44, cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
-            color: currentIdx >= sortedYears.length - 1 ? "var(--muted)" : "var(--text)", fontSize: 13,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "all var(--transition)",
-            opacity: currentIdx >= sortedYears.length - 1 ? 0.4 : 1,
-            pointerEvents: currentIdx >= sortedYears.length - 1 ? "none" : "auto",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
-        >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-            <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center" }}>
+              {sortedYears.map(fy => {
+                const isActive = fy.id === activeFiscalYearId;
+                return (
+                  <button
+                    key={fy.id}
+                    type="button"
+                    onClick={() => setSearchParams({ fiscalYearId: fy.id })}
+                    style={{
+                      fontSize: 13, minHeight: 44, padding: "0 18px", borderRadius: 20, border: "none",
+                      cursor: "pointer", fontWeight: isActive ? 600 : 400,
+                      background: isActive ? "var(--primary)" : "transparent",
+                      color: isActive ? "#fff" : "var(--text-secondary)",
+                      transition: "all var(--transition)",
+                    }}
+                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--bg)"; }}
+                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+                  >
+                    {fy.year_label || `${fy.year}年度`}
+                  </button>
+                );
+              })}
+            </div>
 
-        <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
-          <button type="button" onClick={expandAll}
-            style={{
-              background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-              padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
-              transition: "all var(--transition)", fontWeight: 500,
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
-          >すべて展開</button>
-          <button type="button" onClick={collapseAll}
-            style={{
-              background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-              padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
-              transition: "all var(--transition)", fontWeight: 500,
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
-          >すべて閉じる</button>
-        </div>
+            <button type="button" onClick={() => goYear(1)} disabled={currentIdx >= sortedYears.length - 1}
+              style={{
+                background: "none", border: "1px solid var(--line)", borderRadius: 6,
+                width: 44, height: 44, cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
+                color: currentIdx >= sortedYears.length - 1 ? "var(--muted)" : "var(--text)", fontSize: 13,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all var(--transition)",
+                opacity: currentIdx >= sortedYears.length - 1 ? 0.4 : 1,
+                pointerEvents: currentIdx >= sortedYears.length - 1 ? "none" : "auto",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+
+            <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+              <button type="button" onClick={expandAll}
+                style={{
+                  background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
+                  padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
+                  transition: "all var(--transition)", fontWeight: 500,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+              >すべて展開</button>
+              <button type="button" onClick={collapseAll}
+                style={{
+                  background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
+                  padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
+                  transition: "all var(--transition)", fontWeight: 500,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+              >すべて閉じる</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Empty state ── */}

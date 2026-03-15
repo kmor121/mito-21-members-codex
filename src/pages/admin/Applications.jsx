@@ -121,6 +121,9 @@ export default function Applications() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectSubmitting, setRejectSubmitting] = useState(false);
 
+  /* mobile filter toggle */
+  const [showFilters, setShowFilters] = useState(false);
+
   const loadPending = useCallback(async () => {
     setError("");
     setLoading(true);
@@ -392,80 +395,147 @@ export default function Applications() {
           <Link to="/admin/meetings" className="text-link" style={{ fontSize: 13 }}>&larr; 幹事会に戻る</Link>
         </div>
       )}
-      <div className="page-header" style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: isMobile ? 8 : 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <h1 className="page-title" style={{ margin: 0 }}>入会申込管理{isViewMode ? "（閲覧モード）" : ""}</h1>
-          {!loading && statusCounts["申請中"] > 0 && (
-            <span style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "4px 12px",
-              borderRadius: "999px",
-              background: "#fee2e2",
-              color: "#dc2626",
-              fontSize: "13px",
-              fontWeight: 700,
-            }}>
-              {statusCounts["申請中"]}件 未処理
-            </span>
-          )}
+      {isMobile ? (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 0 12px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h1 className="page-title" style={{ margin: 0 }}>入会申込管理{isViewMode ? "（閲覧モード）" : ""}</h1>
+            {!loading && statusCounts["申請中"] > 0 && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center',
+                padding: '3px 10px', borderRadius: '999px',
+                background: '#fee2e2', color: '#dc2626',
+                fontSize: '12px', fontWeight: 700,
+              }}>
+                {statusCounts["申請中"]}
+              </span>
+            )}
+          </div>
+          <button type="button" onClick={() => setShowFilters(v => !v)} style={{
+            width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: showFilters ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
+            color: showFilters ? 'var(--primary)' : 'var(--text-secondary)',
+          }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          </button>
         </div>
-      </div>
+      ) : (
+        <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <h1 className="page-title" style={{ margin: 0 }}>入会申込管理{isViewMode ? "（閲覧モード）" : ""}</h1>
+            {!loading && statusCounts["申請中"] > 0 && (
+              <span style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "4px 12px",
+                borderRadius: "999px",
+                background: "#fee2e2",
+                color: "#dc2626",
+                fontSize: "13px",
+                fontWeight: 700,
+              }}>
+                {statusCounts["申請中"]}件 未処理
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Search + Filters */}
-      <div className="card panel-card single-panel" style={{ marginBottom: 20 }}>
-        <div className="card-body" style={{ padding: 20 }}>
-          {/* Search bar */}
-          <div style={{ position: "relative", marginBottom: 16 }}>
-            <svg style={{
-              position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
-              width: 16, height: 16, color: "var(--text-secondary)", pointerEvents: "none",
-            }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="氏名・会社名で検索"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "12px 14px 12px 42px",
-                border: "1px solid var(--line)",
-                borderRadius: "var(--radius)",
-                fontSize: "14px",
-                background: "#fff",
-                transition: "border-color 0.15s, box-shadow 0.15s",
-              }}
-            />
+      {isMobile ? (
+        showFilters && (
+          <div style={{
+            padding: '12px 16px', marginBottom: 8,
+            borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+            background: 'var(--bg)',
+          }}>
+            {/* Search bar */}
+            <div style={{ position: 'relative', marginBottom: 10 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>
+                <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              <input
+                type="text"
+                placeholder="氏名・会社名で検索"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', fontSize: 13 }}
+              />
+            </div>
+            {/* Status pills */}
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              {STATUS_TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={`nl2-pill-tab${statusFilter === tab.key ? ' active' : ''}`}
+                  onClick={() => setStatusFilter(tab.key)}
+                >
+                  {tab.label}
+                  <span className="nl2-pill-tab-count">{statusCounts[tab.key] || 0}</span>
+                </button>
+              ))}
+            </div>
           </div>
+        )
+      ) : (
+        <div className="card panel-card single-panel" style={{ marginBottom: 20 }}>
+          <div className="card-body" style={{ padding: 20 }}>
+            {/* Search bar */}
+            <div style={{ position: "relative", marginBottom: 16 }}>
+              <svg style={{
+                position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
+                width: 16, height: 16, color: "var(--text-secondary)", pointerEvents: "none",
+              }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="氏名・会社名で検索"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px 14px 12px 42px",
+                  border: "1px solid var(--line)",
+                  borderRadius: "var(--radius)",
+                  fontSize: "14px",
+                  background: "#fff",
+                  transition: "border-color 0.15s, box-shadow 0.15s",
+                }}
+              />
+            </div>
 
-          {/* Pill tabs */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginRight: 4 }}>ステータス</span>
-            {STATUS_TABS.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                className={`nl2-pill-tab${statusFilter === tab.key ? " active" : ""}`}
-                onClick={() => setStatusFilter(tab.key)}
-              >
-                {tab.label}
-                <span className="nl2-pill-tab-count">{statusCounts[tab.key] || 0}</span>
-              </button>
-            ))}
+            {/* Pill tabs */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginRight: 4 }}>ステータス</span>
+              {STATUS_TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={`nl2-pill-tab${statusFilter === tab.key ? " active" : ""}`}
+                  onClick={() => setStatusFilter(tab.key)}
+                >
+                  {tab.label}
+                  <span className="nl2-pill-tab-count">{statusCounts[tab.key] || 0}</span>
+                </button>
+              ))}
 
-            <span style={{
-              marginLeft: "auto",
-              fontSize: 13,
-              fontWeight: 600,
-              color: "var(--text-secondary)",
-            }}>
-              {filteredMembers.length}件表示中
-            </span>
+              <span style={{
+                marginLeft: "auto",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "var(--text-secondary)",
+              }}>
+                {filteredMembers.length}件表示中
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Error */}
       {error && (

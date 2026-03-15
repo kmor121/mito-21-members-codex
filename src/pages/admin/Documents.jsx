@@ -184,10 +184,27 @@ export default function Documents() {
 
   return (
     <section className="admin-shell">
-      <div className="page-header">
-        <h1 className="page-title">資料管理</h1>
-        <p className="page-description">団体資料の管理・並び替え・公開設定</p>
-      </div>
+      {isMobile ? (
+        <div className="page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px' }}>
+          <h1 className="page-title" style={{ margin: 0, fontSize: 18 }}>資料管理</h1>
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={() => navigate("/admin/documents/new")}
+            style={{ padding: '6px 10px', minWidth: 0, lineHeight: 1 }}
+            aria-label="新規作成"
+          >
+            <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
+              <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+      ) : (
+        <div className="page-header">
+          <h1 className="page-title">資料管理</h1>
+          <p className="page-description">団体資料の管理・並び替え・公開設定</p>
+        </div>
+      )}
 
       {/* Toast */}
       {toast && (
@@ -243,15 +260,17 @@ export default function Documents() {
 
       <section className="card panel-card single-panel">
         <div className="card-body stack">
-          <div className="panel-heading compact">
-            <h2>資料一覧</h2>
-            <button className="btn btn-primary" type="button" onClick={() => navigate("/admin/documents/new")}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginRight: 4 }}>
-                <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-              新規作成
-            </button>
-          </div>
+          {!isMobile && (
+            <div className="panel-heading compact">
+              <h2>資料一覧</h2>
+              <button className="btn btn-primary" type="button" onClick={() => navigate("/admin/documents/new")}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginRight: 4 }}>
+                  <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                新規作成
+              </button>
+            </div>
+          )}
 
           {loading ? (
             <LoadingSpinner />
@@ -269,7 +288,82 @@ export default function Documents() {
                 新規作成
               </button>
             </div>
+          ) : isMobile ? (
+            /* ── Mobile card list ── */
+            <div>
+              {docs.map((doc) => {
+                const badge = getTypeBadge(doc.doc_type);
+                return (
+                  <div
+                    key={doc.id}
+                    style={{
+                      padding: '10px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      borderBottom: '1px solid var(--line-light)',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => navigate(`/admin/documents/${doc.id}/edit`)}
+                  >
+                    {/* File type icon avatar */}
+                    <div style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      flexShrink: 0,
+                      background: badge.bg || 'linear-gradient(135deg, #e2e8f0, #f1f5f9)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 14,
+                    }}>
+                      {badge.icon}
+                    </div>
+
+                    {/* Text info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontWeight: 600,
+                        fontSize: 14,
+                        color: 'var(--text)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {doc.title || "-"}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1 }}>
+                        {doc.doc_type || "-"} · {doc.fiscal_year_label || "常設"} · {doc.updated_at ? doc.updated_at.slice(0, 10) : "-"}
+                      </div>
+                    </div>
+
+                    {/* Published toggle */}
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <ToggleSwitch
+                        checked={!!doc.published}
+                        onChange={() => setConfirmToggle(doc)}
+                      />
+                    </div>
+
+                    {/* Delete button */}
+                    <button
+                      type="button"
+                      className="doc-delete-btn"
+                      onClick={(e) => { e.stopPropagation(); setConfirmDelete(doc); }}
+                      aria-label="削除"
+                      style={{ flexShrink: 0 }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M2.5 4.5h11M5.5 4.5V3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.5M6.5 7v4M9.5 7v4M3.5 4.5l.5 8a1.5 1.5 0 0 0 1.5 1.5h5a1.5 1.5 0 0 0 1.5-1.5l.5-8" />
+                      </svg>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
+            /* ── Desktop table ── */
             <div className="table-wrap" style={{ WebkitOverflowScrolling: "touch" }}>
               <table className="data-table doc-table">
                 <thead>
@@ -354,12 +448,6 @@ export default function Documents() {
           )}
         </div>
       </section>
-      {isMobile && (
-        <style>{`
-          .doc-table td, .doc-table th { padding: 8px 6px !important; font-size: 13px !important; }
-          .doc-type-badge { font-size: 12px !important; }
-        `}</style>
-      )}
     </section>
   );
 }

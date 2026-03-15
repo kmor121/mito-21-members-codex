@@ -52,7 +52,7 @@ export default function Dashboard() {
       <section className="admin-shell">
         <div className="page-header">
           <h1 className="page-title">ダッシュボード</h1>
-          <p className="page-description">管理者ダッシュボード</p>
+          {!isMobile && <p className="page-description">管理者ダッシュボード</p>}
         </div>
         <section className="card panel-card single-panel"><div className="card-body"><LoadingSpinner /></div></section>
       </section>
@@ -64,7 +64,7 @@ export default function Dashboard() {
       <section className="admin-shell">
         <div className="page-header">
           <h1 className="page-title">ダッシュボード</h1>
-          <p className="page-description">管理者ダッシュボード</p>
+          {!isMobile && <p className="page-description">管理者ダッシュボード</p>}
         </div>
         <section className="card panel-card single-panel"><div className="card-body stack"><p className="message error">{error}</p></div></section>
       </section>
@@ -86,7 +86,7 @@ export default function Dashboard() {
     <section className="admin-shell">
       <div className="page-header">
         <h1 className="page-title">ダッシュボード</h1>
-        <p className="page-description">管理者ダッシュボード</p>
+        {!isMobile && <p className="page-description">管理者ダッシュボード</p>}
       </div>
 
       <div className="dashboard-grid" style={isMobile ? { display: 'flex', flexDirection: 'column', gap: '0.75rem' } : undefined}>

@@ -76,6 +76,9 @@ export default function MemberList() {
   const [inviting, setInviting] = useState(false);
   const [inviteResult, setInviteResult] = useState(null);
 
+  // Mobile filter toggle
+  const [showFilters, setShowFilters] = useState(false);
+
   // Debounced search query
   const debouncedQ = useDebounce(q, 300);
 
@@ -467,27 +470,64 @@ export default function MemberList() {
   return (
     <section className="admin-shell">
       {/* ── Header ── */}
-      <div className="page-header" style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", marginBottom: isMobile ? "16px" : "24px", flexWrap: "wrap", gap: isMobile ? 8 : 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <h1 className="page-title" style={{ margin: 0, fontSize: isMobile ? 18 : undefined }}>会員一覧</h1>
-          {!loading && (
-            <span style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "3px 10px",
-              borderRadius: "999px",
-              background: "var(--primary-light)",
-              color: "var(--primary)",
-              fontSize: "13px",
-              fontWeight: 700,
+      {isMobile ? (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 0 12px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h1 className="page-title" style={{ margin: 0 }}>会員一覧</h1>
+            {!loading && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center',
+                padding: '3px 10px', borderRadius: '999px',
+                background: 'var(--primary-light)', color: 'var(--primary)',
+                fontSize: '13px', fontWeight: 700,
+              }}>
+                {members.length}名
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button type="button" onClick={() => setShowFilters(v => !v)} style={{
+              width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: showFilters ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
+              color: showFilters ? 'var(--primary)' : 'var(--text-secondary)',
             }}>
-              {members.length}名
-            </span>
-          )}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            </button>
+            <button type="button" onClick={() => navigate("/admin/members/new")} style={{
+              width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'var(--primary)', cursor: 'pointer', color: '#fff',
+              fontSize: 20, fontWeight: 700,
+            }}>
+              +
+            </button>
+          </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? "6px" : "12px", flexWrap: "wrap" }}>
-          {/* Edit mode toggle - hide on mobile */}
-          {!isMobile && (
+      ) : (
+        <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px", flexWrap: "wrap", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <h1 className="page-title" style={{ margin: 0 }}>会員一覧</h1>
+            {!loading && (
+              <span style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "3px 10px",
+                borderRadius: "999px",
+                background: "var(--primary-light)",
+                color: "var(--primary)",
+                fontSize: "13px",
+                fontWeight: 700,
+              }}>
+                {members.length}名
+              </span>
+            )}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+            {/* Edit mode toggle */}
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ fontSize: "13px", fontWeight: 600, color: editMode ? "var(--primary)" : "var(--text-secondary)" }}>
                 編集モード
@@ -505,9 +545,7 @@ export default function MemberList() {
                 <span className="doc-toggle-knob" />
               </button>
             </div>
-          )}
 
-          {!isMobile && (
             <button
               className="btn"
               type="button"
@@ -525,134 +563,193 @@ export default function MemberList() {
               <span style={{ fontSize: "14px" }}>✉</span>
               ユーザー招待
             </button>
-          )}
-          <button
-            className="btn btn-primary"
-            type="button"
-            onClick={() => navigate("/admin/members/new")}
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: isMobile ? 12 : undefined, padding: isMobile ? "6px 12px" : undefined }}
-          >
-            <span style={{ fontSize: isMobile ? "14px" : "16px", lineHeight: 1 }}>+</span>
-            {isMobile ? "新規登録" : "新規会員登録"}
-          </button>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => navigate("/admin/members/new")}
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+            >
+              <span style={{ fontSize: "16px", lineHeight: 1 }}>+</span>
+              新規会員登録
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Search & Filters ── */}
-      <div className="card panel-card single-panel" style={{ marginBottom: "20px" }}>
-        <div className="card-body" style={{ padding: "20px" }}>
-          {/* Search bar */}
-          <div style={{ position: "relative", marginBottom: "16px" }}>
-            <span style={{
-              position: "absolute",
-              left: "14px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "var(--text-secondary)",
-              fontSize: "16px",
-              pointerEvents: "none",
-            }}>
-              &#x1F50D;
-            </span>
-            <input
-              type="text"
-              placeholder="氏名・フリガナ・会員番号・会社名で検索"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "12px 14px 12px 42px",
-                border: "1px solid var(--line)",
-                borderRadius: "var(--radius)",
-                fontSize: "14px",
-                background: "#fff",
-                transition: "border-color 0.15s, box-shadow 0.15s",
-              }}
-            />
-          </div>
-
-          {/* Filter pills row: Member Type */}
-          <div style={{ marginBottom: "10px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", marginRight: "4px" }}>種別</span>
+      {isMobile ? (
+        /* Mobile: collapsible filter panel */
+        showFilters && (
+          <div style={{
+            padding: '12px 16px', marginBottom: 8,
+            borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+            background: 'var(--bg)',
+          }}>
+            {/* Search input */}
+            <div style={{ position: 'relative', marginBottom: 10 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>
+                <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              <input
+                type="text"
+                placeholder="氏名・フリガナ・会員番号・会社名で検索"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', fontSize: 13 }}
+              />
+            </div>
+            {/* Member type pills */}
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', alignSelf: 'center', marginRight: 2 }}>種別</span>
               {MEMBER_TYPE_FILTERS.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  className={`nl2-pill-tab${memberType === t ? " active" : ""}`}
-                  onClick={() => setMemberType(t)}
-                >
-                  {t}
-                </button>
+                <button key={t} type="button" className={`nl2-pill-tab${memberType === t ? ' active' : ''}`} onClick={() => setMemberType(t)}>{t}</button>
               ))}
             </div>
-          </div>
-
-          {/* Filter pills row: Status */}
-          <div style={{ marginBottom: "10px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", marginRight: "4px" }}>状態</span>
+            {/* Status pills */}
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', alignSelf: 'center', marginRight: 2 }}>状態</span>
               {STATUS_FILTERS.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className={`nl2-pill-tab${status === s ? " active" : ""}`}
-                  onClick={() => setStatus(s)}
-                >
-                  {s}
-                </button>
+                <button key={s} type="button" className={`nl2-pill-tab${status === s ? ' active' : ''}`} onClick={() => setStatus(s)}>{s}</button>
               ))}
             </div>
-          </div>
-
-          {/* Filter row: Organization dropdown + count */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>所属</span>
-              <select
-                value={organizationId}
-                onChange={(e) => setOrganizationId(e.target.value)}
-                style={{
-                  padding: "5px 12px",
-                  borderRadius: "999px",
-                  border: organizationId ? "1px solid var(--primary)" : "1px solid var(--line)",
-                  background: organizationId ? "var(--primary)" : "#fff",
-                  color: organizationId ? "#fff" : "var(--text-secondary)",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  outline: "none",
-                }}
-              >
-                <option value="">全て</option>
+            {/* Organization select */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <select value={organizationId} onChange={(e) => setOrganizationId(e.target.value)}
+                style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', fontSize: 13 }}>
+                <option value="">全所属</option>
                 {orgOptions.map((opt) => (
                   <option key={opt.id} value={opt.id}>{opt.name}</option>
                 ))}
               </select>
             </div>
-
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "12px" }}>
-              <span style={{
-                fontSize: "13px",
-                fontWeight: 600,
-                color: "var(--text-secondary)",
-              }}>
-                {members.length}件表示中
-              </span>
-              {(memberType !== "全て" || status !== "全て" || organizationId || q) && (
-                <button
-                  className="btn btn-secondary"
-                  type="button"
-                  onClick={handleReset}
-                  style={{ fontSize: "12px", padding: "4px 12px" }}
-                >
+            {/* Reset button */}
+            {(memberType !== "全て" || status !== "全て" || organizationId || q) && (
+              <div style={{ marginTop: 10 }}>
+                <button className="btn btn-secondary" type="button" onClick={handleReset}
+                  style={{ fontSize: 12, padding: '6px 12px', width: '100%' }}>
                   リセット
                 </button>
-              )}
+              </div>
+            )}
+          </div>
+        )
+      ) : (
+        /* Desktop: always-visible filter card */
+        <div className="card panel-card single-panel" style={{ marginBottom: "20px" }}>
+          <div className="card-body" style={{ padding: "20px" }}>
+            {/* Search bar */}
+            <div style={{ position: "relative", marginBottom: "16px" }}>
+              <span style={{
+                position: "absolute",
+                left: "14px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "var(--text-secondary)",
+                fontSize: "16px",
+                pointerEvents: "none",
+              }}>
+                &#x1F50D;
+              </span>
+              <input
+                type="text"
+                placeholder="氏名・フリガナ・会員番号・会社名で検索"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px 14px 12px 42px",
+                  border: "1px solid var(--line)",
+                  borderRadius: "var(--radius)",
+                  fontSize: "14px",
+                  background: "#fff",
+                  transition: "border-color 0.15s, box-shadow 0.15s",
+                }}
+              />
+            </div>
+
+            {/* Filter pills row: Member Type */}
+            <div style={{ marginBottom: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", marginRight: "4px" }}>種別</span>
+                {MEMBER_TYPE_FILTERS.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={`nl2-pill-tab${memberType === t ? " active" : ""}`}
+                    onClick={() => setMemberType(t)}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Filter pills row: Status */}
+            <div style={{ marginBottom: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", marginRight: "4px" }}>状態</span>
+                {STATUS_FILTERS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className={`nl2-pill-tab${status === s ? " active" : ""}`}
+                    onClick={() => setStatus(s)}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Filter row: Organization dropdown + count */}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>所属</span>
+                <select
+                  value={organizationId}
+                  onChange={(e) => setOrganizationId(e.target.value)}
+                  style={{
+                    padding: "5px 12px",
+                    borderRadius: "999px",
+                    border: organizationId ? "1px solid var(--primary)" : "1px solid var(--line)",
+                    background: organizationId ? "var(--primary)" : "#fff",
+                    color: organizationId ? "#fff" : "var(--text-secondary)",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    outline: "none",
+                  }}
+                >
+                  <option value="">全て</option>
+                  {orgOptions.map((opt) => (
+                    <option key={opt.id} value={opt.id}>{opt.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "12px" }}>
+                <span style={{
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "var(--text-secondary)",
+                }}>
+                  {members.length}件表示中
+                </span>
+                {(memberType !== "全て" || status !== "全て" || organizationId || q) && (
+                  <button
+                    className="btn btn-secondary"
+                    type="button"
+                    onClick={handleReset}
+                    style={{ fontSize: "12px", padding: "4px 12px" }}
+                  >
+                    リセット
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ── Error ── */}
       {error && (

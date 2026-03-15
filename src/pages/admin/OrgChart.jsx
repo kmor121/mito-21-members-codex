@@ -832,136 +832,202 @@ export default function OrgChart() {
       )}
 
       {/* ── Page header ── */}
-      <div className="page-header" style={{ marginBottom: 0 }}>
-        <h1 className="page-title" style={{ margin: 0 }}>組織図管理</h1>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button
-            className="btn btn-secondary"
-            type="button"
-            onClick={() => setShowCopyModal(true)}
-            style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="5" y="5" width="9" height="9" rx="1.5"/>
-              <path d="M3 11V3a1.5 1.5 0 011.5-1.5H11"/>
-            </svg>
-            前年度からコピー
-          </button>
-          <button
-            className="btn"
-            type="button"
-            onClick={openNewOrg}
-            style={{
-              background: "var(--primary)", color: "#fff", border: "none",
-              display: "flex", alignItems: "center", gap: 6, fontSize: 13,
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M8 3v10M3 8h10"/>
-            </svg>
-            新規組織追加
-          </button>
+      {isMobile ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0 12px' }}>
+          <h1 className="page-title" style={{ margin: 0 }}>組織図管理</h1>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              className="btn btn-secondary"
+              type="button"
+              onClick={() => setShowCopyModal(true)}
+              title="前年度からコピー"
+              style={{ width: 36, height: 36, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="5" y="5" width="9" height="9" rx="1.5"/>
+                <path d="M3 11V3a1.5 1.5 0 011.5-1.5H11"/>
+              </svg>
+            </button>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={openNewOrg}
+              title="新規組織追加"
+              style={{ width: 36, height: 36, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M8 3v10M3 8h10"/>
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="page-header" style={{ marginBottom: 0 }}>
+          <h1 className="page-title" style={{ margin: 0 }}>組織図管理</h1>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button
+              className="btn btn-secondary"
+              type="button"
+              onClick={() => setShowCopyModal(true)}
+              style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="5" y="5" width="9" height="9" rx="1.5"/>
+                <path d="M3 11V3a1.5 1.5 0 011.5-1.5H11"/>
+              </svg>
+              前年度からコピー
+            </button>
+            <button
+              className="btn"
+              type="button"
+              onClick={openNewOrg}
+              style={{
+                background: "var(--primary)", color: "#fff", border: "none",
+                display: "flex", alignItems: "center", gap: 6, fontSize: 13,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M8 3v10M3 8h10"/>
+              </svg>
+              新規組織追加
+            </button>
+          </div>
+        </div>
+      )}
 
-      {/* ── Year pill navigator ── */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
-        borderBottom: "1px solid var(--line-light)", marginBottom: 20,
-        overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none",
-        flexWrap: "nowrap",
-      }}>
-        <button type="button" onClick={() => goYear(-1)} disabled={currentIdx <= 0}
-          style={{
-            background: "none", border: "1px solid var(--line)", borderRadius: 6,
-            width: 32, height: 32, cursor: currentIdx <= 0 ? "default" : "pointer",
-            color: currentIdx <= 0 ? "var(--muted)" : "var(--text)", fontSize: 13,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "all var(--transition)",
-            opacity: currentIdx <= 0 ? 0.4 : 1,
-            pointerEvents: currentIdx <= 0 ? "none" : "auto",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
-        >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10 3L5 8l5 5"/>
-          </svg>
-        </button>
-        <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "nowrap" }}>
-          {sortedYears.map(fy => {
-            const isActive = fy.id === activeFiscalYearId;
-            return (
-              <button
-                key={fy.id}
-                type="button"
-                onClick={() => setSearchParams({ fiscalYearId: fy.id })}
-                style={{
-                  fontSize: 13, height: 32, padding: "0 18px", borderRadius: 20, border: "none",
-                  cursor: "pointer", fontWeight: isActive ? 600 : 400,
-                  background: isActive ? "var(--primary)" : "transparent",
-                  color: isActive ? "#fff" : "var(--text-secondary)",
-                  transition: "all var(--transition)",
-                }}
-                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--bg)"; }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
-              >
-                {fy.year_label || `${fy.year}年度`}
-              </button>
-            );
-          })}
+      {/* ── Year navigator ── */}
+      {isMobile ? (
+        /* Mobile: inline ◂ year ▸ switcher */
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "8px 0", borderBottom: "1px solid var(--line-light)", marginBottom: 16,
+        }}>
+          <button
+            type="button"
+            onClick={() => goYear(-1)}
+            disabled={currentIdx <= 0}
+            style={{
+              background: "none", border: "none", padding: "4px 8px",
+              fontSize: 16, cursor: currentIdx <= 0 ? "default" : "pointer",
+              color: currentIdx <= 0 ? "var(--muted)" : "var(--text)",
+              opacity: currentIdx <= 0 ? 0.3 : 1,
+            }}
+          >◂</button>
+          <span style={{ fontWeight: 600, fontSize: 14, color: "var(--text)" }}>
+            {sortedYears[currentIdx]?.year_label || (sortedYears[currentIdx]?.year ? `${sortedYears[currentIdx].year}年度` : "-")}
+          </span>
+          <button
+            type="button"
+            onClick={() => goYear(1)}
+            disabled={currentIdx >= sortedYears.length - 1}
+            style={{
+              background: "none", border: "none", padding: "4px 8px",
+              fontSize: 16, cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
+              color: currentIdx >= sortedYears.length - 1 ? "var(--muted)" : "var(--text)",
+              opacity: currentIdx >= sortedYears.length - 1 ? 0.3 : 1,
+            }}
+          >▸</button>
         </div>
-        <button type="button" onClick={() => goYear(1)} disabled={currentIdx >= sortedYears.length - 1}
-          style={{
-            background: "none", border: "1px solid var(--line)", borderRadius: 6,
-            width: 32, height: 32, cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
-            color: currentIdx >= sortedYears.length - 1 ? "var(--muted)" : "var(--text)", fontSize: 13,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "all var(--transition)",
-            opacity: currentIdx >= sortedYears.length - 1 ? 0.4 : 1,
-            pointerEvents: currentIdx >= sortedYears.length - 1 ? "none" : "auto",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
-        >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 3l5 5-5 5"/>
-          </svg>
-        </button>
+      ) : (
+        /* Desktop: full pill navigator */
+        <div style={{
+          display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
+          borderBottom: "1px solid var(--line-light)", marginBottom: 20,
+          overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none",
+          flexWrap: "nowrap",
+        }}>
+          <button type="button" onClick={() => goYear(-1)} disabled={currentIdx <= 0}
+            style={{
+              background: "none", border: "1px solid var(--line)", borderRadius: 6,
+              width: 32, height: 32, cursor: currentIdx <= 0 ? "default" : "pointer",
+              color: currentIdx <= 0 ? "var(--muted)" : "var(--text)", fontSize: 13,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "all var(--transition)",
+              opacity: currentIdx <= 0 ? 0.4 : 1,
+              pointerEvents: currentIdx <= 0 ? "none" : "auto",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 3L5 8l5 5"/>
+            </svg>
+          </button>
+          <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "nowrap" }}>
+            {sortedYears.map(fy => {
+              const isActive = fy.id === activeFiscalYearId;
+              return (
+                <button
+                  key={fy.id}
+                  type="button"
+                  onClick={() => setSearchParams({ fiscalYearId: fy.id })}
+                  style={{
+                    fontSize: 13, height: 32, padding: "0 18px", borderRadius: 20, border: "none",
+                    cursor: "pointer", fontWeight: isActive ? 600 : 400,
+                    background: isActive ? "var(--primary)" : "transparent",
+                    color: isActive ? "#fff" : "var(--text-secondary)",
+                    transition: "all var(--transition)",
+                  }}
+                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--bg)"; }}
+                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+                >
+                  {fy.year_label || `${fy.year}年度`}
+                </button>
+              );
+            })}
+          </div>
+          <button type="button" onClick={() => goYear(1)} disabled={currentIdx >= sortedYears.length - 1}
+            style={{
+              background: "none", border: "1px solid var(--line)", borderRadius: 6,
+              width: 32, height: 32, cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
+              color: currentIdx >= sortedYears.length - 1 ? "var(--muted)" : "var(--text)", fontSize: 13,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "all var(--transition)",
+              opacity: currentIdx >= sortedYears.length - 1 ? 0.4 : 1,
+              pointerEvents: currentIdx >= sortedYears.length - 1 ? "none" : "auto",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 3l5 5-5 5"/>
+            </svg>
+          </button>
 
-        <div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
-          <button type="button" onClick={expandAll}
-            title="すべて展開"
-            style={{
-              background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-              padding: "4px 8px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
-              display: "flex", alignItems: "center", gap: 4, transition: "all var(--transition)",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
-          >
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2 4l4 4 4-4"/>
-            </svg>
-            展開
-          </button>
-          <button type="button" onClick={collapseAll}
-            title="すべて閉じる"
-            style={{
-              background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-              padding: "4px 8px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
-              display: "flex", alignItems: "center", gap: 4, transition: "all var(--transition)",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
-          >
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2 8l4-4 4 4"/>
-            </svg>
-            閉じる
-          </button>
+          <div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
+            <button type="button" onClick={expandAll}
+              title="すべて展開"
+              style={{
+                background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
+                padding: "4px 8px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
+                display: "flex", alignItems: "center", gap: 4, transition: "all var(--transition)",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 4l4 4 4-4"/>
+              </svg>
+              展開
+            </button>
+            <button type="button" onClick={collapseAll}
+              title="すべて閉じる"
+              style={{
+                background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
+                padding: "4px 8px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
+                display: "flex", alignItems: "center", gap: 4, transition: "all var(--transition)",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 8l4-4 4 4"/>
+              </svg>
+              閉じる
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Empty state ── */}
       {orgTree.length === 0 ? (

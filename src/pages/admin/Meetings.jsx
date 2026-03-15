@@ -285,19 +285,53 @@ export default function Meetings() {
     <section className="admin-shell">
 
       {/* ── page header ── */}
-      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <h1 className="page-title">幹事会管理</h1>
-          <p className="page-description">幹事会の次第・議事録を管理</p>
+      {isMobile ? (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 0 12px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h1 className="page-title" style={{ margin: 0 }}>幹事会管理</h1>
+            {fiscalYears.length > 0 && (() => {
+              const selectedFY = fiscalYears.find(fy => fy.id === selectedFYId);
+              const idx = fiscalYears.findIndex(fy => fy.id === selectedFYId);
+              const canPrev = idx < fiscalYears.length - 1;
+              const canNext = idx > 0;
+              const yearLabel = selectedFY ? (selectedFY.year_label || `${selectedFY.year}年度`) : '';
+              return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <button type="button" disabled={!canPrev} onClick={() => canPrev && setSelectedFYId(fiscalYears[idx + 1].id)}
+                    style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canPrev ? 'var(--primary)' : 'var(--text-muted)', cursor: canPrev ? 'pointer' : 'default' }}>&#9666;</button>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{yearLabel}</span>
+                  <button type="button" disabled={!canNext} onClick={() => canNext && setSelectedFYId(fiscalYears[idx - 1].id)}
+                    style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canNext ? 'var(--primary)' : 'var(--text-muted)', cursor: canNext ? 'pointer' : 'default' }}>&#9656;</button>
+                </div>
+              );
+            })()}
+          </div>
+          <button type="button" onClick={() => setShowCreateModal(true)} style={{
+            width: 36, height: 36, borderRadius: 'var(--radius)', border: 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'var(--primary)', cursor: 'pointer', color: '#fff', flexShrink: 0,
+          }}>
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+          </button>
         </div>
-        <button type="button" className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-          新規作成
-        </button>
-      </div>
+      ) : (
+        <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <h1 className="page-title">幹事会管理</h1>
+            <p className="page-description">幹事会の次第・議事録を管理</p>
+          </div>
+          <button type="button" className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+            新規作成
+          </button>
+        </div>
+      )}
 
       {/* ── FY navigation ── */}
-      {fiscalYears.length > 0 && (
+      {!isMobile && fiscalYears.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <YearPillNav
             fiscalYears={fiscalYears}
@@ -310,7 +344,7 @@ export default function Meetings() {
 
       {/* ── summary stats ── */}
       {isMobile ? (
-        <div className="stat-chip-bar" style={{ marginBottom: 16 }}>
+        <div className="stat-chip-bar" style={{ marginBottom: 8 }}>
           <span className="stat-chip">開催済み <span className="stat-chip-value" style={{ color: 'var(--success)' }}>{stats.confirmed}</span></span>
           <span className="stat-chip">予定 <span className="stat-chip-value">{stats.draft}</span></span>
           <span className="stat-chip">議題合計 <span className="stat-chip-value" style={{ color: 'var(--text-secondary)' }}>{stats.agendaTotal}</span></span>
