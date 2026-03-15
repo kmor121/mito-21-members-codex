@@ -11,9 +11,14 @@ export default function RegistrationGuide() {
   const html = `
 <!-- HEADER -->
 <div class="rg-header">
-  <div class="rg-header-logo">21</div>
-  <h1>会員アプリ ご利用ガイド</h1>
-  <p>新規登録・ログイン・パスワード再設定の手順</p>
+  <div class="rg-header-left">
+    <div class="rg-header-logo">21</div>
+    <div>
+      <h1>会員アプリ ご利用ガイド</h1>
+      <p>新規登録・ログイン・パスワード再設定の手順</p>
+    </div>
+  </div>
+  <a href="/signin" class="rg-header-login">ログインへ →</a>
 </div>
 
 <div class="rg-container">
@@ -463,6 +468,19 @@ export default function RegistrationGuide() {
     </div>
   </div>
 
+  <!-- CTA -->
+  <div class="rg-card" style="text-align: center; margin-bottom: 16px;">
+    <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--rg-text);">
+      準備はできましたか？
+    </div>
+    <div style="font-size: 14px; color: var(--rg-text-secondary); margin-bottom: 20px;">
+      さっそくアカウントを作成して、会員アプリをご利用ください。
+    </div>
+    <a href="/signin" style="display: inline-block; padding: 14px 40px; background: var(--rg-primary); color: white; border-radius: 8px; font-size: 15px; font-weight: 600; text-decoration: none;">
+      ログイン・新規登録へ
+    </a>
+  </div>
+
   <!-- お問い合わせ -->
   <div class="rg-card" style="text-align: center; background: var(--rg-primary-light); border-color: transparent;">
     <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--rg-primary-dark);">
@@ -520,24 +538,50 @@ export default function RegistrationGuide() {
         .rg-header {
           background: white;
           border-bottom: 1px solid var(--rg-border);
-          padding: 32px 24px;
-          text-align: center;
+          padding: 20px 24px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          max-width: 780px;
+          margin: 0 auto;
+        }
+        .rg-header-left {
+          display: flex;
+          align-items: center;
+          gap: 16px;
         }
         .rg-header-logo {
-          width: 64px; height: 64px;
+          width: 48px; height: 48px;
           background: var(--rg-primary);
-          border-radius: 16px;
+          border-radius: 12px;
           display: inline-flex; align-items: center; justify-content: center;
-          color: white; font-size: 28px; font-weight: 700;
-          margin-bottom: 16px;
+          color: white; font-size: 22px; font-weight: 700;
+          flex-shrink: 0;
         }
         .rg-header h1 {
-          font-size: 22px; font-weight: 700; color: var(--rg-text);
-          margin: 0 0 4px;
+          font-size: 18px; font-weight: 700; color: var(--rg-text);
+          margin: 0 0 2px;
         }
         .rg-header p {
-          font-size: 14px; color: var(--rg-text-secondary);
+          font-size: 12px; color: var(--rg-text-secondary);
           margin: 0;
+        }
+        .rg-header-login {
+          display: inline-flex;
+          align-items: center;
+          padding: 8px 20px;
+          background: var(--rg-primary);
+          color: white;
+          border-radius: var(--rg-radius-sm);
+          font-size: 13px;
+          font-weight: 600;
+          text-decoration: none;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+        .rg-header-login:hover {
+          opacity: 0.9;
         }
 
         /* ── Container ── */
