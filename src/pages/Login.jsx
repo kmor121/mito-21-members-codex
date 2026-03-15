@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { auth, FUNCTION_BASE } from "../api/base44Client";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 
 const inputStyle = {
   width: "100%", padding: "10px 12px", fontSize: 14,
@@ -246,6 +246,13 @@ export default function Login() {
               }}>
                 新規登録はこちら
               </button>
+            </div>
+            <div style={{ textAlign: "center", marginTop: 10 }}>
+              <Link to="/guide" style={{
+                color: "#6366f1", fontSize: 13, textDecoration: "underline",
+              }}>
+                はじめての方へ（ご利用ガイド）
+              </Link>
             </div>
           </>
         )}

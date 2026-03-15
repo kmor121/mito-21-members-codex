@@ -18,6 +18,7 @@ const Landing = lazy(() => import('./pages/public/Landing'));
 const Apply = lazy(() => import('./pages/public/Apply'));
 const ApplyConfirm = lazy(() => import('./pages/public/ApplyConfirm'));
 const ApplyComplete = lazy(() => import('./pages/public/ApplyComplete'));
+const RegistrationGuide = lazy(() => import('./pages/public/RegistrationGuide'));
 
 // Admin pages
 const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
@@ -80,6 +81,9 @@ export default function App() {
             <Route path="/signin" element={
               <PublicOnlyRoute><Login /></PublicOnlyRoute>
             } />
+
+            {/* Public routes - no auth required (standalone, no layout) */}
+            <Route path="/guide" element={<RegistrationGuide />} />
 
             {/* Public routes - no auth required */}
             <Route element={<PublicLayout />}>
