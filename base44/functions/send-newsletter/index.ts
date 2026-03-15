@@ -67,9 +67,10 @@ Deno.serve(async (req) => {
     const scheduledAt = normalize(newsletter.scheduled_at);
     const channel = normalize(newsletter.channel) || "email";
 
-    // Parse attachments (supports base64 file attachments)
+    // Parse attachments (supports base64 file attachments + URL links)
     // Priority: request body > entity field (body is more reliable for large base64 data)
     let attachments: Array<Record<string, unknown>> = [];
+    let urlLinks: Array<Record<string, unknown>> = [];
     const attachmentsSources = [
       normalize(body?.attachments_json),
       normalize(newsletter.attachments_json),
@@ -79,6 +80,15 @@ Deno.serve(async (req) => {
       try {
         const parsed = JSON.parse(src);
         if (Array.isArray(parsed)) {
+          // Extract URL link entries
+          const linkItems = parsed.filter((a: Record<string, unknown>) => a.url);
+          if (linkItems.length > 0 && urlLinks.length === 0) {
+            urlLinks = linkItems.map((a: Record<string, unknown>) => ({
+              name: String(a.name || ""),
+              url: String(a.url || ""),
+            }));
+          }
+          // Extract file attachments
           const filtered = parsed
             .filter((a: Record<string, unknown>) => a.filename && a.content)
             .map((a: Record<string, unknown>) => {
@@ -93,12 +103,25 @@ Deno.serve(async (req) => {
                 content,
               };
             });
-          if (filtered.length > 0) {
+          if (filtered.length > 0 && attachments.length === 0) {
             attachments = filtered;
-            break; // use first valid source
           }
+          if (attachments.length > 0 || urlLinks.length > 0) break;
         }
       } catch { /* ignore */ }
+    }
+
+    // Build URL links HTML section to append to email body
+    function buildUrlLinksHtml(links: Array<Record<string, unknown>>): string {
+      if (links.length === 0) return "";
+      const items = links
+        .map((l) => {
+          const url = String(l.url || "");
+          const name = String(l.name || "") || url;
+          return `<p style="margin:4px 0;"><a href="${url}" style="color:#534AB7;text-decoration:underline;">${name}</a></p>`;
+        })
+        .join("");
+      return `<div style="margin-top:20px;padding:16px;background:#f5f5f5;border-radius:8px;"><p style="margin:0 0 8px;font-weight:600;font-size:14px;">\u{1F4CE} 添付リンク</p>${items}</div>`;
     }
 
     // Log attachment info for debugging
@@ -118,10 +141,11 @@ Deno.serve(async (req) => {
       };
       if (bodyHtml) {
         const { html: convertedHtml, inlineAttachments } = convertInlineImages(bodyHtml);
-        emailPayloadTest.html = convertedHtml;
+        emailPayloadTest.html = convertedHtml + buildUrlLinksHtml(urlLinks);
         const allAtt = [...attachments, ...inlineAttachments];
         if (allAtt.length > 0) emailPayloadTest.attachments = allAtt;
       } else {
+        if (urlLinks.length > 0) emailPayloadTest.html = buildUrlLinksHtml(urlLinks);
         if (attachments.length > 0) emailPayloadTest.attachments = attachments;
       }
 
@@ -241,8 +265,10 @@ Deno.serve(async (req) => {
     let allAttachments = [...attachments];
     if (bodyHtml) {
       const { html: convertedHtml, inlineAttachments } = convertInlineImages(bodyHtml);
-      sendHtml = convertedHtml;
+      sendHtml = convertedHtml + buildUrlLinksHtml(urlLinks);
       allAttachments = [...attachments, ...inlineAttachments];
+    } else if (urlLinks.length > 0) {
+      sendHtml = buildUrlLinksHtml(urlLinks);
     }
 
     // Send emails via Resend API in batches

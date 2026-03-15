@@ -5,7 +5,7 @@ import ToastContainer from './components/common/Toast';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
-import { ProtectedRoute, AdminRoute, PublicOnlyRoute, RootRedirect } from './components/auth/RouteGuards';
+import { ProtectedRoute, AdminRoute, LinkedMemberRoute, PublicOnlyRoute, RootRedirect } from './components/auth/RouteGuards';
 import PublicLayout from './components/layout/PublicLayout';
 import AdminLayout from './components/layout/AdminLayout';
 import MemberLayout from './components/layout/MemberLayout';
@@ -34,6 +34,8 @@ const Documents = lazy(() => import('./pages/admin/Documents'));
 const DocumentEditor = lazy(() => import('./pages/admin/DocumentEditor'));
 const ApplicationDetail = lazy(() => import('./pages/admin/ApplicationDetail'));
 const MemberCreate = lazy(() => import('./pages/admin/MemberCreate'));
+const Meetings = lazy(() => import('./pages/admin/Meetings'));
+const MeetingDetail = lazy(() => import('./pages/admin/MeetingDetail'));
 
 // Member pages
 const Directory = lazy(() => import('./pages/member/Directory'));
@@ -42,6 +44,9 @@ const MyPage = lazy(() => import('./pages/member/MyPage'));
 const BasicInfo = lazy(() => import('./pages/member/BasicInfo'));
 const OrgChartView = lazy(() => import('./pages/member/OrgChartView'));
 const Manual = lazy(() => import('./pages/member/Manual'));
+const MeetingsView = lazy(() => import('./pages/member/MeetingsView'));
+const MemberApplicationsView = lazy(() => import('./pages/member/MemberApplicationsView'));
+const MemberDuesView = lazy(() => import('./pages/member/MemberDuesView'));
 
 function PageFallback() {
   return (
@@ -107,16 +112,21 @@ export default function App() {
               <Route path="/admin/documents" element={<Documents />} />
               <Route path="/admin/documents/new" element={<DocumentEditor />} />
               <Route path="/admin/documents/:documentId/edit" element={<DocumentEditor />} />
+              <Route path="/admin/meetings" element={<Meetings />} />
+              <Route path="/admin/meetings/:meetingId" element={<MeetingDetail />} />
             </Route>
 
-            {/* Member routes - requires authentication */}
-            <Route element={<ProtectedRoute><MemberLayout /></ProtectedRoute>}>
+            {/* Member routes - requires authentication + member linkage */}
+            <Route element={<LinkedMemberRoute><MemberLayout /></LinkedMemberRoute>}>
               <Route path="/directory" element={<Directory />} />
               <Route path="/directory/members/:memberId" element={<MemberProfile />} />
               <Route path="/mypage" element={<MyPage />} />
               <Route path="/info" element={<BasicInfo />} />
               <Route path="/organization" element={<OrgChartView />} />
               <Route path="/manual" element={<Manual />} />
+              <Route path="/meetings" element={<MeetingsView />} />
+              <Route path="/member/applications" element={<MemberApplicationsView />} />
+              <Route path="/member/dues-overview" element={<MemberDuesView />} />
             </Route>
 
             {/* Catch-all */}

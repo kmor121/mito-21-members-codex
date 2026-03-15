@@ -1,0 +1,4 @@
+{
+  "name": "update-user-role",
+  "entry": "index.ts"
+}

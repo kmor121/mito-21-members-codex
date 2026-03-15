@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { apiRequest, base44 } from '../../api/base44Client';
 import DatePicker from '../../components/ui/DatePicker';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { fullName, fullNameKana, nameInitial } from '../../utils/formatName';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 /* ── helpers ── */
 function displayValue(v) {
@@ -75,7 +77,7 @@ function StatusBadge({ status, large }) {
   return (
     <span style={{
       display: "inline-block", padding: large ? "5px 14px" : "3px 10px",
-      borderRadius: "999px", fontSize: large ? 13 : 11, fontWeight: 600,
+      borderRadius: "999px", fontSize: large ? 13 : 12, fontWeight: 600,
       background: s.bg, color: s.color, whiteSpace: "nowrap",
     }}>
       {status || "-"}
@@ -99,16 +101,16 @@ function SectionCard({ title, icon, children }) {
 }
 
 /* ── Info grid (label/value pairs) ── */
-function InfoGrid({ items }) {
+function InfoGrid({ items, singleColumn }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+    <div style={{ display: "grid", gridTemplateColumns: singleColumn ? "1fr" : "repeat(2, 1fr)", gap: 12 }}>
       {items.map((item, i) => item && (
         <div key={i} style={{
           padding: "10px 12px", borderRadius: "var(--radius)",
           background: "var(--line-light)", border: "1px solid var(--line)",
           gridColumn: item.span2 ? "span 2" : undefined,
         }}>
-          <dt style={{ fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4 }}>
+          <dt style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4 }}>
             {item.label}
           </dt>
           <dd style={{ fontSize: 13, fontWeight: 600, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
@@ -158,6 +160,7 @@ function MemberTypePills({ value, onChange }) {
 export default function ApplicationDetail() {
   const { applicationId } = useParams();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -297,10 +300,10 @@ export default function ApplicationDetail() {
         <span style={{
           display: "inline-flex", alignItems: "center", gap: 4,
           padding: "3px 10px", borderRadius: "var(--radius-sm)",
-          background: "#ecfdf5", color: "#059669", fontSize: 11, fontWeight: 600,
+          background: "#ecfdf5", color: "#059669", fontSize: 12, fontWeight: 600,
         }}>
           <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
-          {arr.map(x => `${x.name_kanji}${x.member_number ? " (" + x.member_number + ")" : ""}`).join(", ")} と一致
+          {arr.map(x => `${x.last_name || ""}${x.first_name ? " " + x.first_name : ""}${!x.last_name && !x.first_name ? (x.name_kanji || "-") : ""}${x.member_number ? " (" + x.member_number + ")" : ""}`).join(", ")} と一致
         </span>
       );
     }
@@ -308,7 +311,7 @@ export default function ApplicationDetail() {
       <span style={{
         display: "inline-flex", alignItems: "center", gap: 4,
         padding: "3px 10px", borderRadius: "var(--radius-sm)",
-        background: "#fffbeb", color: "#d97706", fontSize: 11, fontWeight: 600,
+        background: "#fffbeb", color: "#d97706", fontSize: 12, fontWeight: 600,
       }}>
         <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         一致する会員が見つかりません
@@ -320,7 +323,7 @@ export default function ApplicationDetail() {
     <section className="admin-shell" style={{ maxWidth: 1080, margin: "0 auto", paddingBottom: isPending ? 100 : 24 }}>
       {/* Toast */}
       {toast && (
-        <div className="nl2-toast nl2-toast-enter" style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999 }}>
+        <div className="nl2-toast">
           <span className="nl2-toast-icon">&#x2713;</span>
           <span>{toast}</span>
         </div>
@@ -336,7 +339,7 @@ export default function ApplicationDetail() {
           >
             <div className="modal-header" style={{ padding: "20px 24px" }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>入会を承認</h3>
-              <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{detail.name_kanji}</span>
+              <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{fullName(detail)}</span>
             </div>
             <div className="modal-body" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20, overflow: "visible" }}>
               {/* Member type pills */}
@@ -403,7 +406,7 @@ export default function ApplicationDetail() {
           >
             <div className="modal-header" style={{ padding: "20px 24px" }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--error)" }}>入会申込を却下</h3>
-              <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{detail.name_kanji}</span>
+              <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{fullName(detail)}</span>
             </div>
             <div className="modal-body" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
@@ -417,7 +420,7 @@ export default function ApplicationDetail() {
                   placeholder="却下理由を入力してください（申込者に通知されます）"
                   style={{ width: "100%", fontFamily: "inherit", resize: "vertical" }}
                 />
-                <div style={{ textAlign: "right", fontSize: 11, color: "var(--muted)", marginTop: 4 }}>
+                <div style={{ textAlign: "right", fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
                   {rejectionReason.length} 文字
                 </div>
               </div>
@@ -491,8 +494,8 @@ export default function ApplicationDetail() {
       <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{displayValue(detail.name_kanji)}</h1>
-            <span style={{ fontSize: 13, color: "var(--muted)" }}>{displayValue(detail.name_kana)}</span>
+            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{displayValue(fullName(detail))}</h1>
+            <span style={{ fontSize: 13, color: "var(--muted)" }}>{displayValue(fullNameKana(detail))}</span>
             <StatusBadge status={detail.approval_status} large />
           </div>
           {detail.applied_at && (
@@ -521,15 +524,15 @@ export default function ApplicationDetail() {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 28, fontWeight: 700, color: "var(--primary)",
               }}>
-                {(detail.name_kanji || "M").charAt(0)}
+                {nameInitial(detail)}
               </div>
             )}
           </div>
           {/* Info grid */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <InfoGrid items={[
-              { label: "氏名", value: displayValue(detail.name_kanji) },
-              { label: "フリガナ", value: displayValue(detail.name_kana) },
+            <InfoGrid singleColumn={isMobile} items={[
+              { label: "氏名", value: displayValue(fullName(detail)) },
+              { label: "フリガナ", value: displayValue(fullNameKana(detail)) },
               { label: "生年月日", value: displayValue(detail.birthday) },
             ]} />
           </div>
@@ -538,7 +541,7 @@ export default function ApplicationDetail() {
 
       {/* ══ Company info card ══ */}
       <SectionCard title="会社情報" icon={<BuildingIcon />}>
-        <InfoGrid items={[
+        <InfoGrid singleColumn={isMobile} items={[
           { label: "会社名", value: displayValue(detail.company_name) },
           { label: "役職", value: displayValue(detail.company_position) },
           { label: "業種", value: displayValue(detail.industry) },
@@ -554,7 +557,7 @@ export default function ApplicationDetail() {
 
       {/* ══ Contact card ══ */}
       <SectionCard title="連絡先" icon={<MailIcon />}>
-        <InfoGrid items={[
+        <InfoGrid singleColumn={isMobile} items={[
           { label: "メールアドレス", value: displayValue(detail.email) },
           { label: "携帯番号", value: displayValue(detail.mobile_phone) },
           { label: "メール掲載", value: boolMark(detail.show_email_in_directory) },
@@ -565,7 +568,7 @@ export default function ApplicationDetail() {
       {/* ══ Home info card ══ */}
       {(detail.home_address || detail.home_phone || detail.home_postal_code) && (
         <SectionCard title="自宅情報" icon={<HomeIcon />}>
-          <InfoGrid items={[
+          <InfoGrid singleColumn={isMobile} items={[
             (detail.home_postal_code || detail.home_address) ? {
               label: "住所", span2: true,
               value: [detail.home_postal_code ? `〒${detail.home_postal_code}` : "", detail.home_address].filter(Boolean).join(" "),
@@ -579,7 +582,7 @@ export default function ApplicationDetail() {
       {/* ══ Other card ══ */}
       {detail.hobbies && (
         <SectionCard title="その他" icon={<NoteIcon />}>
-          <InfoGrid items={[
+          <InfoGrid singleColumn={isMobile} items={[
             { label: "趣味・信条", value: detail.hobbies, span2: true },
           ]} />
         </SectionCard>
@@ -596,7 +599,7 @@ export default function ApplicationDetail() {
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
           }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>紹介者 1</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>紹介者 1</div>
               <div style={{ fontSize: 14, fontWeight: 600 }}>{displayValue(detail.referrer_1)}</div>
             </div>
             {detail.referrer_1 && renderRefBadge("referrer_1")}
@@ -610,7 +613,7 @@ export default function ApplicationDetail() {
               display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
             }}>
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>紹介者 2</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>紹介者 2</div>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>{displayValue(detail.referrer_2)}</div>
               </div>
               {renderRefBadge("referrer_2")}
@@ -693,7 +696,7 @@ export default function ApplicationDetail() {
               placeholder="却下理由を入力してください（申込者に通知されます）"
               style={{ width: "100%", fontFamily: "inherit", resize: "vertical" }}
             />
-            <div style={{ textAlign: "right", fontSize: 11, color: "var(--muted)", marginTop: 4 }}>
+            <div style={{ textAlign: "right", fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
               {rejectionReason.length} 文字
             </div>
           </div>

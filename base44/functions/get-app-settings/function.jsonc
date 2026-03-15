@@ -1,0 +1,4 @@
+{
+  "name": "get-app-settings",
+  "entry": "index.ts"
+}

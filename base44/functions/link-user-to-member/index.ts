@@ -25,23 +25,24 @@ Deno.serve(async (req) => {
     }
 
     const member = members[0];
+    const memberAppRole = member.app_role || "member";
 
-    // Already linked to this user
-    if (member.user_id === user.id) {
-      return Response.json({ ok: true, linked: false, reason: "already_linked" });
-    }
-
-    // Already linked to a different user
-    if (member.user_id) {
+    // Link if not yet linked
+    if (!member.user_id) {
+      await base44.asServiceRole.entities.Member.update(member.id, { user_id: user.id });
+    } else if (member.user_id !== user.id) {
       return Response.json({ ok: true, linked: false, reason: "linked_to_other" });
     }
 
-    // Link: update both Member and User
-    await base44.asServiceRole.entities.Member.update(member.id, { user_id: user.id });
-    await base44.auth.updateMe({ member_id: member.id });
+    // Always sync User.data.app_role from Member.app_role
+    try {
+      await base44.auth.updateMe({ member_id: member.id, app_role: memberAppRole });
+    } catch (e: any) {
+      console.warn("[link-user-to-member] updateMe failed (non-critical):", e.message);
+    }
 
-    return Response.json({ ok: true, linked: true, member_id: member.id });
-  } catch (error) {
+    return Response.json({ ok: true, linked: true, member_id: member.id, app_role: memberAppRole });
+  } catch (error: any) {
     console.error("[link-user-to-member]", error);
     return Response.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }

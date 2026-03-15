@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { base44 } from '../../api/base44Client';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { base44, apiRequest } from '../../api/base44Client';
+import { SkeletonCard } from '../../components/ui/Skeleton';
+import DatePicker from '../../components/ui/DatePicker';
+import { fullName, fullNameKana } from '../../utils/formatName';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 function displayValue(v) {
   if (v === null || v === undefined || v === "") return "-";
@@ -17,9 +20,9 @@ const STATUS_TABS = [
 ];
 
 const STATUS_BADGE = {
-  "申請中": { bg: "#fffbeb", color: "#d97706" },
-  "承認済": { bg: "#ecfdf5", color: "#059669" },
-  "却下":   { bg: "#fee2e2", color: "#991b1b" },
+  "申請中": { bg: "#fffbeb", color: "#d97706", border: "#fde68a" },
+  "承認済": { bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" },
+  "却下":   { bg: "#fee2e2", color: "#991b1b", border: "#fecaca" },
 };
 
 function useDebounce(value, delay) {
@@ -32,31 +35,91 @@ function useDebounce(value, delay) {
 }
 
 function renderStatusBadge(status) {
-  const style = STATUS_BADGE[status] || { bg: "#f1f5f9", color: "#64748b" };
+  const style = STATUS_BADGE[status] || { bg: "#f1f5f9", color: "#64748b", border: "#e2e8f0" };
   return (
     <span style={{
-      display: "inline-block",
-      padding: "3px 10px",
-      borderRadius: "999px",
-      fontSize: "11px",
-      fontWeight: 600,
-      background: style.bg,
-      color: style.color,
+      display: "inline-flex", alignItems: "center", gap: 4,
+      padding: "3px 10px", borderRadius: "999px",
+      fontSize: "12px", fontWeight: 600,
+      background: style.bg, color: style.color,
+      border: `1px solid ${style.border}`,
       whiteSpace: "nowrap",
     }}>
+      <span style={{
+        width: 6, height: 6, borderRadius: "50%",
+        background: style.color, flexShrink: 0,
+      }} />
       {status || "-"}
     </span>
   );
 }
 
+/* ── Member type selector pills ── */
+const MEMBER_TYPE_OPTIONS = [
+  { value: "正会員", color: "#4f46e5", bg: "#eef2ff" },
+  { value: "賛助会員", color: "#059669", bg: "#ecfdf5" },
+  { value: "名誉顧問", color: "#d97706", bg: "#fffbeb" },
+];
+
+function MemberTypePills({ value, onChange }) {
+  return (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      {MEMBER_TYPE_OPTIONS.map((opt) => {
+        const active = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            style={{
+              padding: "8px 20px", borderRadius: "999px", fontSize: 14, fontWeight: 600,
+              border: active ? `2px solid ${opt.color}` : "2px solid var(--line)",
+              background: active ? opt.bg : "#fff",
+              color: active ? opt.color : "var(--text-secondary)",
+              cursor: "pointer", transition: "all 0.15s",
+            }}
+          >
+            {opt.value}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
 export default function Applications() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isViewMode = searchParams.get('mode') === 'view';
+  const isMobile = useIsMobile();
   const [allMembers, setAllMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("申請中");
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
+
+  /* toast */
+  const [toast, setToast] = useState(null);
+  function showToast(msg, type = "success") {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  }
+
+  /* approve modal state */
+  const [approveTarget, setApproveTarget] = useState(null);
+  const [memberType, setMemberType] = useState("正会員");
+  const [memberNumber, setMemberNumber] = useState("");
+  const [joinDate, setJoinDate] = useState(todayStr());
+  const [approveSubmitting, setApproveSubmitting] = useState(false);
+  const [approveError, setApproveError] = useState("");
+
+  /* reject modal state */
+  const [rejectTarget, setRejectTarget] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [rejectSubmitting, setRejectSubmitting] = useState(false);
 
   const loadPending = useCallback(async () => {
     setError("");
@@ -83,7 +146,7 @@ export default function Applications() {
     return allMembers.filter((m) => {
       const statusPass = statusFilter === "all" || m.approval_status === statusFilter;
       const q = debouncedSearch.toLowerCase();
-      const searchPass = !q || [m.name_kanji, m.name_kana, m.company_name].some(v => v && String(v).toLowerCase().includes(q));
+      const searchPass = !q || [m.last_name, m.first_name, m.last_name_kana, m.first_name_kana, m.company_name].some(v => v && String(v).toLowerCase().includes(q));
       return statusPass && searchPass;
     });
   }, [allMembers, statusFilter, debouncedSearch]);
@@ -97,12 +160,241 @@ export default function Applications() {
     return counts;
   }, [allMembers]);
 
+  /* ── Open approve modal ── */
+  async function openApproveModal(item, e) {
+    e.stopPropagation();
+    setApproveError("");
+    setMemberType(item.member_type || "正会員");
+    setJoinDate(todayStr());
+    try {
+      const res = await apiRequest("generate-member-number").catch(() => ({}));
+      setMemberNumber(res.suggested_number || res.member_number || "");
+    } catch {
+      setMemberNumber("");
+    }
+    setApproveTarget(item);
+  }
+
+  async function confirmApprove() {
+    if (!memberNumber.trim()) {
+      setApproveError("会員番号を入力してください。");
+      return;
+    }
+    setApproveSubmitting(true);
+    setApproveError("");
+    try {
+      await apiRequest("approve-member", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: approveTarget.id,
+          member_type: memberType,
+          member_number: memberNumber.trim(),
+        }),
+      });
+      showToast("承認しました");
+      setApproveTarget(null);
+      loadPending();
+    } catch (err) {
+      setApproveError(err.message || "承認に失敗しました。");
+    } finally {
+      setApproveSubmitting(false);
+    }
+  }
+
+  /* ── Open reject modal ── */
+  function openRejectModal(item, e) {
+    e.stopPropagation();
+    setRejectionReason("");
+    setRejectTarget(item);
+  }
+
+  async function confirmReject() {
+    setRejectSubmitting(true);
+    try {
+      await apiRequest("reject-member", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: rejectTarget.id, rejection_reason: rejectionReason.trim() }),
+      });
+      showToast("却下しました");
+      setRejectTarget(null);
+      loadPending();
+    } catch (err) {
+      showToast(err.message || "却下に失敗しました。", "error");
+    } finally {
+      setRejectSubmitting(false);
+    }
+  }
+
   return (
     <section className="admin-shell">
+      {/* Toast */}
+      {toast && (
+        <div className={`nl2-toast${toast.type === "error" ? " nl2-toast-error" : ""}`}>
+          <span className="nl2-toast-icon">{toast.type === "error" ? "\u2717" : "\u2713"}</span>
+          <span>{toast.msg}</span>
+        </div>
+      )}
+
+      {/* ══ Approve Modal ══ */}
+      {approveTarget && (
+        <div className="confirm-overlay" onClick={() => setApproveTarget(null)}>
+          <div
+            className="modal-dialog"
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: 480, borderRadius: "var(--radius-xl)", overflow: "visible", animation: "fadeIn 0.15s ease" }}
+          >
+            <div className="modal-header" style={{ padding: "20px 24px" }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>入会申込を承認しますか？</h3>
+            </div>
+            <div className="modal-body" style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 20, overflow: "visible" }}>
+              {/* Applicant summary */}
+              <div style={{
+                padding: "12px 16px", borderRadius: "var(--radius)",
+                background: "var(--line-light)", border: "1px solid var(--line)",
+                display: "grid", gap: 4,
+              }}>
+                <div style={{ fontSize: 13 }}>
+                  <span style={{ color: "var(--text-secondary)", marginRight: 8 }}>申込者:</span>
+                  <span style={{ fontWeight: 600 }}>{fullName(approveTarget)}</span>
+                </div>
+                <div style={{ fontSize: 13 }}>
+                  <span style={{ color: "var(--text-secondary)", marginRight: 8 }}>メール:</span>
+                  <span>{approveTarget.email || "-"}</span>
+                </div>
+              </div>
+
+              {/* Member type pills */}
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>会員種別</label>
+                <MemberTypePills value={memberType} onChange={setMemberType} />
+              </div>
+              {/* Member number */}
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>会員番号</label>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    type="text"
+                    value={memberNumber}
+                    onChange={(e) => setMemberNumber(e.target.value)}
+                    style={{ flex: 1 }}
+                    placeholder="自動採番済み"
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ fontSize: 12, padding: "6px 14px", whiteSpace: "nowrap" }}
+                    onClick={async () => {
+                      try {
+                        const res = await apiRequest("generate-member-number");
+                        setMemberNumber(res.suggested_number || res.member_number || memberNumber);
+                      } catch {}
+                    }}
+                  >
+                    自動採番
+                  </button>
+                </div>
+              </div>
+              {/* Join date */}
+              <div style={{ overflow: "visible" }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>入会日</label>
+                <DatePicker value={joinDate} onChange={setJoinDate} />
+              </div>
+
+              <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0, lineHeight: 1.6 }}>
+                ※ 承認すると会員として登録され、会費レコードが自動生成されます。
+              </p>
+
+              {approveError && (
+                <div style={{ padding: "8px 12px", borderRadius: "var(--radius)", background: "#fee2e2", color: "#991b1b", fontSize: 13 }}>
+                  {approveError}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "16px 24px" }}>
+              <button className="btn btn-secondary" onClick={() => setApproveTarget(null)}>キャンセル</button>
+              <button
+                className="btn btn-primary"
+                style={{ display: "flex", alignItems: "center", gap: 6 }}
+                onClick={confirmApprove}
+                disabled={approveSubmitting}
+              >
+                {approveSubmitting ? (
+                  <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> 承認中...</>
+                ) : "承認する"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ Reject Modal ══ */}
+      {rejectTarget && (
+        <div className="confirm-overlay" onClick={() => setRejectTarget(null)}>
+          <div
+            className="modal-dialog"
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: 480, borderRadius: "var(--radius-xl)", animation: "fadeIn 0.15s ease" }}
+          >
+            <div className="modal-header" style={{ padding: "20px 24px" }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--error)" }}>入会申込を却下しますか？</h3>
+            </div>
+            <div className="modal-body" style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+              <div style={{
+                padding: "12px 16px", borderRadius: "var(--radius)",
+                background: "var(--line-light)", border: "1px solid var(--line)",
+                fontSize: 13,
+              }}>
+                <span style={{ color: "var(--text-secondary)", marginRight: 8 }}>申込者:</span>
+                <span style={{ fontWeight: 600 }}>{fullName(rejectTarget)}</span>
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
+                  却下理由（任意）
+                </label>
+                <textarea
+                  rows={3}
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="却下理由を入力してください（申込者に通知されます）"
+                  style={{ width: "100%", fontFamily: "inherit", resize: "vertical" }}
+                />
+                <div style={{ textAlign: "right", fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                  {rejectionReason.length} 文字
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "16px 24px" }}>
+              <button className="btn btn-secondary" onClick={() => setRejectTarget(null)}>キャンセル</button>
+              <button
+                className="btn"
+                style={{
+                  background: "var(--error)", color: "#fff", border: "none",
+                  opacity: rejectSubmitting ? 0.6 : 1,
+                  display: "flex", alignItems: "center", gap: 6,
+                }}
+                onClick={confirmReject}
+                disabled={rejectSubmitting}
+              >
+                {rejectSubmitting ? (
+                  <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2, borderTopColor: "#fff", borderColor: "rgba(255,255,255,0.3)" }} /> 却下中...</>
+                ) : "却下する"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Page Header */}
-      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <h1 className="page-title" style={{ margin: 0 }}>入会申込管理</h1>
+      {isViewMode && (
+        <div style={{ marginBottom: 8 }}>
+          <Link to="/admin/meetings" className="text-link" style={{ fontSize: 13 }}>&larr; 幹事会に戻る</Link>
+        </div>
+      )}
+      <div className="page-header" style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: isMobile ? 8 : 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <h1 className="page-title" style={{ margin: 0 }}>入会申込管理{isViewMode ? "（閲覧モード）" : ""}</h1>
           {!loading && statusCounts["申請中"] > 0 && (
             <span style={{
               display: "inline-flex",
@@ -192,7 +484,11 @@ export default function Applications() {
 
       {/* Table */}
       {loading ? (
-        <LoadingSpinner />
+        <div style={{ display: "grid", gap: 12 }}>
+          <SkeletonCard height={56} />
+          <SkeletonCard height={56} />
+          <SkeletonCard height={56} />
+        </div>
       ) : !error && filteredMembers.length === 0 ? (
         <div className="card panel-card single-panel">
           <div className="card-body" style={{ padding: "60px 20px", textAlign: "center" }}>
@@ -202,10 +498,105 @@ export default function Applications() {
             <p style={{ fontSize: 15, color: "var(--text-secondary)", margin: 0 }}>該当する申込はありません。</p>
           </div>
         </div>
+      ) : !error && isMobile ? (
+        /* ── Mobile: Card List ── */
+        <>
+          <div className="mobile-card-list">
+            {filteredMembers.map((item) => {
+              const isPending = item.approval_status === "申請中";
+              return (
+                <div
+                  className="mobile-card-item"
+                  key={item.id}
+                  onClick={() => navigate(`/admin/applications/${item.id}`)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <div className="mobile-card-item-header">
+                    <span style={{ fontWeight: 600, fontSize: 14 }}>{displayValue(fullName(item))}</span>
+                    {renderStatusBadge(item.approval_status)}
+                  </div>
+                  <div className="mobile-card-item-row">
+                    <span className="mobile-card-item-label">フリガナ</span>
+                    <span>{displayValue(fullNameKana(item))}</span>
+                  </div>
+                  <div className="mobile-card-item-row">
+                    <span className="mobile-card-item-label">申込日</span>
+                    <span>{item.applied_at ? item.applied_at.slice(0, 10).replace(/-/g, '/') : "-"}</span>
+                  </div>
+                  <div className="mobile-card-item-row">
+                    <span className="mobile-card-item-label">会社名</span>
+                    <span>{displayValue(item.company_name)}</span>
+                  </div>
+                  <div className="mobile-card-item-row">
+                    <span className="mobile-card-item-label">紹介者</span>
+                    <span>
+                      {displayValue(item.referrer_1)}
+                      {item.referrer_2 ? `, ${item.referrer_2}` : ""}
+                    </span>
+                  </div>
+                  <div className="mobile-card-item-actions" onClick={(e) => e.stopPropagation()}>
+                    {isPending && !isViewMode && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => openApproveModal(item, e)}
+                          style={{
+                            padding: "6px 16px", borderRadius: "var(--radius-sm)",
+                            fontSize: 13, fontWeight: 600,
+                            background: "#ecfdf5", color: "#059669",
+                            border: "1px solid #a7f3d0",
+                            cursor: "pointer",
+                          }}
+                        >
+                          承認
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => openRejectModal(item, e)}
+                          style={{
+                            padding: "6px 16px", borderRadius: "var(--radius-sm)",
+                            fontSize: 13, fontWeight: 600,
+                            background: "#fff", color: "#991b1b",
+                            border: "1px solid #fecaca",
+                            cursor: "pointer",
+                          }}
+                        >
+                          却下
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/admin/applications/${item.id}`); }}
+                      style={{
+                        padding: "6px 16px", borderRadius: "var(--radius-sm)",
+                        fontSize: 13, fontWeight: 500,
+                        background: "transparent", color: "var(--primary)",
+                        border: "none", cursor: "pointer",
+                      }}
+                    >
+                      詳細
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{
+            textAlign: "center",
+            padding: "12px 20px",
+            fontSize: 12,
+            color: "var(--text-secondary)",
+            marginTop: 8,
+          }}>
+            全 {filteredMembers.length} 件
+          </div>
+        </>
       ) : !error && (
+        /* ── Desktop: Table ── */
         <div className="card panel-card single-panel">
           <div className="table-wrap" style={{ overflow: "auto" }}>
-            <table className="data-table" style={{ minWidth: 800 }}>
+            <table className="data-table" style={{ minWidth: 900 }}>
               <thead>
                 <tr>
                   <th style={{ width: 100, whiteSpace: "nowrap" }}>申込日</th>
@@ -214,40 +605,97 @@ export default function Applications() {
                   <th style={{ minWidth: 140 }}>会社名</th>
                   <th style={{ minWidth: 100 }}>紹介者</th>
                   <th style={{ width: 90 }}>ステータス</th>
+                  <th style={{ width: 180, whiteSpace: "nowrap", textAlign: "right" }}>アクション</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredMembers.map((item) => (
-                  <tr
-                    key={item.id}
-                    style={{ cursor: "pointer", transition: "background 0.12s" }}
-                    onClick={() => navigate(`/admin/applications/${item.id}`)}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = "var(--primary-light)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = ""; }}
-                  >
-                    <td style={{ fontVariantNumeric: "tabular-nums", fontSize: 13, color: "var(--text-secondary)" }}>
-                      {item.applied_at ? item.applied_at.slice(0, 10).replace(/-/g, '/') : "-"}
-                    </td>
-                    <td>
-                      <span style={{ fontWeight: 600, fontSize: 13 }}>
-                        {displayValue(item.name_kanji)}
-                      </span>
-                    </td>
-                    <td style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-                      {displayValue(item.name_kana)}
-                    </td>
-                    <td style={{ fontSize: 13 }}>
-                      {displayValue(item.company_name)}
-                    </td>
-                    <td style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-                      {displayValue(item.referrer_1)}
-                      {item.referrer_2 ? `, ${item.referrer_2}` : ""}
-                    </td>
-                    <td>
-                      {renderStatusBadge(item.approval_status)}
-                    </td>
-                  </tr>
-                ))}
+                {filteredMembers.map((item) => {
+                  const isPending = item.approval_status === "申請中";
+                  return (
+                    <tr
+                      key={item.id}
+                      style={{ cursor: "pointer", transition: "background 0.12s" }}
+                      onClick={() => navigate(`/admin/applications/${item.id}`)}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--primary-light)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = ""; }}
+                    >
+                      <td style={{ fontVariantNumeric: "tabular-nums", fontSize: 13, color: "var(--text-secondary)" }}>
+                        {item.applied_at ? item.applied_at.slice(0, 10).replace(/-/g, '/') : "-"}
+                      </td>
+                      <td>
+                        <span style={{ fontWeight: 600, fontSize: 13 }}>
+                          {displayValue(fullName(item))}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                        {displayValue(fullNameKana(item))}
+                      </td>
+                      <td style={{ fontSize: 13 }}>
+                        {displayValue(item.company_name)}
+                      </td>
+                      <td style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                        {displayValue(item.referrer_1)}
+                        {item.referrer_2 ? `, ${item.referrer_2}` : ""}
+                      </td>
+                      <td>
+                        {renderStatusBadge(item.approval_status)}
+                      </td>
+                      <td style={{ textAlign: "right" }}>
+                        <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }} onClick={(e) => e.stopPropagation()}>
+                          {isPending && !isViewMode && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={(e) => openApproveModal(item, e)}
+                                style={{
+                                  padding: "4px 12px", height: 30, borderRadius: "var(--radius-sm)",
+                                  fontSize: 12, fontWeight: 600,
+                                  background: "#ecfdf5", color: "#059669",
+                                  border: "1px solid #a7f3d0",
+                                  cursor: "pointer", transition: "all 0.15s",
+                                  whiteSpace: "nowrap",
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = "#d1fae5"; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = "#ecfdf5"; }}
+                              >
+                                承認
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => openRejectModal(item, e)}
+                                style={{
+                                  padding: "4px 12px", height: 30, borderRadius: "var(--radius-sm)",
+                                  fontSize: 12, fontWeight: 600,
+                                  background: "#fff", color: "#991b1b",
+                                  border: "1px solid #fecaca",
+                                  cursor: "pointer", transition: "all 0.15s",
+                                  whiteSpace: "nowrap",
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = "#fee2e2"; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; }}
+                              >
+                                却下
+                              </button>
+                            </>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); navigate(`/admin/applications/${item.id}`); }}
+                            style={{
+                              padding: "4px 12px", height: 30, borderRadius: "var(--radius-sm)",
+                              fontSize: 12, fontWeight: 500,
+                              background: "transparent", color: "var(--primary)",
+                              border: "none", cursor: "pointer",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            詳細
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -264,6 +712,9 @@ export default function Applications() {
           </div>
         </div>
       )}
+
+      {/* fadeIn keyframe */}
+      <style>{`@keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }`}</style>
     </section>
   );
 }

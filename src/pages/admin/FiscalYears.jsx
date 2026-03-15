@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { apiRequest, base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import DatePicker from '../../components/ui/DatePicker';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 function displayValue(v) {
   if (v === null || v === undefined || v === "") return "-";
@@ -80,7 +81,7 @@ function FyToast({ message, type, onClose }) {
   }, [message, onClose]);
   if (!message) return null;
   return (
-    <div className={`nl2-toast nl2-toast-enter${type === "error" ? " fy-toast-error" : ""}`}>
+    <div className={`nl2-toast${type === "error" ? " nl2-toast-error" : ""}`}>
       <span className="nl2-toast-icon">{type === "error" ? "\u2717" : "\u2713"}</span>
       {message}
     </div>
@@ -88,6 +89,7 @@ function FyToast({ message, type, onClose }) {
 }
 
 export default function FiscalYears() {
+  const isMobile = useIsMobile();
   const [years, setYears] = useState([]);
   const [currentFiscalYearId, setCurrentFiscalYearId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -492,69 +494,118 @@ export default function FiscalYears() {
               </button>
             </div>
           ) : (
-            <div className="table-wrap">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>年度</th>
-                    <th>期間</th>
-                    <th>ステータス</th>
-                    <th style={{ width: 180 }}>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {years.map((y) => (
-                    <tr
-                      key={y.id}
-                      className={`fy-row${y.is_current ? " fy-row-current" : ""}`}
-                      onClick={() => handleEdit(y)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <td>
-                        <div className="fy-year-cell">
-                          <strong className="fy-year-num">{y.year}年度</strong>
-                          {y.is_current && (
-                            <span className="pill pill-success" style={{ fontSize: 11 }}>現在</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="fy-period-cell">
-                        {formatDateRange(y.start_date, y.end_date)}
-                      </td>
-                      <td>
-                        <span className={`pill ${statePillClass(y.state)}`}>{stateLabel(y.state)}</span>
-                      </td>
-                      <td onClick={(e) => e.stopPropagation()}>
-                        <div className="fy-actions">
-                          <button className="text-link" type="button" onClick={() => handleEdit(y)}>
-                            編集
+            isMobile ? (
+              <div className="fy-card-list">
+                {years.map((y) => (
+                  <div
+                    key={y.id}
+                    className={`fy-card-item${y.is_current ? " fy-card-item-current" : ""}`}
+                    onClick={() => handleEdit(y)}
+                  >
+                    <div className="fy-card-item-header">
+                      <div className="fy-card-item-title">
+                        <strong className="fy-year-num">{y.year}年度</strong>
+                        {y.is_current && (
+                          <span className="pill pill-success" style={{ fontSize: 12 }}>現在</span>
+                        )}
+                      </div>
+                      <span className={`pill ${statePillClass(y.state)}`} style={{ fontSize: 12 }}>{stateLabel(y.state)}</span>
+                    </div>
+                    <div className="fy-card-item-period muted" style={{ fontSize: 13, marginTop: 4 }}>
+                      {formatDateRange(y.start_date, y.end_date)}
+                    </div>
+                    <div className="fy-card-item-actions" onClick={(e) => e.stopPropagation()}>
+                      <button className="text-link" type="button" onClick={() => handleEdit(y)}>
+                        編集
+                      </button>
+                      {!y.is_current && (
+                        <>
+                          <button
+                            className="text-link"
+                            type="button"
+                            onClick={() => { setSetCurrentTargetId(y.id); setConfirmSetCurrent(true); }}
+                          >
+                            現在年度に設定
                           </button>
-                          {!y.is_current && (
-                            <>
-                              <button
-                                className="text-link"
-                                type="button"
-                                onClick={() => { setSetCurrentTargetId(y.id); setConfirmSetCurrent(true); }}
-                              >
-                                現在年度に設定
-                              </button>
-                              <button
-                                className="text-link"
-                                type="button"
-                                style={{ color: "var(--error)" }}
-                                onClick={() => { setDeleteTargetId(y.id); setConfirmDelete(true); }}
-                              >
-                                削除
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
+                          <button
+                            className="text-link"
+                            type="button"
+                            style={{ color: "var(--error)" }}
+                            onClick={() => { setDeleteTargetId(y.id); setConfirmDelete(true); }}
+                          >
+                            削除
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>年度</th>
+                      <th>期間</th>
+                      <th>ステータス</th>
+                      <th style={{ width: 180 }}>操作</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {years.map((y) => (
+                      <tr
+                        key={y.id}
+                        className={`fy-row${y.is_current ? " fy-row-current" : ""}`}
+                        onClick={() => handleEdit(y)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <td>
+                          <div className="fy-year-cell">
+                            <strong className="fy-year-num">{y.year}年度</strong>
+                            {y.is_current && (
+                              <span className="pill pill-success" style={{ fontSize: 12 }}>現在</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="fy-period-cell">
+                          {formatDateRange(y.start_date, y.end_date)}
+                        </td>
+                        <td>
+                          <span className={`pill ${statePillClass(y.state)}`}>{stateLabel(y.state)}</span>
+                        </td>
+                        <td onClick={(e) => e.stopPropagation()}>
+                          <div className="fy-actions">
+                            <button className="text-link" type="button" onClick={() => handleEdit(y)}>
+                              編集
+                            </button>
+                            {!y.is_current && (
+                              <>
+                                <button
+                                  className="text-link"
+                                  type="button"
+                                  onClick={() => { setSetCurrentTargetId(y.id); setConfirmSetCurrent(true); }}
+                                >
+                                  現在年度に設定
+                                </button>
+                                <button
+                                  className="text-link"
+                                  type="button"
+                                  style={{ color: "var(--error)" }}
+                                  onClick={() => { setDeleteTargetId(y.id); setConfirmDelete(true); }}
+                                >
+                                  削除
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
           )}
         </div>
       </section>
@@ -570,7 +621,7 @@ export default function FiscalYears() {
               </div>
             </div>
 
-            <div className="fy-transition-flow">
+            <div className={`fy-transition-flow${isMobile ? " fy-transition-flow-vertical" : ""}`}>
               <div className="fy-transition-box">
                 <span className="fy-transition-label">移行元（現在）</span>
                 <strong className="fy-transition-year">{currentYear.year}年度</strong>
@@ -578,10 +629,16 @@ export default function FiscalYears() {
                   {formatDateRange(currentYear.start_date, currentYear.end_date)}
                 </span>
               </div>
-              <div className="fy-transition-arrow">
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                  <path d="M8 16h16M18 10l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+              <div className={`fy-transition-arrow${isMobile ? " fy-transition-arrow-vertical" : ""}`}>
+                {isMobile ? (
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M16 8v16M10 18l6 6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : (
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M8 16h16M18 10l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
               </div>
               <div className="fy-transition-box fy-transition-box-target">
                 <span className="fy-transition-label">移行先（新年度）</span>

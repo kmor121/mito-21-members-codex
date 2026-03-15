@@ -16,15 +16,18 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
 
-    const name_kanji = normalizeString(body.name_kanji);
-    const name_kana = normalizeString(body.name_kana);
+    const last_name = normalizeString(body.last_name);
+    const first_name = normalizeString(body.first_name);
+    const last_name_kana = normalizeString(body.last_name_kana);
+    const first_name_kana = normalizeString(body.first_name_kana);
+
     const email = normalizeString(body.email);
 
-    if (!name_kanji) {
-      return Response.json({ ok: false, error: "氏名は必須です。" }, { status: 400 });
+    if (!last_name) {
+      return Response.json({ ok: false, error: "姓は必須です。" }, { status: 400 });
     }
-    if (!name_kana) {
-      return Response.json({ ok: false, error: "フリガナは必須です。" }, { status: 400 });
+    if (!first_name) {
+      return Response.json({ ok: false, error: "名は必須です。" }, { status: 400 });
     }
     if (!email || !email.includes("@")) {
       return Response.json({ ok: false, error: "有効なメールアドレスを入力してください。" }, { status: 400 });
@@ -42,8 +45,10 @@ Deno.serve(async (req) => {
     }
 
     const memberData: Record<string, unknown> = {
-      name_kanji,
-      name_kana,
+      last_name,
+      first_name,
+      last_name_kana,
+      first_name_kana,
       birthday: normalizeString(body.birthday),
       email,
       mobile_phone: normalizeString(body.mobile_phone),
@@ -87,52 +92,86 @@ Deno.serve(async (req) => {
 
     const member = await base44.asServiceRole.entities.Member.create(memberData);
 
-    // If is_new, generate dues for current fiscal year
-    if (normalizeBoolean(body.is_new)) {
+    // Generate dues for current fiscal year (all eligible members, not just new)
+    const memberType = normalizeString(body.member_type) || "正会員";
+    const ELIGIBLE_TYPES = ["正会員", "賛助会員"];
+
+    if (ELIGIBLE_TYPES.includes(memberType)) {
       try {
         const fiscalYears = await base44.asServiceRole.entities.FiscalYear.list();
         const currentFy = fiscalYears.find((fy: any) => fy.is_current === true);
 
         if (currentFy) {
-          // Get due settings for fee amounts
-          const dueSettings = await base44.asServiceRole.entities.DueSetting.filter({
-            fiscal_year_id: currentFy.id,
-          });
-          const settings = dueSettings.length > 0 ? dueSettings[0] : null;
-
-          const memberType = normalizeString(body.member_type) || "正会員";
-          const annualFee = memberType === "賛助会員"
-            ? (settings?.associate_annual_fee ?? 10000)
-            : (settings?.first_half_fee ?? 30000);
-          const admissionFee = settings?.admission_fee ?? 10000;
-
-          // Create annual fee due
-          await base44.asServiceRole.entities.Due.create({
-            fiscal_year_id: currentFy.id,
+          // Check for existing dues to prevent duplicates
+          const existingDues = await base44.asServiceRole.entities.Due.filter({
             member_id: member.id,
-            member_name: name_kanji,
-            member_type: memberType,
-            amount: annualFee,
-            status: "未納",
-            due_type: "年会費",
-            is_new: true,
+            fiscal_year_id: currentFy.id,
           });
 
-          // Create admission fee due
-          await base44.asServiceRole.entities.Due.create({
-            fiscal_year_id: currentFy.id,
-            member_id: member.id,
-            member_name: name_kanji,
-            member_type: memberType,
-            amount: admissionFee,
-            status: "未納",
-            due_type: "入会金",
-            is_new: true,
-          });
+          if (existingDues.length === 0) {
+            const dueSettings = await base44.asServiceRole.entities.DueSetting.filter({
+              fiscal_year_id: currentFy.id,
+            });
+            const settings = dueSettings.length > 0 ? dueSettings[0] : null;
+            const isNew = normalizeBoolean(body.is_new);
+
+            if (isNew) {
+              // New member: admission fee + annual/half-year fee
+              const admissionFee = settings?.admission_fee ?? 10000;
+
+              // Determine front-half or back-half
+              const startDate = String(currentFy.start_date || "");
+              const endDate = String(currentFy.end_date || "");
+              let isSecondHalf = false;
+              if (startDate && endDate) {
+                const mid = new Date((new Date(startDate).getTime() + new Date(endDate).getTime()) / 2);
+                const today = new Date().toISOString().slice(0, 10);
+                isSecondHalf = !isNaN(mid.getTime()) && today > mid.toISOString().slice(0, 10);
+              }
+
+              const annualFee = isSecondHalf
+                ? Number(settings?.second_half_fee ?? 15000)
+                : Number(memberType === "賛助会員" ? (settings?.associate_annual_fee ?? 10000) : (settings?.first_half_fee ?? 30000));
+              const annualDueType = isSecondHalf ? "後期入会会費" : "年会費";
+
+              if (admissionFee > 0) {
+                await base44.asServiceRole.entities.Due.create({
+                  fiscal_year_id: currentFy.id,
+                  member_id: member.id,
+                  amount: admissionFee,
+                  status: "未納",
+                  due_type: "入会金",
+                });
+              }
+              if (annualFee > 0) {
+                await base44.asServiceRole.entities.Due.create({
+                  fiscal_year_id: currentFy.id,
+                  member_id: member.id,
+                  amount: annualFee,
+                  status: "未納",
+                  due_type: annualDueType,
+                });
+              }
+            } else {
+              // Existing member type: just annual fee
+              const annualFee = memberType === "賛助会員"
+                ? Number(settings?.associate_annual_fee ?? 10000)
+                : Number(settings?.regular_annual_fee ?? 30000);
+
+              if (annualFee > 0) {
+                await base44.asServiceRole.entities.Due.create({
+                  fiscal_year_id: currentFy.id,
+                  member_id: member.id,
+                  amount: annualFee,
+                  status: "未納",
+                  due_type: "年会費",
+                });
+              }
+            }
+          }
         }
       } catch (dueError) {
-        console.error("Failed to create dues for new member:", dueError);
-        // Don't fail the member creation if dues fail
+        console.error("Failed to create dues for member:", dueError);
       }
     }
 

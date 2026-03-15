@@ -1,11 +1,4 @@
-import { NavLink, Outlet, Link } from 'react-router-dom';
-
-const PUBLIC_NAV_ITEMS = [
-  { to: "/", label: "トップ" },
-  { to: "/apply", label: "入会申込" },
-  { to: "/directory", label: "会員名簿" },
-  { to: "/manual", label: "運用マニュアル" },
-];
+import { Outlet, Link } from 'react-router-dom';
 
 export default function PublicLayout() {
   return (
@@ -19,20 +12,6 @@ export default function PublicLayout() {
               <span>水戸21の会</span>
             </div>
           </Link>
-          <nav className="public-nav">
-            {PUBLIC_NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/"}
-                className={({ isActive }) =>
-                  `public-nav-link${isActive ? " is-active" : ""}`
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
         </div>
       </header>
       <main className="public-content">

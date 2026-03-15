@@ -7,8 +7,15 @@ const API_ORIGIN =
     : window.location.origin;
 const FUNCTION_BASE = `${API_ORIGIN}/functions`;
 
-// SDK client for direct entity access (fast reads)
-const _base44 = createClient({ appId: "69ad0dadda7f546dda487265" });
+const APP_ID = "69ad0dadda7f546dda487265";
+
+// Restore token from localStorage on page load
+const _savedToken = typeof window !== "undefined"
+  ? (localStorage.getItem("base44_token") || null)
+  : null;
+
+// SDK client — pass saved token so SDK sets Authorization header immediately
+const _base44 = createClient({ appId: APP_ID, token: _savedToken });
 
 // ── Rate-limit retry wrapper ──
 const MAX_RETRIES = 3;
@@ -109,6 +116,10 @@ const base44 = {
       return entityCache[entityName];
     },
   }),
+  // Expose SDK functions module (authenticated calls)
+  functions: _base44.functions,
+  // Expose integrations module (file uploads, etc.)
+  integrations: _base44.integrations,
 };
 
 // Invalidate read cache (call after writes)
@@ -118,25 +129,13 @@ export function invalidateReadCache(entityName) {
   }
 }
 
-// Legacy function call for write operations (with rate-limit retry)
-export async function apiRequest(path, options = {}, _retries = 0) {
-  const response = await fetch(`${FUNCTION_BASE}/${path}`, options);
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok || data.ok === false) {
-    const errMsg = data.error || "Request failed";
-    const isRL = response.status === 429 || isRateLimitError({ message: errMsg });
-
-    if (isRL && _retries < MAX_RETRIES) {
-      await new Promise((r) => setTimeout(r, RETRY_DELAY * (_retries + 1)));
-      return apiRequest(path, options, _retries + 1);
-    }
-    throw new Error(isRL
-      ? "リクエスト制限に達しました。しばらく待ってから再読み込みしてください。"
-      : errMsg);
+// Backend function call via SDK (authenticated, with rate-limit retry)
+export async function apiRequest(functionName, options = {}) {
+  let body = {};
+  if (options.body) {
+    body = typeof options.body === "string" ? JSON.parse(options.body) : options.body;
   }
-
-  return data;
+  return withRetry(() => _base44.functions.invoke(functionName, body));
 }
 
 // Simple in-memory cache with TTL (legacy, for manual usage)

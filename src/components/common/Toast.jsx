@@ -10,7 +10,7 @@ export default function ToastContainer({ toasts }) {
           <span className="toast-icon">
             {t.type === "success" ? "\u2713" : t.type === "error" ? "\u2717" : "\u2139"}
           </span>
-          <span>{t.message}</span>
+          <span className="toast-msg">{t.message}</span>
         </div>
       ))}
     </div>

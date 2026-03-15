@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
       ok: true,
       member: {
         id: updated.id,
-        name_kanji: String(updated.name_kanji || ""),
+        name: `${updated.last_name || ""} ${updated.first_name || ""}`.trim(),
         role: String(updated.role || "member")
       }
     });

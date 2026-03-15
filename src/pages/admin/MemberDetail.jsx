@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { apiRequest, base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import DatePicker from '../../components/ui/DatePicker';
+import { fullName, fullNameKana } from '../../utils/formatName';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 /* ---------- constants ---------- */
 
@@ -20,7 +22,8 @@ const STATUS_BADGE = {
 };
 
 const FIELD_LABELS = {
-  name_kanji: "氏名", name_kana: "フリガナ", birthday: "生年月日",
+  last_name: "姓", first_name: "名", last_name_kana: "セイ（フリガナ）", first_name_kana: "メイ（フリガナ）",
+  birthday: "生年月日",
   company_name: "会社名", company_position: "役職", industry: "業種",
   email: "メール", mobile_phone: "携帯番号",
   company_phone: "会社電話", company_fax: "会社FAX",
@@ -110,27 +113,8 @@ function Toast({ message, onClose }) {
   if (!message) return null;
 
   return (
-    <div
-      className="nl2-toast"
-      style={{
-        position: "fixed",
-        bottom: "2rem",
-        left: "50%",
-        transform: "translateX(-50%)",
-        zIndex: 9999,
-        background: "#059669",
-        color: "#fff",
-        padding: "0.75rem 1.5rem",
-        borderRadius: "0.5rem",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-        fontSize: "0.9rem",
-        fontWeight: 500,
-        display: "flex",
-        alignItems: "center",
-        gap: "0.5rem",
-        animation: "fadeInUp 0.3s ease",
-      }}
-    >
+    <div className="nl2-toast">
+      <span className="nl2-toast-icon">{"\u2713"}</span>
       <span>{message}</span>
     </div>
   );
@@ -138,7 +122,9 @@ function Toast({ message, onClose }) {
 
 function buildFormData(m) {
   return {
-    name_kanji: m.name_kanji || "", name_kana: m.name_kana || "", birthday: m.birthday || "",
+    last_name: m.last_name || "", first_name: m.first_name || "",
+    last_name_kana: m.last_name_kana || "", first_name_kana: m.first_name_kana || "",
+    birthday: m.birthday || "",
     company_name: m.company_name || "", company_position: m.company_position || "",
     industry: m.industry || "", email: m.email || "", mobile_phone: m.mobile_phone || "",
     company_phone: m.company_phone || "", company_fax: m.company_fax || "",
@@ -155,6 +141,8 @@ function buildFormData(m) {
 
 export default function MemberDetail() {
   const { memberId } = useParams();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const [member, setMember] = useState(null);
   const [history, setHistory] = useState(null);
@@ -167,6 +155,14 @@ export default function MemberDetail() {
 
   // Toast
   const [toastMessage, setToastMessage] = useState("");
+
+  // Unlink confirmation modal
+  const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
+
+  // Delete member
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteRelatedCounts, setDeleteRelatedCounts] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Edit form
   const [formData, setFormData] = useState({});
@@ -291,8 +287,8 @@ export default function MemberDetail() {
     setFormMessageType("");
 
     const required = [
-      { key: "name_kanji", label: "氏名" },
-      { key: "name_kana", label: "フリガナ" },
+      { key: "last_name", label: "姓" },
+      { key: "first_name", label: "名" },
       { key: "birthday", label: "生年月日" },
       { key: "email", label: "メール" },
       { key: "mobile_phone", label: "携帯番号" },
@@ -309,7 +305,8 @@ export default function MemberDetail() {
 
     const payload = { id: member.id, changed_by: "admin", changed_by_role: "admin" };
     const fields = [
-      "name_kanji", "name_kana", "birthday",
+      "last_name", "first_name", "last_name_kana", "first_name_kana",
+      "birthday",
       "company_name", "company_position", "industry",
       "email", "mobile_phone", "company_phone", "company_fax",
       "company_postal_code", "company_address", "company_pr",
@@ -319,7 +316,6 @@ export default function MemberDetail() {
     for (const f of fields) {
       payload[f] = typeof formData[f] === "string" ? formData[f].trim() : formData[f];
     }
-
     try {
       await apiRequest("update-member-detail", {
         method: "POST",
@@ -368,6 +364,43 @@ export default function MemberDetail() {
     }
   }
 
+  /* ---------- Delete member ---------- */
+  async function prepareDelete() {
+    const [assignments, dues, logs] = await Promise.all([
+      base44.entities.OrgAssignment.filter({ member_id: member.id }).catch(() => []),
+      base44.entities.Due.filter({ member_id: member.id }).catch(() => []),
+      base44.entities.MemberChangeLog.filter({ member_id: member.id }).catch(() => []),
+    ]);
+    setDeleteRelatedCounts({
+      assignments: assignments.length,
+      dues: dues.length,
+      logs: logs.length,
+    });
+    setShowDeleteConfirm(true);
+  }
+
+  async function handleDeleteMember() {
+    setDeleting(true);
+    try {
+      await apiRequest("delete-member", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: member.id }),
+      });
+      invalidateReadCache("Member");
+      invalidateReadCache("OrgAssignment");
+      invalidateReadCache("Due");
+      invalidateReadCache("MemberChangeLog");
+      sessionStorage.setItem("member-list-message", "会員を削除しました");
+      navigate("/admin/members");
+    } catch (err) {
+      setShowDeleteConfirm(false);
+      setToastMessage(err.message || "削除に失敗しました。");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   /* ---------- Render ---------- */
 
   if (loading) {
@@ -409,6 +442,87 @@ export default function MemberDetail() {
       {/* Toast notification */}
       <Toast message={toastMessage} onClose={() => setToastMessage("")} />
 
+      {/* Unlink confirmation modal */}
+      {showUnlinkConfirm && (
+        <div className="confirm-overlay" onClick={() => setShowUnlinkConfirm(false)}>
+          <div className="modal-dialog" onClick={e => e.stopPropagation()} style={{ maxWidth: 420, borderRadius: "var(--radius-xl)", animation: "fadeIn 0.15s ease" }}>
+            <div className="modal-header" style={{ padding: "20px 24px" }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>アカウント紐付けを解除しますか？</h3>
+            </div>
+            <div className="modal-body" style={{ padding: "0 24px 24px" }}>
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, lineHeight: 1.6 }}>
+                このメンバーのBase44ユーザーアカウントとの紐付けを解除します。
+                解除するとログインしてもメンバー情報にアクセスできなくなります。
+              </p>
+            </div>
+            <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "16px 24px" }}>
+              <button className="btn btn-secondary" onClick={() => setShowUnlinkConfirm(false)}>キャンセル</button>
+              <button
+                className="btn"
+                style={{ background: "var(--error)", color: "#fff", border: "none" }}
+                onClick={async () => {
+                  setShowUnlinkConfirm(false);
+                  try {
+                    await apiRequest("update-member-detail", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ id: member.id, user_id: "" }),
+                    });
+                    invalidateReadCache("Member");
+                    setMember(prev => ({ ...prev, user_id: "" }));
+                    window.__showToast?.("紐付けを解除しました", "success");
+                  } catch (err) {
+                    window.__showToast?.(err.message || "解除に失敗しました", "error");
+                  }
+                }}
+              >
+                解除する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div className="confirm-overlay" onClick={() => !deleting && setShowDeleteConfirm(false)}>
+          <div className="modal-dialog" onClick={e => e.stopPropagation()} style={{ maxWidth: 420, borderRadius: "var(--radius-xl)", animation: "fadeIn 0.15s ease" }}>
+            <div className="modal-header" style={{ padding: "20px 24px" }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>この会員を削除しますか？</h3>
+            </div>
+            <div className="modal-body" style={{ padding: "0 24px 24px" }}>
+              <p style={{ fontSize: 14, color: "var(--text-primary)", margin: "0 0 12px 0", fontWeight: 500 }}>
+                会員名: {fullName(member)}
+              </p>
+              {deleteRelatedCounts && (
+                <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.8 }}>
+                  <p style={{ margin: "0 0 4px 0" }}>以下のデータも同時に削除されます:</p>
+                  <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
+                    <li>組織配属 {deleteRelatedCounts.assignments}件</li>
+                    <li>会費記録 {deleteRelatedCounts.dues}件</li>
+                    <li>変更ログ {deleteRelatedCounts.logs}件</li>
+                  </ul>
+                </div>
+              )}
+              <p style={{ fontSize: 13, color: "var(--error, #dc2626)", margin: "12px 0 0 0", fontWeight: 500 }}>
+                この操作は取り消せません。
+              </p>
+            </div>
+            <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "16px 24px" }}>
+              <button className="btn btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>キャンセル</button>
+              <button
+                className="btn"
+                style={{ background: "var(--error)", color: "#fff", border: "none" }}
+                onClick={handleDeleteMember}
+                disabled={deleting}
+              >
+                {deleting ? "削除中..." : "削除する"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Back link */}
       <div style={{ marginBottom: "0.75rem" }}>
         <Link className="text-link" to="/admin/members" style={{ fontSize: "0.875rem", textDecoration: "none", color: "var(--primary, #2563eb)" }}>
@@ -422,14 +536,14 @@ export default function MemberDetail() {
           <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
             {/* Profile image */}
             <div style={{ flexShrink: 0 }}>
-              <MemberImage src={member.profile_image} name={member.name_kanji} size="detail" />
+              <MemberImage src={member.profile_image} name={fullName(member)} size="detail" />
             </div>
 
             {/* Name + badges */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
                 <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 700, color: "var(--text-primary, #1e293b)" }}>
-                  {displayValue(member.name_kanji)}
+                  {displayValue(fullName(member))}
                 </h1>
                 {member.member_number && (
                   <span style={{ fontSize: "0.875rem", color: "var(--text-secondary, #64748b)" }}>
@@ -437,9 +551,9 @@ export default function MemberDetail() {
                   </span>
                 )}
               </div>
-              {member.name_kana && (
+              {fullNameKana(member) && (
                 <p style={{ margin: "0 0 0.625rem 0", fontSize: "0.875rem", color: "var(--text-secondary, #64748b)" }}>
-                  {member.name_kana}
+                  {fullNameKana(member)}
                 </p>
               )}
               <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -447,7 +561,7 @@ export default function MemberDetail() {
                 {member.status && <Badge label={member.status} styleMap={STATUS_BADGE} />}
                 {member.is_new && (
                   <span className="pill" style={{ backgroundColor: "#dbeafe", color: "#1d4ed8", fontWeight: 600, fontSize: "0.75rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
-                    NEW
+                    新入
                   </span>
                 )}
                 {member.is_graduate && (
@@ -498,7 +612,7 @@ export default function MemberDetail() {
             <section className="card panel-card">
               <div className="card-body" style={{ padding: "1.25rem" }}>
                 <SectionHeader icon="📱" title="個人連絡先" />
-                <dl className="detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.25rem 2rem", padding: "0 0.5rem" }}>
+                <dl className="detail-grid" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "0.25rem 2rem", padding: "0 0.5rem" }}>
                   <InfoRow label="メール" value={member.email} />
                   <InfoRow label="携帯番号" value={member.mobile_phone} />
                   <InfoRow label="生年月日" value={member.birthday} />
@@ -510,7 +624,7 @@ export default function MemberDetail() {
             <section className="card panel-card">
               <div className="card-body" style={{ padding: "1.25rem" }}>
                 <SectionHeader icon="🏢" title="会社情報" />
-                <dl className="detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.25rem 2rem", padding: "0 0.5rem" }}>
+                <dl className="detail-grid" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "0.25rem 2rem", padding: "0 0.5rem" }}>
                   <InfoRow label="会社名" value={member.company_name} />
                   <InfoRow label="役職" value={member.company_position} />
                   <InfoRow label="業種" value={member.industry} />
@@ -527,7 +641,7 @@ export default function MemberDetail() {
             <section className="card panel-card">
               <div className="card-body" style={{ padding: "1.25rem" }}>
                 <SectionHeader icon="🏠" title="自宅情報" />
-                <dl className="detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.25rem 2rem", padding: "0 0.5rem" }}>
+                <dl className="detail-grid" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "0.25rem 2rem", padding: "0 0.5rem" }}>
                   <InfoRow label="自宅郵便番号" value={member.home_postal_code} />
                   <InfoRow label="自宅住所" value={member.home_address} />
                   <InfoRow label="自宅電話" value={member.home_phone} />
@@ -540,7 +654,7 @@ export default function MemberDetail() {
             <section className="card panel-card">
               <div className="card-body" style={{ padding: "1.25rem" }}>
                 <SectionHeader icon="📝" title="その他" />
-                <dl className="detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.25rem 2rem", padding: "0 0.5rem" }}>
+                <dl className="detail-grid" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "0.25rem 2rem", padding: "0 0.5rem" }}>
                   <InfoRow label="趣味・信条" value={member.hobbies} />
                   <InfoRow label="備考" value={member.notes} />
                   {(referrerMatches.referrer_1 || referrerMatches.referrer_2) && (
@@ -548,13 +662,13 @@ export default function MemberDetail() {
                       {referrerMatches.referrer_1 && (
                         <InfoRow
                           label="紹介者1"
-                          value={`${referrerMatches.referrer_1.name_kanji || "-"} (${referrerMatches.referrer_1.company_name || "-"})`}
+                          value={`${referrerMatches.referrer_1.last_name || ""}${referrerMatches.referrer_1.first_name ? " " + referrerMatches.referrer_1.first_name : ""}${!referrerMatches.referrer_1.last_name && !referrerMatches.referrer_1.first_name ? (referrerMatches.referrer_1.name_kanji || "-") : ""} (${referrerMatches.referrer_1.company_name || "-"})`}
                         />
                       )}
                       {referrerMatches.referrer_2 && (
                         <InfoRow
                           label="紹介者2"
-                          value={`${referrerMatches.referrer_2.name_kanji || "-"} (${referrerMatches.referrer_2.company_name || "-"})`}
+                          value={`${referrerMatches.referrer_2.last_name || ""}${referrerMatches.referrer_2.first_name ? " " + referrerMatches.referrer_2.first_name : ""}${!referrerMatches.referrer_2.last_name && !referrerMatches.referrer_2.first_name ? (referrerMatches.referrer_2.name_kanji || "-") : ""} (${referrerMatches.referrer_2.company_name || "-"})`}
                         />
                       )}
                     </>
@@ -580,21 +694,7 @@ export default function MemberDetail() {
                     </div>
                     <button
                       type="button"
-                      onClick={async () => {
-                        if (!window.confirm("アカウント紐付けを解除しますか？")) return;
-                        try {
-                          await apiRequest("update-member-detail", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ id: member.id, user_id: "" }),
-                          });
-                          invalidateReadCache("Member");
-                          setMember(prev => ({ ...prev, user_id: "" }));
-                          window.__showToast?.("紐付けを解除しました", "success");
-                        } catch (err) {
-                          window.__showToast?.(err.message || "解除に失敗しました", "error");
-                        }
-                      }}
+                      onClick={() => setShowUnlinkConfirm(true)}
                       style={{
                         background: "none", border: "1px solid #fca5a5", borderRadius: 6,
                         padding: "6px 14px", fontSize: 13, color: "#dc2626", cursor: "pointer",
@@ -632,12 +732,20 @@ export default function MemberDetail() {
                 <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>基本情報</h4>
                 <div className="editor-grid">
                   <div className="field">
-                    <label htmlFor="md-name-kanji">氏名 *</label>
-                    <input id="md-name-kanji" type="text" value={formData.name_kanji} onChange={(e) => updateField("name_kanji", e.target.value)} />
+                    <label htmlFor="md-last-name">姓 *</label>
+                    <input id="md-last-name" type="text" value={formData.last_name} onChange={(e) => updateField("last_name", e.target.value)} placeholder="例: 山田" />
                   </div>
                   <div className="field">
-                    <label htmlFor="md-name-kana">フリガナ *</label>
-                    <input id="md-name-kana" type="text" value={formData.name_kana} onChange={(e) => updateField("name_kana", e.target.value)} />
+                    <label htmlFor="md-first-name">名 *</label>
+                    <input id="md-first-name" type="text" value={formData.first_name} onChange={(e) => updateField("first_name", e.target.value)} placeholder="例: 太郎" />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="md-last-name-kana">セイ（フリガナ）</label>
+                    <input id="md-last-name-kana" type="text" value={formData.last_name_kana} onChange={(e) => updateField("last_name_kana", e.target.value)} placeholder="例: ヤマダ" />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="md-first-name-kana">メイ（フリガナ）</label>
+                    <input id="md-first-name-kana" type="text" value={formData.first_name_kana} onChange={(e) => updateField("first_name_kana", e.target.value)} placeholder="例: タロウ" />
                   </div>
                   <div className="field">
                     <label htmlFor="md-birthday">生年月日 *</label>
@@ -975,6 +1083,37 @@ export default function MemberDetail() {
           </div>
         </section>
       </div>
+
+      {/* ========== Danger zone ========== */}
+      {!isEditing && (
+        <div style={{ marginTop: "2rem", paddingTop: "1.5rem", borderTop: "1px solid var(--border, #e5e7eb)" }}>
+          <button
+            type="button"
+            onClick={prepareDelete}
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--text-tertiary, #94a3b8)",
+              fontSize: "0.8rem",
+              cursor: "pointer",
+              padding: "0.25rem 0",
+              textDecoration: "underline",
+              transition: "color 0.15s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--error, #dc2626)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-tertiary, #94a3b8)"; }}
+          >
+            会員を削除
+          </button>
+        </div>
+      )}
+      {isMobile && (
+        <style>{`
+          .editor-grid { grid-template-columns: 1fr !important; }
+          .field-span-2 { grid-column: span 1 !important; }
+          .tab-panel .card-body { padding: 12px !important; }
+        `}</style>
+      )}
     </section>
   );
 }

@@ -3,6 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { apiRequest, base44, invalidateReadCache } from "../../api/base44Client";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
+import { fullName, fullNameKana } from '../../utils/formatName';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 /* ═══ helpers ═══ */
 function todayStr() { return new Date().toISOString().slice(0, 10); }
@@ -88,7 +90,14 @@ const AVATAR_GRADIENTS = [
   "#64748b",
 ];
 
-function MemberAvatar({ name, size = 24 }) {
+function MemberAvatar({ name, src, size = 24 }) {
+  if (src) {
+    return (
+      <img src={src} alt="" style={{
+        width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0,
+      }} />
+    );
+  }
   const initial = (name || "M").charAt(0);
   const bg = AVATAR_GRADIENTS[nameHash(name) % AVATAR_GRADIENTS.length];
   return (
@@ -233,7 +242,7 @@ function OrgTreeNode({
                 onClick={() => toggleExpand(org.id)}
                 style={{
                   background: "none", border: "none", cursor: "pointer", padding: "2px 4px",
-                  fontSize: 11, color: "var(--text-secondary)", transition: "transform 0.2s ease",
+                  fontSize: 12, color: "var(--text-secondary)", transition: "transform 0.2s ease",
                   transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
                   display: "flex", alignItems: "center",
                 }}
@@ -249,7 +258,7 @@ function OrgTreeNode({
             </span>
             <span style={{
               padding: "1px 7px", borderRadius: 4,
-              fontSize: 10, fontWeight: 500, whiteSpace: "nowrap", lineHeight: "16px",
+              fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", lineHeight: "16px",
               color: "#94a3b8", border: "1px solid #e2e8f0", background: "transparent",
             }}>{org.org_type || "その他"}</span>
             {org.supervisor_id && memberMap?.[org.supervisor_id] && (() => {
@@ -259,7 +268,7 @@ function OrgTreeNode({
                 <span style={{
                   display: "inline-flex", alignItems: "center", gap: 3,
                   padding: "1px 8px 1px 5px", borderRadius: 10,
-                  fontSize: 10, fontWeight: 500, whiteSpace: "nowrap",
+                  fontSize: 12, fontWeight: 500, whiteSpace: "nowrap",
                   color: "#64748b", background: "transparent",
                   border: "1px dashed #cbd5e1",
                 }}>
@@ -267,7 +276,7 @@ function OrgTreeNode({
                     <circle cx="8" cy="5" r="3"/>
                     <path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
                   </svg>
-                  {label}: {memberMap[org.supervisor_id].name_kanji || ""}
+                  {label}: {fullName(memberMap[org.supervisor_id])}
                 </span>
               );
             })()}
@@ -276,7 +285,7 @@ function OrgTreeNode({
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {/* Member count pill */}
             <span style={{
-              fontSize: 11, color: "var(--text-secondary)", background: "var(--bg)",
+              fontSize: 12, color: "var(--text-secondary)", background: "var(--bg)",
               padding: "2px 8px", borderRadius: 10, fontWeight: 500,
               whiteSpace: "nowrap",
             }}>{assignments.length}名</span>
@@ -348,12 +357,12 @@ function OrgTreeNode({
                     if (rmBtn) rmBtn.style.opacity = "0";
                   }}
                 >
-                  <MemberAvatar name={a.member_name} size={22} />
+                  <MemberAvatar name={a.member_name} src={a.profile_image} size={22} />
                   <span style={{ fontWeight: 500, fontSize: 12 }}>{a.member_name || "\uFF08\u540D\u524D\u672A\u8A2D\u5B9A\uFF09"}</span>
                   {a.role && (
                     <span style={{
                       ...roleBadgeStyle(a.role), padding: "0px 6px", borderRadius: 4,
-                      fontSize: 10, fontWeight: 500, lineHeight: "16px",
+                      fontSize: 12, fontWeight: 500, lineHeight: "16px",
                     }}>{a.role}</span>
                   )}
                   <button
@@ -362,7 +371,7 @@ function OrgTreeNode({
                     onClick={(e) => { e.stopPropagation(); onRemoveAssignment(org, a); }}
                     style={{
                       background: "none", border: "none", cursor: "pointer", padding: "0 2px",
-                      fontSize: 11, color: "var(--muted)", lineHeight: 1, opacity: 0,
+                      fontSize: 12, color: "var(--muted)", lineHeight: 1, opacity: 0,
                       transition: "all var(--transition)", marginLeft: 1,
                     }}
                     onMouseEnter={e => e.currentTarget.style.color = "var(--error)"}
@@ -430,6 +439,7 @@ function OrgTreeNode({
 export default function OrgChart() {
   const [searchParams, setSearchParams] = useSearchParams();
   const fiscalYearId = searchParams.get("fiscalYearId") || "";
+  const isMobile = useIsMobile();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -449,6 +459,7 @@ export default function OrgChart() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignOrg, setAssignOrg] = useState(null);
   const [assignForm, setAssignForm] = useState({ id: "", member_id: "", role: "", sort_order: 0 });
+  const [assignRoleError, setAssignRoleError] = useState(false);
   const [assignSearch, setAssignSearch] = useState("");
 
   /* ── Supervisor search ── */
@@ -505,7 +516,7 @@ export default function OrgChart() {
         const memberMap = {};
         const memberOpts = allMembers.map(m => {
           memberMap[m.id] = m;
-          return { id: m.id, name_kanji: m.name_kanji || "", name_kana: m.name_kana || "" };
+          return { id: m.id, last_name: m.last_name || "", first_name: m.first_name || "", last_name_kana: m.last_name_kana || "", first_name_kana: m.first_name_kana || "" };
         });
         setMemberOptions(memberOpts);
 
@@ -515,11 +526,12 @@ export default function OrgChart() {
         const enriched = fyOrgs.map(org => ({
           ...org,
           assignments: fyAssign
-            .filter(a => a.organization_id === org.id)
+            .filter(a => a.organization_id === org.id && memberMap[a.member_id])
             .map(a => ({
               ...a,
-              member_name: memberMap[a.member_id]?.name_kanji || "",
-              member_name_kana: memberMap[a.member_id]?.name_kana || "",
+              member_name: fullName(memberMap[a.member_id]) || "",
+              member_name_kana: fullNameKana(memberMap[a.member_id]) || "",
+              profile_image: memberMap[a.member_id]?.profile_image || "",
             })),
         }));
 
@@ -638,6 +650,7 @@ export default function OrgChart() {
     setAssignOrg(org);
     setAssignForm({ id: "", member_id: "", role: "", sort_order: (org.assignments?.length || 0) });
     setAssignSearch("");
+    setAssignRoleError(false);
     setShowAssignModal(true);
   }
 
@@ -645,6 +658,7 @@ export default function OrgChart() {
     setAssignOrg(org);
     setAssignForm({ id: a.id || "", member_id: a.member_id || "", role: a.role || "", sort_order: a.sort_order || 0 });
     setAssignSearch("");
+    setAssignRoleError(false);
     setShowAssignModal(true);
   }
 
@@ -655,6 +669,12 @@ export default function OrgChart() {
   async function handleSaveAssignment(e) {
     e.preventDefault();
     if (!assignOrg || !assignForm.member_id) return;
+    if (!assignForm.role || !assignForm.role.trim()) {
+      setAssignRoleError(true);
+      showToast("役職を入力してください", "error");
+      return;
+    }
+    setAssignRoleError(false);
     setSaving(true);
     try {
       await apiRequest("save-org-assignment", {
@@ -670,7 +690,10 @@ export default function OrgChart() {
       setShowAssignModal(false);
       reloadData();
     } catch (err) {
-      showToast(err.message || "配属の保存に失敗しました", "error");
+      const msg = (err?.response?.status === 400 || (err.message && err.message.includes("400")))
+        ? "入力内容に不備があります。役職が入力されているか確認してください。"
+        : (err.message || "配属の保存に失敗しました");
+      showToast(msg, "error");
     } finally { setSaving(false); }
   }
 
@@ -729,7 +752,7 @@ export default function OrgChart() {
     const q = assignSearch.toLowerCase().trim();
     return memberOptions.filter(m => {
       if (!q) return true;
-      return (m.name_kanji || "").toLowerCase().includes(q) || (m.name_kana || "").toLowerCase().includes(q);
+      return fullName(m).toLowerCase().includes(q) || fullNameKana(m).toLowerCase().includes(q);
     });
   }, [memberOptions, assignSearch]);
 
@@ -760,7 +783,7 @@ export default function OrgChart() {
     const q = supervisorSearch.toLowerCase().trim();
     return memberOptions.filter(m => {
       if (!q) return true;
-      return (m.name_kanji || "").toLowerCase().includes(q) || (m.name_kana || "").toLowerCase().includes(q);
+      return fullName(m).toLowerCase().includes(q) || fullNameKana(m).toLowerCase().includes(q);
     });
   }, [memberOptions, supervisorSearch]);
 
@@ -801,11 +824,8 @@ export default function OrgChart() {
     <section className="admin-shell">
       {/* ── Toast ── */}
       {toast && (
-        <div className="nl2-toast" style={{
-          borderLeft: `4px solid ${toast.type === "error" ? "var(--error)" : "var(--success)"}`,
-          animation: "orgSlideUp 0.3s ease",
-        }}>
-          <span className="nl2-toast-icon">{toast.type === "error" ? "\u26A0" : "\u2713"}</span>
+        <div className={`nl2-toast${toast.type === "error" ? " nl2-toast-error" : ""}`}>
+          <span className="nl2-toast-icon">{toast.type === "error" ? "\u2717" : "\u2713"}</span>
           <span>{toast.msg}</span>
         </div>
       )}
@@ -1233,7 +1253,7 @@ export default function OrgChart() {
                     <option value="">なし</option>
                     {filteredSupervisors.map(m => (
                       <option key={m.id} value={m.id}>
-                        {m.name_kanji}{m.name_kana ? ` (${m.name_kana})` : ""}
+                        {fullName(m)}{fullNameKana(m) ? ` (${fullNameKana(m)})` : ""}
                       </option>
                     ))}
                   </select>
@@ -1328,7 +1348,7 @@ export default function OrgChart() {
                         <option key={m.id} value={m.id} disabled={isAssigned}
                           style={{ color: isAssigned ? "var(--muted)" : "inherit" }}
                         >
-                          {m.name_kanji}{isAssigned ? "（配属済）" : ""}{m.name_kana ? ` (${m.name_kana})` : ""}
+                          {fullName(m)}{isAssigned ? "（配属済）" : ""}{fullNameKana(m) ? ` (${fullNameKana(m)})` : ""}
                         </option>
                       );
                     })}
@@ -1343,15 +1363,15 @@ export default function OrgChart() {
                   <input
                     type="text"
                     value={assignForm.role}
-                    onChange={e => setAssignForm(p => ({ ...p, role: e.target.value }))}
+                    onChange={e => { setAssignForm(p => ({ ...p, role: e.target.value })); if (e.target.value.trim()) setAssignRoleError(false); }}
                     placeholder="例: 委員長、副委員長、幹事、委員"
                     style={{
                       width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
-                      border: "1px solid var(--line)", fontSize: 14, marginBottom: 8,
+                      border: `1px solid ${assignRoleError ? "var(--error)" : "var(--line)"}`, fontSize: 14, marginBottom: 8,
                       transition: "border-color var(--transition)", outline: "none",
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
-                    onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
+                    onFocus={e => e.currentTarget.style.borderColor = assignRoleError ? "var(--error)" : "var(--primary)"}
+                    onBlur={e => e.currentTarget.style.borderColor = assignRoleError ? "var(--error)" : "var(--line)"}
                   />
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     {(ROLES_BY_ORG_TYPE[assignOrg.org_type] || ROLES_BY_ORG_TYPE["その他"]).map(r => {
@@ -1382,7 +1402,7 @@ export default function OrgChart() {
                         setShowAssignModal(false);
                         setConfirmRemoveAssignment({
                           org: assignOrg,
-                          assignment: { id: assignForm.id, member_name: memberOptions.find(m => m.id === assignForm.member_id)?.name_kanji || "" },
+                          assignment: { id: assignForm.id, member_name: fullName(memberOptions.find(m => m.id === assignForm.member_id)) || "" },
                         });
                       }}
                       style={{
@@ -1569,6 +1589,13 @@ export default function OrgChart() {
           to { opacity: 1; transform: scale(1); }
         }
       `}</style>
+      {isMobile && (
+        <style>{`
+          .orgchart-node { padding: 10px 8px !important; }
+          .orgchart-chip { padding: 4px 8px 4px 4px !important; font-size: 12px !important; }
+          .orgchart-chip-grid { gap: 4px !important; }
+        `}</style>
+      )}
     </section>
   );
 }

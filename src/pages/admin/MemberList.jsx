@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest, base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { fullName, fullNameKana } from '../../utils/formatName';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 function displayValue(v) {
   if (v === null || v === undefined || v === "") return "-";
@@ -40,6 +42,7 @@ function useDebounce(value, delay) {
 
 export default function MemberList() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const [members, setMembers] = useState([]);
   const [orgOptions, setOrgOptions] = useState([]);
@@ -122,7 +125,7 @@ export default function MemberList() {
       if (filters.q) {
         const qLower = filters.q.toLowerCase();
         list = list.filter((m) => {
-          const haystack = [m.name_kanji, m.name_kana, m.company_name, m.email, m.member_number].join(" ").toLowerCase();
+          const haystack = [m.last_name, m.first_name, m.last_name_kana, m.first_name_kana, m.company_name, m.email, m.member_number].join(" ").toLowerCase();
           return haystack.includes(qLower);
         });
       }
@@ -135,7 +138,7 @@ export default function MemberList() {
         list = list.filter((m) => memberIdsInOrg.has(m.id));
       }
 
-      list.sort((a, b) => (a.name_kana || "").localeCompare(b.name_kana || "", "ja"));
+      list.sort((a, b) => (a.last_name_kana || "").localeCompare(b.last_name_kana || "", "ja"));
 
       setMembers(list);
     } catch (err) {
@@ -323,7 +326,7 @@ export default function MemberList() {
         display: "inline-block",
         padding: "3px 10px",
         borderRadius: "999px",
-        fontSize: "11px",
+        fontSize: "12px",
         fontWeight: 600,
         background: style.bg,
         color: style.color,
@@ -341,7 +344,7 @@ export default function MemberList() {
         display: "inline-block",
         padding: "3px 10px",
         borderRadius: "999px",
-        fontSize: "11px",
+        fontSize: "12px",
         fontWeight: 600,
         background: style.bg,
         color: style.color,
@@ -464,14 +467,14 @@ export default function MemberList() {
   return (
     <section className="admin-shell">
       {/* ── Header ── */}
-      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <h1 className="page-title" style={{ margin: 0 }}>会員一覧</h1>
+      <div className="page-header" style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", marginBottom: isMobile ? "16px" : "24px", flexWrap: "wrap", gap: isMobile ? 8 : 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <h1 className="page-title" style={{ margin: 0, fontSize: isMobile ? 18 : undefined }}>会員一覧</h1>
           {!loading && (
             <span style={{
               display: "inline-flex",
               alignItems: "center",
-              padding: "4px 12px",
+              padding: "3px 10px",
               borderRadius: "999px",
               background: "var(--primary-light)",
               color: "var(--primary)",
@@ -482,51 +485,55 @@ export default function MemberList() {
             </span>
           )}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          {/* Edit mode toggle */}
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "13px", fontWeight: 600, color: editMode ? "var(--primary)" : "var(--text-secondary)" }}>
-              編集モード
-            </span>
-            <button
-              type="button"
-              className={`doc-toggle${editMode ? " doc-toggle-on" : ""}`}
-              onClick={() => {
-                setEditMode((v) => !v);
-                setActiveCell(null);
-                setChangedCells(new Set());
-              }}
-              aria-label="編集モード切替"
-            >
-              <span className="doc-toggle-knob" />
-            </button>
-          </div>
+        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? "6px" : "12px", flexWrap: "wrap" }}>
+          {/* Edit mode toggle - hide on mobile */}
+          {!isMobile && (
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: editMode ? "var(--primary)" : "var(--text-secondary)" }}>
+                編集モード
+              </span>
+              <button
+                type="button"
+                className={`doc-toggle${editMode ? " doc-toggle-on" : ""}`}
+                onClick={() => {
+                  setEditMode((v) => !v);
+                  setActiveCell(null);
+                  setChangedCells(new Set());
+                }}
+                aria-label="編集モード切替"
+              >
+                <span className="doc-toggle-knob" />
+              </button>
+            </div>
+          )}
 
-          <button
-            className="btn"
-            type="button"
-            onClick={() => {
-              const unlinked = members.filter(m => !m.user_id && m.email);
-              setInviteChecked(new Set(unlinked.map(m => m.id)));
-              setInviteResult(null);
-              setShowInviteModal(true);
-            }}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: "6px",
-              background: "none", border: "1px solid var(--line)", color: "var(--text)",
-            }}
-          >
-            <span style={{ fontSize: "14px" }}>✉</span>
-            ユーザー招待
-          </button>
+          {!isMobile && (
+            <button
+              className="btn"
+              type="button"
+              onClick={() => {
+                const unlinked = members.filter(m => !m.user_id && m.email);
+                setInviteChecked(new Set(unlinked.map(m => m.id)));
+                setInviteResult(null);
+                setShowInviteModal(true);
+              }}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                background: "none", border: "1px solid var(--line)", color: "var(--text)",
+              }}
+            >
+              <span style={{ fontSize: "14px" }}>✉</span>
+              ユーザー招待
+            </button>
+          )}
           <button
             className="btn btn-primary"
             type="button"
             onClick={() => navigate("/admin/members/new")}
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: isMobile ? 12 : undefined, padding: isMobile ? "6px 12px" : undefined }}
           >
-            <span style={{ fontSize: "16px", lineHeight: 1 }}>+</span>
-            新規会員登録
+            <span style={{ fontSize: isMobile ? "14px" : "16px", lineHeight: 1 }}>+</span>
+            {isMobile ? "新規登録" : "新規会員登録"}
           </button>
         </div>
       </div>
@@ -673,114 +680,167 @@ export default function MemberList() {
         </div>
       ) : (
         <div className="card panel-card single-panel">
-          <div className="table-wrap" style={{ overflow: "auto" }}>
-            <table className="data-table" style={{ minWidth: "900px" }}>
-              <thead>
-                <tr>
-                  <th style={{ width: "80px", whiteSpace: "nowrap" }}>会員番号</th>
-                  <th style={{ minWidth: "120px" }}>氏名</th>
-                  <th style={{ minWidth: "160px" }}>会社名・役職</th>
-                  <th style={{ width: "90px" }}>種別</th>
-                  <th style={{ width: "80px" }}>ステータス</th>
-                  <th style={{ minWidth: "140px" }}>所属・役職</th>
-                  <th style={{ minWidth: "160px" }}>メール</th>
-                  {editMode && <th style={{ minWidth: "120px" }}>携帯</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedMembers.map((m) => {
-                  const assigns = Array.isArray(m.org_assignments) ? m.org_assignments : [];
-                  const orgText = assigns
-                    .map((a) => `${a.org_name || ""}${a.role ? " / " + a.role : ""}`)
-                    .join(", ");
-                  const companyPosition = [m.company_name, m.position].filter(Boolean).join(" / ");
-
-                  return (
-                    <tr
-                      key={m.id}
-                      style={{
-                        cursor: editMode ? "default" : "pointer",
-                        transition: "background 0.12s",
-                      }}
-                      onClick={editMode ? undefined : () => navigate(`/admin/members/${m.id}`)}
-                      onMouseEnter={(e) => {
-                        if (!editMode) e.currentTarget.style.background = "var(--primary-light)";
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!editMode) e.currentTarget.style.background = "";
-                      }}
-                    >
-                      <td style={{ fontVariantNumeric: "tabular-nums", fontSize: "13px", color: "var(--text-secondary)" }}>
-                        {displayValue(m.member_number)}
-                      </td>
-                      <td>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                          <span style={{ fontWeight: 600, fontSize: "13px" }}>
-                            {displayValue(m.name_kanji)}
-                          </span>
-                          <span title={m.user_id ? "アカウント紐付け済み" : "アカウント未紐付け"} style={{
-                            fontSize: 11, cursor: "default",
-                            opacity: m.user_id ? 1 : 0.5,
-                          }}>{m.user_id ? "\u2705" : "\u26A0\uFE0F"}</span>
-                          {m.is_new && (
-                            <span style={{
-                              display: "inline-block",
-                              padding: "1px 6px",
-                              borderRadius: "4px",
-                              background: "#fee2e2",
-                              color: "#dc2626",
-                              fontSize: "10px",
-                              fontWeight: 700,
-                              letterSpacing: "0.5px",
-                            }}>
-                              NEW
-                            </span>
-                          )}
-                          {m.is_graduate && (
-                            <span style={{
-                              display: "inline-block",
-                              padding: "1px 6px",
-                              borderRadius: "4px",
-                              background: "#f3e8ff",
-                              color: "#7c3aed",
-                              fontSize: "10px",
-                              fontWeight: 700,
-                            }}>
-                              卒業
-                            </span>
-                          )}
-                        </div>
-                        {m.name_kana && (
-                          <div style={{ fontSize: "11px", color: "var(--text-secondary)", marginTop: "2px" }}>
-                            {m.name_kana}
+          {isMobile && !editMode ? (
+            /* ── Mobile Card List ── */
+            <div className="mobile-card-list" style={{ padding: 8 }}>
+              {paginatedMembers.map((m) => {
+                const assigns = Array.isArray(m.org_assignments) ? m.org_assignments : [];
+                const orgText = assigns.map((a) => `${a.org_name || ""}${a.role ? " " + a.role : ""}`).join(", ");
+                const companyPosition = [m.company_name, m.position].filter(Boolean).join(" / ");
+                return (
+                  <div key={m.id} className="mobile-card-item" onClick={() => navigate(`/admin/members/${m.id}`)} style={{ cursor: "pointer" }}>
+                    <div className="mobile-card-item-header">
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, flex: 1 }}>
+                        {m.profile_image ? (
+                          <img src={m.profile_image} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                        ) : (
+                          <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #e2e8f0, #f1f5f9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#475467", flexShrink: 0 }}>
+                            {(fullName(m) || "M").charAt(0)}
                           </div>
                         )}
-                      </td>
+                        <span className="card-title">{displayValue(fullName(m))}</span>
+                        {m.is_new && <span style={{ padding: "1px 6px", borderRadius: 4, background: "#fee2e2", color: "#dc2626", fontSize: 12, fontWeight: 700 }}>新入</span>}
+                        {m.is_graduate && <span style={{ padding: "1px 6px", borderRadius: 4, background: "#f3e8ff", color: "#7c3aed", fontSize: 12, fontWeight: 700 }}>卒業</span>}
+                      </div>
+                      <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                        {renderMemberTypeBadge(m.member_type)}
+                        {renderStatusBadge(m.status)}
+                      </div>
+                    </div>
+                    {companyPosition && (
+                      <div className="mobile-card-item-row">
+                        <span className="card-label">会社</span>
+                        <span className="card-value">{companyPosition}</span>
+                      </div>
+                    )}
+                    {orgText && (
+                      <div className="mobile-card-item-row">
+                        <span className="card-label">所属</span>
+                        <span className="card-value">{orgText}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* ── Desktop Table ── */
+            <div className="table-wrap" style={{ overflow: "auto" }}>
+              <table className="data-table" style={{ minWidth: "900px" }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: "80px", whiteSpace: "nowrap" }}>会員番号</th>
+                    <th style={{ minWidth: "120px" }}>氏名</th>
+                    <th style={{ minWidth: "160px" }}>会社名・役職</th>
+                    <th style={{ width: "90px" }}>種別</th>
+                    <th style={{ width: "80px" }}>ステータス</th>
+                    <th style={{ minWidth: "140px" }}>所属・役職</th>
+                    <th style={{ minWidth: "160px" }}>メール</th>
+                    {editMode && <th style={{ minWidth: "120px" }}>携帯</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedMembers.map((m) => {
+                    const assigns = Array.isArray(m.org_assignments) ? m.org_assignments : [];
+                    const orgText = assigns
+                      .map((a) => `${a.org_name || ""}${a.role ? " / " + a.role : ""}`)
+                      .join(", ");
+                    const companyPosition = [m.company_name, m.position].filter(Boolean).join(" / ");
 
-                      {editMode ? (
-                        <>
-                          {renderEditCell(m, "company_name")}
-                          {renderEditCell(m, "member_type")}
-                          {renderEditCell(m, "status")}
-                          <td style={{ fontSize: "13px" }}>{orgText || "-"}</td>
-                          {renderEditCell(m, "email")}
-                          {renderEditCell(m, "mobile_phone")}
-                        </>
-                      ) : (
-                        <>
-                          <td style={{ fontSize: "13px" }}>{companyPosition || "-"}</td>
-                          <td>{renderMemberTypeBadge(m.member_type)}</td>
-                          <td>{renderStatusBadge(m.status)}</td>
-                          <td style={{ fontSize: "13px" }}>{orgText || "-"}</td>
-                          <td style={{ fontSize: "13px", color: "var(--text-secondary)" }}>{displayValue(m.email)}</td>
-                        </>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                    return (
+                      <tr
+                        key={m.id}
+                        style={{
+                          cursor: editMode ? "default" : "pointer",
+                          transition: "background 0.12s",
+                        }}
+                        onClick={editMode ? undefined : () => navigate(`/admin/members/${m.id}`)}
+                        onMouseEnter={(e) => {
+                          if (!editMode) e.currentTarget.style.background = "var(--primary-light)";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!editMode) e.currentTarget.style.background = "";
+                        }}
+                      >
+                        <td style={{ fontVariantNumeric: "tabular-nums", fontSize: "13px", color: "var(--text-secondary)" }}>
+                          {displayValue(m.member_number)}
+                        </td>
+                        <td>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                            {m.profile_image ? (
+                              <img src={m.profile_image} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                            ) : (
+                              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #e2e8f0, #f1f5f9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#475467", flexShrink: 0 }}>
+                                {(fullName(m) || "M").charAt(0)}
+                              </div>
+                            )}
+                            <span style={{ fontWeight: 600, fontSize: "13px" }}>
+                              {displayValue(fullName(m))}
+                            </span>
+                            <span title={m.user_id ? "アカウント紐付け済み" : "アカウント未紐付け"} style={{
+                              fontSize: 12, cursor: "default",
+                              opacity: m.user_id ? 1 : 0.5,
+                            }}>{m.user_id ? "\u2705" : "\u26A0\uFE0F"}</span>
+                            {m.is_new && (
+                              <span style={{
+                                display: "inline-block",
+                                padding: "1px 6px",
+                                borderRadius: "4px",
+                                background: "#fee2e2",
+                                color: "#dc2626",
+                                fontSize: "12px",
+                                fontWeight: 700,
+                                letterSpacing: "0.5px",
+                              }}>
+                                新入
+                              </span>
+                            )}
+                            {m.is_graduate && (
+                              <span style={{
+                                display: "inline-block",
+                                padding: "1px 6px",
+                                borderRadius: "4px",
+                                background: "#f3e8ff",
+                                color: "#7c3aed",
+                                fontSize: "12px",
+                                fontWeight: 700,
+                              }}>
+                                卒業
+                              </span>
+                            )}
+                          </div>
+                          {fullNameKana(m) && (
+                            <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
+                              {fullNameKana(m)}
+                            </div>
+                          )}
+                        </td>
+
+                        {editMode ? (
+                          <>
+                            {renderEditCell(m, "company_name")}
+                            {renderEditCell(m, "member_type")}
+                            {renderEditCell(m, "status")}
+                            <td style={{ fontSize: "13px" }}>{orgText || "-"}</td>
+                            {renderEditCell(m, "email")}
+                            {renderEditCell(m, "mobile_phone")}
+                          </>
+                        ) : (
+                          <>
+                            <td style={{ fontSize: "13px" }}>{companyPosition || "-"}</td>
+                            <td>{renderMemberTypeBadge(m.member_type)}</td>
+                            <td>{renderStatusBadge(m.status)}</td>
+                            <td style={{ fontSize: "13px" }}>{orgText || "-"}</td>
+                            <td style={{ fontSize: "13px", color: "var(--text-secondary)" }}>{displayValue(m.email)}</td>
+                          </>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {/* ── Pagination ── */}
           {totalPages > 1 && (
@@ -851,7 +911,7 @@ export default function MemberList() {
 
       {/* ── Toast ── */}
       {toast && (
-        <div className="nl2-toast nl2-toast-enter" style={{ position: "fixed", bottom: "24px", right: "24px", zIndex: 9999 }}>
+        <div className="nl2-toast">
           <span className="nl2-toast-icon">&#x2713;</span>
           <span>{toast}</span>
         </div>
@@ -964,7 +1024,7 @@ export default function MemberList() {
                                     setInviteChecked(next);
                                   }}
                                 />
-                                <span style={{ fontSize: 13, fontWeight: 500, minWidth: 80 }}>{m.name_kanji}</span>
+                                <span style={{ fontSize: 13, fontWeight: 500, minWidth: 80 }}>{fullName(m)}</span>
                                 <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
                                   {m.email || "メールアドレスなし"}
                                 </span>

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest, base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const DOC_TYPE_BADGE = {
   "事業計画": { color: "#2563eb", bg: "#eff6ff", icon: "📋" },
@@ -31,7 +32,7 @@ function ToggleSwitch({ checked, onChange, disabled }) {
 }
 
 /* ── Confirm Dialog ── */
-function DocConfirmDialog({ open, title, children, confirmLabel, onConfirm, onCancel }) {
+function DocConfirmDialog({ open, title, children, confirmLabel, onConfirm, onCancel, danger }) {
   if (!open) return null;
   return (
     <div className="confirm-overlay" onClick={onCancel}>
@@ -42,7 +43,9 @@ function DocConfirmDialog({ open, title, children, confirmLabel, onConfirm, onCa
         <div className="fy-confirm-body">{children}</div>
         <div className="fy-confirm-footer">
           <button type="button" className="btn btn-secondary" onClick={onCancel}>キャンセル</button>
-          <button type="button" className="btn btn-primary" onClick={onConfirm}>{confirmLabel}</button>
+          <button type="button" className="btn btn-primary" onClick={onConfirm}
+            style={danger ? { background: "var(--error)", borderColor: "var(--error)" } : {}}
+          >{confirmLabel}</button>
         </div>
       </div>
     </div>
@@ -51,6 +54,7 @@ function DocConfirmDialog({ open, title, children, confirmLabel, onConfirm, onCa
 
 export default function Documents() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [docs, setDocs] = useState([]);
   const [savedDocs, setSavedDocs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +69,8 @@ export default function Documents() {
 
   // Confirm toggle
   const [confirmToggle, setConfirmToggle] = useState(null);
+  // Confirm delete
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const loadDocs = useCallback(async () => {
     setError("");
@@ -105,6 +111,21 @@ export default function Documents() {
       await loadDocs();
     } catch (err) {
       setError(err.message || "公開状態の変更に失敗しました。");
+    }
+  }
+
+  /* ── Delete ── */
+  async function executeDelete() {
+    if (!confirmDelete) return;
+    const doc = confirmDelete;
+    setConfirmDelete(null);
+    try {
+      await base44.entities.OrgDocument.delete(doc.id);
+      invalidateReadCache("OrgDocument");
+      setToast("削除しました");
+      await loadDocs();
+    } catch (err) {
+      setError(err.message || "削除に失敗しました。");
     }
   }
 
@@ -192,6 +213,20 @@ export default function Documents() {
         </p>
       </DocConfirmDialog>
 
+      {/* Confirm delete dialog */}
+      <DocConfirmDialog
+        open={!!confirmDelete}
+        title="資料の削除"
+        confirmLabel="削除"
+        danger
+        onConfirm={executeDelete}
+        onCancel={() => setConfirmDelete(null)}
+      >
+        <p>
+          「<strong>{confirmDelete?.title}</strong>」を削除しますか？この操作は取り消せません。
+        </p>
+      </DocConfirmDialog>
+
       {/* Sort dirty banner */}
       {sortDirty && (
         <div className="doc-sort-banner">
@@ -245,6 +280,7 @@ export default function Documents() {
                     <th>年度</th>
                     <th style={{ width: 80 }}>公開</th>
                     <th>更新日</th>
+                    <th style={{ width: 48 }}></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -297,6 +333,18 @@ export default function Documents() {
                         <td className="doc-date-cell">
                           {doc.updated_at ? doc.updated_at.slice(0, 10) : "-"}
                         </td>
+                        <td onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            className="doc-delete-btn"
+                            onClick={() => setConfirmDelete(doc)}
+                            aria-label="削除"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M2.5 4.5h11M5.5 4.5V3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.5M6.5 7v4M9.5 7v4M3.5 4.5l.5 8a1.5 1.5 0 0 0 1.5 1.5h5a1.5 1.5 0 0 0 1.5-1.5l.5-8" />
+                            </svg>
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}
@@ -306,6 +354,12 @@ export default function Documents() {
           )}
         </div>
       </section>
+      {isMobile && (
+        <style>{`
+          .doc-table td, .doc-table th { padding: 8px 6px !important; font-size: 13px !important; }
+          .doc-type-badge { font-size: 12px !important; }
+        `}</style>
+      )}
     </section>
   );
 }

@@ -1,0 +1,103 @@
+{
+  "name": "Meeting",
+  "description": "幹事会の会議管理（次第・議事録）",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "会議名（例: 第2回幹事会）"
+    },
+    "meeting_date": {
+      "type": "string",
+      "format": "date",
+      "description": "開催日"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "開始時刻（例: 19:00）"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "終了時刻（例: 21:00）"
+    },
+    "location": {
+      "type": "string",
+      "description": "開催場所（例: よつ葉）"
+    },
+    "moderator_id": {
+      "type": "string",
+      "description": "司会者のMember ID"
+    },
+    "fiscal_year_id": {
+      "type": "string",
+      "description": "年度ID"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["下書き", "確定", "完了"],
+      "description": "ステータス"
+    },
+    "ceremony_items": {
+      "type": "array",
+      "description": "式次第（開会〜閉会の固定項目）JSON配列",
+      "items": {
+        "type": "object",
+        "properties": {
+          "order": { "type": "number", "description": "表示順" },
+          "title": { "type": "string", "description": "項目名（例: 開会のことば）" },
+          "person_id": { "type": "string", "description": "担当者のMember ID" },
+          "person_label": { "type": "string", "description": "担当者の手入力テキスト（会員外の場合）" },
+          "person_id_2": { "type": "string", "description": "第2担当者のMember ID（監事講評用）" },
+          "person_label_2": { "type": "string", "description": "第2担当者の手入力テキスト" }
+        }
+      }
+    },
+    "agenda_items": {
+      "type": "array",
+      "description": "議事のサブ項目（4、議事の中身）JSON配列",
+      "items": {
+        "type": "object",
+        "properties": {
+          "order": { "type": "number", "description": "表示順" },
+          "title": { "type": "string", "description": "議題名" },
+          "tag": { "type": "string", "description": "種別タグ（報告/議案/協議 等、任意）" },
+          "person_id": { "type": "string", "description": "担当者のMember ID" },
+          "person_label": { "type": "string", "description": "担当者の補足表示（例: 会計幹事）" },
+          "link_url": { "type": "string", "description": "議案書等のリンクURL（任意）" },
+          "link_label": { "type": "string", "description": "リンクの表示テキスト（任意）" },
+          "decision": { "type": "string", "description": "決定事項（議事録用）" },
+          "decision_status": { "type": "string", "description": "審議結果" }
+        }
+      }
+    },
+    "attendee_ids": {
+      "type": "array",
+      "description": "出席者のMember IDリスト",
+      "items": { "type": "string" }
+    },
+    "observer_ids": {
+      "type": "array",
+      "description": "オブザーバー出席者のMember IDリスト",
+      "items": { "type": "string" }
+    },
+    "minutes_note": {
+      "type": "string",
+      "description": "議事録の補足メモ"
+    },
+    "minutes_content": {
+      "type": "string",
+      "description": "議事録本文（TipTapリッチテキストHTML）"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "作成者のMember ID"
+    }
+  },
+  "required": ["title", "meeting_date", "fiscal_year_id", "status"],
+  "rls": {
+    "create": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }, { "user_condition": { "data.app_role": "manager" } }] },
+    "read": true,
+    "update": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }, { "user_condition": { "data.app_role": "manager" } }] },
+    "delete": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] }
+  }
+}

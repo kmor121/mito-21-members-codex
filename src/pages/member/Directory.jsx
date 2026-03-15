@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '../../api/base44Client';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { Search, X, ChevronRight, Phone, Mail } from 'lucide-react';
+import { MemberListSkeleton } from '../../components/ui/Skeleton';
+import { fullName, fullNameKana, nameInitial } from '../../utils/formatName';
 
 function displayValue(value) {
   if (value === null || value === undefined || value === "") return "-";
@@ -9,8 +11,15 @@ function displayValue(value) {
   return String(value);
 }
 
-function MemberImage({ src, name, size = "detail" }) {
-  const initial = (name || "M").charAt(0);
+const MEMBER_TYPE_COLORS = {
+  "正会員":   { bg: "#eef2ff", color: "#4f46e5", border: "#c7d2fe" },
+  "賛助会員": { bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" },
+  "OB会員":   { bg: "#fff7ed", color: "#ea580c", border: "#fed7aa" },
+  "名誉顧問": { bg: "#fef3c7", color: "#92400e", border: "#fde68a" },
+};
+
+function MemberImage({ src, name, initial: initialOverride, size = "detail", memberType }) {
+  const initial = initialOverride || (name || "M").charAt(0);
   if (src) {
     return (
       <div className={`member-image member-image-${size}`}>
@@ -18,31 +27,48 @@ function MemberImage({ src, name, size = "detail" }) {
       </div>
     );
   }
+  const typeColor = MEMBER_TYPE_COLORS[memberType];
+  const bgStyle = typeColor
+    ? { background: `linear-gradient(135deg, ${typeColor.bg}, ${typeColor.border})`, color: typeColor.color }
+    : {};
   return (
-    <div className={`member-image member-image-${size} is-placeholder`} aria-label="プロフィール画像未設定">
+    <div className={`member-image member-image-${size} is-placeholder`} style={bgStyle} aria-label="プロフィール画像未設定">
       <span>{initial}</span>
     </div>
   );
 }
 
+const MEMBER_TYPE_CHIPS = ["全員", "正会員", "賛助会員", "OB会員", "名誉顧問"];
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= breakpoint);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= breakpoint);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 export default function Directory() {
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [members, setMembers] = useState([]);
   const [orgOptions, setOrgOptions] = useState([]);
   const [query, setQuery] = useState("");
   const [orgId, setOrgId] = useState("");
+  const [typeFilter, setTypeFilter] = useState("全員");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [allMembers, setAllMembers] = useState([]);
+  const [assignMap, setAssignMap] = useState({});
 
-  const loadMembers = useCallback(async (searchQuery, searchOrgId) => {
+  const loadMembers = useCallback(async () => {
     setError("");
-    setMessage("読み込み中...");
+    setLoading(true);
 
     try {
-      const q = String(searchQuery || "").trim().toLowerCase();
-      const org = String(searchOrgId || "").trim();
-
-      const [allMembers, fiscalYears, orgs, assignments] = await Promise.all([
+      const [memberList, fiscalYears, orgs, assignments] = await Promise.all([
         base44.entities.Member.filter({ approval_status: "承認済", status: "活動中" }),
         base44.entities.FiscalYear.list(),
         base44.entities.Organization.list(),
@@ -52,24 +78,27 @@ export default function Directory() {
       const currentFy = fiscalYears.find((fy) => fy.is_current === true);
       const currentFyId = currentFy?.id || "";
       const currentOrgs = currentFyId ? orgs.filter((o) => o.fiscal_year_id === currentFyId) : orgs;
-      const opts = currentOrgs.map((o) => ({ id: o.id, name: o.name }));
-      if (orgOptions.length === 0 && opts.length > 0) setOrgOptions(opts);
+      const opts = currentOrgs.map((o) => ({ id: o.id, name: o.org_name || o.name }));
+      setOrgOptions(opts);
 
       // Build assignment map
       const currentAssignments = currentFyId ? assignments.filter((a) => a.fiscal_year_id === currentFyId) : assignments;
       const orgMap = {};
-      for (const o of orgs) orgMap[o.id] = o.name || "";
-      const assignMap = {};
+      for (const o of orgs) orgMap[o.id] = o.org_name || o.name || "";
+      const aMap = {};
       for (const a of currentAssignments) {
-        if (!assignMap[a.member_id]) assignMap[a.member_id] = [];
-        assignMap[a.member_id].push({ org_name: orgMap[a.organization_id] || "", role: a.role || "" });
+        if (!aMap[a.member_id]) aMap[a.member_id] = [];
+        aMap[a.member_id].push({ org_name: orgMap[a.organization_id] || "", role: a.role || "", org_id: a.organization_id });
       }
+      setAssignMap(aMap);
 
-      // Enrich members with directory-visible data and org assignments
-      let membersList = allMembers.map((m) => ({
+      // Enrich members
+      const enriched = memberList.map((m) => ({
         id: m.id,
-        name_kanji: m.name_kanji,
-        name_kana: m.name_kana,
+        last_name: m.last_name,
+        first_name: m.first_name,
+        last_name_kana: m.last_name_kana,
+        first_name_kana: m.first_name_kana,
         member_type: m.member_type,
         is_new: m.is_new,
         is_graduate: m.is_graduate,
@@ -78,51 +107,172 @@ export default function Directory() {
         company_position: m.show_company_in_directory ? m.company_position : "",
         email: m.show_email_in_directory ? m.email : "",
         mobile_phone: m.show_mobile_in_directory ? m.mobile_phone : "",
-        org_assignments: assignMap[m.id] || [],
+        org_assignments: aMap[m.id] || [],
       }));
 
-      // Apply search filter
-      if (q) {
-        membersList = membersList.filter((m) => {
-          const haystack = [m.name_kanji, m.name_kana, m.company_name].join(" ").toLowerCase();
-          return haystack.includes(q);
-        });
-      }
-
-      // Apply org filter
-      if (org) {
-        const memberIdsInOrg = new Set(currentAssignments.filter((a) => a.organization_id === org).map((a) => a.member_id));
-        membersList = membersList.filter((m) => memberIdsInOrg.has(m.id));
-      }
-
-      membersList.sort((a, b) => (a.name_kana || "").localeCompare(b.name_kana || "", "ja"));
-
-      setMembers(membersList);
-      setMessage(`${membersList.length}件を表示中 / 対象: 承認済・活動中 / 並び順: 氏名昇順`);
+      enriched.sort((a, b) => fullNameKana(a).localeCompare(fullNameKana(b), "ja"));
+      setAllMembers(enriched);
     } catch (err) {
-      setMembers([]);
+      setAllMembers([]);
       setError(err.message || "名簿の取得に失敗しました。");
-      setMessage("");
     } finally {
       setLoading(false);
     }
-  }, [orgOptions.length]);
+  }, []);
 
+  useEffect(() => { loadMembers(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Apply filters client-side
   useEffect(() => {
-    loadMembers("", "");
-  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+    let filtered = allMembers;
+    const q = query.trim().toLowerCase();
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    setLoading(true);
-    loadMembers(query, orgId);
+    if (q) {
+      filtered = filtered.filter((m) => {
+        const haystack = [m.last_name, m.first_name, m.last_name_kana, m.first_name_kana, m.company_name].join(" ").toLowerCase();
+        return haystack.includes(q);
+      });
+    }
+
+    if (typeFilter !== "全員") {
+      filtered = filtered.filter((m) => m.member_type === typeFilter);
+    }
+
+    if (orgId) {
+      filtered = filtered.filter((m) =>
+        m.org_assignments.some((a) => a.org_id === orgId)
+      );
+    }
+
+    setMembers(filtered);
+  }, [allMembers, query, typeFilter, orgId]);
+
+  function handleClearSearch() {
+    setQuery("");
   }
 
-  function handleReset() {
-    setQuery("");
-    setOrgId("");
-    setLoading(true);
-    loadMembers("", "");
+  // ── Mobile card list ──
+  function MemberCardList({ members: items }) {
+    return (
+      <div className="mobile-card-list">
+        {items.map((member, index) => {
+          const assigns = member.org_assignments || [];
+          const orgText = assigns.map((a) => a.org_name).filter(Boolean).join("、");
+
+          return (
+            <div
+              key={member.id}
+              className="mobile-member-card card-interactive"
+              style={{ animationDelay: `${Math.min(index, 20) * 0.03}s` }}
+              onClick={() => navigate(`/directory/members/${member.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === "Enter") navigate(`/directory/members/${member.id}`); }}
+            >
+              <MemberImage src={member.profile_image} name={fullName(member)} initial={nameInitial(member)} size="thumb" memberType={member.member_type} />
+              <div className="mobile-member-card-body">
+                <div className="mobile-member-card-name">
+                  {displayValue(fullName(member))}
+                  {member.is_new && <span className="pill pill-info" style={{ fontSize: "0.7em", marginLeft: 6 }}>新入</span>}
+                  {member.is_graduate && <span className="pill pill-warning" style={{ fontSize: "0.7em", marginLeft: 6 }}>卒業</span>}
+                </div>
+                <div className="mobile-member-card-meta">
+                  <span className="pill" style={{ fontSize: 12, padding: "1px 6px" }}>{displayValue(member.member_type)}</span>
+                  {orgText && <span className="mobile-member-card-org">{orgText}</span>}
+                </div>
+                {member.email && (
+                  <div className="mobile-member-card-email">{member.email}</div>
+                )}
+              </div>
+              <div className="mobile-member-card-actions">
+                {member.mobile_phone && (
+                  <a
+                    href={`tel:${member.mobile_phone}`}
+                    className="mobile-action-icon"
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label={`${fullName(member)}に電話`}
+                  >
+                    <Phone size={16} />
+                  </a>
+                )}
+                {member.email && (
+                  <a
+                    href={`mailto:${member.email}`}
+                    className="mobile-action-icon"
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label={`${fullName(member)}にメール`}
+                  >
+                    <Mail size={16} />
+                  </a>
+                )}
+                <ChevronRight size={18} className="mobile-member-chevron" />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // ── Desktop table/grid (existing) ──
+  function MemberGrid({ members: items }) {
+    return (
+      <div className="directory-grid">
+        {items.map((member) => {
+          const assigns = member.org_assignments || [];
+          const orgText = assigns
+            .map((a) => `${a.org_name}${a.role ? " / " + a.role : ""}`)
+            .join("、");
+
+          return (
+            <Link
+              key={member.id}
+              to={`/directory/members/${member.id}`}
+              className="directory-card directory-card-link"
+              style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
+            >
+              <div className="directory-card-header">
+                <MemberImage src={member.profile_image} name={fullName(member)} initial={nameInitial(member)} size="thumb" memberType={member.member_type} />
+                <div>
+                  <h3>{displayValue(fullName(member))}</h3>
+                  {orgText && (
+                    <p className="muted" style={{ fontSize: "0.85em", margin: "2px 0 0" }}>
+                      {orgText}
+                    </p>
+                  )}
+                </div>
+                <span className="pill">{displayValue(member.member_type)}</span>
+                {member.is_new && <span className="pill pill-info" style={{ marginLeft: 4, fontSize: '0.75em' }}>新入</span>}
+                {member.is_graduate && <span className="pill pill-warning" style={{ marginLeft: 4, fontSize: '0.75em' }}>卒業生</span>}
+              </div>
+              <dl className="directory-meta">
+                {member.company_name && (
+                  <div>
+                    <dt>会社名</dt>
+                    <dd>
+                      {member.company_name}
+                      {member.company_position ? " / " + member.company_position : ""}
+                    </dd>
+                  </div>
+                )}
+                {member.email && (
+                  <div>
+                    <dt>メール</dt>
+                    <dd>{member.email}</dd>
+                  </div>
+                )}
+                {member.mobile_phone && (
+                  <div>
+                    <dt>携帯番号</dt>
+                    <dd>{member.mobile_phone}</dd>
+                  </div>
+                )}
+              </dl>
+            </Link>
+          );
+        })}
+      </div>
+    );
   }
 
   return (
@@ -131,106 +281,118 @@ export default function Directory() {
         <h1 className="page-title">会員名簿</h1>
         <p className="page-description">承認済・活動中の会員名簿を閲覧</p>
       </div>
-      <section className="card panel-card single-panel">
-        <div className="card-body stack">
-          <form className="filter-grid directory-filter" noValidate onSubmit={handleSubmit}>
-            <div className="field field-span-2">
-              <label htmlFor="directory-search">検索</label>
-              <input
-                id="directory-search"
-                name="q"
-                type="text"
-                placeholder="氏名 / フリガナ / 公開中の会社名"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="directory-org-filter">所属</label>
-              <select
-                id="directory-org-filter"
-                name="organization_id"
-                value={orgId}
-                onChange={(e) => setOrgId(e.target.value)}
-              >
-                <option value="">すべて</option>
-                {orgOptions.map((opt) => (
-                  <option key={opt.id} value={opt.id}>{opt.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="filter-actions">
-              <button className="button" type="submit">検索する</button>
-              <button className="button ghost" type="button" onClick={handleReset}>リセット</button>
-            </div>
-          </form>
 
-          <div className="panel-heading compact">
-            <p className={`message${error ? " error" : ""}`} aria-live="polite">
-              {error || message}
-            </p>
+      {/* Mobile search */}
+      {isMobile ? (
+        <div className="mobile-search-area">
+          <div className="mobile-search-bar">
+            <Search size={18} className="mobile-search-icon" />
+            <input
+              type="text"
+              placeholder="氏名・フリガナ・会社名で検索"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="mobile-search-input"
+            />
+            {query && (
+              <button type="button" className="mobile-search-clear" onClick={handleClearSearch} aria-label="検索をクリア">
+                <X size={18} />
+              </button>
+            )}
           </div>
+          <div className="mobile-filter-chips">
+            {MEMBER_TYPE_CHIPS.map((chip) => (
+              <button
+                key={chip}
+                type="button"
+                className={`mobile-chip${typeFilter === chip ? " is-active" : ""}`}
+                onClick={() => setTypeFilter(chip)}
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* Desktop search */
+        <section className="card panel-card single-panel">
+          <div className="card-body stack">
+            <div className="filter-grid directory-filter" style={{ alignItems: "end" }}>
+              <div className="field field-span-2">
+                <label htmlFor="directory-search">検索</label>
+                <input
+                  id="directory-search"
+                  name="q"
+                  type="text"
+                  placeholder="氏名 / フリガナ / 公開中の会社名"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="directory-org-filter">所属</label>
+                <select
+                  id="directory-org-filter"
+                  name="organization_id"
+                  value={orgId}
+                  onChange={(e) => setOrgId(e.target.value)}
+                >
+                  <option value="">すべて</option>
+                  {orgOptions.map((opt) => (
+                    <option key={opt.id} value={opt.id}>{opt.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="filter-actions">
+                <button className="button ghost" type="button" onClick={() => { setQuery(""); setOrgId(""); setTypeFilter("全員"); }}>リセット</button>
+              </div>
+            </div>
+
+            {/* Desktop filter chips */}
+            <div className="mobile-filter-chips" style={{ paddingLeft: 0 }}>
+              {MEMBER_TYPE_CHIPS.map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  className={`mobile-chip${typeFilter === chip ? " is-active" : ""}`}
+                  onClick={() => setTypeFilter(chip)}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Results */}
+      <section className={isMobile ? "" : "card panel-card single-panel"}>
+        <div className={isMobile ? "" : "card-body stack"}>
+          {!isMobile && (
+            <div className="panel-heading compact">
+              <p className={`message${error ? " error" : ""}`} aria-live="polite">
+                {error || `${members.length}件を表示中`}
+              </p>
+            </div>
+          )}
 
           {loading ? (
-            <LoadingSpinner />
-          ) : members.length === 0 && !error ? (
-            <p className="empty-state">表示できる会員はいません。</p>
-          ) : (
-            <div className="directory-grid">
-              {members.map((member) => {
-                const assigns = Array.isArray(member.org_assignments) ? member.org_assignments : [];
-                const orgText = assigns
-                  .map((a) => `${a.org_name}${a.role ? " / " + a.role : ""}`)
-                  .join("、");
-
-                return (
-                  <Link
-                    key={member.id}
-                    to={`/directory/members/${member.id}`}
-                    className="directory-card directory-card-link"
-                    style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
-                  >
-                    <div className="directory-card-header">
-                      <MemberImage src={member.profile_image} name={member.name_kanji} size="thumb" />
-                      <div>
-                        <h3>{displayValue(member.name_kanji)}</h3>
-                        {orgText && (
-                          <p className="muted" style={{ fontSize: "0.85em", margin: "2px 0 0" }}>
-                            {orgText}
-                          </p>
-                        )}
-                      </div>
-                      <span className="pill">{displayValue(member.member_type)}</span>
-                      {member.is_new && <span className="pill pill-info" style={{ marginLeft: 4, fontSize: '0.75em' }}>新入</span>}
-                      {member.is_graduate && <span className="pill pill-warning" style={{ marginLeft: 4, fontSize: '0.75em' }}>卒業生</span>}
-                    </div>
-                    <dl className="directory-meta">
-                      {member.company_name && (
-                        <div>
-                          <dt>会社名</dt>
-                          <dd>
-                            {member.company_name}
-                            {member.company_position ? " / " + member.company_position : ""}
-                          </dd>
-                        </div>
-                      )}
-                      {member.email && (
-                        <div>
-                          <dt>メール</dt>
-                          <dd>{member.email}</dd>
-                        </div>
-                      )}
-                      {member.mobile_phone && (
-                        <div>
-                          <dt>携帯番号</dt>
-                          <dd>{member.mobile_phone}</dd>
-                        </div>
-                      )}
-                    </dl>
-                  </Link>
-                );
-              })}
+            <MemberListSkeleton count={6} mobile={isMobile} />
+          ) : error ? (
+            <p className="message error" aria-live="polite">{error}</p>
+          ) : members.length === 0 ? (
+            <div className="empty-state-enhanced">
+              <Search size={32} style={{ color: "var(--muted)", marginBottom: 8 }} />
+              <p style={{ fontWeight: 600, color: "var(--text)", margin: "0 0 4px" }}>該当する会員が見つかりませんでした</p>
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>検索条件を変更してお試しください</p>
             </div>
+          ) : isMobile ? (
+            <>
+              <p className="mobile-result-count">{members.length}件</p>
+              <MemberCardList members={members} />
+            </>
+          ) : (
+            <MemberGrid members={members} />
           )}
         </div>
       </section>

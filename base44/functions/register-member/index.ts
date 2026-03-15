@@ -27,10 +27,11 @@ Deno.serve(async (req) => {
 
     // 会員名を返す（フロントでregister時のfull_nameに使う）
     const member = members[0];
+    const displayName = `${member.last_name || ""} ${member.first_name || ""}`.trim();
     return Response.json({
       ok: true,
       exists: true,
-      member_name: member.name_kanji || "",
+      member_name: displayName,
       member_id: member.id
     });
   } catch (error) {

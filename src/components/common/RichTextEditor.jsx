@@ -28,7 +28,7 @@ const IMAGE_SIZES = [
 ];
 
 /* ── Link Insert Modal ── */
-function LinkModal({ open, initialUrl, onInsert, onCancel }) {
+function LinkModal({ open, initialUrl, onInsert, onRemove, onCancel, hasExistingLink }) {
   const [url, setUrl] = useState(initialUrl || '');
   const inputRef = useRef(null);
 
@@ -42,43 +42,61 @@ function LinkModal({ open, initialUrl, onInsert, onCancel }) {
   if (!open) return null;
 
   function handleSubmit(e) {
-    e.preventDefault();
-    if (url.trim()) onInsert(url.trim());
+    if (e) e.preventDefault();
+    const trimmed = url.trim();
+    if (!trimmed) return;
+    // Auto-prepend https:// if no protocol
+    const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    onInsert(normalized);
   }
 
   return (
     <div className="confirm-overlay" onClick={onCancel}>
       <div className="modal-dialog" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>リンクを挿入</h3>
+          <h3>{hasExistingLink ? 'リンクを編集' : 'リンクを設定'}</h3>
           <button type="button" className="modal-close" onClick={onCancel}>&times;</button>
         </div>
-        <form onSubmit={handleSubmit}>
+        <div>
           <div className="modal-body" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>URL</label>
               <input
                 ref={inputRef}
-                type="url"
+                type="text"
                 value={url}
                 onChange={e => setUrl(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSubmit(e); } }}
                 placeholder="https://example.com"
                 style={{
                   width: '100%', padding: '10px 14px', borderRadius: 'var(--radius)',
                   border: '1px solid var(--line)', fontSize: 14,
                 }}
               />
+              <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--muted)' }}>
+                http:// を省略した場合、自動で https:// が付加されます
+              </p>
             </div>
           </div>
-          <div className="modal-footer" style={{ justifyContent: 'flex-end', gap: 8 }}>
-            <button type="button" className="btn btn-secondary" onClick={onCancel}>キャンセル</button>
-            <button
-              type="submit" className="btn"
-              disabled={!url.trim()}
-              style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}
-            >挿入</button>
+          <div className="modal-footer" style={{ justifyContent: 'space-between', gap: 8 }}>
+            <div>
+              {hasExistingLink && (
+                <button type="button" className="btn" onClick={onRemove}
+                  style={{ background: 'none', border: '1px solid var(--error)', color: 'var(--error)' }}
+                >リンクを削除</button>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="button" className="btn btn-secondary" onClick={onCancel}>キャンセル</button>
+              <button
+                type="button" className="btn"
+                disabled={!url.trim()}
+                onClick={handleSubmit}
+                style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}
+              >{hasExistingLink ? '更新' : '設定'}</button>
+            </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
@@ -99,7 +117,7 @@ function ImageModal({ open, onInsert, onCancel }) {
   if (!open) return null;
 
   function handleSubmit(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (url.trim()) onInsert(url.trim());
   }
 
@@ -110,15 +128,16 @@ function ImageModal({ open, onInsert, onCancel }) {
           <h3>画像を挿入</h3>
           <button type="button" className="modal-close" onClick={onCancel}>&times;</button>
         </div>
-        <form onSubmit={handleSubmit}>
+        <div>
           <div className="modal-body" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>画像URL</label>
               <input
                 ref={inputRef}
-                type="url"
+                type="text"
                 value={url}
                 onChange={e => setUrl(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSubmit(e); } }}
                 placeholder="https://example.com/image.jpg"
                 style={{
                   width: '100%', padding: '10px 14px', borderRadius: 'var(--radius)',
@@ -144,12 +163,13 @@ function ImageModal({ open, onInsert, onCancel }) {
           <div className="modal-footer" style={{ justifyContent: 'flex-end', gap: 8 }}>
             <button type="button" className="btn btn-secondary" onClick={onCancel}>キャンセル</button>
             <button
-              type="submit" className="btn"
+              type="button" className="btn"
               disabled={!url.trim()}
+              onClick={handleSubmit}
               style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}
             >挿入</button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
@@ -619,16 +639,27 @@ export default function RichTextEditor({ content, onChange, placeholder }) {
   }, [insertBase64Image]);
 
   function handleLinkClick() {
-    if (editor) {
-      const existing = editor.getAttributes('link').href || '';
-      setLinkInitialUrl(existing);
+    if (!editor) return;
+    const hasLink = editor.isActive('link');
+    if (editor.state.selection.empty && !hasLink) {
+      if (window.__showToast) window.__showToast('リンクにしたいテキストを選択してください', 'error');
+      return;
     }
+    const existing = editor.getAttributes('link').href || '';
+    setLinkInitialUrl(existing);
     setLinkModal(true);
   }
 
   function handleLinkInsert(url) {
     if (editor && url) {
       editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    }
+    setLinkModal(false);
+  }
+
+  function handleLinkRemove() {
+    if (editor) {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
     }
     setLinkModal(false);
   }
@@ -680,7 +711,9 @@ export default function RichTextEditor({ content, onChange, placeholder }) {
       <LinkModal
         open={linkModal}
         initialUrl={linkInitialUrl}
+        hasExistingLink={!!linkInitialUrl}
         onInsert={handleLinkInsert}
+        onRemove={handleLinkRemove}
         onCancel={() => setLinkModal(false)}
       />
       <ImageModal

@@ -1,0 +1,4 @@
+{
+  "name": "delete-member",
+  "description": "Delete a member and all related records (cascade)"
+}

@@ -1,0 +1,1 @@
+function a(n){return n?`${n.last_name||""} ${n.first_name||""}`.trim():""}function t(n){return n?`${n.last_name_kana||""} ${n.first_name_kana||""}`.trim():""}function r(n){return n?`${n.last_name||""}さん`:""}function i(n){return n?(n.last_name||"?").charAt(0):"?"}export{t as a,a as f,r as g,i as n};

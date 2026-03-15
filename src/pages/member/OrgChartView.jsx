@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { base44 } from "../../api/base44Client";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { fullName, nameInitial } from "../../utils/formatName";
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 /* ═══ helpers ═══ */
 /* Role badge tiers (3-tier system) */
@@ -62,8 +64,8 @@ function nameHash(name) {
   return Math.abs(h);
 }
 
-function MemberAvatar({ src, name, size = 26 }) {
-  const initial = (name || "M").charAt(0);
+function MemberAvatar({ src, name, initial: initialOverride, size = 26 }) {
+  const initial = initialOverride || (name || "M").charAt(0);
   if (src) {
     return (
       <div style={{
@@ -138,12 +140,14 @@ function ChevronRight({ size = 14, color = "var(--text-secondary)" }) {
 }
 
 /* ═══ OrgViewNode (recursive, read-only) ═══ */
-function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, supervisorRoleMap }) {
+function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, supervisorRoleMap, isMobile }) {
   const assignments = Array.isArray(org.assignments) ? org.assignments : [];
   const children = org.children || [];
   const isExpanded = expandedOrgs.has(org.id);
   const hasContent = assignments.length > 0 || children.length > 0;
   const accentColor = TYPE_ACCENT[org.org_type] || TYPE_ACCENT["その他"];
+  const [showAllMembers, setShowAllMembers] = useState(false);
+  const MEMBER_COLLAPSE_THRESHOLD = 5;
 
   /* Font sizing by depth: 幹事会=large, 室/部会=medium, 委員会=standard */
   const nameSize = depth === 0 ? 16 : depth === 1 ? 15 : 14;
@@ -193,7 +197,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
                 <span style={{
                   display: "inline-flex", alignItems: "center", gap: 3,
                   padding: "1px 8px 1px 5px", borderRadius: 10,
-                  fontSize: 10, fontWeight: 500, whiteSpace: "nowrap",
+                  fontSize: 12, fontWeight: 500, whiteSpace: "nowrap",
                   color: "#64748b", background: "transparent",
                   border: "1px dashed #cbd5e1",
                 }}>
@@ -201,24 +205,28 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
                     <circle cx="8" cy="5" r="3"/>
                     <path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
                   </svg>
-                  {label}: {memberMap[org.supervisor_id].name_kanji || ""}
+                  {label}: {fullName(memberMap[org.supervisor_id])}
                 </span>
               );
             })()}
           </div>
           {assignments.length > 0 && (
             <span style={{
-              fontSize: 11, color: "var(--text-secondary)", background: "var(--bg)",
+              fontSize: 12, color: "var(--text-secondary)", background: "var(--bg)",
               padding: "2px 8px", borderRadius: 10, fontWeight: 500, flexShrink: 0, marginLeft: 8,
             }}>{assignments.length}名</span>
           )}
         </div>
 
         {/* Member chips */}
-        {isExpanded && assignments.length > 0 && (
+        {isExpanded && assignments.length > 0 && (() => {
+          const sorted = [...assignments].sort((a, b) => roleSortValue(a.role) - roleSortValue(b.role));
+          const shouldCollapse = sorted.length > MEMBER_COLLAPSE_THRESHOLD && !showAllMembers;
+          const visible = shouldCollapse ? sorted.slice(0, MEMBER_COLLAPSE_THRESHOLD) : sorted;
+          return (
           <div style={{ padding: "10px 18px 12px", animation: "orgViewSlide 0.2s ease" }}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {[...assignments].sort((a, b) => roleSortValue(a.role) - roleSortValue(b.role)).map((a, idx) => {
+              {visible.map((a, idx) => {
                 const member = a.member || {};
                 return (
                   <Link
@@ -244,28 +252,59 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   >
-                    <MemberAvatar src={member.profile_image} name={member.name_kanji} size={22} />
-                    <span style={{ fontWeight: 500, fontSize: 12 }}>{member.name_kanji || "（名前未設定）"}</span>
+                    <MemberAvatar src={member.profile_image} name={fullName(member)} initial={nameInitial(member)} size={22} />
+                    <span style={{ fontWeight: 500, fontSize: 12 }}>{fullName(member) || "（名前未設定）"}</span>
                     {a.role && (
                       <span style={{
                         ...roleBadgeStyle(a.role), padding: "0px 6px", borderRadius: 4,
-                        fontSize: 10, fontWeight: 500, lineHeight: "16px",
+                        fontSize: 12, fontWeight: 500, lineHeight: "16px",
                       }}>{a.role}</span>
                     )}
                   </Link>
                 );
               })}
+              {shouldCollapse && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setShowAllMembers(true); }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 4,
+                    padding: "4px 12px", borderRadius: 16, border: "1px dashed var(--line)",
+                    background: "var(--line-light)", color: "var(--text-secondary)", fontSize: 12,
+                    fontWeight: 500, cursor: "pointer", transition: "all var(--transition)",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+                >
+                  +{sorted.length - MEMBER_COLLAPSE_THRESHOLD}名を表示
+                </button>
+              )}
+              {!shouldCollapse && sorted.length > MEMBER_COLLAPSE_THRESHOLD && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setShowAllMembers(false); }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 4,
+                    padding: "4px 12px", borderRadius: 16, border: "1px dashed var(--line)",
+                    background: "var(--line-light)", color: "var(--text-secondary)", fontSize: 12,
+                    fontWeight: 500, cursor: "pointer", transition: "all var(--transition)",
+                  }}
+                >
+                  閉じる
+                </button>
+              )}
             </div>
           </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Children */}
       {isExpanded && children.length > 0 && (
         <div style={{
-          marginTop: 8, paddingLeft: 24,
+          marginTop: 8, paddingLeft: isMobile ? 12 : 24,
           borderLeft: "2px solid var(--line)",
-          marginLeft: 14,
+          marginLeft: isMobile ? 6 : 14,
           display: "grid", gap: 8,
         }}>
           {children.map(child => (
@@ -277,6 +316,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
               toggleExpand={toggleExpand}
               memberMap={memberMap}
               supervisorRoleMap={supervisorRoleMap}
+              isMobile={isMobile}
             />
           ))}
         </div>
@@ -290,6 +330,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
 export default function OrgChartView() {
   const [searchParams, setSearchParams] = useSearchParams();
   const fiscalYearIdParam = searchParams.get("fiscalYearId") || "";
+  const isMobile = useIsMobile();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -327,8 +368,8 @@ export default function OrgChartView() {
         const organizations = fyOrgs.map(org => ({
           ...org,
           assignments: fyAssignments
-            .filter(a => a.organization_id === org.id)
-            .map(a => ({ ...a, member: mMap[a.member_id] || {} })),
+            .filter(a => a.organization_id === org.id && mMap[a.member_id])
+            .map(a => ({ ...a, member: mMap[a.member_id] })),
         }));
 
         // Build supervisor role map from 幹事会 assignments
@@ -432,7 +473,7 @@ export default function OrgChartView() {
         <button type="button" onClick={() => goYear(-1)} disabled={currentIdx <= 0}
           style={{
             background: "none", border: "1px solid var(--line)", borderRadius: 6,
-            width: 32, height: 32, cursor: currentIdx <= 0 ? "default" : "pointer",
+            width: 44, height: 44, cursor: currentIdx <= 0 ? "default" : "pointer",
             color: currentIdx <= 0 ? "var(--muted)" : "var(--text)", fontSize: 13,
             display: "flex", alignItems: "center", justifyContent: "center",
             transition: "all var(--transition)",
@@ -456,7 +497,7 @@ export default function OrgChartView() {
                 type="button"
                 onClick={() => setSearchParams({ fiscalYearId: fy.id })}
                 style={{
-                  fontSize: 13, height: 32, padding: "0 18px", borderRadius: 20, border: "none",
+                  fontSize: 13, minHeight: 44, padding: "0 18px", borderRadius: 20, border: "none",
                   cursor: "pointer", fontWeight: isActive ? 600 : 400,
                   background: isActive ? "var(--primary)" : "transparent",
                   color: isActive ? "#fff" : "var(--text-secondary)",
@@ -474,7 +515,7 @@ export default function OrgChartView() {
         <button type="button" onClick={() => goYear(1)} disabled={currentIdx >= sortedYears.length - 1}
           style={{
             background: "none", border: "1px solid var(--line)", borderRadius: 6,
-            width: 32, height: 32, cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
+            width: 44, height: 44, cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
             color: currentIdx >= sortedYears.length - 1 ? "var(--muted)" : "var(--text)", fontSize: 13,
             display: "flex", alignItems: "center", justifyContent: "center",
             transition: "all var(--transition)",
@@ -545,6 +586,7 @@ export default function OrgChartView() {
               toggleExpand={toggleExpand}
               memberMap={memberMap}
               supervisorRoleMap={supervisorRoleMap}
+              isMobile={isMobile}
             />
           ))}
         </div>

@@ -1,42 +1,28 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 
 Deno.serve(async (req) => {
-  if (req.method !== "GET") {
+  if (req.method !== "GET" && req.method !== "POST") {
     return Response.json({ ok: false, error: "Method not allowed" }, { status: 405 });
   }
 
   try {
     const base44 = createClientFromRequest(req);
+    const allMembers = await base44.asServiceRole.entities.Member.list();
 
-    const [fiscalYears, allMembers] = await Promise.all([
-      base44.asServiceRole.entities.FiscalYear.list(),
-      base44.asServiceRole.entities.Member.list()
-    ]);
-
-    const currentFy = fiscalYears.find((fy) => fy.is_current === true);
-    const currentYear = currentFy ? Number(currentFy.year) : new Date().getFullYear();
-    const prefix = String(currentYear).slice(-2);
-
-    const pattern = new RegExp(`^${prefix}(\\d{3})$`);
-    let maxSeq = 0;
+    // Find the maximum numeric member_number across all members
+    let maxNum = 0;
     for (const member of allMembers) {
-      const num = String(member.member_number || "");
-      const match = num.match(pattern);
-      if (match) {
-        const seq = parseInt(match[1], 10);
-        if (seq > maxSeq) maxSeq = seq;
-      }
+      const num = parseInt(String(member.member_number || ""), 10);
+      if (!isNaN(num) && num > maxNum) maxNum = num;
     }
 
-    const nextSeq = String(maxSeq + 1).padStart(3, "0");
-    const suggestedNumber = `${prefix}${nextSeq}`;
+    const nextNum = maxNum + 1;
+    const suggestedNumber = String(nextNum).padStart(4, "0");
 
     return Response.json({
       ok: true,
       suggested_number: suggestedNumber,
-      fiscal_year: currentYear,
-      prefix,
-      next_sequence: maxSeq + 1
+      current_max: maxNum,
     });
   } catch (error) {
     console.error(error);

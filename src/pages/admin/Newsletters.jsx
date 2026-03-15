@@ -797,10 +797,8 @@ export default function Newsletters() {
     <section className="admin-shell">
       {/* ── Toast ── */}
       {toast && (
-        <div className="nl2-toast" style={{
-          borderLeft: `4px solid ${toast.type === "error" ? "var(--error)" : "var(--success)"}`,
-        }}>
-          <span className="nl2-toast-icon">{toast.type === "error" ? "!" : "✓"}</span>
+        <div className={`nl2-toast${toast.type === "error" ? " nl2-toast-error" : ""}`}>
+          <span className="nl2-toast-icon">{toast.type === "error" ? "\u2717" : "\u2713"}</span>
           <span>{toast.msg}</span>
         </div>
       )}
@@ -907,7 +905,7 @@ export default function Newsletters() {
                           onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.background = "#fff"; }}
                         >
                           <div style={{ fontWeight: 600, color: "var(--text)", marginBottom: 2 }}>{pt.name || pt.title}</div>
-                          <div style={{ fontSize: 11, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <div style={{ fontSize: 12, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {pt.body.slice(0, 50)}...
                           </div>
                         </button>
@@ -933,7 +931,7 @@ export default function Newsletters() {
                         </span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                        <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
                           {channelLabel(tmpl.channel)}
                         </span>
                         <button
@@ -942,7 +940,7 @@ export default function Newsletters() {
                           style={{
                             padding: "3px 10px", borderRadius: 999,
                             border: "1px solid var(--success)", background: "var(--success-light)",
-                            color: "var(--success)", fontSize: 11, fontWeight: 600,
+                            color: "var(--success)", fontSize: 12, fontWeight: 600,
                             cursor: "pointer", transition: "all 0.15s",
                           }}
                           onMouseEnter={e => { e.currentTarget.style.background = "var(--success)"; e.currentTarget.style.color = "#fff"; }}
@@ -984,16 +982,16 @@ export default function Newsletters() {
                         <div style={{ flex: 1, padding: "10px 12px", minWidth: 0 }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
                             <span style={{
-                              fontSize: 11, fontWeight: 600, padding: "1px 8px",
+                              fontSize: 12, fontWeight: 600, padding: "1px 8px",
                               borderRadius: 12, background: sc.bg, color: sc.text,
                             }}>{statusLabel(nl.status)}</span>
-                            <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>{channelLabel(nl.channel)}</span>
+                            <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{channelLabel(nl.channel)}</span>
                           </div>
                           <div style={{
                             fontSize: 13, fontWeight: 600, color: "var(--text)",
                             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 2,
                           }}>{nl.title || "（件名なし）"}</div>
-                          <div style={{ fontSize: 11, color: "var(--muted)" }}>
+                          <div style={{ fontSize: 12, color: "var(--muted)" }}>
                             {nl.sent_at || nl.scheduled_at || nl.updated_at || nl.created_at || "-"}
                           </div>
                         </div>
@@ -1089,7 +1087,7 @@ export default function Newsletters() {
             <div style={{ padding: 28, display: "flex", flexDirection: "column", gap: 20, animation: "nlFade 0.15s ease" }}>
               <div>
                 <span style={{
-                  display: "inline-block", fontSize: 11, fontWeight: 600, padding: "2px 10px",
+                  display: "inline-block", fontSize: 12, fontWeight: 600, padding: "2px 10px",
                   borderRadius: 12, background: statusColor(form.status).bg, color: statusColor(form.status).text,
                   marginBottom: 8,
                 }}>{statusLabel(form.status)}</span>
@@ -1189,7 +1187,7 @@ export default function Newsletters() {
                   </h2>
                   {!isTemplate && form.status && (
                     <span style={{
-                      fontSize: 11, fontWeight: 600, padding: "2px 10px", borderRadius: 12,
+                      fontSize: 12, fontWeight: 600, padding: "2px 10px", borderRadius: 12,
                       background: statusColor(form.status).bg, color: statusColor(form.status).text,
                     }}>{statusLabel(form.status)}</span>
                   )}
@@ -1246,7 +1244,7 @@ export default function Newsletters() {
                         onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
                       />
                       <span style={{
-                        position: "absolute", bottom: 10, right: 14, fontSize: 11,
+                        position: "absolute", bottom: 10, right: 14, fontSize: 12,
                         color: "var(--muted)", pointerEvents: "none",
                       }}>{form.body.length}文字</span>
                     </div>
@@ -1281,7 +1279,7 @@ export default function Newsletters() {
                       >
                         LINE
                         <span style={{
-                          fontSize: 10, padding: "1px 6px", borderRadius: 8,
+                          fontSize: 12, padding: "1px 6px", borderRadius: 8,
                           background: "var(--line-light)", color: "var(--muted)",
                         }}>準備中</span>
                       </button>
@@ -1464,7 +1462,7 @@ export default function Newsletters() {
                       {(form.attachment_name || form.attachment_url) && (
                         <span style={{
                           width: 18, height: 18, borderRadius: "50%", background: "var(--primary)",
-                          color: "#fff", fontSize: 10, fontWeight: 700,
+                          color: "#fff", fontSize: 12, fontWeight: 700,
                           display: "inline-flex", alignItems: "center", justifyContent: "center",
                         }}>1</span>
                       )}
@@ -1480,7 +1478,7 @@ export default function Newsletters() {
                         </p>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, textAlign: "left" }}>
                           <div>
-                            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4 }}>ファイル名</label>
+                            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4 }}>ファイル名</label>
                             <input type="text" placeholder="例: 案内.pdf"
                               value={form.attachment_name}
                               onChange={e => setForm(prev => ({ ...prev, attachment_name: e.target.value }))}
@@ -1488,7 +1486,7 @@ export default function Newsletters() {
                             />
                           </div>
                           <div>
-                            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4 }}>URL</label>
+                            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4 }}>URL</label>
                             <input type="url" placeholder="https://..."
                               value={form.attachment_url}
                               onChange={e => setForm(prev => ({ ...prev, attachment_url: e.target.value }))}

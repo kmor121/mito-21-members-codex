@@ -26,7 +26,8 @@ function SummaryItem({ label, value }) {
 function buildFormData(draft) {
   const formData = new FormData();
   const fields = [
-    "name_kanji","name_kana","birthday","company_name","company_position","industry",
+    "last_name","first_name","last_name_kana","first_name_kana",
+    "birthday","company_name","company_position","industry",
     "company_postal_code","company_address","company_phone","company_fax","company_pr",
     "email","mobile_phone","home_postal_code","home_address","home_phone","home_fax",
     "hobbies","referrer_1","referrer_2"
@@ -50,7 +51,7 @@ export default function ApplyConfirm() {
   const [errorMsg, setErrorMsg] = useState("");
   const previewUrl = window.__applicationProfileImagePreview || "";
 
-  if (!draft.name_kanji) {
+  if (!draft.last_name) {
     return (
       <section className="card">
         <div className="card-body stack">
@@ -99,8 +100,10 @@ export default function ApplyConfirm() {
           </div>
         )}
         <dl className="summary-grid application-summary-grid">
-          <SummaryItem label="氏名" value={draft.name_kanji} />
-          <SummaryItem label="氏名（ふりがな）" value={draft.name_kana} />
+          <SummaryItem label="姓" value={draft.last_name} />
+          <SummaryItem label="名" value={draft.first_name} />
+          <SummaryItem label="セイ（フリガナ）" value={draft.last_name_kana} />
+          <SummaryItem label="メイ（フリガナ）" value={draft.first_name_kana} />
           <SummaryItem label="生年月日" value={draft.birthday} />
           <SummaryItem label="プロフィール画像" value={draft.profile_image || "未選択"} />
           <SummaryItem label="会社名" value={draft.company_name || "未入力"} />

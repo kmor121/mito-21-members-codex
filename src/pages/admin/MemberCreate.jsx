@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest, invalidateReadCache } from '../../api/base44Client';
 import DatePicker from '../../components/ui/DatePicker';
+import { fullName, fullNameKana } from '../../utils/formatName';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const MEMBER_TYPES = ["正会員", "賛助会員", "OB会員", "名誉顧問"];
 const STATUSES = ["活動中", "休会", "退会"];
 const ROLES = ["member", "admin"];
 
 const INITIAL_FORM = {
-  name_kanji: "", name_kana: "", birthday: "", email: "", mobile_phone: "",
+  last_name: "", first_name: "", last_name_kana: "", first_name_kana: "",
+  birthday: "", email: "", mobile_phone: "",
   member_type: "正会員", status: "活動中", member_number: "", join_date: "",
   role: "member", notes: "",
   company_name: "", company_position: "", company_postal_code: "",
@@ -150,7 +153,7 @@ function ProgressIndicator({ currentSection }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 0,
-      padding: '16px 0 8px', overflowX: 'auto',
+      padding: '16px 0 8px', overflowX: 'auto', WebkitOverflowScrolling: 'touch',
     }}>
       {SECTION_STEPS.map((step, i) => {
         const isCurrent = i === currentSection;
@@ -217,6 +220,7 @@ function FieldError({ message }) {
 /* ========== Main Component ========== */
 export default function MemberCreate() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [form, setForm] = useState({ ...INITIAL_FORM });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -224,6 +228,18 @@ export default function MemberCreate() {
   const [generatingNumber, setGeneratingNumber] = useState(false);
   const [toast, setToast] = useState("");
   const [visibleSection, setVisibleSection] = useState(0);
+
+  // Auto-generate member number on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const result = await apiRequest("generate-member-number");
+        if (result.suggested_number) {
+          setForm((prev) => ({ ...prev, member_number: result.suggested_number }));
+        }
+      } catch { /* ignore */ }
+    })();
+  }, []);
 
   function update(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -248,8 +264,8 @@ export default function MemberCreate() {
 
   function validate() {
     const newErrors = {};
-    if (!form.name_kanji.trim()) newErrors.name_kanji = "氏名（漢字）は必須です。";
-    if (!form.name_kana.trim()) newErrors.name_kana = "氏名（フリガナ）は必須です。";
+    if (!form.last_name.trim()) newErrors.last_name = "姓は必須です。";
+    if (!form.first_name.trim()) newErrors.first_name = "名は必須です。";
     if (!form.email.trim() || !form.email.includes("@")) newErrors.email = "有効なメールアドレスを入力してください。";
     if (!form.mobile_phone.trim()) newErrors.mobile_phone = "携帯番号は必須です。";
     return newErrors;
@@ -271,10 +287,11 @@ export default function MemberCreate() {
 
     setSaving(true);
     try {
+      const submitData = { ...form };
       await apiRequest("create-member-admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(submitData),
       });
       invalidateReadCache("Member");
       setToast("会員を登録しました");
@@ -307,23 +324,9 @@ export default function MemberCreate() {
     <section className="admin-shell">
       {/* ---- Toast ---- */}
       {toast && (
-        <div
-          className="nl2-toast"
-          style={{
-            position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)',
-            background: 'var(--success)', color: '#fff', padding: '12px 32px',
-            borderRadius: 'var(--radius)', fontSize: 14, fontWeight: 600, zIndex: 9999,
-            boxShadow: 'var(--shadow-lg)',
-            display: 'flex', alignItems: 'center', gap: 8,
-            animation: 'fadeIn 0.3s ease',
-          }}
-          role="status"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-            <polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
-          {toast}
+        <div className="nl2-toast" role="status">
+          <span className="nl2-toast-icon">{"\u2713"}</span>
+          <span>{toast}</span>
         </div>
       )}
 
@@ -381,21 +384,35 @@ export default function MemberCreate() {
             <SectionHeader icon={<UserIcon />} title="基本情報" />
             <div className="editor-grid">
               <div className="field">
-                <label htmlFor="mc-name_kanji">氏名（漢字）{requiredMark}</label>
-                <input id="mc-name_kanji" type="text" value={form.name_kanji}
-                  onChange={(e) => update("name_kanji", e.target.value)}
-                  placeholder="例: 山田 太郎"
-                  style={fieldErrorStyle("name_kanji")} required />
-                <FieldError message={errors.name_kanji} />
+                <label htmlFor="mc-last_name">姓{requiredMark}</label>
+                <input id="mc-last_name" type="text" value={form.last_name}
+                  onChange={(e) => update("last_name", e.target.value)}
+                  placeholder="例: 山田"
+                  style={fieldErrorStyle("last_name")} required />
+                <FieldError message={errors.last_name} />
               </div>
 
               <div className="field">
-                <label htmlFor="mc-name_kana">氏名（フリガナ）{requiredMark}</label>
-                <input id="mc-name_kana" type="text" value={form.name_kana}
-                  onChange={(e) => update("name_kana", e.target.value)}
-                  placeholder="例: ヤマダ タロウ"
-                  style={fieldErrorStyle("name_kana")} required />
-                <FieldError message={errors.name_kana} />
+                <label htmlFor="mc-first_name">名{requiredMark}</label>
+                <input id="mc-first_name" type="text" value={form.first_name}
+                  onChange={(e) => update("first_name", e.target.value)}
+                  placeholder="例: 太郎"
+                  style={fieldErrorStyle("first_name")} required />
+                <FieldError message={errors.first_name} />
+              </div>
+
+              <div className="field">
+                <label htmlFor="mc-last_name_kana">セイ（フリガナ）</label>
+                <input id="mc-last_name_kana" type="text" value={form.last_name_kana}
+                  onChange={(e) => update("last_name_kana", e.target.value)}
+                  placeholder="例: ヤマダ" />
+              </div>
+
+              <div className="field">
+                <label htmlFor="mc-first_name_kana">メイ（フリガナ）</label>
+                <input id="mc-first_name_kana" type="text" value={form.first_name_kana}
+                  onChange={(e) => update("first_name_kana", e.target.value)}
+                  placeholder="例: タロウ" />
               </div>
 
               <div className="field" style={{ overflow: 'visible' }}>
@@ -431,11 +448,11 @@ export default function MemberCreate() {
               </div>
 
               <div className="field">
-                <label htmlFor="mc-member_number">会員番号</label>
+                <label htmlFor="mc-member_number">会員番号（自動採番）</label>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
                   <input id="mc-member_number" type="text" value={form.member_number}
                     onChange={(e) => update("member_number", e.target.value)}
-                    placeholder="例: 001"
+                    placeholder="自動採番されます"
                     style={{ flex: 1 }} />
                   <button type="button" className="btn btn-secondary" onClick={handleGenerateNumber}
                     disabled={generatingNumber}
@@ -734,6 +751,12 @@ export default function MemberCreate() {
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
       `}</style>
+      {isMobile && (
+        <style>{`
+          .editor-grid { grid-template-columns: 1fr !important; }
+          .field-span-2 { grid-column: span 1 !important; }
+        `}</style>
+      )}
     </section>
   );
 }

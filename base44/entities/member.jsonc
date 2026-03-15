@@ -2,13 +2,21 @@
   "name": "Member",
   "type": "object",
   "properties": {
-    "name_kanji": {
+    "last_name": {
       "type": "string",
-      "description": "Member full name in kanji"
+      "description": "姓"
     },
-    "name_kana": {
+    "first_name": {
       "type": "string",
-      "description": "Member full name in kana"
+      "description": "名"
+    },
+    "last_name_kana": {
+      "type": "string",
+      "description": "姓（ふりがな）"
+    },
+    "first_name_kana": {
+      "type": "string",
+      "description": "名（ふりがな）"
     },
     "birthday": {
       "type": "string",
@@ -159,11 +167,17 @@
     "user_id": {
       "type": "string",
       "description": "Base44認証ユーザーのID（紐付け用）"
+    },
+    "app_role": {
+      "type": "string",
+      "enum": ["admin_member", "manager", "member"],
+      "default": "member",
+      "description": "アプリ内ロール。admin_member=管理者メンバー, manager=幹事会メンバー, member=一般メンバー"
     }
   },
   "required": [
-    "name_kanji",
-    "name_kana",
+    "last_name",
+    "first_name",
     "birthday",
     "email",
     "mobile_phone",

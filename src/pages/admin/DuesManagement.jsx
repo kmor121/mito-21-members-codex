@@ -4,6 +4,9 @@ import { apiRequest, base44, invalidateReadCache } from "../../api/base44Client"
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import DatePicker from "../../components/ui/DatePicker";
+import { fullName } from '../../utils/formatName';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import YearPillNav from '../../components/ui/YearPillNav';
 
 /* ── Helpers ── */
 function displayValue(v) {
@@ -43,12 +46,7 @@ const MEMBER_TYPE_BADGE = {
 function Toast({ message, type = "success" }) {
   if (!message) return null;
   return (
-    <div className="nl2-toast nl2-toast-enter" style={{
-      position: "fixed", bottom: 24, right: 24, zIndex: 9999,
-      background: type === "error" ? "#fef2f2" : undefined,
-      color: type === "error" ? "#991b1b" : undefined,
-      borderColor: type === "error" ? "#fecaca" : undefined,
-    }}>
+    <div className={`nl2-toast${type === "error" ? " nl2-toast-error" : ""}`}>
       <span className="nl2-toast-icon">{type === "error" ? "\u2717" : "\u2713"}</span>
       {message}
     </div>
@@ -73,76 +71,12 @@ function PillTab({ active, onClick, children, badge, badgeColor }) {
           borderRadius: 999,
           background: active ? "rgba(255,255,255,0.25)" : (badgeColor || "#fee2e2"),
           color: active ? "#fff" : (badgeColor ? "#fff" : "#991b1b"),
-          fontSize: "11px", fontWeight: 700,
+          fontSize: "12px", fontWeight: 700,
         }}>
           {badge}
         </span>
       )}
     </button>
-  );
-}
-
-/* ── Year Pill Navigator ── */
-function YearPillNav({ fiscalYears, activeFyId, currentFyId, onChange }) {
-  const sorted = useMemo(() =>
-    [...fiscalYears].sort((a, b) => (a.year || 0) - (b.year || 0)),
-    [fiscalYears]
-  );
-  const activeIdx = sorted.findIndex(fy => fy.id === activeFyId);
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-      <button
-        type="button"
-        className="btn btn-secondary"
-        style={{ padding: "4px 8px", minWidth: 32, fontSize: 16, lineHeight: 1 }}
-        disabled={activeIdx <= 0}
-        onClick={() => activeIdx > 0 && onChange(sorted[activeIdx - 1].id)}
-        aria-label="前の年度"
-      >&larr;</button>
-      <div style={{ display: "flex", gap: 4 }}>
-        {sorted.map(fy => {
-          const label = fy.year ? `${fy.year}` : fy.year_label;
-          const isActive = fy.id === activeFyId;
-          const isCurrent = fy.id === currentFyId;
-          return (
-            <button
-              key={fy.id}
-              type="button"
-              onClick={() => onChange(fy.id)}
-              style={{
-                padding: "6px 14px",
-                borderRadius: 999,
-                border: isActive ? "2px solid var(--primary)" : "1px solid var(--line)",
-                background: isActive ? "var(--primary)" : "#fff",
-                color: isActive ? "#fff" : "var(--text-secondary)",
-                fontSize: 13, fontWeight: isActive ? 700 : 500,
-                cursor: "pointer",
-                transition: "all 0.15s",
-                position: "relative",
-              }}
-            >
-              {label}
-              {isCurrent && !isActive && (
-                <span style={{
-                  position: "absolute", top: -3, right: -3,
-                  width: 8, height: 8, borderRadius: "50%",
-                  background: "var(--primary)", border: "2px solid #fff",
-                }} />
-              )}
-            </button>
-          );
-        })}
-      </div>
-      <button
-        type="button"
-        className="btn btn-secondary"
-        style={{ padding: "4px 8px", minWidth: 32, fontSize: 16, lineHeight: 1 }}
-        disabled={activeIdx >= sorted.length - 1}
-        onClick={() => activeIdx < sorted.length - 1 && onChange(sorted[activeIdx + 1].id)}
-        aria-label="次の年度"
-      >&rarr;</button>
-    </div>
   );
 }
 
@@ -200,7 +134,7 @@ function MemberTypeBadge({ type }) {
   return (
     <span style={{
       display: "inline-block", padding: "2px 8px",
-      borderRadius: 999, fontSize: 11, fontWeight: 600,
+      borderRadius: 999, fontSize: 12, fontWeight: 600,
       color: badge.color, background: badge.bg,
     }}>
       {type || "-"}
@@ -209,8 +143,29 @@ function MemberTypeBadge({ type }) {
 }
 
 /* ── Status Badge ── */
-function StatusBadge({ status, onClick }) {
+function StatusBadge({ status, onClick, disabled }) {
   const isPaid = status === "納入済";
+  const isUnissued = status === "未発行";
+  const bg = isPaid ? "#ecfdf5" : isUnissued ? "#f3f4f6" : "#fef2f2";
+  const color = isPaid ? "#065f46" : isUnissued ? "#6b7280" : "#991b1b";
+  const label = isPaid ? "\u2713 納入済" : isUnissued ? "\u25CB 未発行" : "\u25CF 未納";
+
+  if (disabled) {
+    return (
+      <span
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 4,
+          padding: "4px 12px", borderRadius: 999,
+          border: "none",
+          fontSize: 12, fontWeight: 600,
+          background: bg, color,
+        }}
+      >
+        {label}
+      </span>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -220,14 +175,13 @@ function StatusBadge({ status, onClick }) {
         padding: "4px 12px", borderRadius: 999,
         border: "none", cursor: "pointer",
         fontSize: 12, fontWeight: 600,
-        background: isPaid ? "#ecfdf5" : "#fef2f2",
-        color: isPaid ? "#065f46" : "#991b1b",
+        background: bg, color,
         transition: "all 0.15s",
       }}
       onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.8"; e.currentTarget.style.transform = "scale(1.05)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "scale(1)"; }}
     >
-      {isPaid ? "\u2713 納入済" : "\u25CF 未納"}
+      {label}
     </button>
   );
 }
@@ -247,7 +201,7 @@ function PayerSuggest({ memberId, allDues, value, onChange }) {
 
   return (
     <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
-      <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>過去の名義:</span>
+      <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>過去の名義:</span>
       {suggestions.map((s, i) => (
         <button
           key={i}
@@ -256,7 +210,7 @@ function PayerSuggest({ memberId, allDues, value, onChange }) {
           style={{
             padding: "2px 8px", borderRadius: 999, border: "1px solid var(--line)",
             background: value === s ? "var(--primary-light)" : "#fff",
-            fontSize: 11, cursor: "pointer", color: "var(--text)",
+            fontSize: 12, cursor: "pointer", color: "var(--text)",
             transition: "all 0.15s",
           }}
         >
@@ -432,7 +386,7 @@ function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, curren
                           <span style={{
                             marginLeft: 4, padding: "1px 6px", borderRadius: 999,
                             background: "var(--primary-light)", color: "var(--primary)",
-                            fontSize: 10, fontWeight: 600,
+                            fontSize: 12, fontWeight: 600,
                           }}>当年度</span>
                         )}
                       </td>
@@ -441,7 +395,7 @@ function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, curren
                       <td style={{ textAlign: "center" }}>
                         <span style={{
                           display: "inline-block", padding: "3px 10px", borderRadius: 999,
-                          fontSize: 11, fontWeight: 600,
+                          fontSize: 12, fontWeight: 600,
                           background: isUnpaid ? "#fef2f2" : "#ecfdf5",
                           color: isUnpaid ? "#991b1b" : "#065f46",
                         }}>
@@ -470,7 +424,7 @@ function SettingsField({ id, label, description, value, onChange }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
       <label htmlFor={id} style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{label}</label>
-      {description && <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>{description}</span>}
+      {description && <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{description}</span>}
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input
           id={id}
@@ -496,6 +450,7 @@ function SettingsField({ id, label, description, value, onChange }) {
 /* ══════════════════════════════════════ */
 
 export default function DuesManagement() {
+  const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   const fiscalYearId = searchParams.get("fiscalYearId") || "";
 
@@ -530,6 +485,12 @@ export default function DuesManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dueTypeFilter, setDueTypeFilter] = useState("all");
+  const [memberTypeFilter, setMemberTypeFilter] = useState("all");
+  const [orgFilter, setOrgFilter] = useState("all");
+
+  // Organization data
+  const [allOrgs, setAllOrgs] = useState([]);
+  const [allAssigns, setAllAssigns] = useState([]);
 
   // Batch selection
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -541,6 +502,7 @@ export default function DuesManagement() {
   const [confirmBatch, setConfirmBatch] = useState(false);
   const [confirmReminder, setConfirmReminder] = useState(false);
   const [confirmAllReminder, setConfirmAllReminder] = useState(false);
+  const [confirmBulkIssue, setConfirmBulkIssue] = useState(false);
   // confirmRevert removed — unified in ReconcileModal
 
   // Batch reconcile modal (for batch paid date entry)
@@ -585,12 +547,17 @@ export default function DuesManagement() {
     setError("");
     (async () => {
       try {
-        const [allFiscalYears, allDues, dueSettings, allMembers] = await Promise.all([
+        const [allFiscalYears, allDues, dueSettings, allMembers, orgs, assigns] = await Promise.all([
           base44.entities.FiscalYear.list("-year"),
           base44.entities.Due.list(),
           base44.entities.DueSetting.list(),
           base44.entities.Member.filter({ approval_status: "承認済" }),
+          base44.entities.Organization.list().catch(() => []),
+          base44.entities.OrgAssignment.list().catch(() => []),
         ]);
+
+        setAllOrgs(orgs);
+        setAllAssigns(assigns);
 
         setFiscalYears(allFiscalYears);
         setAllDueSettings(dueSettings);
@@ -601,24 +568,50 @@ export default function DuesManagement() {
         const selectedFy = allFiscalYears.find((fy) => fy.id === activeFyId) || null;
         setSelectedFiscalYear(selectedFy);
 
-        // member map
+        // member map (only dues-eligible types)
+        const DUES_ELIGIBLE_TYPES = ["正会員", "賛助会員"];
         const mMap = {};
         for (const m of allMembers) {
-          mMap[m.id] = { name: m.name_kanji || "", type: m.member_type || "", is_new: !!m.is_new };
+          if (!DUES_ELIGIBLE_TYPES.includes(m.member_type)) continue;
+          mMap[m.id] = { name: fullName(m) || "", type: m.member_type || "", is_new: !!m.is_new };
         }
         setMemberMap(mMap);
 
-        // Enrich all dues
-        const enrichedAll = allDues.map((d) => ({
-          ...d,
-          member_name: d.member_name || mMap[d.member_id]?.name || "",
-          member_type: d.member_type || mMap[d.member_id]?.type || "",
-          is_new: d.is_new ?? mMap[d.member_id]?.is_new ?? false,
-        }));
+        // Enrich all dues, skip orphaned records (member no longer exists)
+        const enrichedAll = allDues
+          .filter((d) => !d.member_id || mMap[d.member_id])
+          .map((d) => ({
+            ...d,
+            member_name: d.member_name || mMap[d.member_id]?.name || "",
+            member_type: d.member_type || mMap[d.member_id]?.type || "",
+            is_new: d.is_new ?? mMap[d.member_id]?.is_new ?? false,
+          }));
         setAllDuesRaw(enrichedAll);
 
-        // Filter for selected FY
-        setDues(enrichedAll.filter((d) => d.fiscal_year_id === activeFyId));
+        // Filter for selected FY and add virtual rows for members without dues
+        const fyDues = enrichedAll.filter((d) => d.fiscal_year_id === activeFyId);
+        const memberIdsWithDues = new Set(fyDues.map(d => d.member_id));
+        const virtualDues = [];
+        for (const [memberId, info] of Object.entries(mMap)) {
+          if (!memberIdsWithDues.has(memberId)) {
+            virtualDues.push({
+              id: `virtual-${memberId}`,
+              fiscal_year_id: activeFyId,
+              member_id: memberId,
+              member_name: info.name,
+              member_type: info.type,
+              is_new: info.is_new,
+              amount: null,
+              status: "未発行",
+              due_type: "",
+              paid_date: "",
+              payer_name: "",
+              notes: "",
+              _virtual: true,
+            });
+          }
+        }
+        setDues([...fyDues, ...virtualDues]);
 
         // Settings for active FY
         loadSettingsForFy(activeFyId, dueSettings);
@@ -658,18 +651,20 @@ export default function DuesManagement() {
 
   /* ── Computed: summary ── */
   const computedSummary = useMemo(() => {
-    let total = 0, paidCount = 0, unpaidCount = 0, paidAmount = 0, unpaidAmount = 0;
+    let total = 0, paidCount = 0, unpaidCount = 0, unissuedCount = 0, paidAmount = 0, unpaidAmount = 0;
     for (const d of dues) {
       total++;
+      if (d.status === "未発行" || d._virtual) { unissuedCount++; continue; }
       const amt = Number(d.amount) || 0;
       if (d.status === "納入済") { paidCount++; paidAmount += amt; }
       else { unpaidCount++; unpaidAmount += amt; }
     }
-    return { total, paidCount, unpaidCount, paidAmount, unpaidAmount };
+    return { total, paidCount, unpaidCount, unissuedCount, paidAmount, unpaidAmount };
   }, [dues]);
 
-  const paidRate = computedSummary.total > 0
-    ? Math.round((computedSummary.paidCount / computedSummary.total) * 100)
+  const issuedCount = computedSummary.paidCount + computedSummary.unpaidCount;
+  const paidRate = issuedCount > 0
+    ? Math.round((computedSummary.paidCount / issuedCount) * 100)
     : 0;
 
   /* ── New member IDs ── */
@@ -729,12 +724,27 @@ export default function DuesManagement() {
     return map;
   }, [allDuesRaw, activeFiscalYearId, newMemberIds]);
 
+  /* ── Organizations for filter dropdown ── */
+  const fyOrgs = useMemo(() => {
+    return allOrgs.filter(o => o.fiscal_year_id === activeFiscalYearId).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  }, [allOrgs, activeFiscalYearId]);
+
   /* ── Filtered dues (current tab) ── */
   const filteredDues = useMemo(() => {
     let list = dues;
+    // member type filter
+    if (memberTypeFilter !== "all") list = list.filter(d => d.member_type === memberTypeFilter);
+    // org filter
+    if (orgFilter !== "all") {
+      const orgMemberIds = new Set(
+        allAssigns.filter(a => a.organization_id === orgFilter && a.fiscal_year_id === activeFiscalYearId).map(a => a.member_id)
+      );
+      list = list.filter(d => orgMemberIds.has(d.member_id));
+    }
     // status filter
-    if (statusFilter === "unpaid") list = list.filter(d => d.status !== "納入済");
+    if (statusFilter === "unpaid") list = list.filter(d => d.status === "未納");
     else if (statusFilter === "paid") list = list.filter(d => d.status === "納入済");
+    else if (statusFilter === "unissued") list = list.filter(d => d.status === "未発行");
     // due type filter
     if (dueTypeFilter !== "all") list = list.filter(d => (d.due_type || "年会費") === dueTypeFilter);
     // search
@@ -747,7 +757,7 @@ export default function DuesManagement() {
       });
     }
     return list;
-  }, [dues, statusFilter, dueTypeFilter, searchQuery]);
+  }, [dues, memberTypeFilter, orgFilter, allAssigns, activeFiscalYearId, statusFilter, dueTypeFilter, searchQuery]);
 
   // Unique due types in current year
   const dueTypes = useMemo(() => {
@@ -758,6 +768,8 @@ export default function DuesManagement() {
 
   /* ── Handlers ── */
   function handleFiscalYearChange(fyId) {
+    setMemberTypeFilter("all");
+    setOrgFilter("all");
     if (fyId) setSearchParams({ fiscalYearId: fyId });
     else setSearchParams({});
   }
@@ -956,14 +968,37 @@ export default function DuesManagement() {
     });
   }
 
+  async function executeBulkIssue() {
+    setConfirmBulkIssue(false);
+    if (!activeFiscalYearId) return;
+    setSaving(true);
+    try {
+      const result = await apiRequest("bulk-generate-dues", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fiscal_year_id: activeFiscalYearId }),
+      });
+      if (result.generated_count > 0) {
+        showToast(`${result.generated_count}件の会費を発行しました`);
+      } else {
+        showToast("発行対象の会員はいませんでした（全員発行済み）");
+      }
+      reloadData();
+    } catch (err) {
+      showToast(err.message || "会費一括発行に失敗しました", "error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   /* ── Render ── */
   return (
     <section className="admin-shell">
       {/* ── Page Header ── */}
-      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: isMobile ? "stretch" : "flex-start", flexWrap: "wrap", gap: isMobile ? 8 : 0 }}>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <h1 className="page-title" style={{ margin: 0 }}>会費管理</h1>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <h1 className="page-title" style={{ margin: 0, fontSize: isMobile ? 18 : undefined }}>会費管理</h1>
             {selectedFiscalYear && (
               <span style={{
                 padding: "4px 12px", borderRadius: 999,
@@ -976,6 +1011,17 @@ export default function DuesManagement() {
           </div>
           <p className="page-description" style={{ margin: "4px 0 0" }}>年度別の会費管理・消込・未納確認</p>
         </div>
+        {computedSummary.unissuedCount > 0 && (
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={() => setConfirmBulkIssue(true)}
+            disabled={saving}
+            style={{ fontSize: 13, whiteSpace: "nowrap" }}
+          >
+            会費一括発行
+          </button>
+        )}
       </div>
 
       {/* Toast */}
@@ -1062,6 +1108,14 @@ export default function DuesManagement() {
         onConfirm={executeSendAllReminder}
         onCancel={() => setConfirmAllReminder(false)}
       />
+      <ConfirmDialog
+        open={confirmBulkIssue}
+        title="会費一括発行"
+        message={`会費データがない正会員・賛助会員 ${computedSummary.unissuedCount}名に当年度の会費を一括発行しますか？\n※ 既に発行済みの会員はスキップされます`}
+        confirmLabel="発行する"
+        onConfirm={executeBulkIssue}
+        onCancel={() => setConfirmBulkIssue(false)}
+      />
 
       {error && <p className="message error" aria-live="polite" style={{ marginBottom: 12 }}>{error}</p>}
 
@@ -1100,35 +1154,66 @@ export default function DuesManagement() {
           )}
 
           {/* Summary cards */}
-          <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
-            <SummaryCard
-              icon={"📊"}
-              label="全体"
-              value={`${computedSummary.total}名`}
-              color="var(--primary)"
-            />
-            <SummaryCard
-              icon={"\u2705"}
-              label="納入済"
-              value={`${computedSummary.paidCount}名`}
-              sub={formatCurrency(computedSummary.paidAmount)}
-              color="#059669"
-            />
-            <SummaryCard
-              icon={"\u26A0\uFE0F"}
-              label="未納"
-              value={`${computedSummary.unpaidCount}名`}
-              sub={formatCurrency(computedSummary.unpaidAmount)}
-              color="#dc2626"
-            />
-            <SummaryCard
-              icon={"📈"}
-              label="納入率"
-              value={`${paidRate}%`}
-              color="var(--primary)"
-              progress={paidRate}
-            />
-          </div>
+          {isMobile ? (
+            <div className="stat-chip-bar" style={{ marginBottom: 16 }}>
+              <div className="stat-chip">
+                <span className="stat-chip-label">全体</span>
+                <span className="stat-chip-value">{computedSummary.total}名</span>
+              </div>
+              <div className="stat-chip">
+                <span className="stat-chip-label">納入済</span>
+                <span className="stat-chip-value" style={{ color: "#059669" }}>{computedSummary.paidCount}名</span>
+              </div>
+              <div className="stat-chip">
+                <span className="stat-chip-label">未納</span>
+                <span className="stat-chip-value" style={{ color: "#dc2626" }}>{computedSummary.unpaidCount}名</span>
+              </div>
+              <div className="stat-chip">
+                <span className="stat-chip-label">未発行</span>
+                <span className="stat-chip-value" style={{ color: "#6b7280" }}>{computedSummary.unissuedCount}名</span>
+              </div>
+              <div className="stat-chip">
+                <span className="stat-chip-label">納入率</span>
+                <span className="stat-chip-value">{paidRate}%</span>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+              <SummaryCard
+                icon={"📊"}
+                label="全体"
+                value={`${computedSummary.total}名`}
+                color="var(--primary)"
+              />
+              <SummaryCard
+                icon={"\u2705"}
+                label="納入済"
+                value={`${computedSummary.paidCount}名`}
+                sub={formatCurrency(computedSummary.paidAmount)}
+                color="#059669"
+              />
+              <SummaryCard
+                icon={"\u26A0\uFE0F"}
+                label="未納"
+                value={`${computedSummary.unpaidCount}名`}
+                sub={formatCurrency(computedSummary.unpaidAmount)}
+                color="#dc2626"
+              />
+              <SummaryCard
+                icon={"\u25CB"}
+                label="未発行"
+                value={`${computedSummary.unissuedCount}名`}
+                color="#6b7280"
+              />
+              <SummaryCard
+                icon={"📈"}
+                label="納入率"
+                value={`${paidRate}%`}
+                color="var(--primary)"
+                progress={paidRate}
+              />
+            </div>
+          )}
 
           {/* Search & Filter Bar */}
           <section className="card panel-card single-panel">
@@ -1157,6 +1242,35 @@ export default function DuesManagement() {
                   />
                 </div>
 
+                {/* Member type filter */}
+                <select
+                  value={memberTypeFilter}
+                  onChange={(e) => setMemberTypeFilter(e.target.value)}
+                  style={{
+                    padding: "8px 12px", borderRadius: "var(--radius)",
+                    border: "1px solid var(--line)", fontSize: 13,
+                  }}
+                >
+                  <option value="all">全種別</option>
+                  <option value="正会員">正会員</option>
+                  <option value="賛助会員">賛助会員</option>
+                </select>
+
+                {/* Organization filter */}
+                <select
+                  value={orgFilter}
+                  onChange={(e) => setOrgFilter(e.target.value)}
+                  style={{
+                    padding: "8px 12px", borderRadius: "var(--radius)",
+                    border: "1px solid var(--line)", fontSize: 13,
+                  }}
+                >
+                  <option value="all">全組織</option>
+                  {fyOrgs.map(o => (
+                    <option key={o.id} value={o.id}>{o.org_name}</option>
+                  ))}
+                </select>
+
                 {/* Status filter pills */}
                 <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
                   <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", whiteSpace: "nowrap", marginRight: 2 }}>ステータス</span>
@@ -1164,6 +1278,7 @@ export default function DuesManagement() {
                     { key: "all", label: "全て" },
                     { key: "unpaid", label: "未納" },
                     { key: "paid", label: "納入済" },
+                    { key: "unissued", label: "未発行" },
                   ].map(opt => (
                     <button
                       key={opt.key}
@@ -1213,7 +1328,7 @@ export default function DuesManagement() {
                 </div>
               </div>
 
-              {/* Table */}
+              {/* Table / Card List */}
               {loading ? (
                 <LoadingSpinner />
               ) : filteredDues.length === 0 ? (
@@ -1228,6 +1343,79 @@ export default function DuesManagement() {
                     </p>
                   )}
                 </div>
+              ) : isMobile ? (
+                <div className="mobile-card-list" style={{ padding: 8 }}>
+                  {filteredDues.map((due) => {
+                    const isVirtual = !!due._virtual;
+                    const isSelected = selectedIds.has(due.id);
+                    const isUnpaid = due.status !== "納入済" && !isVirtual;
+                    const priorCount = priorUnpaidByMember[due.member_id] || 0;
+                    return (
+                      <div
+                        key={due.id}
+                        className="mobile-card-item"
+                        onClick={() => { if (!isVirtual) handleRowClick(due); }}
+                        style={{
+                          cursor: isVirtual ? "default" : "pointer",
+                          background: isSelected ? "rgba(79, 70, 229, 0.06)" : undefined,
+                        }}
+                      >
+                        <div className="mobile-card-item-header">
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, flex: 1, flexWrap: "wrap" }}>
+                            {isUnpaid && (
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => handleCheckboxClick(due, e)}
+                                style={{ flexShrink: 0 }}
+                              />
+                            )}
+                            <button
+                              type="button"
+                              style={{
+                                fontWeight: 600, fontSize: 14, padding: 0,
+                                border: "none", background: "none", cursor: "pointer",
+                                color: "var(--primary)", textDecoration: "none",
+                              }}
+                              onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
+                            >
+                              {displayValue(due.member_name)}
+                            </button>
+                            <MemberTypeBadge type={due.member_type} />
+                            {due.is_new && (
+                              <span style={{
+                                padding: "1px 6px", borderRadius: 999,
+                                background: "#dbeafe", color: "#1d4ed8",
+                                fontSize: 12, fontWeight: 700,
+                              }}>新入</span>
+                            )}
+                            {!isVirtual && priorCount > 0 && (
+                              <span style={{ fontSize: 13, lineHeight: 1 }}>{"\u26A0\uFE0F"}</span>
+                            )}
+                          </div>
+                          <StatusBadge status={due.status} disabled={isVirtual} onClick={isVirtual ? undefined : (e) => { e.stopPropagation(); openReconcileModal(due); }} />
+                        </div>
+                        <div className="mobile-card-item-row">
+                          <span className="card-label">会費種別</span>
+                          <span className="card-value">{isVirtual ? "-" : <DueTypeBadge type={due.due_type || "年会費"} />}</span>
+                        </div>
+                        <div className="mobile-card-item-row">
+                          <span className="card-label">金額</span>
+                          <span className="card-value" style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                            {isVirtual ? "-" : formatCurrency(due.amount)}
+                          </span>
+                        </div>
+                        <div className="mobile-card-item-row">
+                          <span className="card-label">ステータス</span>
+                          <span className="card-value">
+                            <StatusBadge status={due.status} disabled />
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               ) : (
                 <div className="table-wrap">
                   <table className="data-table">
@@ -1236,8 +1424,8 @@ export default function DuesManagement() {
                         <th style={{ width: 36, textAlign: "center" }}>
                           <input
                             type="checkbox"
-                            checked={selectedIds.size > 0 && selectedIds.size === filteredDues.filter(d => d.status !== "納入済").length && filteredDues.some(d => d.status !== "納入済")}
-                            onChange={(e) => toggleSelectAll(e.target.checked, filteredDues)}
+                            checked={selectedIds.size > 0 && selectedIds.size === filteredDues.filter(d => d.status !== "納入済" && !d._virtual).length && filteredDues.some(d => d.status !== "納入済" && !d._virtual)}
+                            onChange={(e) => toggleSelectAll(e.target.checked, filteredDues.filter(d => !d._virtual))}
                           />
                         </th>
                         <th>氏名</th>
@@ -1252,19 +1440,20 @@ export default function DuesManagement() {
                     </thead>
                     <tbody>
                       {filteredDues.map((due) => {
+                        const isVirtual = !!due._virtual;
                         const isSelected = selectedIds.has(due.id);
-                        const isUnpaid = due.status !== "納入済";
+                        const isUnpaid = due.status !== "納入済" && !isVirtual;
                         const priorCount = priorUnpaidByMember[due.member_id] || 0;
                         return (
                           <tr
                             key={due.id}
-                            onClick={(e) => handleRowClick(due, e)}
+                            onClick={(e) => { if (!isVirtual) handleRowClick(due, e); }}
                             style={{
-                              cursor: "pointer",
+                              cursor: isVirtual ? "default" : "pointer",
                               background: isSelected ? "rgba(79, 70, 229, 0.06)" : undefined,
                               transition: "background 0.15s",
                             }}
-                            onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = "var(--line-light)"; }}
+                            onMouseEnter={(e) => { if (!isSelected && !isVirtual) e.currentTarget.style.background = "var(--line-light)"; }}
                             onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = ""; }}
                           >
                             <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
@@ -1290,10 +1479,10 @@ export default function DuesManagement() {
                                   <span style={{
                                     padding: "1px 6px", borderRadius: 999,
                                     background: "#dbeafe", color: "#1d4ed8",
-                                    fontSize: 10, fontWeight: 700,
-                                  }}>NEW</span>
+                                    fontSize: 12, fontWeight: 700,
+                                  }}>新入</span>
                                 )}
-                                {priorCount > 0 && (
+                                {!isVirtual && priorCount > 0 && (
                                   <span
                                     title={`前年度以前の未納が${priorCount}件あります`}
                                     style={{ cursor: "pointer", fontSize: 13, lineHeight: 1 }}
@@ -1305,17 +1494,17 @@ export default function DuesManagement() {
                               </div>
                             </td>
                             <td><MemberTypeBadge type={due.member_type} /></td>
-                            <td><DueTypeBadge type={due.due_type || "年会費"} /></td>
+                            <td>{isVirtual ? "-" : <DueTypeBadge type={due.due_type || "年会費"} />}</td>
                             <td style={{ textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", fontSize: 13 }}>
-                              {formatCurrency(due.amount)}
+                              {isVirtual ? "-" : formatCurrency(due.amount)}
                             </td>
                             <td style={{ textAlign: "center" }}>
-                              <StatusBadge status={due.status} onClick={(e) => { e.stopPropagation(); openReconcileModal(due); }} />
+                              <StatusBadge status={due.status} disabled={isVirtual} onClick={isVirtual ? undefined : (e) => { e.stopPropagation(); openReconcileModal(due); }} />
                             </td>
-                            <td style={{ fontSize: 13, color: "var(--text-secondary)" }}>{displayValue(due.paid_date)}</td>
-                            <td style={{ fontSize: 13 }}>{displayValue(due.payer_name)}</td>
+                            <td style={{ fontSize: 13, color: "var(--text-secondary)" }}>{isVirtual ? "-" : displayValue(due.paid_date)}</td>
+                            <td style={{ fontSize: 13 }}>{isVirtual ? "-" : displayValue(due.payer_name)}</td>
                             <td style={{ fontSize: 13, color: "var(--text-secondary)", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                              {displayValue(due.notes)}
+                              {isVirtual ? "-" : displayValue(due.notes)}
                             </td>
                           </tr>
                         );
@@ -1372,29 +1561,46 @@ export default function DuesManagement() {
       {activeTab === "all-unpaid" && (
         <>
           {/* Summary */}
-          <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
-            <SummaryCard
-              icon={"\u26A0\uFE0F"}
-              label="未納合計"
-              value={`${allUnpaidSummary.totalCount}件`}
-              sub={formatCurrency(allUnpaidSummary.totalAmount)}
-              color="#dc2626"
-            />
-            <SummaryCard
-              icon={"🟠"}
-              label="うち前年度以前"
-              value={`${allUnpaidSummary.priorCount}件`}
-              sub={formatCurrency(allUnpaidSummary.priorAmount)}
-              color="#d97706"
-            />
-            <SummaryCard
-              icon={"🟣"}
-              label="当年度分"
-              value={`${allUnpaidSummary.totalCount - allUnpaidSummary.priorCount}件`}
-              sub={formatCurrency(allUnpaidSummary.totalAmount - allUnpaidSummary.priorAmount)}
-              color="var(--primary)"
-            />
-          </div>
+          {isMobile ? (
+            <div className="stat-chip-bar" style={{ marginBottom: 16 }}>
+              <div className="stat-chip">
+                <span className="stat-chip-label">未納合計</span>
+                <span className="stat-chip-value" style={{ color: "#dc2626" }}>{allUnpaidSummary.totalCount}件</span>
+              </div>
+              <div className="stat-chip">
+                <span className="stat-chip-label">前年度以前</span>
+                <span className="stat-chip-value" style={{ color: "#d97706" }}>{allUnpaidSummary.priorCount}件</span>
+              </div>
+              <div className="stat-chip">
+                <span className="stat-chip-label">当年度分</span>
+                <span className="stat-chip-value">{allUnpaidSummary.totalCount - allUnpaidSummary.priorCount}件</span>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+              <SummaryCard
+                icon={"\u26A0\uFE0F"}
+                label="未納合計"
+                value={`${allUnpaidSummary.totalCount}件`}
+                sub={formatCurrency(allUnpaidSummary.totalAmount)}
+                color="#dc2626"
+              />
+              <SummaryCard
+                icon={"🟠"}
+                label="うち前年度以前"
+                value={`${allUnpaidSummary.priorCount}件`}
+                sub={formatCurrency(allUnpaidSummary.priorAmount)}
+                color="#d97706"
+              />
+              <SummaryCard
+                icon={"🟣"}
+                label="当年度分"
+                value={`${allUnpaidSummary.totalCount - allUnpaidSummary.priorCount}件`}
+                sub={formatCurrency(allUnpaidSummary.totalAmount - allUnpaidSummary.priorAmount)}
+                color="var(--primary)"
+              />
+            </div>
+          )}
 
           {/* Actions */}
           <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
@@ -1449,14 +1655,14 @@ export default function DuesManagement() {
                         <span style={{
                           padding: "2px 8px", borderRadius: 999,
                           background: "var(--primary)", color: "#fff",
-                          fontSize: 10, fontWeight: 700,
+                          fontSize: 12, fontWeight: 700,
                         }}>当年度</span>
                       )}
                       {isPrior && (
                         <span style={{
                           padding: "2px 8px", borderRadius: 999,
                           background: "#fde68a", color: "#92400e",
-                          fontSize: 10, fontWeight: 700,
+                          fontSize: 12, fontWeight: 700,
                         }}>前年度以前</span>
                       )}
                     </div>
@@ -1471,99 +1677,169 @@ export default function DuesManagement() {
                   </div>
 
                   <div className="card-body" style={{ padding: "0" }}>
-                    <div className="table-wrap">
-                      <table className="data-table" style={{ margin: 0 }}>
-                        <thead>
-                          <tr>
-                            <th style={{ width: 36, textAlign: "center" }}>
-                              <input
-                                type="checkbox"
-                                checked={allChecked}
-                                onChange={(e) => {
-                                  setSelectedIds((prev) => {
-                                    const next = new Set(prev);
-                                    for (const d of items) {
-                                      if (e.target.checked) next.add(d.id); else next.delete(d.id);
-                                    }
-                                    return next;
-                                  });
-                                }}
-                              />
-                            </th>
-                            <th>氏名</th>
-                            <th>種別</th>
-                            <th>会費種類</th>
-                            <th style={{ textAlign: "right" }}>金額</th>
-                            <th>振込名義</th>
-                            <th>備考</th>
-                            <th style={{ textAlign: "center", width: 80 }}>消込</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {items.map((due) => {
-                            const isSelected = selectedIds.has(due.id);
-                            return (
-                              <tr
-                                key={due.id}
-                                onClick={(e) => {
-                                  if (selectionMode) {
-                                    toggleSelectOne(due.id);
-                                  } else {
-                                    openReconcileModal(due);
-                                  }
-                                }}
-                                style={{
-                                  cursor: "pointer",
-                                  background: isSelected ? "rgba(79, 70, 229, 0.06)" : (isPrior ? "#fffdf7" : undefined),
-                                  transition: "background 0.15s",
-                                }}
-                                onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = isPrior ? "#fff8f0" : "var(--line-light)"; }}
-                                onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = isPrior ? "#fffdf7" : ""; }}
-                              >
-                                <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
-                                  <input type="checkbox" checked={isSelected} onChange={(ev) => handleCheckboxClick(due, ev)} />
-                                </td>
-                                <td>
-                                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                    <button
-                                      type="button"
-                                      style={{
-                                        fontWeight: 600, fontSize: 13, padding: 0,
-                                        border: "none", background: "none", cursor: "pointer",
-                                        color: "var(--primary)",
-                                      }}
-                                      onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
-                                      title="全年度の会費履歴を表示"
-                                    >
-                                      {displayValue(due.member_name)}
-                                    </button>
-                                    {due.is_new && (
-                                      <span style={{
-                                        padding: "1px 6px", borderRadius: 999,
-                                        background: "#dbeafe", color: "#1d4ed8",
-                                        fontSize: 10, fontWeight: 700,
-                                      }}>NEW</span>
-                                    )}
-                                  </div>
-                                </td>
-                                <td><MemberTypeBadge type={due.member_type} /></td>
-                                <td><DueTypeBadge type={due.due_type || "年会費"} /></td>
-                                <td style={{ textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", fontSize: 13 }}>
+                    {isMobile ? (
+                      <div className="mobile-card-list" style={{ padding: 8 }}>
+                        {items.map((due) => {
+                          const isSelected = selectedIds.has(due.id);
+                          return (
+                            <div
+                              key={due.id}
+                              className="mobile-card-item"
+                              onClick={() => {
+                                if (selectionMode) { toggleSelectOne(due.id); }
+                                else { openReconcileModal(due); }
+                              }}
+                              style={{
+                                cursor: "pointer",
+                                background: isSelected ? "rgba(79, 70, 229, 0.06)" : undefined,
+                              }}
+                            >
+                              <div className="mobile-card-item-header">
+                                <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, flex: 1, flexWrap: "wrap" }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onChange={(ev) => handleCheckboxClick(due, ev)}
+                                    style={{ flexShrink: 0 }}
+                                  />
+                                  <button
+                                    type="button"
+                                    style={{
+                                      fontWeight: 600, fontSize: 14, padding: 0,
+                                      border: "none", background: "none", cursor: "pointer",
+                                      color: "var(--primary)",
+                                    }}
+                                    onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
+                                  >
+                                    {displayValue(due.member_name)}
+                                  </button>
+                                  <MemberTypeBadge type={due.member_type} />
+                                  {due.is_new && (
+                                    <span style={{
+                                      padding: "1px 6px", borderRadius: 999,
+                                      background: "#dbeafe", color: "#1d4ed8",
+                                      fontSize: 12, fontWeight: 700,
+                                    }}>新入</span>
+                                  )}
+                                </div>
+                                <StatusBadge status="未納" onClick={(e) => { e.stopPropagation(); openReconcileModal(due); }} />
+                              </div>
+                              <div className="mobile-card-item-row">
+                                <span className="card-label">会費種別</span>
+                                <span className="card-value"><DueTypeBadge type={due.due_type || "年会費"} /></span>
+                              </div>
+                              <div className="mobile-card-item-row">
+                                <span className="card-label">金額</span>
+                                <span className="card-value" style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
                                   {formatCurrency(due.amount)}
-                                </td>
-                                <td style={{ fontSize: 13 }}>{displayValue(due.payer_name)}</td>
-                                <td style={{ fontSize: 13, color: "var(--text-secondary)", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                  {displayValue(due.notes)}
-                                </td>
-                                <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
-                                  <StatusBadge status="未納" onClick={() => openReconcileModal(due)} />
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
+                                </span>
+                              </div>
+                              <div className="mobile-card-item-row">
+                                <span className="card-label">ステータス</span>
+                                <span className="card-value">
+                                  <StatusBadge status="未納" disabled />
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="table-wrap">
+                        <table className="data-table" style={{ margin: 0 }}>
+                          <thead>
+                            <tr>
+                              <th style={{ width: 36, textAlign: "center" }}>
+                                <input
+                                  type="checkbox"
+                                  checked={allChecked}
+                                  onChange={(e) => {
+                                    setSelectedIds((prev) => {
+                                      const next = new Set(prev);
+                                      for (const d of items) {
+                                        if (e.target.checked) next.add(d.id); else next.delete(d.id);
+                                      }
+                                      return next;
+                                    });
+                                  }}
+                                />
+                              </th>
+                              <th>氏名</th>
+                              <th>種別</th>
+                              <th>会費種類</th>
+                              <th style={{ textAlign: "right" }}>金額</th>
+                              <th>振込名義</th>
+                              <th>備考</th>
+                              <th style={{ textAlign: "center", width: 80 }}>消込</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {items.map((due) => {
+                              const isSelected = selectedIds.has(due.id);
+                              return (
+                                <tr
+                                  key={due.id}
+                                  onClick={(e) => {
+                                    if (selectionMode) {
+                                      toggleSelectOne(due.id);
+                                    } else {
+                                      openReconcileModal(due);
+                                    }
+                                  }}
+                                  style={{
+                                    cursor: "pointer",
+                                    background: isSelected ? "rgba(79, 70, 229, 0.06)" : (isPrior ? "#fffdf7" : undefined),
+                                    transition: "background 0.15s",
+                                  }}
+                                  onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = isPrior ? "#fff8f0" : "var(--line-light)"; }}
+                                  onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = isPrior ? "#fffdf7" : ""; }}
+                                >
+                                  <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
+                                    <input type="checkbox" checked={isSelected} onChange={(ev) => handleCheckboxClick(due, ev)} />
+                                  </td>
+                                  <td>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                      <button
+                                        type="button"
+                                        style={{
+                                          fontWeight: 600, fontSize: 13, padding: 0,
+                                          border: "none", background: "none", cursor: "pointer",
+                                          color: "var(--primary)",
+                                        }}
+                                        onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
+                                        title="全年度の会費履歴を表示"
+                                      >
+                                        {displayValue(due.member_name)}
+                                      </button>
+                                      {due.is_new && (
+                                        <span style={{
+                                          padding: "1px 6px", borderRadius: 999,
+                                          background: "#dbeafe", color: "#1d4ed8",
+                                          fontSize: 12, fontWeight: 700,
+                                        }}>新入</span>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td><MemberTypeBadge type={due.member_type} /></td>
+                                  <td><DueTypeBadge type={due.due_type || "年会費"} /></td>
+                                  <td style={{ textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", fontSize: 13 }}>
+                                    {formatCurrency(due.amount)}
+                                  </td>
+                                  <td style={{ fontSize: 13 }}>{displayValue(due.payer_name)}</td>
+                                  <td style={{ fontSize: 13, color: "var(--text-secondary)", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {displayValue(due.notes)}
+                                  </td>
+                                  <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
+                                    <StatusBadge status="未納" onClick={() => openReconcileModal(due)} />
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </section>
               );

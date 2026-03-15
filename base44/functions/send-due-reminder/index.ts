@@ -1,5 +1,22 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 
+const DEFAULTS: Record<string, string> = {
+  template_due_reminder_subject: "【水戸２１の会】{{fiscal_year}}年度 会費納入のお願い",
+  template_due_reminder_body: "{{member_name}} 様\n\n{{fiscal_year}}年度の会費（{{amount}}円）が未納となっております。\nお早めのお振込みをお願いいたします。\n\n水戸２１の会 事務局",
+};
+
+function renderTemplate(template: string, vars: Record<string, string>): string {
+  let result = template;
+  for (const [key, value] of Object.entries(vars)) {
+    result = result.replaceAll(`{{${key}}}`, value);
+  }
+  return result;
+}
+
+function tpl(settings: any, key: string): string {
+  return settings?.[key] || DEFAULTS[key] || "";
+}
+
 function normalize(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -39,12 +56,18 @@ Deno.serve(async (req) => {
       return Response.json({ ok: false, error: "Fiscal year not found" }, { status: 404 });
     }
 
+    // Load templates
+    let settings: any = null;
+    try {
+      const settingsList = await base44.asServiceRole.entities.AppSettings.list();
+      if (settingsList.length > 0) settings = settingsList[0];
+    } catch { /* ignore */ }
+
     const memberMap = new Map<string, Record<string, unknown>>();
     for (const m of allMembers) {
       memberMap.set(m.id, m);
     }
 
-    // Find unpaid dues with valid members
     const unpaidDues = allDues.filter((d) => {
       const status = normalize(d.status);
       return status === "未納" || status === "unpaid";
@@ -54,9 +77,10 @@ Deno.serve(async (req) => {
     for (const due of unpaidDues) {
       const member = memberMap.get(String(due.member_id || ""));
       if (member && member.email && member.approval_status === "承認済" && member.status === "活動中") {
+        const displayName = `${member.last_name || ""} ${member.first_name || ""}`.trim();
         recipients.push({
           email: String(member.email),
-          name: String(member.name_kanji || ""),
+          name: displayName,
           amount: Number(due.amount || 0)
         });
       }
@@ -71,7 +95,14 @@ Deno.serve(async (req) => {
 
     for (const recipient of recipients) {
       try {
-        const emailBody = `${recipient.name} 様\n\n${fiscalYear.year}年度の会費（${recipient.amount.toLocaleString()}円）が未納となっております。\nお早めのお振込みをお願いいたします。\n\n水戸２１の会 事務局`;
+        const vars = {
+          member_name: recipient.name,
+          fiscal_year: String(fiscalYear.year || ""),
+          amount: recipient.amount.toLocaleString(),
+        };
+
+        const subject = renderTemplate(tpl(settings, "template_due_reminder_subject"), vars);
+        const emailBody = renderTemplate(tpl(settings, "template_due_reminder_body"), vars);
 
         const response = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -82,7 +113,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             from: resendFromEmail,
             to: [recipient.email],
-            subject: `【水戸２１の会】${fiscalYear.year}年度 会費納入のお願い`,
+            subject,
             text: emailBody
           })
         });

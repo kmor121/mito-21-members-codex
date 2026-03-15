@@ -31,7 +31,6 @@ export default function DocumentEditor() {
   const [formPublished, setFormPublished] = useState(false);
   const [formContent, setFormContent] = useState("");
   const [formAttachment, setFormAttachment] = useState("");
-  const [formCategory, setFormCategory] = useState("");
   const [attachOpen, setAttachOpen] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
 
@@ -42,7 +41,7 @@ export default function DocumentEditor() {
   useEffect(() => {
     if (initialLoad.current) return;
     isDirty.current = true;
-  }, [formTitle, formDocType, formFiscalYearId, formSortOrder, formPublished, formContent, formAttachment, formCategory]);
+  }, [formTitle, formDocType, formFiscalYearId, formSortOrder, formPublished, formContent, formAttachment]);
 
   // Warn on browser back
   useEffect(() => {
@@ -70,7 +69,6 @@ export default function DocumentEditor() {
         setFormPublished(!!result.published);
         setFormContent(result.content || "");
         setFormAttachment(result.attachment || "");
-        setFormCategory(result.category || (result.doc_type === "運用マニュアル" ? "運用マニュアル" : ""));
         if (result.attachment) setAttachOpen(true);
       }
     } catch (err) {
@@ -102,9 +100,6 @@ export default function DocumentEditor() {
         content: formContent,
         attachment: formAttachment || null,
       };
-      if (formDocType === "運用マニュアル") {
-        payload.category = formCategory || "運用マニュアル";
-      }
       if (!isNew) payload.id = documentId;
 
       await apiRequest("save-org-document", {
@@ -138,7 +133,6 @@ export default function DocumentEditor() {
 
   function handleDocTypeSelect(key) {
     setFormDocType(key);
-    if (key === "運用マニュアル" && !formCategory) setFormCategory("運用マニュアル");
   }
 
   if (loading) {
@@ -243,19 +237,6 @@ export default function DocumentEditor() {
                 </select>
               </div>
 
-              {formDocType === "運用マニュアル" && (
-                <div className="doc-ed-field">
-                  <label className="doc-ed-label" htmlFor="doc-category">カテゴリ</label>
-                  <input
-                    id="doc-category"
-                    className="field-input"
-                    type="text"
-                    placeholder="例: 例会ルール"
-                    value={formCategory}
-                    onChange={(e) => setFormCategory(e.target.value)}
-                  />
-                </div>
-              )}
 
               <div className="doc-ed-field">
                 <label className="doc-ed-label">公開設定</label>

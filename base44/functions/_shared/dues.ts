@@ -94,7 +94,7 @@ export async function getCanonicalDuesForFiscalYear(base44: any, fiscalYearId: s
         id: String(due.id || ""),
         fiscal_year_id: fiscalYearId,
         member_id: memberId,
-        member_name: String(member.name_kanji || ""),
+        member_name: `${member.last_name || ""} ${member.first_name || ""}`.trim(),
         member_type: memberType,
         member_number: String(member.member_number || ""),
         due_type: dueType,

@@ -7,7 +7,8 @@ const STATUS_ALIASES: Record<string, string> = {
 };
 
 const TRACKABLE_FIELDS = [
-  "name_kanji", "name_kana", "birthday", "company_name", "company_position",
+  "last_name", "first_name", "last_name_kana", "first_name_kana",
+  "birthday", "company_name", "company_position",
   "industry", "email", "mobile_phone", "company_phone", "company_fax",
   "company_address", "company_postal_code", "company_pr",
   "home_postal_code", "home_address", "home_phone", "home_fax",
@@ -75,9 +76,16 @@ Deno.serve(async (req) => {
       );
     }
 
+    const last_name = normalizeOptionalString(body?.last_name);
+    const first_name = normalizeOptionalString(body?.first_name);
+    const last_name_kana = normalizeOptionalString(body?.last_name_kana);
+    const first_name_kana = normalizeOptionalString(body?.first_name_kana);
+
     const payload: Record<string, unknown> = {
-      name_kanji: normalizeOptionalString(body?.name_kanji),
-      name_kana: normalizeOptionalString(body?.name_kana),
+      last_name,
+      first_name,
+      last_name_kana,
+      first_name_kana,
       birthday: normalizeOptionalString(body?.birthday),
       company_name: normalizeOptionalString(body?.company_name),
       company_position: normalizeOptionalString(body?.company_position),
@@ -122,8 +130,10 @@ Deno.serve(async (req) => {
 
     const updatePayload = allowPartialProfileUpdate
       ? {
-          name_kanji: pickLegacyValue(existingMember.name_kanji, existingMember.name, "未設定"),
-          name_kana: pickLegacyValue(existingMember.name_kana, existingMember.name, "未設定"),
+          last_name: payload.last_name as string,
+          first_name: payload.first_name as string,
+          last_name_kana: payload.last_name_kana as string,
+          first_name_kana: payload.first_name_kana as string,
           birthday: pickLegacyValue(existingMember.birthday, "1900-01-01"),
           referrer_1: pickLegacyValue(existingMember.referrer_1, "未設定"),
           referrer_2: pickLegacyValue(existingMember.referrer_2, "未設定"),
@@ -151,8 +161,8 @@ Deno.serve(async (req) => {
 
     if (!allowPartialProfileUpdate) {
       const requiredFields = [
-        [payload.name_kanji, "name_kanji"],
-        [payload.name_kana, "name_kana"],
+        [payload.last_name, "last_name"],
+        [payload.first_name, "first_name"],
         [payload.birthday, "birthday"],
         [payload.email, "email"],
         [payload.mobile_phone, "mobile_phone"]

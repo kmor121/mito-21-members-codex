@@ -165,8 +165,10 @@ Deno.serve(async (req) => {
 
       for (const member of newMembers) {
         await base44.asServiceRole.entities.Member.update(member.id, {
-          name_kanji: String(member.name_kanji || ""),
-          name_kana: String(member.name_kana || ""),
+          last_name: String(member.last_name || ""),
+          first_name: String(member.first_name || ""),
+          last_name_kana: String(member.last_name_kana || ""),
+          first_name_kana: String(member.first_name_kana || ""),
           birthday: String(member.birthday || ""),
           email: String(member.email || ""),
           mobile_phone: String(member.mobile_phone || ""),

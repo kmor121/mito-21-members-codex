@@ -28,7 +28,28 @@
       "Bash(cd C:/dev/mito-21-members-codex && base44 --help 2>&1 | head -40)",
       "Bash(curl -s -X POST \"https://mito21-members-codex-da487265.base44.app/functions/save-organization\" -H \"Content-Type: application/json\" -d '{\"org_name\":\"test\",\"fiscal_year_id\":\"test\",\"org_type\":\"その他\"}' 2>&1 | head -5)",
       "Bash(curl -s -X POST \"https://mito21-members.base44.app/functions/save-organization\" -H \"Content-Type: application/json\" -d '{\"org_name\":\"test\",\"fiscal_year_id\":\"test\",\"org_type\":\"その他\"}' 2>&1 | head -5)",
-      "Bash(bash scripts/deploy.sh 2>&1)"
+      "Bash(bash scripts/deploy.sh 2>&1)",
+      "Bash(find /c/dev/mito-21-members-codex/base44/entities -type f | xargs ls -lh)",
+      "Bash(grep -r \"name_kanji\\\\|name_kana\" /c/dev/mito-21-members-codex/base44/functions/*.ts 2>/dev/null | head -20)",
+      "Bash(find /c/dev/mito-21-members-codex/src/pages -name \"*.jsx\" -exec grep -l \"name_kanji\\\\|name_kana\" {} \\\\; | sort)",
+      "Bash(npx vite:*)",
+      "Bash(find \"C:/dev/mito-21-members-codex/base44/functions\" -name \"*.ts\" -o -name \"*.js\" 2>/dev/null | head -20)",
+      "Bash(curl -s -X POST \"https://mito21-members-codex-da487265.base44.app/functions/seed-test-members\" -H \"Content-Type: application/json\" -d '{\"clean_orphans\": true}' 2>&1)",
+      "Bash(curl -s -X POST \"https://mito21-members.base44.app/functions/seed-test-members\" -H \"Content-Type: application/json\" -d '{\"clean_orphans\": true}' 2>&1)",
+      "Bash(ADMIN_EMAIL=\"matsumoto@because-web.com\" ADMIN_PASSWORD=\"Bec@use0401\" node scripts/run-seed.mjs 2>&1)",
+      "Read(//c/Users/松本圭一郎/.base44/**)",
+      "Read(//c/Users/松本圭一郎/AppData/Roaming/base44/**)",
+      "Read(//c/dev/mito-21-members-codex/$APPDATA/base44/**)",
+      "Bash(node scripts/run-seed.mjs 2>&1)",
+      "Bash(find /c/dev/mito-21-members-codex -type f \\\\\\( -name \"*[Mm]eeting*\" -o -name \"*[Bb]oard*\" \\\\\\) | grep -E \"\\\\.\\(ts|tsx|jsx|js\\)$\")",
+      "Bash(wc -l /c/dev/mito-21-members-codex/src/components/common/*.jsx /c/dev/mito-21-members-codex/src/components/layout/*.jsx /c/dev/mito-21-members-codex/src/components/ui/*.jsx /c/dev/mito-21-members-codex/src/components/member/*.jsx)",
+      "Bash(find /c/dev/mito-21-members-codex/src -type f \\\\\\( -name \"*.jsx\" -o -name \"*.js\" -o -name \"*.css\" \\\\\\) -exec wc -l {} + | sort -rn)",
+      "Bash(find /c/dev/mito-21-members-codex/base44/entities -name \"*.jsonc\" -exec wc -l {} +)",
+      "Bash(/tmp/file_summary.txt:*)",
+      "Read(//tmp/**)",
+      "Bash(find \"C:\\\\dev\\\\mito-21-members-codex\" -type f -name \"*YearPill*\" 2>/dev/null | head -20)",
+      "Bash(find \"C:\\\\dev\\\\mito-21-members-codex/src\" -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" -o -name \"*.jsx\" -o -name \"*.js\" \\\\\\) 2>/dev/null | grep -i year)",
+      "Bash(grep -r \"YearPillNav\" \"C:\\\\dev\\\\mito-21-members-codex/src\" --include=\"*.tsx\" --include=\"*.ts\" --include=\"*.jsx\" --include=\"*.js\" 2>/dev/null | head -50)"
     ]
   }
 }

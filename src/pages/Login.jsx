@@ -247,14 +247,6 @@ export default function Login() {
                 新規登録はこちら
               </button>
             </div>
-            <div style={{ textAlign: "center", marginTop: 10 }}>
-              <button type="button" onClick={switchToVerify} style={{
-                background: "none", border: "none", color: "#6366f1",
-                fontSize: 13, cursor: "pointer", textDecoration: "underline",
-              }}>
-                認証コードを入力
-              </button>
-            </div>
           </>
         )}
 

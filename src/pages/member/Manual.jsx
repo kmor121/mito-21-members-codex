@@ -1,15 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { base44 } from '../../api/base44Client';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { ChevronDown, FileText } from 'lucide-react';
+import { SkeletonCard } from '../../components/ui/Skeleton';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 function displayValue(value) {
   if (value === null || value === undefined || value === "") return "-";
-  if (typeof value === "boolean") return value ? "はい" : "いいえ";
   return String(value);
 }
 
-function ManualCard({ manual }) {
+function ManualCard({ manual, index }) {
   const content = manual.content
     ? <div className="basic-info-content" dangerouslySetInnerHTML={{ __html: manual.content }} />
     : <p className="muted">本文は登録されていません。</p>;
@@ -22,10 +22,13 @@ function ManualCard({ manual }) {
         </a>
       </div>
     )
-    : <p className="muted">添付ファイルはありません。</p>;
+    : null;
 
   return (
-    <article className="basic-info-document">
+    <article
+      className="basic-info-document fade-slide-in"
+      style={{ animationDelay: `${Math.min(index, 10) * 0.04}s` }}
+    >
       <div className="panel-heading compact">
         <div>
           <h2>{displayValue(manual.title)}</h2>
@@ -38,20 +41,42 @@ function ManualCard({ manual }) {
   );
 }
 
-function ManualCategoryGroup({ title, items }) {
+function ManualCategoryGroup({ title, items, defaultOpen = false }) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
   return (
     <div className="manual-category-group">
-      <h3 className="manual-category-title">{title}</h3>
-      <div className="manual-list">
-        {items.map((manual, idx) => (
-          <ManualCard key={idx} manual={manual} />
-        ))}
-      </div>
+      <button
+        type="button"
+        className="manual-category-toggle"
+        onClick={() => setIsOpen((v) => !v)}
+      >
+        <h3 className="manual-category-title" style={{ marginBottom: 0, borderBottom: "none", paddingBottom: 0 }}>
+          {title}
+          <span className="manual-category-count">{items.length}</span>
+        </h3>
+        <ChevronDown
+          size={18}
+          style={{
+            color: "var(--text-secondary)",
+            transition: "transform 0.2s ease",
+            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+          }}
+        />
+      </button>
+      {isOpen && (
+        <div className="manual-list" style={{ marginTop: 12 }}>
+          {items.map((manual, idx) => (
+            <ManualCard key={idx} manual={manual} index={idx} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 export default function Manual() {
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [manuals, setManuals] = useState([]);
@@ -72,7 +97,6 @@ export default function Manual() {
       });
   }, []);
 
-  // Group by category — must be before any early returns to satisfy Rules of Hooks
   const { categoryGroups, uncategorized } = useMemo(() => {
     const catMap = new Map();
     const uncat = [];
@@ -98,11 +122,11 @@ export default function Manual() {
           <h1 className="page-title">運用マニュアル</h1>
           <p className="page-description">公開中の運用マニュアルを確認</p>
         </div>
-        <section className="card panel-card single-panel">
-          <div className="card-body">
-            <LoadingSpinner />
-          </div>
-        </section>
+        <div style={{ display: "grid", gap: 16 }}>
+          <SkeletonCard height={100} />
+          <SkeletonCard height={100} />
+          <SkeletonCard height={100} />
+        </div>
       </section>
     );
   }
@@ -117,11 +141,6 @@ export default function Manual() {
         <section className="card panel-card single-panel">
           <div className="card-body stack">
             <p className="message error">{error}</p>
-            <div className="actions">
-              <Link className="text-link" to="/directory">会員名簿へ</Link>
-              <Link className="text-link" to="/info">基本情報へ</Link>
-              <Link className="text-link" to="/organization">組織図へ</Link>
-            </div>
           </div>
         </section>
       </section>
@@ -136,21 +155,30 @@ export default function Manual() {
       </div>
       <section className="card panel-card single-panel">
         <div className="card-body stack">
-          <div className="panel-heading"><div><h2>マニュアル一覧</h2></div></div>
           {manuals.length ? (
             <>
-              {categoryGroups.map(([cat, items]) => (
-                <ManualCategoryGroup key={cat} title={cat} items={items} />
+              {categoryGroups.map(([cat, items], idx) => (
+                <ManualCategoryGroup key={cat} title={cat} items={items} defaultOpen={idx === 0} />
               ))}
               {uncategorized.length > 0 && (
-                <ManualCategoryGroup title="その他" items={uncategorized} />
+                <ManualCategoryGroup title="その他" items={uncategorized} defaultOpen={categoryGroups.length === 0} />
               )}
             </>
           ) : (
-            <p className="empty-state">公開中の運用マニュアルはまだ登録されていません。</p>
+            <div className="empty-state-enhanced">
+              <FileText size={32} style={{ color: "var(--muted)", marginBottom: 8 }} />
+              <p style={{ fontWeight: 600, color: "var(--text)", margin: "0 0 4px" }}>運用マニュアルはまだ登録されていません</p>
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>管理者がマニュアルを公開すると、ここに表示されます</p>
+            </div>
           )}
         </div>
       </section>
+      {isMobile && (
+        <style>{`
+          .card-body { padding: 12px !important; }
+          .basic-info-document { padding: 12px !important; }
+        `}</style>
+      )}
     </section>
   );
 }

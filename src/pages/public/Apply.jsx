@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const APPLICATION_DRAFT_KEY = "mito21-application-draft";
 const PROFILE_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
@@ -13,8 +14,10 @@ function saveDraft(d) { sessionStorage.setItem(APPLICATION_DRAFT_KEY, JSON.strin
 function validateDraft(draft, imageFile) {
   const errors = {};
   const required = [
-    ["name_kanji", "氏名を入力してください。"],
-    ["name_kana", "氏名（ふりがな）を入力してください。"],
+    ["last_name", "姓を入力してください。"],
+    ["first_name", "名を入力してください。"],
+    ["last_name_kana", "セイ（フリガナ）を入力してください。"],
+    ["first_name_kana", "メイ（フリガナ）を入力してください。"],
     ["birthday", "生年月日を入力してください。"],
     ["email", "メールアドレスを入力してください。"],
     ["mobile_phone", "携帯番号を入力してください。"],
@@ -22,6 +25,9 @@ function validateDraft(draft, imageFile) {
     ["referrer_2", "紹介者2を入力してください。"],
   ];
   required.forEach(([k, m]) => { if (!draft[k]) errors[k] = m; });
+  const kanaPattern = /^[ァ-ヶー・\s]+$/;
+  if (draft.last_name_kana && !kanaPattern.test(draft.last_name_kana)) errors.last_name_kana = "カタカナで入力してください。";
+  if (draft.first_name_kana && !kanaPattern.test(draft.first_name_kana)) errors.first_name_kana = "カタカナで入力してください。";
   if (draft.email && !draft.email.includes("@")) errors.email = "メールアドレスの形式を確認してください。";
   if (imageFile) {
     if (!PROFILE_IMAGE_ACCEPTED_TYPES.includes(imageFile.type)) errors.profile_image = "プロフィール画像は JPG / PNG のみです。";
@@ -36,6 +42,7 @@ function FieldError({ errors, field }) {
 
 export default function Apply() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [draft, setDraft] = useState(getDraft);
   const [errors, setErrors] = useState({});
   const [formMessage, setFormMessage] = useState("");
@@ -89,14 +96,24 @@ export default function Apply() {
           <div className="panel-heading compact"><div><h2>基本情報</h2></div></div>
           <div className="editor-grid">
             <div className="field">
-              <div className="label-row"><label htmlFor="name_kanji">氏名</label><span className="required">必須</span></div>
-              <input id="name_kanji" name="name_kanji" type="text" autoComplete="name" placeholder="例: 水戸 太郎" value={v("name_kanji")} onChange={(e) => updateField("name_kanji", e.target.value)} />
-              <FieldError errors={errors} field="name_kanji" />
+              <div className="label-row"><label htmlFor="last_name">姓</label><span className="required">必須</span></div>
+              <input id="last_name" name="last_name" type="text" autoComplete="family-name" placeholder="例: 水戸" value={v("last_name")} onChange={(e) => updateField("last_name", e.target.value)} />
+              <FieldError errors={errors} field="last_name" />
             </div>
             <div className="field">
-              <div className="label-row"><label htmlFor="name_kana">氏名（ふりがな）</label><span className="required">必須</span></div>
-              <input id="name_kana" name="name_kana" type="text" placeholder="例: みと たろう" value={v("name_kana")} onChange={(e) => updateField("name_kana", e.target.value)} />
-              <FieldError errors={errors} field="name_kana" />
+              <div className="label-row"><label htmlFor="first_name">名</label><span className="required">必須</span></div>
+              <input id="first_name" name="first_name" type="text" autoComplete="given-name" placeholder="例: 太郎" value={v("first_name")} onChange={(e) => updateField("first_name", e.target.value)} />
+              <FieldError errors={errors} field="first_name" />
+            </div>
+            <div className="field">
+              <div className="label-row"><label htmlFor="last_name_kana">セイ（フリガナ）</label><span className="required">必須</span></div>
+              <input id="last_name_kana" name="last_name_kana" type="text" placeholder="例: ミト" value={v("last_name_kana")} onChange={(e) => updateField("last_name_kana", e.target.value)} />
+              <FieldError errors={errors} field="last_name_kana" />
+            </div>
+            <div className="field">
+              <div className="label-row"><label htmlFor="first_name_kana">メイ（フリガナ）</label><span className="required">必須</span></div>
+              <input id="first_name_kana" name="first_name_kana" type="text" placeholder="例: タロウ" value={v("first_name_kana")} onChange={(e) => updateField("first_name_kana", e.target.value)} />
+              <FieldError errors={errors} field="first_name_kana" />
             </div>
             <div className="field field-span-2">
               <div className="label-row"><label>生年月日</label><span className="required">必須</span></div>
@@ -284,6 +301,13 @@ export default function Apply() {
           </div>
         </section>
       </form>
+      {isMobile && (
+        <style>{`
+          .editor-grid { grid-template-columns: 1fr !important; }
+          .field-span-2 { grid-column: span 1 !important; }
+          .contact-pair-grid { grid-template-columns: 1fr !important; }
+        `}</style>
+      )}
     </section>
   );
 }

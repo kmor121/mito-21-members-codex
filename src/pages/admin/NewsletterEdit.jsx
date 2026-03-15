@@ -5,6 +5,7 @@ import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import DatePicker from "../../components/ui/DatePicker";
 import RichTextEditor from "../../components/common/RichTextEditor";
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 /* ── Inline SVG Icons ── */
 function MailIcon() {
@@ -201,8 +202,8 @@ function MemberSearchModal({ open, onClose, selectedMembers, onToggleMember }) {
   const q = search.trim().toLowerCase();
   const filtered = q
     ? members.filter((m) =>
-        (m.name_kanji || "").toLowerCase().includes(q) ||
-        (m.name_kana || "").toLowerCase().includes(q) ||
+        fullName(m).toLowerCase().includes(q) ||
+        fullNameKana(m).toLowerCase().includes(q) ||
         (m.email || "").toLowerCase().includes(q)
       )
     : members;
@@ -262,10 +263,10 @@ function MemberSearchModal({ open, onClose, selectedMembers, onToggleMember }) {
                     style={{ width: 16, height: 16, accentColor: "#4f46e5", flexShrink: 0 }}
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{m.name_kanji}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{fullName(m)}</div>
                     <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{m.email}</div>
                   </div>
-                  <div style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap" }}>
+                  <div style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>
                     {m.member_type || ""}
                   </div>
                 </label>
@@ -291,6 +292,7 @@ export default function NewsletterEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const isMobile = useIsMobile();
   const fromTemplateId = searchParams.get("from");
   const pathIsTemplate = window.location.pathname.includes("/template/");
   const textareaRef = useRef(null);
@@ -341,9 +343,7 @@ export default function NewsletterEdit() {
 
   // Attachment state
   const [attachments, setAttachments] = useState([]); // { filename, content (base64), size }
-  const [attachUrlMode, setAttachUrlMode] = useState(false);
-  const [attachUrl, setAttachUrl] = useState("");
-  const [attachUrlName, setAttachUrlName] = useState("");
+  const [attachLinks, setAttachLinks] = useState([]); // [{ url, name }]
   const fileInputRef = useRef(null);
   const [fileDragging, setFileDragging] = useState(false);
   const fileDragCounter = useRef(0);
@@ -438,12 +438,13 @@ export default function NewsletterEdit() {
           try {
             const aj = JSON.parse(data.attachments_json || "[]");
             if (Array.isArray(aj) && aj.length > 0) {
-              if (aj[0]?.url) {
-                setAttachUrlMode(true);
-                setAttachUrlName(aj[0].name || "");
-                setAttachUrl(aj[0].url || "");
-              } else {
-                setAttachments(aj.map((a) => ({
+              const urlItems = aj.filter((a) => a.url);
+              const fileItems = aj.filter((a) => !a.url);
+              if (urlItems.length > 0) {
+                setAttachLinks(urlItems.map((a) => ({ url: a.url || "", name: a.name || "" })));
+              }
+              if (fileItems.length > 0) {
+                setAttachments(fileItems.map((a) => ({
                   filename: a.filename || a.name || "",
                   content: a.content || "",
                   size: a.size || 0,
@@ -520,42 +521,41 @@ export default function NewsletterEdit() {
   /* ── Build attachments JSON (for draft save — include Base64 for files ≤ 2MB) ── */
   const PERSIST_THRESHOLD = 2 * 1024 * 1024; // 2MB
   const buildAttachmentsMetaJson = useCallback(() => {
-    if (attachments.length > 0) {
-      return JSON.stringify(attachments.map((a) => {
-        const entry = { filename: a.filename, size: a.size, type: a.type || "" };
-        if (a.content && a.size <= PERSIST_THRESHOLD) {
-          entry.content = a.content;
-        }
-        return entry;
-      }));
-    }
-    if (attachUrlMode && attachUrl) {
-      return JSON.stringify([{ name: attachUrlName || "添付", url: attachUrl }]);
-    }
-    return "[]";
-  }, [attachments, attachUrlMode, attachUrl, attachUrlName]);
+    const items = [];
+    attachments.forEach((a) => {
+      const entry = { filename: a.filename, size: a.size, type: a.type || "" };
+      if (a.content && a.size <= PERSIST_THRESHOLD) entry.content = a.content;
+      items.push(entry);
+    });
+    attachLinks.forEach((l) => {
+      if (l.url) items.push({ name: l.name || "添付", url: l.url });
+    });
+    return JSON.stringify(items);
+  }, [attachments, attachLinks]);
 
   /* ── Build attachments JSON (with Base64 content, for send) ── */
   const buildAttachmentsJson = useCallback(() => {
-    if (attachments.length > 0) {
-      return JSON.stringify(attachments.map((a) => ({ filename: a.filename, content: a.content, size: a.size })));
-    }
-    if (attachUrlMode && attachUrl) {
-      return JSON.stringify([{ name: attachUrlName || "添付", url: attachUrl }]);
-    }
-    return "[]";
-  }, [attachments, attachUrlMode, attachUrl, attachUrlName]);
+    const items = [];
+    attachments.forEach((a) => {
+      items.push({ filename: a.filename, content: a.content, size: a.size });
+    });
+    attachLinks.forEach((l) => {
+      if (l.url) items.push({ name: l.name || "添付", url: l.url });
+    });
+    return JSON.stringify(items);
+  }, [attachments, attachLinks]);
 
   /* ── Build attachments JSON (meta only, no Base64 — fallback for large payloads) ── */
   const buildAttachmentsMetaOnlyJson = useCallback(() => {
-    if (attachments.length > 0) {
-      return JSON.stringify(attachments.map((a) => ({ filename: a.filename, size: a.size, type: a.type || "" })));
-    }
-    if (attachUrlMode && attachUrl) {
-      return JSON.stringify([{ name: attachUrlName || "添付", url: attachUrl }]);
-    }
-    return "[]";
-  }, [attachments, attachUrlMode, attachUrl, attachUrlName]);
+    const items = [];
+    attachments.forEach((a) => {
+      items.push({ filename: a.filename, size: a.size, type: a.type || "" });
+    });
+    attachLinks.forEach((l) => {
+      if (l.url) items.push({ name: l.name || "添付", url: l.url });
+    });
+    return JSON.stringify(items);
+  }, [attachments, attachLinks]);
 
   /* ── Save Draft (SDK direct — no backend function needed) ── */
   /* Returns true on success, false on failure */
@@ -627,7 +627,7 @@ export default function NewsletterEdit() {
   /* ── Build audience description for confirm modal ── */
   const buildAudienceDescription = useCallback(() => {
     if (individualMode) {
-      const names = selectedMembers.map((m) => m.name_kanji || m.name_kana || "");
+      const names = selectedMembers.map((m) => fullName(m) || "");
       const count = selectedMembers.length;
       if (count <= 4) {
         return `個人指定（${count}名）: ${names.join("、")}`;
@@ -904,8 +904,8 @@ export default function NewsletterEdit() {
           </button>
         </div>
 
-        <div className="nl-edit-grid" style={{ display: "grid", gridTemplateColumns: "1fr 340px", minHeight: "calc(100vh - 120px)" }}>
-          <div style={{ padding: 32 }}>
+        <div className="nl-edit-grid" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 340px", minHeight: "calc(100vh - 120px)" }}>
+          <div style={{ padding: isMobile ? 12 : 32 }}>
             <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 24px 0", color: "var(--text)" }}>
               {form.title}
             </h2>
@@ -953,14 +953,9 @@ export default function NewsletterEdit() {
 
       {/* ── Toast ── */}
       {toast && (
-        <div className="nl2-toast" style={{
-          position: "fixed", top: 20, right: 20, zIndex: 9999,
-          background: toast.type === "success" ? "var(--success)" : "var(--error)",
-          color: "#fff", padding: "10px 20px", borderRadius: "var(--radius)",
-          fontSize: 14, fontWeight: 600, boxShadow: "var(--shadow)",
-          animation: "nlFade 0.3s ease",
-        }}>
-          {toast.message}
+        <div className={`nl2-toast${toast.type === "error" ? " nl2-toast-error" : ""}`}>
+          <span className="nl2-toast-icon">{toast.type === "error" ? "\u2717" : "\u2713"}</span>
+          <span>{toast.message}</span>
         </div>
       )}
 
@@ -1141,9 +1136,9 @@ export default function NewsletterEdit() {
       </div>
 
       {/* ── Main Content: 2-column ── */}
-      <div className="nl-edit-grid" style={{ display: "grid", gridTemplateColumns: "1fr 340px", minHeight: "calc(100vh - 120px)" }}>
+      <div className="nl-edit-grid" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 340px", minHeight: "calc(100vh - 120px)" }}>
         {/* ── Left Column: Content Editor ── */}
-        <div style={{ padding: 32 }}>
+        <div style={{ padding: isMobile ? 12 : 32 }}>
           {isTemplate && (
             <div style={{
               background: "#fffbeb", border: "1px solid #fbbf24", borderRadius: "var(--radius)",
@@ -1283,7 +1278,7 @@ export default function NewsletterEdit() {
               }}>
                 <span>LINE</span>
                 <span style={{
-                  fontSize: 10, fontWeight: 700, background: "var(--line)",
+                  fontSize: 12, fontWeight: 700, background: "var(--line)",
                   color: "var(--text-secondary)", padding: "2px 6px", borderRadius: 99,
                 }}>
                   準備中
@@ -1324,7 +1319,7 @@ export default function NewsletterEdit() {
                           background: "#eef2ff", color: "#4f46e5", fontWeight: 500,
                         }}
                       >
-                        {m.name_kanji}
+                        {fullName(m)}
                         <button
                           type="button"
                           onClick={() => handleToggleMember(m)}
@@ -1392,7 +1387,7 @@ export default function NewsletterEdit() {
                     marginTop: 10, padding: 12, background: "#fff", borderRadius: "var(--radius)",
                     border: "1px solid var(--line)", animation: "nlSlide 0.3s ease",
                   }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 8 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 8 }}>
                       追加条件 (AND)
                     </div>
                     <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer", fontSize: 13 }}>
@@ -1432,7 +1427,7 @@ export default function NewsletterEdit() {
                     <button
                       type="button"
                       onClick={() => { setCompoundOpen(false); setUnpaidOnly(false); setGraduateOnly(false); setFilterOrgId(""); }}
-                      style={{ marginTop: 8, background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: 11, padding: 0 }}
+                      style={{ marginTop: 8, background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: 12, padding: 0 }}
                     >
                       条件をクリア
                     </button>
@@ -1562,7 +1557,7 @@ export default function NewsletterEdit() {
                         <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {att.filename}
                         </div>
-                        <div style={{ fontSize: 11, color: att.needsReselect ? "#d97706" : "var(--muted)" }}>
+                        <div style={{ fontSize: 12, color: att.needsReselect ? "#d97706" : "var(--muted)" }}>
                           {att.needsReselect ? "2MB超のため再選択が必要です" : formatFileSize(att.size)}
                         </div>
                       </div>
@@ -1579,7 +1574,7 @@ export default function NewsletterEdit() {
               )}
 
               {/* File upload area */}
-              {attachments.length < MAX_FILES && !attachUrlMode && (
+              {attachments.length < MAX_FILES && (
                 <div
                   style={{
                     border: fileDragging ? "2px dashed var(--primary)" : "1px dashed var(--line)",
@@ -1608,63 +1603,93 @@ export default function NewsletterEdit() {
                   <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
                     ファイルをドロップまたはクリックして選択
                   </div>
-                  <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>
+                  <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
                     PDF, Excel, Word, 画像 (最大10MB, {MAX_FILES}件まで)
                   </div>
                 </div>
               )}
 
-              {/* URL mode */}
-              {attachUrlMode && (
-                <div style={{ animation: "nlSlide 0.3s ease" }}>
-                  <div style={{ marginBottom: 8 }}>
-                    <label style={{ fontSize: 12, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>ファイル名</label>
-                    <input
-                      type="text"
-                      value={attachUrlName}
-                      onChange={(e) => setAttachUrlName(e.target.value)}
-                      placeholder="例: 会報2024年4月号.pdf"
-                      style={{
-                        width: "100%", padding: "8px 10px", fontSize: 13,
-                        border: "1px solid var(--line)", borderRadius: "var(--radius)",
-                        boxSizing: "border-box",
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 12, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>URL</label>
-                    <input
-                      type="url"
-                      value={attachUrl}
-                      onChange={(e) => setAttachUrl(e.target.value)}
-                      placeholder="https://..."
-                      style={{
-                        width: "100%", padding: "8px 10px", fontSize: 13,
-                        border: "1px solid var(--line)", borderRadius: "var(--radius)",
-                        boxSizing: "border-box",
-                      }}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { setAttachUrlMode(false); setAttachUrl(""); setAttachUrlName(""); }}
-                    style={{ marginTop: 8, background: "none", border: "none", cursor: "pointer", color: "var(--error)", fontSize: 12, padding: 0 }}
-                  >
-                    URL添付を削除
-                  </button>
+              {/* ── 添付リンク section ── */}
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 10, marginTop: 20 }}>
+                添付リンク
+              </div>
+
+              {attachLinks.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                  {attachLinks.map((link, idx) => (
+                    <div key={idx} style={{
+                      padding: "10px 12px", borderRadius: "var(--radius)",
+                      background: "var(--line-light)", border: "1px solid var(--line)",
+                      position: "relative",
+                    }}>
+                      <button
+                        type="button"
+                        onClick={() => setAttachLinks((prev) => prev.filter((_, i) => i !== idx))}
+                        style={{
+                          position: "absolute", top: 8, right: 8,
+                          background: "none", border: "none", cursor: "pointer",
+                          color: "var(--muted)", padding: 2, display: "flex",
+                          transition: "color 0.15s",
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = "var(--error)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = "var(--muted)"; }}
+                      >
+                        <XIcon />
+                      </button>
+                      <div style={{ marginBottom: 6 }}>
+                        <label style={{ fontSize: 12, color: "var(--text-secondary)", display: "block", marginBottom: 3 }}>リンク名</label>
+                        <input
+                          type="text"
+                          value={link.name}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setAttachLinks((prev) => prev.map((l, i) => i === idx ? { ...l, name: v } : l));
+                          }}
+                          placeholder="例: 議事録"
+                          style={{
+                            width: "100%", padding: "6px 10px", fontSize: 13,
+                            border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
+                            boxSizing: "border-box", background: "#fff",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 12, color: "var(--text-secondary)", display: "block", marginBottom: 3 }}>URL</label>
+                        <input
+                          type="text"
+                          value={link.url}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setAttachLinks((prev) => prev.map((l, i) => i === idx ? { ...l, url: v } : l));
+                          }}
+                          placeholder="https://..."
+                          style={{
+                            width: "100%", padding: "6px 10px", fontSize: 13,
+                            border: "1px solid var(--line)", borderRadius: "var(--radius-sm)",
+                            boxSizing: "border-box", background: "#fff",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
-              {/* Toggle between modes */}
-              {!attachUrlMode && attachments.length === 0 && (
-                <button
-                  type="button"
-                  onClick={() => setAttachUrlMode(true)}
-                  style={{ marginTop: 8, background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: 12, padding: 0, textDecoration: "underline" }}
-                >
-                  URLで指定
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setAttachLinks((prev) => [...prev, { url: "", name: "" }])}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6, justifyContent: "center",
+                  padding: "8px 14px", borderRadius: "var(--radius)",
+                  border: "1px dashed var(--line)", background: "transparent",
+                  color: "var(--primary)", fontSize: 13, fontWeight: 500,
+                  cursor: "pointer", width: "100%", transition: "all 0.15s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.background = "var(--primary-light)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.background = "transparent"; }}
+              >
+                <PlusIcon /> リンクを追加
+              </button>
             </div>
           )}
 
@@ -1724,7 +1749,9 @@ export default function NewsletterEdit() {
                   </div>
                   <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
                     対象: {previewCount ?? "?"}名
-                    {attachments.length > 0 && <span style={{ marginLeft: 12 }}>添付: {attachments.length}件</span>}
+                    {(attachments.length > 0 || attachLinks.filter((l) => l.url).length > 0) && (
+                      <span style={{ marginLeft: 12 }}>添付: {attachments.length + attachLinks.filter((l) => l.url).length}件</span>
+                    )}
                   </div>
                 </div>
                 <div style={{ padding: "20px", minHeight: 200, lineHeight: 1.8 }}>
@@ -1811,12 +1838,24 @@ export default function NewsletterEdit() {
                   {/* 添付ファイル */}
                   <div style={modalItemStyle}>
                     <div style={labelStyle}>添付ファイル</div>
-                    {attachments.length > 0 ? (
+                    {attachments.length > 0 || attachLinks.filter((l) => l.url).length > 0 ? (
                       <div>
-                        <span style={valueStyle}>{attachments.length}件: </span>
-                        <span style={{ fontSize: 13, color: "#6b7280" }}>
-                          {attachments.map((a) => a.filename).join("、")}
-                        </span>
+                        {attachments.length > 0 && (
+                          <div>
+                            <span style={valueStyle}>ファイル {attachments.length}件: </span>
+                            <span style={{ fontSize: 13, color: "#6b7280" }}>
+                              {attachments.map((a) => a.filename).join("、")}
+                            </span>
+                          </div>
+                        )}
+                        {attachLinks.filter((l) => l.url).length > 0 && (
+                          <div>
+                            <span style={valueStyle}>リンク {attachLinks.filter((l) => l.url).length}件: </span>
+                            <span style={{ fontSize: 13, color: "#6b7280" }}>
+                              {attachLinks.filter((l) => l.url).map((l) => l.name || l.url).join("、")}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div style={valueStyle}>なし</div>
@@ -1926,8 +1965,11 @@ export default function NewsletterEdit() {
               <div style={{ marginBottom: 14 }}>
                 <div style={labelStyle}>添付ファイル</div>
                 <div style={valueStyle}>
-                  {attachments.length > 0
-                    ? `${attachments.length}件: ${attachments.map((a) => a.filename).join("、")}`
+                  {attachments.length > 0 || attachLinks.filter((l) => l.url).length > 0
+                    ? [
+                        attachments.length > 0 ? `ファイル${attachments.length}件` : "",
+                        attachLinks.filter((l) => l.url).length > 0 ? `リンク${attachLinks.filter((l) => l.url).length}件` : "",
+                      ].filter(Boolean).join("、")
                     : "なし"}
                 </div>
               </div>
