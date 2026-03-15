@@ -32,7 +32,7 @@ function ApplyUrlCopyButton() {
 
   return (
     <div style={{ padding: "8px 16px" }}>
-      <p style={{ fontSize: 11, color: "#6b7280", marginBottom: 6 }}>入会申込フォームURL</p>
+      <p style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>入会申込フォームURL</p>
       <div style={{
         display: "flex", alignItems: "center", gap: 6,
         background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8,
@@ -122,6 +122,34 @@ export default function MemberLayout() {
     })();
   }, [memberInfo]);
 
+  // Body scroll lock when sidebar is open
+  useEffect(() => {
+    if (sidebarOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.overflow = 'hidden';
+    } else {
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
+
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+    };
+  }, [sidebarOpen]);
+
   const badge = ROLE_BADGE[appRole] || ROLE_BADGE.member;
   const displayName = user?.full_name || user?.email || "";
 
@@ -132,60 +160,62 @@ export default function MemberLayout() {
         onClick={() => setSidebarOpen(false)}
       />
       <aside className={`workspace-sidebar${sidebarOpen ? " is-open" : ""}`}>
-        <Link className="workspace-brand" to="/">
+        <Link className="workspace-brand" to="/" onClick={() => setSidebarOpen(false)}>
           <span className="workspace-brand-mark">M</span>
           <div>
             <strong>MITO21</strong>
             <span>会員向け</span>
           </div>
         </Link>
-        <div className="workspace-group-label">会員メニュー</div>
-        <nav className="workspace-nav">
-          {MEMBER_NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `workspace-nav-link${isActive ? " is-active" : ""}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-          {isBoardMember && (
-            <NavLink
-              to="/meetings"
-              className={({ isActive }) =>
-                `workspace-nav-link${isActive ? " is-active" : ""}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <span>幹事会</span>
-            </NavLink>
-          )}
-        </nav>
-        <div className="workspace-group-label">入会のご案内</div>
-        <ApplyUrlCopyButton />
-        {canAccessAdmin && (
-          <>
-            <div className="workspace-group-label">管理</div>
-            <nav className="workspace-nav">
+        <div className="workspace-sidebar-nav-scroll">
+          <div className="workspace-group-label">会員メニュー</div>
+          <nav className="workspace-nav">
+            {MEMBER_NAV_ITEMS.map((item) => (
               <NavLink
-                to="/admin"
-                className="workspace-nav-link"
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `workspace-nav-link${isActive ? " is-active" : ""}`
+                }
                 onClick={() => setSidebarOpen(false)}
               >
-                <span>管理画面へ</span>
+                <span>{item.label}</span>
               </NavLink>
-            </nav>
-          </>
-        )}
+            ))}
+            {isBoardMember && (
+              <NavLink
+                to="/meetings"
+                className={({ isActive }) =>
+                  `workspace-nav-link${isActive ? " is-active" : ""}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <span>幹事会</span>
+              </NavLink>
+            )}
+          </nav>
+          <div className="workspace-group-label">入会のご案内</div>
+          <ApplyUrlCopyButton />
+          {canAccessAdmin && (
+            <>
+              <div className="workspace-group-label">管理</div>
+              <nav className="workspace-nav">
+                <NavLink
+                  to="/admin"
+                  className="workspace-nav-link"
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <span>管理画面へ</span>
+                </NavLink>
+              </nav>
+            </>
+          )}
+        </div>
       </aside>
       <div className="workspace-main">
         <header className="workspace-header">
           <button
-            className="mobile-nav-toggle"
+            className={`mobile-nav-toggle${sidebarOpen ? " is-open" : ""}`}
             type="button"
             aria-label="メニュー"
             onClick={() => setSidebarOpen((v) => !v)}
@@ -197,7 +227,7 @@ export default function MemberLayout() {
           {/* User info */}
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}>
             <span style={{
-              padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600,
+              padding: "2px 8px", borderRadius: 4, fontSize: 12, fontWeight: 600,
               background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`,
             }}>{badge.label}</span>
             <span className="mobile-hide-name" style={{ color: "#374151", fontWeight: 500 }}>{displayName}</span>

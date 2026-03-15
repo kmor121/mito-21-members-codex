@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const ADMIN_NAV_ITEMS = [
@@ -34,6 +34,34 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, appRole, logout } = useAuth();
 
+  // Body scroll lock when sidebar is open
+  useEffect(() => {
+    if (sidebarOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.overflow = 'hidden';
+    } else {
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
+
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+    };
+  }, [sidebarOpen]);
+
   const badge = ROLE_BADGE[appRole] || ROLE_BADGE.member;
   const displayName = user?.full_name || user?.email || "";
 
@@ -44,48 +72,50 @@ export default function AdminLayout() {
         onClick={() => setSidebarOpen(false)}
       />
       <aside className={`workspace-sidebar${sidebarOpen ? " is-open" : ""}`}>
-        <Link className="workspace-brand" to="/">
+        <Link className="workspace-brand" to="/" onClick={() => setSidebarOpen(false)}>
           <span className="workspace-brand-mark">M</span>
           <div>
             <strong>MITO21</strong>
             <span>管理画面</span>
           </div>
         </Link>
-        <div className="workspace-group-label">管理メニュー</div>
-        <nav className="workspace-nav">
-          {ADMIN_NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `workspace-nav-link${isActive ? " is-active" : ""}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-        <div className="workspace-group-label">会員メニュー</div>
-        <nav className="workspace-nav">
-          {MEMBER_NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `workspace-nav-link${isActive ? " is-active" : ""}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
+        <div className="workspace-sidebar-nav-scroll">
+          <div className="workspace-group-label">管理メニュー</div>
+          <nav className="workspace-nav">
+            {ADMIN_NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `workspace-nav-link${isActive ? " is-active" : ""}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+          <div className="workspace-group-label">会員メニュー</div>
+          <nav className="workspace-nav">
+            {MEMBER_NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `workspace-nav-link${isActive ? " is-active" : ""}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+        </div>
       </aside>
       <div className="workspace-main">
         <header className="workspace-header">
           <button
-            className="mobile-nav-toggle"
+            className={`mobile-nav-toggle${sidebarOpen ? " is-open" : ""}`}
             type="button"
             aria-label="メニュー"
             onClick={() => setSidebarOpen((v) => !v)}
@@ -97,7 +127,7 @@ export default function AdminLayout() {
           {/* User info */}
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}>
             <span style={{
-              padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600,
+              padding: "2px 8px", borderRadius: 4, fontSize: 12, fontWeight: 600,
               background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`,
             }}>{badge.label}</span>
             <span style={{ color: "#374151", fontWeight: 500 }}>{displayName}</span>
