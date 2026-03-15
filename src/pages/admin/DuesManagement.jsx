@@ -497,6 +497,9 @@ export default function DuesManagement() {
   // Batch selection
   const [selectedIds, setSelectedIds] = useState(new Set());
 
+  // Mobile filter toggle
+  const [showFilters, setShowFilters] = useState(false);
+
   // Member history modal
   const [historyModal, setHistoryModal] = useState(null);
 
@@ -997,34 +1000,84 @@ export default function DuesManagement() {
   return (
     <section className="admin-shell">
       {/* ── Page Header ── */}
-      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: isMobile ? "stretch" : "flex-start", flexWrap: "wrap", gap: isMobile ? 8 : 0 }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <h1 className="page-title" style={{ margin: 0, fontSize: isMobile ? 18 : undefined }}>会費管理</h1>
-            {selectedFiscalYear && (
-              <span style={{
-                padding: "4px 12px", borderRadius: 999,
-                background: "var(--primary-light)", color: "var(--primary)",
-                fontSize: 12, fontWeight: 700,
-              }}>
-                {selectedFiscalYear.year_label || `${selectedFiscalYear.year}年度`}
-              </span>
+      {isMobile ? (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 0 12px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h1 className="page-title" style={{ margin: 0 }}>会費管理</h1>
+            {selectedFiscalYear && fiscalYears.length > 0 && (() => {
+              const idx = fiscalYears.findIndex(fy => fy.id === activeFiscalYearId);
+              const canPrev = idx < fiscalYears.length - 1;
+              const canNext = idx > 0;
+              const yearLabel = selectedFiscalYear.year_label || `${selectedFiscalYear.year}年度`;
+              return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <button type="button" disabled={!canPrev} onClick={() => canPrev && handleFiscalYearChange(fiscalYears[idx + 1].id)}
+                    style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canPrev ? 'var(--primary)' : 'var(--text-muted)', cursor: canPrev ? 'pointer' : 'default' }}>{"\u25C2"}</button>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{yearLabel}</span>
+                  <button type="button" disabled={!canNext} onClick={() => canNext && handleFiscalYearChange(fiscalYears[idx - 1].id)}
+                    style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canNext ? 'var(--primary)' : 'var(--text-muted)', cursor: canNext ? 'pointer' : 'default' }}>{"\u25B8"}</button>
+                </div>
+              );
+            })()}
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button type="button" onClick={() => setShowFilters(v => !v)} style={{
+              width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: showFilters ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
+              color: showFilters ? 'var(--primary)' : 'var(--text-secondary)',
+            }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            </button>
+            <button type="button" onClick={() => setActiveTab('settings')} style={{
+              width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: activeTab === 'settings' ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
+              color: activeTab === 'settings' ? 'var(--primary)' : 'var(--text-secondary)',
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+            {computedSummary.unissuedCount > 0 && activeTab !== 'settings' && (
+              <button type="button" className="btn btn-primary" onClick={() => setConfirmBulkIssue(true)} disabled={saving}
+                style={{ fontSize: 12, padding: '6px 10px', whiteSpace: 'nowrap' }}>
+                一括発行
+              </button>
             )}
           </div>
-          <p className="page-description" style={{ margin: "4px 0 0" }}>年度別の会費管理・消込・未納確認</p>
         </div>
-        {computedSummary.unissuedCount > 0 && (
-          <button
-            className="btn btn-primary"
-            type="button"
-            onClick={() => setConfirmBulkIssue(true)}
-            disabled={saving}
-            style={{ fontSize: 13, whiteSpace: "nowrap" }}
-          >
-            会費一括発行
-          </button>
-        )}
-      </div>
+      ) : (
+        <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 0 }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <h1 className="page-title" style={{ margin: 0 }}>会費管理</h1>
+              {selectedFiscalYear && (
+                <span style={{
+                  padding: "4px 12px", borderRadius: 999,
+                  background: "var(--primary-light)", color: "var(--primary)",
+                  fontSize: 12, fontWeight: 700,
+                }}>
+                  {selectedFiscalYear.year_label || `${selectedFiscalYear.year}年度`}
+                </span>
+              )}
+            </div>
+            <p className="page-description" style={{ margin: "4px 0 0" }}>年度別の会費管理・消込・未納確認</p>
+          </div>
+          {computedSummary.unissuedCount > 0 && (
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => setConfirmBulkIssue(true)}
+              disabled={saving}
+              style={{ fontSize: 13, whiteSpace: "nowrap" }}
+            >
+              会費一括発行
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Toast */}
       <Toast message={toast} type={toastType} />
@@ -1122,21 +1175,39 @@ export default function DuesManagement() {
       {error && <p className="message error" aria-live="polite" style={{ marginBottom: 12 }}>{error}</p>}
 
       {/* ── Tab Bar (Pill style) ── */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
-        <PillTab active={activeTab === "current"} onClick={() => { setActiveTab("current"); setSelectedIds(new Set()); }}>
-          当年度
-        </PillTab>
-        <PillTab
-          active={activeTab === "all-unpaid"}
-          onClick={() => { setActiveTab("all-unpaid"); setSelectedIds(new Set()); }}
-          badge={allUnpaidSummary.totalCount > 0 ? allUnpaidSummary.totalCount : null}
-        >
-          全年度未納一覧
-        </PillTab>
-        <PillTab active={activeTab === "settings"} onClick={() => { setActiveTab("settings"); setSelectedIds(new Set()); }}>
-          会費設定
-        </PillTab>
-      </div>
+      {isMobile ? (
+        <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+          <button type="button" className={`nl2-pill-tab${activeTab === 'current' ? ' active' : ''}`}
+            onClick={() => { setActiveTab('current'); setSelectedIds(new Set()); }}>
+            当年度
+          </button>
+          <button type="button" className={`nl2-pill-tab${activeTab === 'all-unpaid' ? ' active' : ''}`}
+            onClick={() => { setActiveTab('all-unpaid'); setSelectedIds(new Set()); }}>
+            未納一覧
+            {allUnpaidSummary.totalCount > 0 && (
+              <span style={{ marginLeft: 4, fontSize: 11, fontWeight: 700, color: activeTab === 'all-unpaid' ? '#fff' : '#dc2626' }}>
+                {allUnpaidSummary.totalCount}
+              </span>
+            )}
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
+          <PillTab active={activeTab === "current"} onClick={() => { setActiveTab("current"); setSelectedIds(new Set()); }}>
+            当年度
+          </PillTab>
+          <PillTab
+            active={activeTab === "all-unpaid"}
+            onClick={() => { setActiveTab("all-unpaid"); setSelectedIds(new Set()); }}
+            badge={allUnpaidSummary.totalCount > 0 ? allUnpaidSummary.totalCount : null}
+          >
+            全年度未納一覧
+          </PillTab>
+          <PillTab active={activeTab === "settings"} onClick={() => { setActiveTab("settings"); setSelectedIds(new Set()); }}>
+            会費設定
+          </PillTab>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════ */}
       {/* ── Tab 1: 当年度                    ── */}
@@ -1144,7 +1215,7 @@ export default function DuesManagement() {
       {activeTab === "current" && (
         <>
           {/* Year pill nav */}
-          {fiscalYears.length > 0 && (
+          {!isMobile && fiscalYears.length > 0 && (
             <div style={{ marginBottom: 16 }}>
               <YearPillNav
                 fiscalYears={fiscalYears}
@@ -1157,7 +1228,7 @@ export default function DuesManagement() {
 
           {/* Summary cards */}
           {isMobile ? (
-            <div className="stat-chip-bar" style={{ marginBottom: 16 }}>
+            <div className="stat-chip-bar" style={{ marginBottom: 8 }}>
               <div className="stat-chip">
                 <span className="stat-chip-label">全体</span>
                 <span className="stat-chip-value">{computedSummary.total}名</span>
@@ -1217,10 +1288,62 @@ export default function DuesManagement() {
             </div>
           )}
 
-          {/* Search & Filter Bar */}
+          {/* Mobile filter panel (collapsible) */}
+          {isMobile && showFilters && (
+            <div style={{
+              padding: '12px 16px', marginBottom: 8,
+              borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+              background: 'var(--bg)',
+            }}>
+              <div style={{ position: 'relative', marginBottom: 10 }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>
+                  <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                <input type="text" placeholder={"\u6C0F\u540D\u30FB\u632F\u8FBC\u540D\u7FA9\u3067\u691C\u7D22"} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', fontSize: 13 }} />
+              </div>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
+                {[{ key: 'all', label: '\u5168\u3066' }, { key: 'unpaid', label: '\u672A\u7D0D' }, { key: 'paid', label: '\u7D0D\u5165\u6E08' }, { key: 'unissued', label: '\u672A\u767A\u884C' }].map(opt => (
+                  <button key={opt.key} type="button" className={`nl2-pill-tab${statusFilter === opt.key ? ' active' : ''}`}
+                    onClick={() => setStatusFilter(opt.key)}>{opt.label}</button>
+                ))}
+              </div>
+              {dueTypes.length > 1 && (
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
+                  <button type="button" className={`nl2-pill-tab${dueTypeFilter === 'all' ? ' active' : ''}`} onClick={() => setDueTypeFilter('all')}>{"\u5168\u3066"}</button>
+                  {dueTypes.map(t => (
+                    <button key={t} type="button" className={`nl2-pill-tab${dueTypeFilter === t ? ' active' : ''}`} onClick={() => setDueTypeFilter(t)}>{t}</button>
+                  ))}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <select value={memberTypeFilter} onChange={(e) => setMemberTypeFilter(e.target.value)}
+                  style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', fontSize: 13 }}>
+                  <option value="all">{"\u5168\u7A2E\u5225"}</option><option value={"\u6B63\u4F1A\u54E1"}>{"\u6B63\u4F1A\u54E1"}</option><option value={"\u8CDB\u52A9\u4F1A\u54E1"}>{"\u8CDB\u52A9\u4F1A\u54E1"}</option>
+                </select>
+                <select value={orgFilter} onChange={(e) => setOrgFilter(e.target.value)}
+                  style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', fontSize: 13 }}>
+                  <option value="all">{"\u5168\u7D44\u7E54"}</option>
+                  {fyOrgs.map(o => (<option key={o.id} value={o.id}>{o.org_name}</option>))}
+                </select>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <button className="btn btn-secondary" type="button" onClick={() => setConfirmReminder(true)}
+                  disabled={saving || computedSummary.unpaidCount === 0} style={{ fontSize: 12, padding: '6px 12px', width: '100%' }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginRight: 4, verticalAlign: 'middle' }}>
+                    <path d="M1 3l6 4 6-4M1 3v8h12V3H1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+                  </svg>
+                  {"\u672A\u7D0D\u8005\u306B\u30EA\u30DE\u30A4\u30F3\u30C9\u9001\u4FE1"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Search & Filter Bar + Data */}
           <section className="card panel-card single-panel">
             <div className="card-body stack">
-              {/* Search + filters */}
+              {/* Desktop: Search + filters */}
+              {!isMobile && (
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
                 {/* Search */}
                 <div style={{ position: "relative", flex: "1 1 260px", minWidth: 200 }}>
@@ -1329,6 +1452,7 @@ export default function DuesManagement() {
                   </button>
                 </div>
               </div>
+              )}
 
               {/* Table / Card List */}
               {loading ? (
@@ -1346,75 +1470,55 @@ export default function DuesManagement() {
                   )}
                 </div>
               ) : isMobile ? (
-                <div className="mobile-card-list" style={{ padding: 8 }}>
+                /* Compact mobile list */
+                <div style={{ margin: '0 -12px' }}>
                   {filteredDues.map((due) => {
                     const isVirtual = !!due._virtual;
                     const isSelected = selectedIds.has(due.id);
                     const isUnpaid = due.status !== "納入済" && !isVirtual;
                     const priorCount = priorUnpaidByMember[due.member_id] || 0;
+                    const initial = (due.member_name || "M").charAt(0);
                     return (
-                      <div
-                        key={due.id}
-                        className="mobile-card-item"
+                      <div key={due.id}
                         onClick={() => { if (!isVirtual) handleRowClick(due); }}
                         style={{
-                          cursor: isVirtual ? "default" : "pointer",
-                          background: isSelected ? "rgba(79, 70, 229, 0.06)" : undefined,
+                          padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10,
+                          borderBottom: '1px solid var(--line-light)',
+                          cursor: isVirtual ? 'default' : 'pointer',
+                          background: isSelected ? 'rgba(79, 70, 229, 0.06)' : undefined,
+                          transition: 'background 0.15s',
                         }}
                       >
-                        <div className="mobile-card-item-header">
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, flex: 1, flexWrap: "wrap" }}>
-                            {isUnpaid && (
-                              <input
-                                type="checkbox"
-                                checked={isSelected}
-                                onClick={(e) => e.stopPropagation()}
-                                onChange={(e) => handleCheckboxClick(due, e)}
-                                style={{ flexShrink: 0 }}
-                              />
-                            )}
-                            <button
-                              type="button"
-                              style={{
-                                fontWeight: 600, fontSize: 14, padding: 0,
-                                border: "none", background: "none", cursor: "pointer",
-                                color: "var(--primary)", textDecoration: "none",
-                                minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                              }}
-                              onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
-                            >
+                        {isUnpaid && (
+                          <input type="checkbox" checked={isSelected}
+                            onClick={(e) => e.stopPropagation()} onChange={(e) => handleCheckboxClick(due, e)}
+                            style={{ flexShrink: 0, width: 18, height: 18 }} />
+                        )}
+                        <div style={{
+                          width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                          background: 'linear-gradient(135deg, #e2e8f0, #f1f5f9)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 12, fontWeight: 700, color: '#475467',
+                        }}>{initial}</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <button type="button" style={{
+                              fontWeight: 600, fontSize: 14, padding: 0, border: 'none', background: 'none',
+                              cursor: 'pointer', color: 'var(--text)', textDecoration: 'none',
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                              maxWidth: '100%',
+                            }}
+                              onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}>
                               {displayValue(due.member_name)}
                             </button>
-                            <MemberTypeBadge type={due.member_type} />
-                            {due.is_new && (
-                              <span style={{
-                                padding: "1px 6px", borderRadius: 999,
-                                background: "#dbeafe", color: "#1d4ed8",
-                                fontSize: 12, fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0,
-                              }}>新入</span>
-                            )}
-                            {!isVirtual && priorCount > 0 && (
-                              <span style={{ fontSize: 13, lineHeight: 1, flexShrink: 0 }}>{"\u26A0\uFE0F"}</span>
-                            )}
+                            {due.is_new && <span style={{ padding: '0 4px', borderRadius: 999, background: '#dbeafe', color: '#1d4ed8', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, lineHeight: '16px' }}>新入</span>}
+                            {!isVirtual && priorCount > 0 && <span style={{ fontSize: 12, lineHeight: 1, flexShrink: 0 }}>{"\u26A0\uFE0F"}</span>}
                           </div>
-                          <StatusBadge status={due.status} disabled={isVirtual} onClick={isVirtual ? undefined : (e) => { e.stopPropagation(); openReconcileModal(due); }} />
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {due.member_type}{!isVirtual && <>{" \u00B7 "}{due.due_type || "\u5E74\u4F1A\u8CBB"}{" "}{formatCurrency(due.amount)}</>}
+                          </div>
                         </div>
-                        <div className="mobile-card-item-row">
-                          <span className="card-label">会費種別</span>
-                          <span className="card-value" style={{ overflow: "visible", whiteSpace: "normal", flexShrink: 0 }}>{isVirtual ? "-" : <DueTypeBadge type={due.due_type || "年会費"} />}</span>
-                        </div>
-                        <div className="mobile-card-item-row">
-                          <span className="card-label">金額</span>
-                          <span className="card-value" style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                            {isVirtual ? "-" : formatCurrency(due.amount)}
-                          </span>
-                        </div>
-                        <div className="mobile-card-item-row">
-                          <span className="card-label">ステータス</span>
-                          <span className="card-value" style={{ overflow: "visible", whiteSpace: "normal", flexShrink: 0 }}>
-                            <StatusBadge status={due.status} disabled />
-                          </span>
-                        </div>
+                        <StatusBadge status={due.status} disabled={isVirtual} onClick={isVirtual ? undefined : (e) => { e.stopPropagation(); openReconcileModal(due); }} />
                       </div>
                     );
                   })}
@@ -1565,7 +1669,7 @@ export default function DuesManagement() {
         <>
           {/* Summary */}
           {isMobile ? (
-            <div className="stat-chip-bar" style={{ marginBottom: 16 }}>
+            <div className="stat-chip-bar" style={{ marginBottom: 8 }}>
               <div className="stat-chip">
                 <span className="stat-chip-label">未納合計</span>
                 <span className="stat-chip-value" style={{ color: "#dc2626" }}>{allUnpaidSummary.totalCount}件</span>
@@ -1646,7 +1750,7 @@ export default function DuesManagement() {
                   {/* Year group header */}
                   <div style={{
                     display: "flex", alignItems: "center", justifyContent: "space-between",
-                    padding: "12px 20px",
+                    padding: isMobile ? "8px 12px" : "12px 20px",
                     background: isPrior ? "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)" : "linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)",
                     borderRadius: "var(--radius-lg) var(--radius-lg) 0 0",
                     borderBottom: `1px solid ${isPrior ? "#fde68a" : "var(--primary-100)"}`,
@@ -1681,70 +1785,51 @@ export default function DuesManagement() {
 
                   <div className="card-body" style={{ padding: "0" }}>
                     {isMobile ? (
-                      <div className="mobile-card-list" style={{ padding: 8 }}>
+                      <div>
                         {items.map((due) => {
                           const isSelected = selectedIds.has(due.id);
+                          const initial = (due.member_name || "M").charAt(0);
                           return (
-                            <div
-                              key={due.id}
-                              className="mobile-card-item"
+                            <div key={due.id}
                               onClick={() => {
                                 if (selectionMode) { toggleSelectOne(due.id); }
                                 else { openReconcileModal(due); }
                               }}
                               style={{
-                                cursor: "pointer",
-                                background: isSelected ? "rgba(79, 70, 229, 0.06)" : undefined,
+                                padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10,
+                                borderBottom: '1px solid var(--line-light)',
+                                cursor: 'pointer',
+                                background: isSelected ? 'rgba(79, 70, 229, 0.06)' : undefined,
+                                transition: 'background 0.15s',
                               }}
                             >
-                              <div className="mobile-card-item-header">
-                                <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, flex: 1, flexWrap: "wrap" }}>
-                                  <input
-                                    type="checkbox"
-                                    checked={isSelected}
-                                    onClick={(e) => e.stopPropagation()}
-                                    onChange={(ev) => handleCheckboxClick(due, ev)}
-                                    style={{ flexShrink: 0 }}
-                                  />
-                                  <button
-                                    type="button"
-                                    style={{
-                                      fontWeight: 600, fontSize: 14, padding: 0,
-                                      border: "none", background: "none", cursor: "pointer",
-                                      color: "var(--primary)",
-                                      minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                                    }}
-                                    onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
-                                  >
+                              <input type="checkbox" checked={isSelected}
+                                onClick={(e) => e.stopPropagation()} onChange={(ev) => handleCheckboxClick(due, ev)}
+                                style={{ flexShrink: 0, width: 18, height: 18 }} />
+                              <div style={{
+                                width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                                background: 'linear-gradient(135deg, #e2e8f0, #f1f5f9)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: 12, fontWeight: 700, color: '#475467',
+                              }}>{initial}</div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <button type="button" style={{
+                                    fontWeight: 600, fontSize: 14, padding: 0, border: 'none', background: 'none',
+                                    cursor: 'pointer', color: 'var(--text)', textDecoration: 'none',
+                                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                    maxWidth: '100%',
+                                  }}
+                                    onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}>
                                     {displayValue(due.member_name)}
                                   </button>
-                                  <MemberTypeBadge type={due.member_type} />
-                                  {due.is_new && (
-                                    <span style={{
-                                      padding: "1px 6px", borderRadius: 999,
-                                      background: "#dbeafe", color: "#1d4ed8",
-                                      fontSize: 12, fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0,
-                                    }}>新入</span>
-                                  )}
+                                  {due.is_new && <span style={{ padding: '0 4px', borderRadius: 999, background: '#dbeafe', color: '#1d4ed8', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, lineHeight: '16px' }}>新入</span>}
                                 </div>
-                                <StatusBadge status="未納" onClick={(e) => { e.stopPropagation(); openReconcileModal(due); }} />
+                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {due.member_type}{" \u00B7 "}{due.due_type || "\u5E74\u4F1A\u8CBB"}{" "}{formatCurrency(due.amount)}
+                                </div>
                               </div>
-                              <div className="mobile-card-item-row">
-                                <span className="card-label">会費種別</span>
-                                <span className="card-value" style={{ overflow: "visible", whiteSpace: "normal", flexShrink: 0 }}><DueTypeBadge type={due.due_type || "年会費"} /></span>
-                              </div>
-                              <div className="mobile-card-item-row">
-                                <span className="card-label">金額</span>
-                                <span className="card-value" style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                                  {formatCurrency(due.amount)}
-                                </span>
-                              </div>
-                              <div className="mobile-card-item-row">
-                                <span className="card-label">ステータス</span>
-                                <span className="card-value" style={{ overflow: "visible", whiteSpace: "normal", flexShrink: 0 }}>
-                                  <StatusBadge status="未納" disabled />
-                                </span>
-                              </div>
+                              <StatusBadge status={"\u672A\u7D0D"} onClick={(e) => { e.stopPropagation(); openReconcileModal(due); }} />
                             </div>
                           );
                         })}
@@ -1880,6 +1965,14 @@ export default function DuesManagement() {
       {/* ══════════════════════════════════════ */}
       {activeTab === "settings" && (
         <>
+          {isMobile && (
+            <div style={{ marginBottom: 8 }}>
+              <button type="button" className="btn btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }}
+                onClick={() => setActiveTab('current')}>
+                {"\u2190 \u623B\u308B"}
+              </button>
+            </div>
+          )}
           <section className="card panel-card single-panel">
             <div className="card-body stack">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
