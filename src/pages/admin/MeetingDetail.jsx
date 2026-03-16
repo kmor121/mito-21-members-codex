@@ -13,10 +13,10 @@ const RichTextEditor = lazy(() => import('../../components/common/RichTextEditor
 
 const STATUS_BADGE = {
   "下書き": { bg: "var(--line-light)", color: "var(--text-secondary)", border: "var(--line)" },
-  "確定":   { bg: "var(--primary-light)", color: "var(--primary)", border: "var(--primary-100)" },
+  "公開":   { bg: "var(--primary-light)", color: "var(--primary)", border: "var(--primary-100)" },
   "完了":   { bg: "var(--success-light)", color: "var(--success)", border: "#bbf7d0" },
 };
-const STATUS_LABEL = { "下書き": "下書き", "確定": "公開", "完了": "完了" };
+const STATUS_LABEL = { "下書き": "下書き", "公開": "公開", "完了": "完了" };
 
 const DECISION_STATUSES = ["未審議", "承認", "否決", "継続審議", "了承"];
 
@@ -399,8 +399,8 @@ export default function MeetingDetail() {
 
   // Status change
   async function handleStatusChange(newStatus) {
-    // For "確定", show custom confirm modal with attendance summary
-    if (newStatus === "確定") {
+    // For "公開", show custom confirm modal with attendance summary
+    if (newStatus === "公開") {
       const presentCount = attendeeIds.length;
       const absCount = boardMembers.length - presentCount;
       const obsCount = observerIds.length;
@@ -433,17 +433,17 @@ export default function MeetingDetail() {
           </div>
         ),
         confirmLabel: "公開する",
-        onConfirm: () => doStatusChange("確定"),
+        onConfirm: () => doStatusChange("公開"),
       });
       return;
     }
     // 完了→公開に戻す場合は専用メッセージ
-    if (newStatus === "確定" && status === "完了") {
+    if (newStatus === "公開" && status === "完了") {
       setConfirmModal({
         title: "公開に戻す",
         message: "この幹事会を「公開」状態に戻しますか？議事録や出欠の編集が再び可能になります。",
         confirmLabel: "公開に戻す",
-        onConfirm: () => doStatusChange("確定"),
+        onConfirm: () => doStatusChange("公開"),
       });
       return;
     }
@@ -618,8 +618,8 @@ export default function MeetingDetail() {
   const status = meeting.status;
   const badge = STATUS_BADGE[status] || STATUS_BADGE["下書き"];
   const canEditAgenda = status === "下書き";
-  const canEditMinutes = status === "下書き" || status === "確定";
-  const canEditAttendance = status === "下書き" || status === "確定";
+  const canEditMinutes = status === "下書き" || status === "公開";
+  const canEditAttendance = status === "下書き" || status === "公開";
   const statusLabel = STATUS_LABEL[status] || status;
   const attendeeCount = attendeeIds.length;
   const absentCount = boardMembers.length - attendeeCount;
@@ -690,14 +690,14 @@ export default function MeetingDetail() {
           )}
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", flexShrink: 0 }}>
-          {status === "下書き" && <button className="btn btn-primary" type="button" disabled={saving} onClick={() => handleStatusChange("確定")} style={isMobile ? { fontSize: 12, padding: "6px 12px" } : {}}>公開にする</button>}
-          {status === "確定" && (
+          {status === "下書き" && <button className="btn btn-primary" type="button" disabled={saving} onClick={() => handleStatusChange("公開")} style={isMobile ? { fontSize: 12, padding: "6px 12px" } : {}}>公開にする</button>}
+          {status === "公開" && (
             <>
               <button className="btn btn-secondary" type="button" disabled={saving} onClick={() => handleStatusChange("下書き")} style={isMobile ? { fontSize: 12, padding: "6px 10px" } : {}}>下書きに戻す</button>
               <button className="btn btn-primary" type="button" disabled={saving} onClick={() => handleStatusChange("完了")} style={isMobile ? { fontSize: 12, padding: "6px 12px" } : {}}>完了にする</button>
             </>
           )}
-          {status === "完了" && <button className="btn btn-secondary" type="button" disabled={saving} onClick={() => handleStatusChange("確定")} style={isMobile ? { fontSize: 12, padding: "6px 10px" } : {}}>公開に戻す</button>}
+          {status === "完了" && <button className="btn btn-secondary" type="button" disabled={saving} onClick={() => handleStatusChange("公開")} style={isMobile ? { fontSize: 12, padding: "6px 10px" } : {}}>公開に戻す</button>}
         </div>
       </div>
 

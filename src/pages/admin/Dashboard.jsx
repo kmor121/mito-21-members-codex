@@ -138,7 +138,7 @@ export default function Dashboard() {
     if (!meetings) return null;
     const today = new Date().toISOString().slice(0, 10);
     const upcoming = meetings
-      .filter(m => m.meeting_date >= today && (m.status === '確定'))
+      .filter(m => m.meeting_date >= today && (m.status === '公開'))
       .sort((a, b) => a.meeting_date.localeCompare(b.meeting_date));
     if (upcoming.length > 0) return { ...upcoming[0], isUpcoming: true };
     // Fallback: most recent completed

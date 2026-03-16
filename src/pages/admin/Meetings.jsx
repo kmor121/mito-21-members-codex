@@ -11,11 +11,11 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 
 const STATUS_BADGE = {
   "下書き": { bg: "var(--line-light)", color: "var(--text-secondary)" },
-  "確定":   { bg: "var(--success-light)", color: "var(--success)" },
+  "公開":   { bg: "var(--success-light)", color: "var(--success)" },
   "完了":   { bg: "var(--success-light)", color: "var(--success)" },
 };
 
-const STATUS_LABEL = { "下書き": "下書き", "確定": "公開", "完了": "完了" };
+const STATUS_LABEL = { "下書き": "下書き", "公開": "公開", "完了": "完了" };
 
 const DEFAULT_CEREMONY_ITEMS = [
   { order: 1, title: "開会のことば", person_id: "" },
@@ -162,7 +162,7 @@ export default function Meetings() {
   const stats = useMemo(() => {
     let confirmed = 0, draft = 0, agendaTotal = 0;
     filteredMeetings.forEach((m) => {
-      if (m.status === '確定' || m.status === '完了') confirmed++;
+      if (m.status === '公開' || m.status === '完了') confirmed++;
       else draft++;
       if (Array.isArray(m.agenda_items)) agendaTotal += m.agenda_items.length;
     });

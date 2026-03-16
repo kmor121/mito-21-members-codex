@@ -34,7 +34,7 @@
     },
     "status": {
       "type": "string",
-      "enum": ["下書き", "確定", "完了"],
+      "enum": ["下書き", "公開", "完了"],
       "description": "ステータス"
     },
     "ceremony_items": {

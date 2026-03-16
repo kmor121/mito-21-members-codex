@@ -7,11 +7,11 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 const STATUS_BADGE = {
-  "確定": { bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe" },
+  "公開": { bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe" },
   "完了": { bg: "#ecfdf5", color: "#059669", border: "#bbf7d0" },
 };
 
-const STATUS_LABEL = { "確定": "公開", "完了": "完了" };
+const STATUS_LABEL = { "公開": "公開", "完了": "完了" };
 
 const TAG_BADGE = {
   "審議": { bg: "#eff6ff", color: "#2563eb" },
@@ -216,7 +216,7 @@ export default function MeetingsView() {
         base44.entities.Attendance.list().catch(() => []),
       ]);
       setFiscalYears(fyList || []);
-      setMeetings((meetList || []).filter((m) => m.status === "確定" || m.status === "完了"));
+      setMeetings((meetList || []).filter((m) => m.status === "公開" || m.status === "完了"));
       setMeetingAttendances((attList || []).filter(a => a.meeting_id));
       setAllMembers(members || []);
       // Build org-role label map
@@ -385,7 +385,7 @@ export default function MeetingsView() {
   const nextMeetingId = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
     const upcoming = filteredMeetings
-      .filter((m) => m.meeting_date >= today && m.status === "確定")
+      .filter((m) => m.meeting_date >= today && m.status === "公開")
       .sort((a, b) => (a.meeting_date || "").localeCompare(b.meeting_date || ""));
     return upcoming.length > 0 ? upcoming[0].id : null;
   }, [filteredMeetings]);
@@ -457,7 +457,7 @@ export default function MeetingsView() {
       ) : (
         <div style={styles.timeline}>
           {filteredMeetings.map((m) => {
-            const badge = STATUS_BADGE[m.status] || STATUS_BADGE["確定"];
+            const badge = STATUS_BADGE[m.status] || STATUS_BADGE["公開"];
             const ceremonyItems = Array.isArray(m.ceremony_items) ? m.ceremony_items : [];
             const agendaItems = Array.isArray(m.agenda_items) ? m.agenda_items : [];
             const isExpanded = expandedId === m.id;
@@ -679,7 +679,7 @@ export default function MeetingsView() {
                     {(() => {
                       const myAtt = myMeetingAttMap[m.id];
                       const myResponse = myAtt?.response || '';
-                      const canRespond = m.status === '確定';
+                      const canRespond = m.status === '公開';
                       const isSaving = savingResponse === m.id;
 
                       // Build unified attendance map: Attendance records + old attendee_ids
@@ -699,7 +699,7 @@ export default function MeetingsView() {
                         <div style={styles.attendanceBox}>
                           <div style={{ fontSize: 13, fontWeight: 700, color: '#5F5E5A', marginBottom: 10 }}>出欠</div>
 
-                          {/* Response buttons (only for 確定) */}
+                          {/* Response buttons (only for 公開) */}
                           {canRespond && (
                             <div style={{ marginBottom: 10 }}>
                               <div style={{ fontSize: 12, color: '#5F5E5A', marginBottom: 6 }}>あなたの回答:</div>
