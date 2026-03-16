@@ -51,7 +51,9 @@
       "Bash(find \"C:\\\\dev\\\\mito-21-members-codex/src\" -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" -o -name \"*.jsx\" -o -name \"*.js\" \\\\\\) 2>/dev/null | grep -i year)",
       "Bash(grep -r \"YearPillNav\" \"C:\\\\dev\\\\mito-21-members-codex/src\" --include=\"*.tsx\" --include=\"*.ts\" --include=\"*.jsx\" --include=\"*.js\" 2>/dev/null | head -50)",
       "Bash(git add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git stash:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
