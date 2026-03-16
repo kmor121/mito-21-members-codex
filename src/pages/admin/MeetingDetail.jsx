@@ -214,6 +214,8 @@ export default function MeetingDetail() {
   const [minutesNote, setMinutesNote] = useState("");
   const [minutesContent, setMinutesContent] = useState("");
 
+  const [meetingAtts, setMeetingAtts] = useState([]);
+
   // Reference data
   const [allMembers, setAllMembers] = useState([]);
   const [boardMembers, setBoardMembers] = useState([]);
@@ -251,8 +253,12 @@ export default function MeetingDetail() {
 
   const loadMeeting = useCallback(async () => {
     try {
-      const m = await base44.entities.Meeting.get(meetingId);
+      const [m, atts] = await Promise.all([
+        base44.entities.Meeting.get(meetingId),
+        base44.entities.Attendance.filter({ meeting_id: meetingId }).catch(() => []),
+      ]);
       setMeeting(m);
+      setMeetingAtts(atts || []);
       setTitle(m.title || "");
       setMeetingDate(m.meeting_date || "");
       setStartTime(m.start_time || "");
@@ -559,9 +565,38 @@ export default function MeetingDetail() {
     return orgLabel ? `${orgLabel} ${name}` : name;
   }
 
-  // Attendance
+  // Attendance record map
+  const attRecordMap = useMemo(() => {
+    const map = {};
+    meetingAtts.forEach(a => { map[a.member_id] = a; });
+    return map;
+  }, [meetingAtts]);
+
+  // Attendance (legacy toggle)
   function toggleAttendee(memberId) {
     setAttendeeIds((prev) => prev.includes(memberId) ? prev.filter((id) => id !== memberId) : [...prev, memberId]);
+  }
+
+  // Proxy response via Attendance record
+  async function handleProxyMeetingResponse(memberId, response) {
+    setSaving(true);
+    try {
+      const existing = attRecordMap[memberId];
+      if (existing) {
+        await base44.entities.Attendance.update(existing.id, {
+          response, status: response, responded_at: new Date().toISOString(),
+        });
+      } else {
+        await base44.entities.Attendance.create({
+          meeting_id: meetingId, member_id: memberId,
+          response, status: response, responded_at: new Date().toISOString(),
+        });
+      }
+      invalidateReadCache('Attendance');
+      showToastMsg('出欠を更新しました');
+      await loadMeeting();
+    } catch (err) { showToastMsg(err.message || '更新に失敗しました', 'error'); }
+    setSaving(false);
   }
 
   // Observer
@@ -1239,6 +1274,46 @@ export default function MeetingDetail() {
                     </div>
                   )}
                 </>
+              )}
+
+              {/* ── Attendance Records (会員回答) ── */}
+              {meetingAtts.length > 0 && (
+                <div style={{ marginTop: 20 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 8, paddingBottom: 4, borderBottom: "1px solid var(--line)" }}>
+                    会員回答（Attendance レコード: {meetingAtts.length}件）
+                  </div>
+                  <div style={{ border: "1px solid var(--line)", borderRadius: 8, overflow: "hidden" }}>
+                    {meetingAtts.map((att, idx) => {
+                      const m = refDataRef.current?.memberMap?.[att.member_id];
+                      const resp = att.response || att.status || '';
+                      const isA = resp === '出席';
+                      return (
+                        <div key={att.id} style={{
+                          display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
+                          borderBottom: idx < meetingAtts.length - 1 ? "1px solid var(--line-light)" : "none",
+                          flexWrap: "wrap",
+                        }}>
+                          <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80 }}>{m ? fullName(m) : att.member_id}</span>
+                          <span style={{
+                            padding: "2px 8px", borderRadius: 10, fontSize: 12, fontWeight: 500,
+                            background: isA ? "#ecfdf5" : "#fef2f2", color: isA ? "#059669" : "#dc2626",
+                          }}>{resp}</span>
+                          {att.responded_at && <span style={{ fontSize: 11, color: "var(--muted)" }}>{att.responded_at.slice(0, 10)}</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Reminder button ── */}
+              {canEditAttendance && (
+                <div style={{ marginTop: 16 }}>
+                  <button className="btn btn-secondary" type="button" disabled={saving}
+                    onClick={() => showToastMsg('リマインド送信機能は準備中です')}>
+                    未回答者にリマインド送信
+                  </button>
+                </div>
               )}
 
               {/* Save - only in draft */}

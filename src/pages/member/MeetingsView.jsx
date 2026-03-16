@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { base44 } from '../../api/base44Client';
+import { base44, invalidateReadCache } from '../../api/base44Client';
 import { useAuth } from '../../contexts/AuthContext';
 import { fullName } from '../../utils/formatName';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -198,18 +198,26 @@ export default function MeetingsView() {
   const [expandedId, setExpandedId] = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
   const [memberOrgLabel, setMemberOrgLabel] = useState({});
+  const [meetingAttendances, setMeetingAttendances] = useState([]);
+  const [savingResponse, setSavingResponse] = useState(null);
+  const [expandedAttId, setExpandedAttId] = useState(null);
+  const currentMemberId = memberInfo?.id || memberInfo?._id || '';
+
+  function showToast(msg, type) { if (window.__showToast) window.__showToast(msg, type || 'success'); }
 
   const loadData = useCallback(async () => {
     try {
-      const [fyList, meetList, members, orgs, assigns] = await Promise.all([
+      const [fyList, meetList, members, orgs, assigns, attList] = await Promise.all([
         base44.entities.FiscalYear.list("-year"),
         base44.entities.Meeting.list(),
         base44.entities.Member.list().catch(() => []),
         base44.entities.Organization.list().catch(() => []),
         base44.entities.OrgAssignment.list().catch(() => []),
+        base44.entities.Attendance.list().catch(() => []),
       ]);
       setFiscalYears(fyList || []);
       setMeetings((meetList || []).filter((m) => m.status === "確定" || m.status === "完了"));
+      setMeetingAttendances((attList || []).filter(a => a.meeting_id));
       setAllMembers(members || []);
       // Build org-role label map
       const orgById = {};
@@ -262,6 +270,52 @@ export default function MeetingsView() {
     if (!personId || !fyId) return "";
     return (memberOrgLabel[fyId] || {})[personId] || "";
   }, [memberOrgLabel]);
+
+  // My attendance map for meetings
+  const myMeetingAttMap = useMemo(() => {
+    const map = {};
+    meetingAttendances.forEach(a => { if (a.member_id === currentMemberId) map[a.meeting_id] = a; });
+    return map;
+  }, [meetingAttendances, currentMemberId]);
+
+  // All attendance by meeting
+  const attByMeeting = useMemo(() => {
+    const map = {};
+    meetingAttendances.forEach(a => {
+      if (!map[a.meeting_id]) map[a.meeting_id] = [];
+      map[a.meeting_id].push(a);
+    });
+    return map;
+  }, [meetingAttendances]);
+
+  async function handleMeetingResponse(meetingId, response) {
+    setSavingResponse(meetingId);
+    const existing = myMeetingAttMap[meetingId];
+    try {
+      if (existing && existing.response === response) {
+        await base44.entities.Attendance.delete(existing.id);
+        invalidateReadCache('Attendance');
+        showToast('回答を取り消しました');
+      } else if (existing) {
+        await base44.entities.Attendance.update(existing.id, {
+          response, status: response, responded_at: new Date().toISOString(),
+        });
+        invalidateReadCache('Attendance');
+        showToast('回答を変更しました');
+      } else {
+        await base44.entities.Attendance.create({
+          meeting_id: meetingId, member_id: currentMemberId,
+          response, status: response, responded_at: new Date().toISOString(),
+        });
+        invalidateReadCache('Attendance');
+        showToast('出欠を回答しました');
+      }
+      await loadData();
+    } catch (err) {
+      showToast(err.message || '回答に失敗しました', 'error');
+    }
+    setSavingResponse(null);
+  }
 
   const [copiedMeetingId, setCopiedMeetingId] = useState(null);
   function copyAgendaText(meeting) {
@@ -621,35 +675,94 @@ export default function MeetingsView() {
                       );
                     })}
 
-                    {/* Attendance & Observers (completed meetings) */}
-                    {isCompleted && (() => {
-                      const aIds = Array.isArray(m.attendee_ids) ? m.attendee_ids : [];
-                      const observerIds = Array.isArray(m.observer_ids) ? m.observer_ids : [];
-                      const attendeeNames = aIds.map((id) => getMemberName(id)).filter(Boolean);
-                      const observerNames = observerIds.map((id) => getMemberName(id)).filter(Boolean);
-                      if (attendeeNames.length === 0 && observerNames.length === 0) return null;
+                    {/* ── Attendance Section ── */}
+                    {(() => {
+                      const myAtt = myMeetingAttMap[m.id];
+                      const myResponse = myAtt?.response || '';
+                      const canRespond = m.status === '確定';
+                      const isSaving = savingResponse === m.id;
+
+                      // Build unified attendance map: Attendance records + old attendee_ids
+                      const mAtts = attByMeeting[m.id] || [];
+                      const unifiedMap = {};
+                      mAtts.forEach(a => { unifiedMap[a.member_id] = a.response || a.status; });
+                      const oldAIds = Array.isArray(m.attendee_ids) ? m.attendee_ids : [];
+                      oldAIds.forEach(id => { if (!unifiedMap[id]) unifiedMap[id] = '出席'; });
+                      const oldObs = Array.isArray(m.observer_ids) ? m.observer_ids : [];
+                      oldObs.forEach(id => { if (!unifiedMap[id]) unifiedMap[id] = '出席'; });
+                      const attendCount = Object.values(unifiedMap).filter(v => v === '出席').length;
+                      const absentCount = Object.values(unifiedMap).filter(v => v === '欠席').length;
+                      const totalResponded = Object.keys(unifiedMap).length;
+                      const isAttExpanded = expandedAttId === m.id;
+
                       return (
                         <div style={styles.attendanceBox}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
-                            <span style={styles.attendanceBadge('#ecfdf5', '#059669')}>
-                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                              出席 {attendeeNames.length}名
-                            </span>
-                            {observerNames.length > 0 && (
-                              <span style={styles.attendanceBadge('#eff6ff', '#2563eb')}>
-                                オブザーバー {observerNames.length}名
-                              </span>
-                            )}
-                          </div>
-                          {attendeeNames.length > 0 && (
-                            <p style={{ margin: 0, fontSize: 13, color: '#2C2C2A', lineHeight: 1.8 }}>
-                              <span style={{ fontWeight: 600, color: '#5F5E5A' }}>出席者:</span> {attendeeNames.join("、")}
+                          <div style={{ fontSize: 13, fontWeight: 700, color: '#5F5E5A', marginBottom: 10 }}>出欠</div>
+
+                          {/* Response buttons (only for 確定) */}
+                          {canRespond && (
+                            <div style={{ marginBottom: 10 }}>
+                              <div style={{ fontSize: 12, color: '#5F5E5A', marginBottom: 6 }}>あなたの回答:</div>
+                              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                {['出席', '欠席'].map(opt => {
+                                  const isSelected = myResponse === opt;
+                                  const isAttend = opt === '出席';
+                                  return (
+                                    <button key={opt} type="button" disabled={isSaving}
+                                      onClick={(e) => { e.stopPropagation(); handleMeetingResponse(m.id, opt); }}
+                                      style={{
+                                        padding: isMobile ? '8px 16px' : '7px 18px',
+                                        borderRadius: 8, fontSize: 13, fontWeight: 600,
+                                        cursor: isSaving ? 'default' : 'pointer',
+                                        transition: 'all 0.15s', minHeight: 36,
+                                        background: isSelected ? (isAttend ? 'var(--success-light)' : 'var(--error-light)') : 'transparent',
+                                        color: isSelected ? (isAttend ? 'var(--success)' : 'var(--error)') : '#5F5E5A',
+                                        border: isSelected ? `2px solid ${isAttend ? 'var(--success)' : 'var(--error)'}` : '1px solid #E8E6DF',
+                                        opacity: isSaving ? 0.5 : 1,
+                                      }}>
+                                      {isSelected && '✓ '}{opt}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Show result for completed */}
+                          {isCompleted && myResponse && (
+                            <p style={{ fontSize: 13, color: 'var(--success)', fontWeight: 600, margin: '0 0 10px' }}>
+                              ✓ あなたの回答: {myResponse}
                             </p>
                           )}
-                          {observerNames.length > 0 && (
-                            <p style={{ margin: attendeeNames.length > 0 ? '4px 0 0' : 0, fontSize: 13, color: '#2C2C2A', lineHeight: 1.8 }}>
-                              <span style={{ fontWeight: 600, color: '#5F5E5A' }}>オブザーバー:</span> {observerNames.join("、")}
-                            </p>
+
+                          {/* Toggle for response details */}
+                          {totalResponded > 0 && (
+                            <div>
+                              <button type="button" onClick={(e) => { e.stopPropagation(); setExpandedAttId(isAttExpanded ? null : m.id); }}
+                                style={{ background: 'none', border: 'none', color: '#534AB7', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
+                                {isAttExpanded ? '▾ 回答状況を閉じる' : `▸ 回答状況を見る（出席 ${attendCount} / 欠席 ${absentCount}）`}
+                              </button>
+                              {isAttExpanded && (
+                                <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                  {Object.entries(unifiedMap).map(([mid, resp]) => {
+                                    const name = getMemberName(mid);
+                                    if (!name) return null;
+                                    const isA = resp === '出席';
+                                    return (
+                                      <span key={mid} style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                                        padding: '3px 10px', borderRadius: 999, fontSize: 12,
+                                        background: isA ? '#ecfdf5' : '#fef2f2',
+                                        color: isA ? '#059669' : '#dc2626',
+                                        border: `1px solid ${isA ? '#bbf7d0' : '#fecaca'}`,
+                                      }}>
+                                        {name} <span style={{ fontWeight: 600 }}>{resp}</span>
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
                       );
