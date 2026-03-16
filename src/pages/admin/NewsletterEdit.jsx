@@ -313,6 +313,7 @@ export default function NewsletterEdit() {
     id: "", title: "", body: "", body_html: "", channel: "email",
     audience_type: "all", audience_filter_json: "", audience_detail: "",
     scheduled_at: "", status: "", sent_at: "", sent_count: 0, is_template: false,
+    linked_event_id: "", is_reminder: false,
   });
   const [editorMode, setEditorMode] = useState("text");
   const [isScheduled, setIsScheduled] = useState(false);
@@ -339,6 +340,9 @@ export default function NewsletterEdit() {
   const [individualMode, setIndividualMode] = useState(false);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [memberSearchOpen, setMemberSearchOpen] = useState(false);
+
+  // Event linking state
+  const [publishedEvents, setPublishedEvents] = useState([]);
   const [organizations, setOrganizations] = useState([]);
 
   // Attachment state
@@ -359,6 +363,10 @@ export default function NewsletterEdit() {
   useEffect(() => {
     base44.entities.Organization.list().then((list) => {
       setOrganizations(list || []);
+    }).catch(() => {});
+    // Load published events for linking
+    base44.entities.Event.list().then((list) => {
+      setPublishedEvents((list || []).filter(e => e.status === 'published' || e.status === 'closed'));
     }).catch(() => {});
   }, []);
 
@@ -401,6 +409,8 @@ export default function NewsletterEdit() {
             sent_at: data.sent_at || "",
             sent_count: data.sent_count || 0,
             is_template: data.is_template || false,
+            linked_event_id: data.linked_event_id || "",
+            is_reminder: data.is_reminder || false,
           });
           if (data.body_html) setEditorMode("rich");
           if (data.scheduled_at) {
@@ -578,6 +588,8 @@ export default function NewsletterEdit() {
         scheduled_at: buildScheduleAt() || "",
         attachments_json: buildAttachmentsMetaJson(),
         is_template: form.is_template || isTemplate || false,
+        linked_event_id: form.linked_event_id || "",
+        is_reminder: form.is_reminder || false,
       };
 
       let result;
@@ -766,6 +778,8 @@ export default function NewsletterEdit() {
         audience_filter_json: af.json,
         attachments_json: buildAttachmentsMetaJson(),
         is_template: form.is_template || isTemplate || false,
+        linked_event_id: form.linked_event_id || "",
+        is_reminder: form.is_reminder || false,
       };
       if (form.id) {
         await base44.entities.Newsletter.update(form.id, draftPayload);
@@ -1457,6 +1471,53 @@ export default function NewsletterEdit() {
               </div>
             )}
           </div>
+
+          {/* イベント紐付け section */}
+          {!isTemplate && (
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 10 }}>
+                イベント紐付け（任意）
+              </div>
+              {form.linked_event_id ? (() => {
+                const evt = publishedEvents.find(e => e.id === form.linked_event_id);
+                return (
+                  <div style={{
+                    padding: "10px 14px", borderRadius: "var(--radius)",
+                    background: "#f5f3ff", border: "1px solid #ddd6fe",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#534AB7" }}>
+                        {evt ? `${evt.title}（${evt.event_date?.slice(5).replace("-", "/")}）` : form.linked_event_id}
+                      </span>
+                      <button type="button" onClick={() => { updateForm("linked_event_id", ""); updateForm("is_reminder", false); }}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "#534AB7", fontSize: 16, padding: 0 }}>&times;</button>
+                    </div>
+                    <p style={{ fontSize: 12, color: "#7c3aed", margin: "6px 0 0" }}>メール本文に出欠回答リンクが自動挿入されます</p>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8, cursor: "pointer", fontSize: 13 }}>
+                      <input type="checkbox" checked={form.is_reminder} onChange={e => updateForm("is_reminder", e.target.checked)}
+                        style={{ width: 15, height: 15, accentColor: "#4f46e5" }} />
+                      リマインドメールとして送信（未回答者のみ）
+                    </label>
+                  </div>
+                );
+              })() : (
+                <select
+                  value=""
+                  onChange={e => { if (e.target.value) updateForm("linked_event_id", e.target.value); }}
+                  style={{
+                    width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
+                    border: "1px solid var(--line)", background: "#fff", fontSize: 13,
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  <option value="">紐付けなし</option>
+                  {publishedEvents.map(e => (
+                    <option key={e.id} value={e.id}>{e.title}（{e.event_date?.slice(5).replace("-", "/")}）</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
 
           {/* 予約送信 section */}
           {!isTemplate && (

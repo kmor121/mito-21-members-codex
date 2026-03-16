@@ -1,0 +1,44 @@
+{
+  "name": "Attendance",
+  "description": "イベント・幹事会の出欠管理",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "description": "紐付けイベントID（meeting_idと排他）"
+    },
+    "meeting_id": {
+      "type": "string",
+      "description": "紐付け幹事会ID（event_idと排他）"
+    },
+    "member_id": {
+      "type": "string",
+      "description": "会員ID"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["未回答", "出席", "欠席"],
+      "description": "出欠ステータス"
+    },
+    "response": {
+      "type": "string",
+      "description": "カスタム回答値（Eventsのresponse_optionsから選択した値）"
+    },
+    "responded_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "回答日時"
+    },
+    "comment": {
+      "type": "string",
+      "description": "一言コメント（任意）"
+    }
+  },
+  "required": ["member_id", "status"],
+  "rls": {
+    "create": true,
+    "read": true,
+    "update": true,
+    "delete": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] }
+  }
+}

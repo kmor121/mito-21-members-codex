@@ -37,6 +37,8 @@ const ApplicationDetail = lazy(() => import('./pages/admin/ApplicationDetail'));
 const MemberCreate = lazy(() => import('./pages/admin/MemberCreate'));
 const Meetings = lazy(() => import('./pages/admin/Meetings'));
 const MeetingDetail = lazy(() => import('./pages/admin/MeetingDetail'));
+const Events = lazy(() => import('./pages/admin/Events'));
+const EventDetail = lazy(() => import('./pages/admin/EventDetail'));
 
 // Member pages
 const Directory = lazy(() => import('./pages/member/Directory'));
@@ -48,6 +50,7 @@ const Manual = lazy(() => import('./pages/member/Manual'));
 const MeetingsView = lazy(() => import('./pages/member/MeetingsView'));
 const MemberApplicationsView = lazy(() => import('./pages/member/MemberApplicationsView'));
 const MemberDuesView = lazy(() => import('./pages/member/MemberDuesView'));
+const EventsView = lazy(() => import('./pages/member/EventsView'));
 
 function PageFallback() {
   return (
@@ -118,6 +121,8 @@ export default function App() {
               <Route path="/admin/documents/:documentId/edit" element={<DocumentEditor />} />
               <Route path="/admin/meetings" element={<Meetings />} />
               <Route path="/admin/meetings/:meetingId" element={<MeetingDetail />} />
+              <Route path="/admin/events" element={<Events />} />
+              <Route path="/admin/events/:eventId" element={<EventDetail />} />
             </Route>
 
             {/* Member routes - requires authentication + member linkage */}
@@ -131,6 +136,7 @@ export default function App() {
               <Route path="/meetings" element={<MeetingsView />} />
               <Route path="/member/applications" element={<MemberApplicationsView />} />
               <Route path="/member/dues-overview" element={<MemberDuesView />} />
+              <Route path="/events" element={<EventsView />} />
             </Route>
 
             {/* Catch-all */}

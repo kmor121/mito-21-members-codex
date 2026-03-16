@@ -1,0 +1,84 @@
+{
+  "name": "Event",
+  "description": "イベント管理（懇親会・総会・例会・セミナー等）",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "イベント名"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["懇親会", "総会", "例会", "セミナー", "その他"],
+      "description": "イベント種別"
+    },
+    "description": {
+      "type": "string",
+      "description": "イベント説明（リッチテキスト/HTML）"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date",
+      "description": "開催日"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "開始時刻（HH:MM形式）"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "終了時刻（HH:MM形式）"
+    },
+    "location": {
+      "type": "string",
+      "description": "開催場所"
+    },
+    "capacity": {
+      "type": "number",
+      "description": "定員（0 = 制限なし）"
+    },
+    "fee": {
+      "type": "number",
+      "description": "参加費（0 = 無料）"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "published", "closed", "completed"],
+      "description": "ステータス: 下書き/公開/締切/完了"
+    },
+    "rsvp_deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "出欠回答期限"
+    },
+    "response_options": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "回答選択肢（例: ['出席', '欠席', '遅刻参加', 'オンライン参加']）"
+    },
+    "default_response_options": {
+      "type": "boolean",
+      "description": "trueの場合、デフォルト選択肢['出席', '欠席']を使用"
+    },
+    "target_member_types": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "対象会員種別（例: ['正会員', '賛助会員']）。空配列=全員"
+    },
+    "fiscal_year_id": {
+      "type": "string",
+      "description": "紐付け年度ID"
+    },
+    "sort_order": {
+      "type": "number",
+      "description": "表示順"
+    }
+  },
+  "required": ["title", "event_type", "event_date", "status"],
+  "rls": {
+    "create": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }, { "user_condition": { "data.app_role": "manager" } }] },
+    "read": true,
+    "update": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }, { "user_condition": { "data.app_role": "manager" } }] },
+    "delete": { "$or": [{ "user_condition": { "role": "admin" } }, { "user_condition": { "data.app_role": "admin_member" } }] }
+  }
+}

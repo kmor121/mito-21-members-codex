@@ -256,8 +256,50 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── Event linking: reminder filter (exclude responded members) ──
+    const linkedEventId = normalize(newsletter.linked_event_id);
+    let filteredOutCount = 0;
+    if (linkedEventId && newsletter.is_reminder) {
+      const attendances = await base44.asServiceRole.entities.Attendance.filter({ event_id: linkedEventId });
+      const respondedIds = new Set(attendances.map((a: Record<string, unknown>) => normalize(a.member_id)));
+      const before = recipients.length;
+      recipients = recipients.filter((m: Record<string, unknown>) => !respondedIds.has(String(m.id)));
+      filteredOutCount = before - recipients.length;
+      console.log(`[send-newsletter] Reminder mode: filtered out ${filteredOutCount} responded members`);
+    }
+
     if (recipients.length === 0) {
-      return Response.json({ ok: false, error: "No recipients found" }, { status: 400 });
+      await base44.asServiceRole.entities.Newsletter.update(newsletterId, {
+        status: "sent", sent_count: 0, last_sent_at: new Date().toISOString(),
+      });
+      return Response.json({
+        ok: true, status: "sent", success_count: 0, fail_count: 0,
+        total_recipients: 0, filtered_out: filteredOutCount,
+        message: filteredOutCount > 0
+          ? `未回答者がいないため送信をスキップしました（回答済み${filteredOutCount}名）`
+          : "No recipients found",
+      });
+    }
+
+    // ── Event linking: build RSVP HTML block ──
+    let eventRsvpHtml = "";
+    if (linkedEventId) {
+      try {
+        const evt = await base44.asServiceRole.entities.Event.get(linkedEventId);
+        if (evt) {
+          const siteUrl = "https://mito21-members.base44.app";
+          const evtTitle = normalize(evt.title) || "イベント";
+          const evtDate = normalize(evt.event_date);
+          const evtStart = normalize(evt.start_time);
+          const evtEnd = normalize(evt.end_time);
+          const evtLocation = normalize(evt.location);
+          const evtDeadline = normalize(evt.rsvp_deadline);
+          const timeStr = evtStart ? (evtEnd ? `${evtStart}〜${evtEnd}` : evtStart) : "";
+          eventRsvpHtml = `<div style="margin:24px 0;padding:20px;background:#f8f7ff;border:1px solid #e8e7fe;border-radius:12px;text-align:center;"><p style="margin:0 0 8px;font-size:16px;font-weight:600;color:#333;">📅 出欠回答のお願い</p><p style="margin:0 0 4px;font-size:14px;color:#666;">${evtTitle}${evtDate ? ` — ${evtDate}` : ""}${timeStr ? ` ${timeStr}` : ""}</p>${evtLocation ? `<p style="margin:0 0 4px;font-size:14px;color:#666;">📍 ${evtLocation}</p>` : ""}${evtDeadline ? `<p style="margin:0 0 16px;font-size:13px;color:#d97706;">回答期限: ${evtDeadline}</p>` : `<div style="height:16px"></div>`}<a href="${siteUrl}/events" style="display:inline-block;padding:12px 32px;background:#534AB7;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">出欠を回答する</a><p style="margin:12px 0 0;font-size:12px;color:#999;">ログイン後、イベントページから回答できます</p></div>`;
+        }
+      } catch (e) {
+        console.warn("[send-newsletter] Failed to load linked event:", e);
+      }
     }
 
     // Convert inline Base64 images to CID attachments (once, shared across all recipients)
@@ -265,10 +307,10 @@ Deno.serve(async (req) => {
     let allAttachments = [...attachments];
     if (bodyHtml) {
       const { html: convertedHtml, inlineAttachments } = convertInlineImages(bodyHtml);
-      sendHtml = convertedHtml + buildUrlLinksHtml(urlLinks);
+      sendHtml = convertedHtml + buildUrlLinksHtml(urlLinks) + eventRsvpHtml;
       allAttachments = [...attachments, ...inlineAttachments];
-    } else if (urlLinks.length > 0) {
-      sendHtml = buildUrlLinksHtml(urlLinks);
+    } else if (urlLinks.length > 0 || eventRsvpHtml) {
+      sendHtml = buildUrlLinksHtml(urlLinks) + eventRsvpHtml;
     }
 
     // Send emails via Resend API in batches
@@ -333,7 +375,11 @@ Deno.serve(async (req) => {
       success_count: successCount,
       fail_count: failCount,
       total_recipients: recipients.length,
+      filtered_out: filteredOutCount,
       errors: errors.slice(0, 5),
+      message: filteredOutCount > 0
+        ? `${successCount}名に送信しました（回答済み${filteredOutCount}名を除外）`
+        : `${successCount}名に送信しました`,
     });
   } catch (error) {
     console.error(error);

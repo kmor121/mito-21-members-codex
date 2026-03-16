@@ -67,6 +67,14 @@
       "type": "number",
       "description": "Number of recipients the newsletter was actually sent to",
       "default": 0
+    },
+    "linked_event_id": {
+      "type": "string",
+      "description": "紐付けイベントID（任意）— 設定するとメールに出欠回答リンクが挿入される"
+    },
+    "is_reminder": {
+      "type": "boolean",
+      "description": "リマインドメールフラグ（未回答者のみに送信）"
     }
   },
   "required": ["title", "channel", "status", "audience_type"],

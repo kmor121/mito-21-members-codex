@@ -182,6 +182,15 @@ export default function MemberLayout() {
                 <span>{item.label}</span>
               </NavLink>
             ))}
+            <NavLink
+              to="/events"
+              className={({ isActive }) =>
+                `workspace-nav-link${isActive ? " is-active" : ""}`
+              }
+              onClick={() => setSidebarOpen(false)}
+            >
+              <span>イベント</span>
+            </NavLink>
             {isBoardMember && (
               <NavLink
                 to="/meetings"
