@@ -90,10 +90,6 @@ const ListIcon = () => (
 
 /* ── Styles ── */
 const styles = {
-  shell: { maxWidth: 960, margin: '0 auto' },
-  header: { marginBottom: 24 },
-  title: { fontSize: 22, fontWeight: 500, color: '#2C2C2A', margin: 0 },
-  subtitle: { fontSize: 14, color: '#5F5E5A', margin: '4px 0 0' },
   fyNav: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 },
   fyBtn: (disabled) => ({
     width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -342,9 +338,10 @@ export default function MeetingsView() {
 
   if (loading) {
     return (
-      <section style={styles.shell}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>幹事会</h1>
+      <section className="admin-shell">
+        <div className="page-header">
+          <h1 className="page-title">幹事会</h1>
+          <p className="page-description">幹事会の次第・議事録を確認</p>
         </div>
         <LoadingSpinner />
       </section>
@@ -352,11 +349,11 @@ export default function MeetingsView() {
   }
 
   return (
-    <section style={styles.shell}>
+    <section className="admin-shell">
       {/* ── Header ── */}
-      <div style={styles.header}>
-        <h1 style={styles.title}>幹事会</h1>
-        <p style={styles.subtitle}>幹事会の次第・議事録を確認</p>
+      <div className="page-header">
+        <h1 className="page-title">幹事会</h1>
+        <p className="page-description">幹事会の次第・議事録を確認</p>
       </div>
 
       {/* ── FY navigation ── */}
