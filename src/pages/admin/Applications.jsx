@@ -396,31 +396,35 @@ export default function Applications() {
         </div>
       )}
       {isMobile ? (
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 0 12px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <h1 className="page-title" style={{ margin: 0 }}>入会申込管理{isViewMode ? "（閲覧モード）" : ""}</h1>
-            {!loading && statusCounts["申請中"] > 0 && (
-              <span style={{
-                display: 'inline-flex', alignItems: 'center',
-                padding: '3px 10px', borderRadius: '999px',
-                background: '#fee2e2', color: '#dc2626',
-                fontSize: '12px', fontWeight: 700,
-              }}>
-                {statusCounts["申請中"]}
-              </span>
-            )}
-          </div>
-          <button type="button" onClick={() => setShowFilters(v => !v)} style={{
-            width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: showFilters ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
-            color: showFilters ? 'var(--primary)' : 'var(--text-secondary)',
+        <div style={{ padding: '0 0 12px' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: 8,
           }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-          </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
+              <h1 className="page-title" style={{ margin: 0, fontSize: 17, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+                入会申込管理{isViewMode ? "（閲覧）" : ""}
+              </h1>
+              {!loading && statusCounts["申請中"] > 0 && (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center',
+                  padding: '3px 10px', borderRadius: '999px',
+                  background: '#fee2e2', color: '#dc2626',
+                  fontSize: '12px', fontWeight: 700, flexShrink: 0,
+                }}>
+                  {statusCounts["申請中"]}
+                </span>
+              )}
+            </div>
+            <button type="button" onClick={() => setShowFilters(v => !v)} style={{
+              width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: showFilters ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
+              color: showFilters ? 'var(--primary)' : 'var(--text-secondary)', flexShrink: 0,
+            }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            </button>
+          </div>
         </div>
       ) : (
         <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 0 }}>
