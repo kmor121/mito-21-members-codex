@@ -1001,52 +1001,54 @@ export default function DuesManagement() {
     <section className="admin-shell">
       {/* ── Page Header ── */}
       {isMobile ? (
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 0 12px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <h1 className="page-title" style={{ margin: 0 }}>会費管理</h1>
-            {selectedFiscalYear && fiscalYears.length > 0 && (() => {
-              const idx = fiscalYears.findIndex(fy => fy.id === activeFiscalYearId);
-              const canPrev = idx < fiscalYears.length - 1;
-              const canNext = idx > 0;
-              const yearLabel = selectedFiscalYear.year_label || `${selectedFiscalYear.year}年度`;
-              return (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <button type="button" disabled={!canPrev} onClick={() => canPrev && handleFiscalYearChange(fiscalYears[idx + 1].id)}
-                    style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canPrev ? 'var(--primary)' : 'var(--text-muted)', cursor: canPrev ? 'pointer' : 'default' }}>{"\u25C2"}</button>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{yearLabel}</span>
-                  <button type="button" disabled={!canNext} onClick={() => canNext && handleFiscalYearChange(fiscalYears[idx - 1].id)}
-                    style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canNext ? 'var(--primary)' : 'var(--text-muted)', cursor: canNext ? 'pointer' : 'default' }}>{"\u25B8"}</button>
-                </div>
-              );
-            })()}
-          </div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <button type="button" onClick={() => setShowFilters(v => !v)} style={{
-              width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: showFilters ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
-              color: showFilters ? 'var(--primary)' : 'var(--text-secondary)',
-            }}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-            </button>
-            <button type="button" onClick={() => setActiveTab('settings')} style={{
-              width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: activeTab === 'settings' ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
-              color: activeTab === 'settings' ? 'var(--primary)' : 'var(--text-secondary)',
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            </button>
-            {computedSummary.unissuedCount > 0 && activeTab !== 'settings' && (
-              <button type="button" className="btn btn-primary" onClick={() => setConfirmBulkIssue(true)} disabled={saving}
-                style={{ fontSize: 12, padding: '6px 10px', whiteSpace: 'nowrap' }}>
-                一括発行
+        <div style={{ padding: '0 0 12px' }}>
+          {/* Row 1: Title + action buttons */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: 8, marginBottom: 6,
+          }}>
+            <h1 className="page-title" style={{ margin: 0, fontSize: 17, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>会費管理</h1>
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+              <button type="button" onClick={() => setShowFilters(v => !v)} style={{
+                width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: showFilters ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
+                color: showFilters ? 'var(--primary)' : 'var(--text-secondary)',
+              }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </button>
-            )}
+              <button type="button" onClick={() => setActiveTab('settings')} style={{
+                width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: activeTab === 'settings' ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
+                color: activeTab === 'settings' ? 'var(--primary)' : 'var(--text-secondary)',
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              </button>
+              {computedSummary.unissuedCount > 0 && activeTab !== 'settings' && (
+                <button type="button" className="btn btn-primary" onClick={() => setConfirmBulkIssue(true)} disabled={saving}
+                  style={{ fontSize: 12, padding: '6px 10px', whiteSpace: 'nowrap', height: 36 }}>
+                  一括発行
+                </button>
+              )}
+            </div>
           </div>
+          {/* Row 2: Year navigation */}
+          {selectedFiscalYear && fiscalYears.length > 0 && (() => {
+            const idx = fiscalYears.findIndex(fy => fy.id === activeFiscalYearId);
+            const canPrev = idx < fiscalYears.length - 1;
+            const canNext = idx > 0;
+            const yearLabel = selectedFiscalYear.year_label || `${selectedFiscalYear.year}年度`;
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <button type="button" disabled={!canPrev} onClick={() => canPrev && handleFiscalYearChange(fiscalYears[idx + 1].id)}
+                  style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canPrev ? 'var(--primary)' : 'var(--text-muted)', cursor: canPrev ? 'pointer' : 'default' }}>{"\u25C2"}</button>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{yearLabel}</span>
+                <button type="button" disabled={!canNext} onClick={() => canNext && handleFiscalYearChange(fiscalYears[idx - 1].id)}
+                  style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canNext ? 'var(--primary)' : 'var(--text-muted)', cursor: canNext ? 'pointer' : 'default' }}>{"\u25B8"}</button>
+              </div>
+            );
+          })()}
         </div>
       ) : (
         <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 0 }}>
