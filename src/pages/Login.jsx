@@ -38,6 +38,9 @@ export default function Login() {
     setSubmitting(true);
     try {
       await login(email, password);
+      // iOS Safari ズームリセット
+      document.body.style.zoom = '1';
+      window.scrollTo(0, 0);
       navigate(returnTo || "/", { replace: true });
     } catch (err) {
       const msg = err?.message || "";
@@ -164,6 +167,7 @@ export default function Login() {
         width: "100%", maxWidth: 400, background: "#fff",
         borderRadius: 12, boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
         padding: "clamp(24px, 5vw, 40px) clamp(16px, 4vw, 32px)",
+        touchAction: "manipulation",
       }}>
         {/* Brand */}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
