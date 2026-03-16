@@ -460,7 +460,7 @@ export default function MeetingDetail() {
     try {
       await base44.entities.Meeting.update(meetingId, buildPayload({ status: newStatus }));
       invalidateReadCache("Meeting");
-      showToastMsg(`ステータスを「${newStatus}」に変更しました`);
+      showToastMsg(`ステータスを「${STATUS_LABEL[newStatus] || newStatus}」に変更しました`);
       await loadMeeting();
     } catch (err) { showToastMsg(err.message || "更新に失敗しました"); }
     setSaving(false);
