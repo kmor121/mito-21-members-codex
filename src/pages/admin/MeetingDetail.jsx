@@ -408,7 +408,8 @@ export default function MeetingDetail() {
                 <p style={{ margin: "0 0 4px", fontWeight: 600 }}>公開すると以下が実行されます:</p>
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
                   <li>会員に次第が公開されます</li>
-                  <li>次第・議事録の編集がロックされます</li>
+                  <li>次第の編集がロックされます</li>
+                  <li>議事録・出欠は引き続き編集できます</li>
                 </ul>
               </div>
             </div>
@@ -426,6 +427,16 @@ export default function MeetingDetail() {
           </div>
         ),
         confirmLabel: "公開する",
+        onConfirm: () => doStatusChange("確定"),
+      });
+      return;
+    }
+    // 完了→公開に戻す場合は専用メッセージ
+    if (newStatus === "確定" && status === "完了") {
+      setConfirmModal({
+        title: "公開に戻す",
+        message: "この幹事会を「公開」状態に戻しますか？議事録や出欠の編集が再び可能になります。",
+        confirmLabel: "公開に戻す",
         onConfirm: () => doStatusChange("確定"),
       });
       return;
@@ -572,7 +583,7 @@ export default function MeetingDetail() {
   const status = meeting.status;
   const badge = STATUS_BADGE[status] || STATUS_BADGE["下書き"];
   const canEditAgenda = status === "下書き";
-  const canEditMinutes = status === "下書き";
+  const canEditMinutes = status === "下書き" || status === "確定";
   const canEditAttendance = status === "下書き" || status === "確定";
   const statusLabel = STATUS_LABEL[status] || status;
   const attendeeCount = attendeeIds.length;
@@ -651,6 +662,7 @@ export default function MeetingDetail() {
               <button className="btn btn-primary" type="button" disabled={saving} onClick={() => handleStatusChange("完了")} style={isMobile ? { fontSize: 12, padding: "6px 12px" } : {}}>完了にする</button>
             </>
           )}
+          {status === "完了" && <button className="btn btn-secondary" type="button" disabled={saving} onClick={() => handleStatusChange("確定")} style={isMobile ? { fontSize: 12, padding: "6px 10px" } : {}}>公開に戻す</button>}
         </div>
       </div>
 
