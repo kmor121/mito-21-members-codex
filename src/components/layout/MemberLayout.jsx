@@ -76,10 +76,8 @@ function ApplyUrlCopyButton() {
 
 const MEMBER_NAV_ITEMS = [
   { to: "/directory", label: "会員名簿" },
-  { to: "/organization", label: "組織図" },
   { to: "/info", label: "基本情報" },
-  { to: "/manual", label: "運用マニュアル" },
-  { to: "/mypage", label: "マイページ" },
+  { to: "/organization", label: "組織図" },
 ];
 
 const ROLE_BADGE = {
@@ -202,6 +200,24 @@ export default function MemberLayout() {
                 <span>幹事会</span>
               </NavLink>
             )}
+            <NavLink
+              to="/manual"
+              className={({ isActive }) =>
+                `workspace-nav-link${isActive ? " is-active" : ""}`
+              }
+              onClick={() => setSidebarOpen(false)}
+            >
+              <span>運用マニュアル</span>
+            </NavLink>
+            <NavLink
+              to="/mypage"
+              className={({ isActive }) =>
+                `workspace-nav-link${isActive ? " is-active" : ""}`
+              }
+              onClick={() => setSidebarOpen(false)}
+            >
+              <span>マイページ</span>
+            </NavLink>
           </nav>
           <div className="workspace-group-label">入会のご案内</div>
           <ApplyUrlCopyButton />
