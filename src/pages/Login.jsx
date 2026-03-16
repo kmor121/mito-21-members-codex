@@ -4,7 +4,7 @@ import { auth, FUNCTION_BASE } from "../api/base44Client";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 
 const inputStyle = {
-  width: "100%", padding: "10px 12px", fontSize: 14,
+  width: "100%", padding: "10px 12px", fontSize: 16,
   border: "1px solid #d1d5db", borderRadius: 8,
   outline: "none", transition: "border-color 0.2s",
   boxSizing: "border-box",
