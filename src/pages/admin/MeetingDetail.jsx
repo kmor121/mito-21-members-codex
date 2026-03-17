@@ -215,6 +215,8 @@ export default function MeetingDetail() {
   const [minutesContent, setMinutesContent] = useState("");
 
   const [meetingAtts, setMeetingAtts] = useState([]);
+  const [afterParty, setAfterParty] = useState(null);
+  const [afterPartyAtts, setAfterPartyAtts] = useState([]);
 
   // Reference data
   const [allMembers, setAllMembers] = useState([]);
@@ -253,12 +255,20 @@ export default function MeetingDetail() {
 
   const loadMeeting = useCallback(async () => {
     try {
-      const [m, atts] = await Promise.all([
+      const [m, atts, apEvents] = await Promise.all([
         base44.entities.Meeting.get(meetingId),
         base44.entities.Attendance.filter({ meeting_id: meetingId }).catch(() => []),
+        base44.entities.Event.list().catch(() => []),
       ]);
       setMeeting(m);
       setMeetingAtts(atts || []);
+      const ap = (apEvents || []).find(e => e.parent_meeting_id === meetingId && e.is_after_party);
+      setAfterParty(ap || null);
+      if (ap) {
+        base44.entities.Attendance.filter({ event_id: ap.id }).then(a => setAfterPartyAtts(a || [])).catch(() => setAfterPartyAtts([]));
+      } else {
+        setAfterPartyAtts([]);
+      }
       setTitle(m.title || "");
       setMeetingDate(m.meeting_date || "");
       setStartTime(m.start_time || "");
@@ -465,6 +475,12 @@ export default function MeetingDetail() {
     setSaving(true);
     try {
       await base44.entities.Meeting.update(meetingId, buildPayload({ status: newStatus }));
+      // Sync after-party event status
+      if (afterParty) {
+        const eventStatusMap = { "下書き": "draft", "公開": "published", "完了": "completed" };
+        await base44.entities.Event.update(afterParty.id, { status: eventStatusMap[newStatus] || "draft" });
+        invalidateReadCache("Event");
+      }
       invalidateReadCache("Meeting");
       showToastMsg(`ステータスを「${STATUS_LABEL[newStatus] || newStatus}」に変更しました`);
       await loadMeeting();
@@ -1274,6 +1290,30 @@ export default function MeetingDetail() {
                     </div>
                   )}
                 </>
+              )}
+
+              {/* ── After Party section ── */}
+              {afterParty && (
+                <div style={{ marginTop: 20, padding: 16, background: '#fffbeb', borderRadius: 'var(--radius)', border: '1px solid #fde68a' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 16 }}>🍻</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: '#92400e' }}>懇親会</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#78350f', marginBottom: 6 }}>
+                    {afterParty.location && <span>📍 {afterParty.location}</span>}
+                    {afterParty.start_time && <span>🕐 {afterParty.start_time}{afterParty.end_time ? `〜${afterParty.end_time}` : ''}</span>}
+                    {afterParty.fee > 0 && <span>¥{Number(afterParty.fee).toLocaleString()}</span>}
+                  </div>
+                  {(() => {
+                    const apAttend = afterPartyAtts.filter(a => a.response === '出席').length;
+                    const apAbsent = afterPartyAtts.filter(a => a.response === '欠席').length;
+                    return (
+                      <div style={{ fontSize: 12, color: '#92400e' }}>
+                        出欠: 出席 <strong>{apAttend}</strong> / 欠席 <strong>{apAbsent}</strong> / 未回答 <strong>{Math.max(0, boardMembers.length - afterPartyAtts.length)}</strong>
+                      </div>
+                    );
+                  })()}
+                </div>
               )}
 
               {/* ── Attendance Records (会員回答) ── */}

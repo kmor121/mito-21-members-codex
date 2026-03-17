@@ -65,6 +65,7 @@ export default function EventDetail() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [confirmModal, setConfirmModal] = useState(null);
+  const [childAfterParty, setChildAfterParty] = useState(null);
 
   function showToast(msg, type) {
     if (window.__showToast) window.__showToast(msg, type || 'success');
@@ -80,6 +81,9 @@ export default function EventDetail() {
       setEvent(evt);
       setAttendances(attList || []);
       setMembers(memberList || []);
+      // Load child after-party
+      const allEvts = await base44.entities.Event.list().catch(() => []);
+      setChildAfterParty((allEvts || []).find(e => e.parent_event_id === eventId && e.is_after_party) || null);
     } catch (err) {
       showToast('イベントの取得に失敗しました', 'error');
     }
@@ -150,6 +154,9 @@ export default function EventDetail() {
     setSaving(true);
     try {
       await base44.entities.Event.update(eventId, { status: newStatus });
+      if (childAfterParty) {
+        await base44.entities.Event.update(childAfterParty.id, { status: newStatus });
+      }
       invalidateReadCache('Event');
       showToast(`ステータスを「${STATUS_CONF[newStatus]?.label || newStatus}」に変更しました`);
       await loadData();

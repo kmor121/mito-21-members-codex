@@ -39,6 +39,7 @@ export default function EventsView() {
   const currentMemberId = memberInfo?.id || memberInfo?._id || '';
 
   const [events, setEvents] = useState([]);
+  const [allEventsRaw, setAllEventsRaw] = useState([]);
   const [myAttendances, setMyAttendances] = useState([]);
   const [allAttendances, setAllAttendances] = useState([]);
   const [members, setMembers] = useState([]);
@@ -59,8 +60,10 @@ export default function EventsView() {
         base44.entities.Attendance.list().catch(() => []),
         base44.entities.Member.filter({ approval_status: '承認済', status: '活動中' }).catch(() => []),
       ]);
-      // Only show published/closed/completed
-      setEvents((evtList || []).filter(e => e.status === 'published' || e.status === 'closed' || e.status === 'completed'));
+      // Only show published/closed/completed, exclude after-party from main list
+      const allEvts = evtList || [];
+      setEvents(allEvts.filter(e => (e.status === 'published' || e.status === 'closed' || e.status === 'completed') && !e.is_after_party));
+      setAllEventsRaw(allEvts);
       setMyAttendances(myAtt || []);
       setAllAttendances(allAtt || []);
       setMembers(memberList || []);
@@ -91,6 +94,12 @@ export default function EventsView() {
     members.forEach(m => { map[m.id] = m; });
     return map;
   }, [members]);
+
+  const afterPartyByEvent = useMemo(() => {
+    const map = {};
+    allEventsRaw.filter(e => e.is_after_party && e.parent_event_id).forEach(e => { map[e.parent_event_id] = e; });
+    return map;
+  }, [allEventsRaw]);
 
   const today = new Date().toISOString().slice(0, 10);
   const upcomingEvents = useMemo(() =>
@@ -273,6 +282,57 @@ export default function EventsView() {
                 {!canRespond && !myResponse && evt.status !== 'completed' && (
                   <p style={{ fontSize: 12, color: 'var(--muted)', margin: '4px 0 0' }}>回答期限が過ぎています</p>
                 )}
+
+                {/* After party section */}
+                {(() => {
+                  const ap = afterPartyByEvent[evt.id];
+                  if (!ap) return null;
+                  const apMyAtt = myAttMap[ap.id];
+                  const apMyResponse = apMyAtt?.response || '';
+                  const apCanRespond = evt.status === 'published' && !(ap.rsvp_deadline && ap.rsvp_deadline < today);
+                  const apIsSaving = saving === ap.id;
+                  return (
+                    <div style={{ marginTop: 10, padding: 12, borderRadius: 8, background: '#FFFBEB', border: '1px solid #FDE68A' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                        <span style={{ fontSize: 14 }}>🍻</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#92400e' }}>懇親会</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', fontSize: 12, color: '#78350f', marginBottom: 8 }}>
+                        {ap.start_time && <span>🕐 {ap.start_time}{ap.end_time ? `〜${ap.end_time}` : ''}</span>}
+                        {ap.location && <span>📍 {ap.location}</span>}
+                        {ap.fee > 0 && <span>¥{Number(ap.fee).toLocaleString()}</span>}
+                      </div>
+                      {evt.status !== 'completed' && (
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          {['出席', '欠席'].map(opt => {
+                            const isSelected = apMyResponse === opt;
+                            const isAttend = opt === '出席';
+                            const disabled = apIsSaving || !apCanRespond;
+                            return (
+                              <button key={opt} type="button" disabled={disabled}
+                                onClick={() => apCanRespond && handleResponse(ap.id, opt)}
+                                style={{
+                                  padding: isMobile ? '8px 14px' : '7px 16px',
+                                  borderRadius: 8, fontSize: 13, fontWeight: 600,
+                                  cursor: disabled ? 'default' : 'pointer',
+                                  transition: 'all 0.15s', minHeight: 36,
+                                  background: isSelected ? (isAttend ? 'var(--success-light)' : 'var(--error-light)') : 'transparent',
+                                  color: isSelected ? (isAttend ? 'var(--success)' : 'var(--error)') : '#78350f',
+                                  border: isSelected ? `2px solid ${isAttend ? 'var(--success)' : 'var(--error)'}` : '1px solid #FDE68A',
+                                  opacity: disabled && !isSelected ? 0.5 : 1,
+                                }}>
+                                {isSelected && '✓ '}{opt}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {evt.status === 'completed' && apMyResponse && (
+                        <p style={{ fontSize: 12, color: 'var(--success)', fontWeight: 600, margin: '4px 0 0' }}>✓ 懇親会: {apMyResponse}</p>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Participants toggle */}
                 <div style={{ marginTop: 8, borderTop: '1px solid var(--line-light)', paddingTop: 8 }}>

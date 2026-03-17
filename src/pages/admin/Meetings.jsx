@@ -84,6 +84,8 @@ export default function Meetings() {
     title: '', meeting_date: '', start_time: '19:00', end_time: '21:00',
     location: '', moderator_id: '',
   });
+  const [hasAfterParty, setHasAfterParty] = useState(false);
+  const [apForm, setApForm] = useState({ location: '', start_time: '21:00', end_time: '23:00', fee: '' });
 
   /* ── agenda copy state ── */
   const [copiedCeremony, setCopiedCeremony] = useState(null);
@@ -237,9 +239,30 @@ export default function Meetings() {
         minutes_note: '',
         created_by: memberId,
       };
-      await base44.entities.Meeting.create(payload);
+      const created = await base44.entities.Meeting.create(payload);
+      if (hasAfterParty && created?.id) {
+        await base44.entities.Event.create({
+          title: `${payload.title} 懇親会`,
+          event_type: '懇親会',
+          event_date: payload.meeting_date,
+          start_time: apForm.start_time || payload.end_time || '',
+          end_time: apForm.end_time || '',
+          location: apForm.location || '',
+          fee: apForm.fee ? Number(apForm.fee) : 0,
+          status: 'draft',
+          parent_meeting_id: created.id,
+          is_after_party: true,
+          response_options: ['出席', '欠席'],
+          default_response_options: true,
+          fiscal_year_id: selectedFYId,
+          sort_order: 0,
+        });
+        invalidateReadCache('Event');
+      }
       invalidateReadCache('Meeting');
       setForm({ title: '', meeting_date: '', start_time: '19:00', end_time: '21:00', location: '', moderator_id: '' });
+      setHasAfterParty(false);
+      setApForm({ location: '', start_time: '21:00', end_time: '23:00', fee: '' });
       clearCopy();
       setShowCreateModal(false);
       showToast('会議を作成しました');
@@ -573,6 +596,41 @@ export default function Meetings() {
                           ))}
                         </div>
                       )}
+                    </div>
+                  )}
+                </div>
+                {/* ── after-party toggle ── */}
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+                    <input type="checkbox" checked={hasAfterParty} onChange={e => setHasAfterParty(e.target.checked)}
+                      style={{ width: 16, height: 16, accentColor: 'var(--primary)' }} />
+                    懇親会あり
+                  </label>
+                  {hasAfterParty && (
+                    <div style={{ marginTop: 10, padding: 14, background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--line)' }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>懇親会情報</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <div>
+                          <label className="mtg-label">場所</label>
+                          <input type="text" className="mtg-input" value={apForm.location}
+                            onChange={e => setApForm(p => ({ ...p, location: e.target.value }))} placeholder="例: 居酒屋XX" />
+                        </div>
+                        <div className="mtg-form-2col">
+                          <div>
+                            <label className="mtg-label">開始時刻</label>
+                            <TimeSelect value={apForm.start_time} onChange={v => setApForm(p => ({ ...p, start_time: v }))} />
+                          </div>
+                          <div>
+                            <label className="mtg-label">終了時刻</label>
+                            <TimeSelect value={apForm.end_time} onChange={v => setApForm(p => ({ ...p, end_time: v }))} />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="mtg-label">参加費</label>
+                          <input type="number" className="mtg-input" min="0" placeholder="0 = 無料" value={apForm.fee}
+                            onChange={e => setApForm(p => ({ ...p, fee: e.target.value }))} />
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>

@@ -199,6 +199,8 @@ export default function MeetingsView() {
   const [hoveredId, setHoveredId] = useState(null);
   const [memberOrgLabel, setMemberOrgLabel] = useState({});
   const [meetingAttendances, setMeetingAttendances] = useState([]);
+  const [afterPartyMap, setAfterPartyMap] = useState({});
+  const [eventAttendances, setEventAttendances] = useState([]);
   const [savingResponse, setSavingResponse] = useState(null);
   const [expandedAttId, setExpandedAttId] = useState(null);
   const currentMemberId = memberInfo?.id || memberInfo?._id || '';
@@ -207,17 +209,23 @@ export default function MeetingsView() {
 
   const loadData = useCallback(async () => {
     try {
-      const [fyList, meetList, members, orgs, assigns, attList] = await Promise.all([
+      const [fyList, meetList, members, orgs, assigns, attList, eventList] = await Promise.all([
         base44.entities.FiscalYear.list("-year"),
         base44.entities.Meeting.list(),
         base44.entities.Member.list().catch(() => []),
         base44.entities.Organization.list().catch(() => []),
         base44.entities.OrgAssignment.list().catch(() => []),
         base44.entities.Attendance.list().catch(() => []),
+        base44.entities.Event.list().catch(() => []),
       ]);
       setFiscalYears(fyList || []);
       setMeetings((meetList || []).filter((m) => m.status === "公開" || m.status === "完了"));
       setMeetingAttendances((attList || []).filter(a => a.meeting_id));
+      setEventAttendances((attList || []).filter(a => a.event_id));
+      // Build after-party map: meetingId -> afterParty event
+      const apMap = {};
+      (eventList || []).filter(e => e.is_after_party && e.parent_meeting_id).forEach(e => { apMap[e.parent_meeting_id] = e; });
+      setAfterPartyMap(apMap);
       setAllMembers(members || []);
       // Build org-role label map
       const orgById = {};
@@ -305,6 +313,42 @@ export default function MeetingsView() {
       } else {
         await base44.entities.Attendance.create({
           meeting_id: meetingId, member_id: currentMemberId,
+          response, status: response, responded_at: new Date().toISOString(),
+        });
+        invalidateReadCache('Attendance');
+        showToast('出欠を回答しました');
+      }
+      await loadData();
+    } catch (err) {
+      showToast(err.message || '回答に失敗しました', 'error');
+    }
+    setSavingResponse(null);
+  }
+
+  // My event attendance map (for after-parties)
+  const myEventAttMap = useMemo(() => {
+    const map = {};
+    eventAttendances.forEach(a => { if (a.member_id === currentMemberId) map[a.event_id] = a; });
+    return map;
+  }, [eventAttendances, currentMemberId]);
+
+  async function handleAfterPartyResponse(eventId, response) {
+    setSavingResponse(eventId);
+    const existing = myEventAttMap[eventId];
+    try {
+      if (existing && existing.response === response) {
+        await base44.entities.Attendance.delete(existing.id);
+        invalidateReadCache('Attendance');
+        showToast('回答を取り消しました');
+      } else if (existing) {
+        await base44.entities.Attendance.update(existing.id, {
+          response, status: response, responded_at: new Date().toISOString(),
+        });
+        invalidateReadCache('Attendance');
+        showToast('回答を変更しました');
+      } else {
+        await base44.entities.Attendance.create({
+          event_id: eventId, member_id: currentMemberId,
           response, status: response, responded_at: new Date().toISOString(),
         });
         invalidateReadCache('Attendance');
@@ -763,6 +807,61 @@ export default function MeetingsView() {
                                 </div>
                               )}
                             </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* ── After Party Section ── */}
+                    {(() => {
+                      const ap = afterPartyMap[m.id];
+                      if (!ap) return null;
+                      const apMyAtt = myEventAttMap[ap.id];
+                      const apMyResponse = apMyAtt?.response || '';
+                      const apCanRespond = m.status === '公開';
+                      const apIsSaving = savingResponse === ap.id;
+                      return (
+                        <div style={{ marginTop: 16, padding: 16, borderRadius: 10, background: '#FFFBEB', border: '1px solid #FDE68A' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                            <span style={{ fontSize: 16 }}>🍻</span>
+                            <span style={{ fontSize: 14, fontWeight: 700, color: '#92400e' }}>懇親会</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#78350f', marginBottom: 10 }}>
+                            {ap.start_time && <span>🕐 {ap.start_time}{ap.end_time ? `〜${ap.end_time}` : ''}</span>}
+                            {ap.location && <span>📍 {ap.location}</span>}
+                            {ap.fee > 0 && <span>¥{Number(ap.fee).toLocaleString()}</span>}
+                          </div>
+                          {apCanRespond && (
+                            <div style={{ marginBottom: 6 }}>
+                              <div style={{ fontSize: 12, color: '#78350f', marginBottom: 6 }}>懇親会の出欠:</div>
+                              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                {['出席', '欠席'].map(opt => {
+                                  const isSelected = apMyResponse === opt;
+                                  const isAttend = opt === '出席';
+                                  return (
+                                    <button key={opt} type="button" disabled={apIsSaving}
+                                      onClick={(e) => { e.stopPropagation(); handleAfterPartyResponse(ap.id, opt); }}
+                                      style={{
+                                        padding: isMobile ? '8px 16px' : '7px 18px',
+                                        borderRadius: 8, fontSize: 13, fontWeight: 600,
+                                        cursor: apIsSaving ? 'default' : 'pointer',
+                                        transition: 'all 0.15s', minHeight: 36,
+                                        background: isSelected ? (isAttend ? 'var(--success-light)' : 'var(--error-light)') : 'transparent',
+                                        color: isSelected ? (isAttend ? 'var(--success)' : 'var(--error)') : '#78350f',
+                                        border: isSelected ? `2px solid ${isAttend ? 'var(--success)' : 'var(--error)'}` : '1px solid #FDE68A',
+                                        opacity: apIsSaving ? 0.5 : 1,
+                                      }}>
+                                      {isSelected && '✓ '}{opt}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          {isCompleted && apMyResponse && (
+                            <p style={{ fontSize: 13, color: 'var(--success)', fontWeight: 600, margin: '4px 0 0' }}>
+                              ✓ 懇親会: {apMyResponse}
+                            </p>
                           )}
                         </div>
                       );

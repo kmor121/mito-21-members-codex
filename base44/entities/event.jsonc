@@ -72,6 +72,18 @@
     "sort_order": {
       "type": "number",
       "description": "表示順"
+    },
+    "parent_meeting_id": {
+      "type": "string",
+      "description": "紐付け幹事会ID（この懇親会が幹事会のセット懇親会の場合）"
+    },
+    "parent_event_id": {
+      "type": "string",
+      "description": "紐付けイベントID（この懇親会が別イベントのセット懇親会の場合）"
+    },
+    "is_after_party": {
+      "type": "boolean",
+      "description": "懇親会フラグ（trueの場合、親イベント/幹事会に紐付くセット懇親会）"
     }
   },
   "required": ["title", "event_type", "event_date", "status"],

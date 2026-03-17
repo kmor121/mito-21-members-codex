@@ -67,12 +67,14 @@ export default function Events() {
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
-    title: '', event_type: '懇親会', event_date: '', start_time: '18:00', end_time: '20:00',
+    title: '', event_type: '例会', event_date: '', start_time: '18:00', end_time: '20:00',
     location: '', capacity: '', fee: '', rsvp_deadline: '',
     response_options: [...DEFAULT_OPTIONS],
     target_member_types: [],
     allMembers: true,
   });
+  const [hasAfterParty, setHasAfterParty] = useState(false);
+  const [apForm, setApForm] = useState({ location: '', start_time: '20:00', end_time: '22:00', fee: '' });
 
   function showToast(msg, type) {
     if (window.__showToast) window.__showToast(msg, type || 'success');
@@ -107,7 +109,7 @@ export default function Events() {
   const filteredEvents = useMemo(() => {
     if (!selectedFYId) return [];
     return events
-      .filter(e => e.fiscal_year_id === selectedFYId)
+      .filter(e => e.fiscal_year_id === selectedFYId && !e.is_after_party)
       .sort((a, b) => (b.event_date || '').localeCompare(a.event_date || ''));
   }, [events, selectedFYId]);
 
@@ -166,13 +168,33 @@ export default function Events() {
         target_member_types: form.allMembers ? [] : form.target_member_types,
         sort_order: 0,
       };
-      await base44.entities.Event.create(payload);
+      const created = await base44.entities.Event.create(payload);
+      if (hasAfterParty && created?.id && form.event_type !== '懇親会') {
+        await base44.entities.Event.create({
+          title: `${payload.title} 懇親会`,
+          event_type: '懇親会',
+          event_date: payload.event_date,
+          start_time: apForm.start_time || payload.end_time || '',
+          end_time: apForm.end_time || '',
+          location: apForm.location || '',
+          fee: apForm.fee ? Number(apForm.fee) : 0,
+          status: 'draft',
+          parent_event_id: created.id,
+          is_after_party: true,
+          response_options: ['出席', '欠席'],
+          default_response_options: true,
+          fiscal_year_id: selectedFYId,
+          sort_order: 0,
+        });
+      }
       invalidateReadCache('Event');
       setForm({
-        title: '', event_type: '懇親会', event_date: '', start_time: '18:00', end_time: '20:00',
+        title: '', event_type: '例会', event_date: '', start_time: '18:00', end_time: '20:00',
         location: '', capacity: '', fee: '', rsvp_deadline: '',
         response_options: [...DEFAULT_OPTIONS], target_member_types: [], allMembers: true,
       });
+      setHasAfterParty(false);
+      setApForm({ location: '', start_time: '20:00', end_time: '22:00', fee: '' });
       setShowCreateModal(false);
       showToast('イベントを作成しました');
       await loadData();
@@ -435,6 +457,29 @@ export default function Events() {
                     </div>
                   )}
                 </div>
+                {/* After party toggle */}
+                {form.event_type !== '懇親会' && (
+                  <div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+                      <input type="checkbox" checked={hasAfterParty} onChange={e => setHasAfterParty(e.target.checked)}
+                        style={{ width: 16, height: 16, accentColor: 'var(--primary)' }} />
+                      懇親会あり
+                    </label>
+                    {hasAfterParty && (
+                      <div style={{ marginTop: 10, padding: 14, background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--line)' }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>懇親会情報</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                          <div><label className="evt-label">場所</label><input className="evt-input" value={apForm.location} onChange={e => setApForm(p => ({ ...p, location: e.target.value }))} placeholder="例: 居酒屋XX" /></div>
+                          <div className="evt-form-2col">
+                            <div><label className="evt-label">開始時刻</label><TimeSelect value={apForm.start_time} onChange={v => setApForm(p => ({ ...p, start_time: v }))} /></div>
+                            <div><label className="evt-label">終了時刻</label><TimeSelect value={apForm.end_time} onChange={v => setApForm(p => ({ ...p, end_time: v }))} /></div>
+                          </div>
+                          <div><label className="evt-label">参加費</label><input className="evt-input" type="number" min="0" placeholder="0 = 無料" value={apForm.fee} onChange={e => setApForm(p => ({ ...p, fee: e.target.value }))} /></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               {/* Footer */}
               <div style={{ padding: '16px 24px', display: 'flex', justifyContent: 'flex-end', gap: 10, borderTop: '1px solid var(--line)' }}>
