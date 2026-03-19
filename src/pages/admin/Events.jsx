@@ -70,8 +70,7 @@ export default function Events() {
     title: '', event_type: '例会', event_date: '', start_time: '18:00', end_time: '20:00',
     location: '', capacity: '', fee: '', rsvp_deadline: '',
     response_options: [...DEFAULT_OPTIONS],
-    target_member_types: [],
-    allMembers: true,
+    target_member_types: ['正会員', '賛助会員'],
   });
   const [hasAfterParty, setHasAfterParty] = useState(false);
   const [apForm, setApForm] = useState({ location: '', start_time: '20:00', end_time: '22:00', fee: '' });
@@ -165,7 +164,7 @@ export default function Events() {
         fiscal_year_id: selectedFYId,
         response_options: opts.length >= 2 ? opts : DEFAULT_OPTIONS,
         default_response_options: opts.length < 2 || (opts.length === 2 && opts[0] === '出席' && opts[1] === '欠席'),
-        target_member_types: form.allMembers ? [] : form.target_member_types,
+        target_member_types: form.target_member_types,
         sort_order: 0,
       };
       const created = await base44.entities.Event.create(payload);
@@ -191,7 +190,7 @@ export default function Events() {
       setForm({
         title: '', event_type: '例会', event_date: '', start_time: '18:00', end_time: '20:00',
         location: '', capacity: '', fee: '', rsvp_deadline: '',
-        response_options: [...DEFAULT_OPTIONS], target_member_types: [], allMembers: true,
+        response_options: [...DEFAULT_OPTIONS], target_member_types: ['正会員', '賛助会員'],
       });
       setHasAfterParty(false);
       setApForm({ location: '', start_time: '20:00', end_time: '22:00', fee: '' });
@@ -435,27 +434,36 @@ export default function Events() {
                   ))}
                   <button type="button" style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: '4px 0' }} onClick={addOption}>+ 選択肢を追加</button>
                 </div>
-                {/* Target members */}
+                {/* Target members — chip toggle */}
                 <div>
                   <label className="evt-label">対象会員種別</label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, marginBottom: 6, cursor: 'pointer' }}>
-                    <input type="checkbox" checked={form.allMembers} onChange={e => setForm(f => ({ ...f, allMembers: e.target.checked, target_member_types: e.target.checked ? [] : f.target_member_types }))} />
-                    全員
-                  </label>
-                  {!form.allMembers && (
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                      {MEMBER_TYPES.map(mt => (
-                        <label key={mt} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, cursor: 'pointer' }}>
-                          <input type="checkbox" checked={form.target_member_types.includes(mt)}
-                            onChange={e => setForm(f => ({
-                              ...f,
-                              target_member_types: e.target.checked ? [...f.target_member_types, mt] : f.target_member_types.filter(t => t !== mt),
-                            }))} />
-                          {mt}
-                        </label>
-                      ))}
-                    </div>
-                  )}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {MEMBER_TYPES.map(mt => {
+                      const isOn = form.target_member_types.includes(mt);
+                      return (
+                        <button key={mt} type="button"
+                          onClick={() => {
+                            if (isOn) {
+                              if (form.target_member_types.length <= 1) { showToast('対象会員種別は最低1つ選択してください', 'error'); return; }
+                              setForm(f => ({ ...f, target_member_types: f.target_member_types.filter(t => t !== mt) }));
+                            } else {
+                              setForm(f => ({ ...f, target_member_types: [...f.target_member_types, mt] }));
+                            }
+                          }}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 6,
+                            padding: '8px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600,
+                            cursor: 'pointer', transition: 'all 0.15s',
+                            border: isOn ? '2px solid var(--primary)' : '1px solid var(--line)',
+                            background: isOn ? 'var(--primary-light)' : 'transparent',
+                            color: isOn ? 'var(--primary)' : 'var(--text-secondary)',
+                          }}
+                        >
+                          {isOn && '✓ '}{mt}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 {/* After party toggle */}
                 {form.event_type !== '懇親会' && (
