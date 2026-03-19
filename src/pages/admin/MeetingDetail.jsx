@@ -261,12 +261,12 @@ export default function MeetingDetail() {
       const [m, atts, apEvents] = await Promise.all([
         base44.entities.Meeting.get(meetingId),
         base44.entities.Attendance.filter({ meeting_id: meetingId }).catch(() => []),
-        base44.entities.Event.list().catch(() => []),
+        base44.entities.Event.filter({ parent_meeting_id: meetingId, is_after_party: true }).catch(() => []),
       ]);
       setMeeting(m);
       setMeetingAtts(atts || []);
-      const ap = (apEvents || []).find(e => e.parent_meeting_id === meetingId && e.is_after_party);
-      setAfterParty(ap || null);
+      const ap = (apEvents || [])[0] || null;
+      setAfterParty(ap);
       if (ap) {
         base44.entities.Attendance.filter({ event_id: ap.id }).then(a => setAfterPartyAtts(a || [])).catch(() => setAfterPartyAtts([]));
       } else {

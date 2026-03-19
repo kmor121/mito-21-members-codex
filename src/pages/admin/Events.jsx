@@ -81,14 +81,14 @@ export default function Events() {
 
   const loadData = useCallback(async () => {
     try {
-      const [fyList, evtList, attList] = await Promise.all([
+      const [fyList, evtList] = await Promise.all([
         base44.entities.FiscalYear.list('-year'),
         base44.entities.Event.list(),
-        base44.entities.Attendance.list(),
       ]);
       setFiscalYears(fyList || []);
       setEvents(evtList || []);
-      setAttendances(attList || []);
+      // Load attendances in background (for ring charts, non-blocking)
+      base44.entities.Attendance.list().then(a => setAttendances(a || [])).catch(() => {});
       if (!selectedFYId) {
         const current = (fyList || []).find(fy => fy.is_current);
         if (current) setSelectedFYId(current.id);

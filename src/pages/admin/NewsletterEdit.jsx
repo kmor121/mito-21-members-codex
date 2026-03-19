@@ -366,8 +366,8 @@ export default function NewsletterEdit() {
       setOrganizations(list || []);
     }).catch(() => {});
     // Load published events for linking
-    base44.entities.Event.list().then((list) => {
-      setPublishedEvents((list || []).filter(e => e.status === 'published' || e.status === 'closed'));
+    base44.entities.Event.filter({ status: 'published' }).then((list) => {
+      setPublishedEvents(list || []);
     }).catch(() => {});
   }, []);
 

@@ -209,14 +209,16 @@ export default function MeetingsView() {
 
   const loadData = useCallback(async () => {
     try {
-      const [fyList, meetList, members, orgs, assigns, attList, eventList] = await Promise.all([
+      const [fyList, meetList, members, orgs, assigns, attList, apEventList] = await Promise.all([
         base44.entities.FiscalYear.list("-year"),
         base44.entities.Meeting.list(),
         base44.entities.Member.list().catch(() => []),
         base44.entities.Organization.list().catch(() => []),
         base44.entities.OrgAssignment.list().catch(() => []),
-        base44.entities.Attendance.list().catch(() => []),
-        base44.entities.Event.list().catch(() => []),
+        currentMemberId
+          ? base44.entities.Attendance.filter({ member_id: currentMemberId }).catch(() => [])
+          : Promise.resolve([]),
+        base44.entities.Event.filter({ is_after_party: true }).catch(() => []),
       ]);
       setFiscalYears(fyList || []);
       setMeetings((meetList || []).filter((m) => m.status === "公開" || m.status === "完了"));
@@ -224,7 +226,7 @@ export default function MeetingsView() {
       setEventAttendances((attList || []).filter(a => a.event_id));
       // Build after-party map: meetingId -> afterParty event
       const apMap = {};
-      (eventList || []).filter(e => e.is_after_party && e.parent_meeting_id).forEach(e => { apMap[e.parent_meeting_id] = e; });
+      (apEventList || []).filter(e => e.parent_meeting_id).forEach(e => { apMap[e.parent_meeting_id] = e; });
       setAfterPartyMap(apMap);
       setAllMembers(members || []);
       // Build org-role label map
@@ -286,15 +288,15 @@ export default function MeetingsView() {
     return map;
   }, [meetingAttendances, currentMemberId]);
 
-  // All attendance by meeting
-  const attByMeeting = useMemo(() => {
-    const map = {};
-    meetingAttendances.forEach(a => {
-      if (!map[a.meeting_id]) map[a.meeting_id] = [];
-      map[a.meeting_id].push(a);
-    });
-    return map;
-  }, [meetingAttendances]);
+  // On-demand attendance cache for meeting response toggle
+  const [meetingAttsCache, setMeetingAttsCache] = useState({});
+  async function loadMeetingAtts(mtgId) {
+    if (meetingAttsCache[mtgId]) return;
+    try {
+      const atts = await base44.entities.Attendance.filter({ meeting_id: mtgId });
+      setMeetingAttsCache(prev => ({ ...prev, [mtgId]: atts || [] }));
+    } catch { /* ignore */ }
+  }
 
   async function handleMeetingResponse(meetingId, response) {
     setSavingResponse(meetingId);
@@ -318,6 +320,7 @@ export default function MeetingsView() {
         invalidateReadCache('Attendance');
         showToast('出欠を回答しました');
       }
+      setMeetingAttsCache(prev => { const n = { ...prev }; delete n[meetingId]; return n; });
       await loadData();
     } catch (err) {
       showToast(err.message || '回答に失敗しました', 'error');
@@ -727,7 +730,7 @@ export default function MeetingsView() {
                       const isSaving = savingResponse === m.id;
 
                       // Build unified attendance map: Attendance records + old attendee_ids
-                      const mAtts = attByMeeting[m.id] || [];
+                      const mAtts = meetingAttsCache[m.id] || [];
                       const unifiedMap = {};
                       mAtts.forEach(a => { unifiedMap[a.member_id] = a.response || a.status; });
                       const oldAIds = Array.isArray(m.attendee_ids) ? m.attendee_ids : [];
@@ -782,7 +785,7 @@ export default function MeetingsView() {
                           {/* Toggle for response details */}
                           {totalResponded > 0 && (
                             <div>
-                              <button type="button" onClick={(e) => { e.stopPropagation(); setExpandedAttId(isAttExpanded ? null : m.id); }}
+                              <button type="button" onClick={(e) => { e.stopPropagation(); const next = isAttExpanded ? null : m.id; setExpandedAttId(next); if (next) loadMeetingAtts(m.id); }}
                                 style={{ background: 'none', border: 'none', color: '#534AB7', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
                                 {isAttExpanded ? '▾ 回答状況を閉じる' : `▸ 回答状況を見る（出席 ${attendCount} / 欠席 ${absentCount}）`}
                               </button>

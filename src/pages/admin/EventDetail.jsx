@@ -86,8 +86,8 @@ export default function EventDetail() {
       setAttendances(attList || []);
       setMembers(memberList || []);
       // Load child after-party
-      const allEvts = await base44.entities.Event.list().catch(() => []);
-      const ap = (allEvts || []).find(e => e.parent_event_id === eventId && e.is_after_party) || null;
+      const apEvts = await base44.entities.Event.filter({ parent_event_id: eventId, is_after_party: true }).catch(() => []);
+      const ap = (apEvts || [])[0] || null;
       setChildAfterParty(ap);
       if (ap) {
         base44.entities.Attendance.filter({ event_id: ap.id }).then(a => setChildApAtts(a || [])).catch(() => setChildApAtts([]));

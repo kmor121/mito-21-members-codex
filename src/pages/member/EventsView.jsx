@@ -41,7 +41,7 @@ export default function EventsView() {
   const [events, setEvents] = useState([]);
   const [allEventsRaw, setAllEventsRaw] = useState([]);
   const [myAttendances, setMyAttendances] = useState([]);
-  const [allAttendances, setAllAttendances] = useState([]);
+  const [eventAttsCache, setEventAttsCache] = useState({});
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(null); // eventId being saved
@@ -54,10 +54,9 @@ export default function EventsView() {
 
   const loadData = useCallback(async () => {
     try {
-      const [evtList, myAtt, allAtt, memberList] = await Promise.all([
+      const [evtList, myAtt, memberList] = await Promise.all([
         base44.entities.Event.list(),
         currentMemberId ? base44.entities.Attendance.filter({ member_id: currentMemberId }).catch(() => []) : Promise.resolve([]),
-        base44.entities.Attendance.list().catch(() => []),
         base44.entities.Member.filter({ approval_status: '承認済', status: '活動中' }).catch(() => []),
       ]);
       // Only show published/closed/completed, exclude after-party from main list
@@ -65,7 +64,6 @@ export default function EventsView() {
       setEvents(allEvts.filter(e => (e.status === 'published' || e.status === 'closed' || e.status === 'completed') && !e.is_after_party));
       setAllEventsRaw(allEvts);
       setMyAttendances(myAtt || []);
-      setAllAttendances(allAtt || []);
       setMembers(memberList || []);
     } catch { /* ignore */ }
     setLoading(false);
@@ -79,15 +77,14 @@ export default function EventsView() {
     return map;
   }, [myAttendances]);
 
-  const attByEvent = useMemo(() => {
-    const map = {};
-    allAttendances.forEach(a => {
-      if (!a.event_id) return;
-      if (!map[a.event_id]) map[a.event_id] = [];
-      map[a.event_id].push(a);
-    });
-    return map;
-  }, [allAttendances]);
+  // On-demand attendance loading per event
+  async function loadEventAtts(evtId) {
+    if (eventAttsCache[evtId]) return;
+    try {
+      const atts = await base44.entities.Attendance.filter({ event_id: evtId });
+      setEventAttsCache(prev => ({ ...prev, [evtId]: atts || [] }));
+    } catch { /* ignore */ }
+  }
 
   const memberMap = useMemo(() => {
     const map = {};
@@ -138,6 +135,7 @@ export default function EventsView() {
         invalidateReadCache('Attendance');
         showToast('出欠を回答しました');
       }
+      setEventAttsCache(prev => { const n = { ...prev }; delete n[eventId]; return n; });
       await loadData();
     } catch (err) {
       showToast(err.message || '回答に失敗しました', 'error');
@@ -203,7 +201,7 @@ export default function EventsView() {
             const canRespond = evt.status === 'published' && !isDeadlinePassed;
             const canChange = evt.status === 'published' && !isDeadlinePassed;
 
-            const evtAtts = attByEvent[evt.id] || [];
+            const evtAtts = eventAttsCache[evt.id] || [];
             const isExpanded = expandedId === evt.id;
             const responseCounts = {};
             options.forEach(o => { responseCounts[o] = 0; });
@@ -336,9 +334,9 @@ export default function EventsView() {
 
                 {/* Participants toggle */}
                 <div style={{ marginTop: 8, borderTop: '1px solid var(--line-light)', paddingTop: 8 }}>
-                  <button type="button" onClick={() => setExpandedId(isExpanded ? null : evt.id)}
+                  <button type="button" onClick={() => { const next = isExpanded ? null : evt.id; setExpandedId(next); if (next) loadEventAtts(evt.id); }}
                     style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
-                    {isExpanded ? '▾ 参加者を閉じる' : `▸ 参加者を見る（回答 ${evtAtts.length}名）`}
+                    {isExpanded ? '▾ 参加者を閉じる' : `▸ 参加者を見る`}
                   </button>
                   {isExpanded && (
                     <div style={{ marginTop: 8 }}>
