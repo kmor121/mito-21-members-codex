@@ -66,6 +66,10 @@ export default function EventDetail() {
   const [editForm, setEditForm] = useState({});
   const [confirmModal, setConfirmModal] = useState(null);
   const [childAfterParty, setChildAfterParty] = useState(null);
+  const [childApAtts, setChildApAtts] = useState([]);
+  const [showApForm, setShowApForm] = useState(false);
+  const [apEditing, setApEditing] = useState(false);
+  const [apForm, setApForm] = useState({ location: '', start_time: '20:00', end_time: '22:00', fee: '' });
 
   function showToast(msg, type) {
     if (window.__showToast) window.__showToast(msg, type || 'success');
@@ -83,7 +87,13 @@ export default function EventDetail() {
       setMembers(memberList || []);
       // Load child after-party
       const allEvts = await base44.entities.Event.list().catch(() => []);
-      setChildAfterParty((allEvts || []).find(e => e.parent_event_id === eventId && e.is_after_party) || null);
+      const ap = (allEvts || []).find(e => e.parent_event_id === eventId && e.is_after_party) || null;
+      setChildAfterParty(ap);
+      if (ap) {
+        base44.entities.Attendance.filter({ event_id: ap.id }).then(a => setChildApAtts(a || [])).catch(() => setChildApAtts([]));
+      } else {
+        setChildApAtts([]);
+      }
     } catch (err) {
       showToast('イベントの取得に失敗しました', 'error');
     }
@@ -251,6 +261,73 @@ export default function EventDetail() {
     setSaving(false);
   }
 
+  /* ── After-party CRUD ── */
+  async function addAfterParty() {
+    setSaving(true);
+    try {
+      await base44.entities.Event.create({
+        title: `${event.title} 懇親会`,
+        event_type: '懇親会',
+        event_date: event.event_date,
+        start_time: apForm.start_time || event.end_time || '',
+        end_time: apForm.end_time || '',
+        location: apForm.location || '',
+        fee: apForm.fee ? Number(apForm.fee) : 0,
+        status: event.status,
+        parent_event_id: eventId,
+        is_after_party: true,
+        response_options: ['出席', '欠席'],
+        default_response_options: true,
+        fiscal_year_id: event.fiscal_year_id || '',
+        sort_order: 0,
+      });
+      invalidateReadCache('Event');
+      setShowApForm(false);
+      setApForm({ location: '', start_time: '20:00', end_time: '22:00', fee: '' });
+      showToast('懇親会を追加しました');
+      await loadData();
+    } catch (err) { showToast(err.message || '追加に失敗しました', 'error'); }
+    setSaving(false);
+  }
+
+  async function saveAfterParty() {
+    if (!childAfterParty) return;
+    setSaving(true);
+    try {
+      await base44.entities.Event.update(childAfterParty.id, {
+        location: apForm.location || '', start_time: apForm.start_time || '', end_time: apForm.end_time || '',
+        fee: apForm.fee ? Number(apForm.fee) : 0,
+      });
+      invalidateReadCache('Event');
+      setApEditing(false);
+      showToast('懇親会を更新しました');
+      await loadData();
+    } catch (err) { showToast(err.message || '更新に失敗しました', 'error'); }
+    setSaving(false);
+  }
+
+  function requestDeleteAfterParty() {
+    setConfirmModal({
+      title: '懇親会を中止', message: '懇親会を中止しますか？出欠回答データも削除されます。',
+      confirmLabel: '中止する', danger: true, onConfirm: deleteAfterParty,
+    });
+  }
+
+  async function deleteAfterParty() {
+    if (!childAfterParty) return;
+    setConfirmModal(null);
+    setSaving(true);
+    try {
+      for (const att of childApAtts) { await base44.entities.Attendance.delete(att.id); }
+      await base44.entities.Event.delete(childAfterParty.id);
+      invalidateReadCache('Event');
+      invalidateReadCache('Attendance');
+      showToast('懇親会を中止しました');
+      await loadData();
+    } catch (err) { showToast(err.message || '削除に失敗しました', 'error'); }
+    setSaving(false);
+  }
+
   /* ── Send reminder ── */
   async function sendReminder() {
     setConfirmModal(null);
@@ -397,6 +474,83 @@ export default function EventDetail() {
             )}
           </div>
         </section>
+      )}
+
+      {/* ── After Party Section (always visible if not a party itself) ── */}
+      {event.event_type !== '懇親会' && !event.is_after_party && (
+        <div style={{ marginBottom: 16 }}>
+          {childAfterParty ? (
+            /* Has after-party: show info + edit/delete */
+            <div style={{ padding: 16, background: '#fffbeb', borderRadius: 'var(--radius-lg)', border: '1px solid #fde68a' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>🍻</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#92400e' }}>懇親会</span>
+                </div>
+                {status !== 'completed' && !apEditing && (
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button className="btn btn-secondary" type="button" style={{ fontSize: 12, padding: '4px 10px' }}
+                      onClick={() => { setApForm({ location: childAfterParty.location || '', start_time: childAfterParty.start_time || '', end_time: childAfterParty.end_time || '', fee: childAfterParty.fee || '' }); setApEditing(true); }}>
+                      編集
+                    </button>
+                    <button className="btn btn-danger" type="button" style={{ fontSize: 12, padding: '4px 10px' }} disabled={saving}
+                      onClick={requestDeleteAfterParty}>
+                      中止
+                    </button>
+                  </div>
+                )}
+              </div>
+              {apEditing ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div><label className="evtd-label">場所</label><input className="evtd-input" value={apForm.location} onChange={e => setApForm(f => ({ ...f, location: e.target.value }))} /></div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div><label className="evtd-label">開始時刻</label><TimeSelect value={apForm.start_time} onChange={v => setApForm(f => ({ ...f, start_time: v }))} /></div>
+                    <div><label className="evtd-label">終了時刻</label><TimeSelect value={apForm.end_time} onChange={v => setApForm(f => ({ ...f, end_time: v }))} /></div>
+                  </div>
+                  <div><label className="evtd-label">参加費</label><input className="evtd-input" type="number" min="0" value={apForm.fee} onChange={e => setApForm(f => ({ ...f, fee: e.target.value }))} /></div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
+                    <button className="btn btn-secondary" type="button" onClick={() => setApEditing(false)}>キャンセル</button>
+                    <button className="btn btn-primary" type="button" disabled={saving} onClick={saveAfterParty}>{saving ? '保存中...' : '保存'}</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#78350f', marginBottom: 6 }}>
+                    {childAfterParty.location && <span>📍 {childAfterParty.location}</span>}
+                    {childAfterParty.start_time && <span>🕐 {childAfterParty.start_time}{childAfterParty.end_time ? `〜${childAfterParty.end_time}` : ''}</span>}
+                    {childAfterParty.fee > 0 && <span>¥{Number(childAfterParty.fee).toLocaleString()}</span>}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#92400e' }}>
+                    出欠: 出席 <strong>{childApAtts.filter(a => a.response === '出席').length}</strong> / 欠席 <strong>{childApAtts.filter(a => a.response === '欠席').length}</strong>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : status !== 'completed' ? (
+            /* No after-party: show add button/form */
+            showApForm ? (
+              <div style={{ padding: 16, background: 'var(--bg)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--line)' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 12 }}>🍻 懇親会を追加</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div><label className="evtd-label">場所</label><input className="evtd-input" value={apForm.location} onChange={e => setApForm(f => ({ ...f, location: e.target.value }))} placeholder="例: 居酒屋XX" /></div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div><label className="evtd-label">開始時刻</label><TimeSelect value={apForm.start_time} onChange={v => setApForm(f => ({ ...f, start_time: v }))} /></div>
+                    <div><label className="evtd-label">終了時刻</label><TimeSelect value={apForm.end_time} onChange={v => setApForm(f => ({ ...f, end_time: v }))} /></div>
+                  </div>
+                  <div><label className="evtd-label">参加費</label><input className="evtd-input" type="number" min="0" placeholder="0 = 無料" value={apForm.fee} onChange={e => setApForm(f => ({ ...f, fee: e.target.value }))} /></div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
+                    <button className="btn btn-secondary" type="button" onClick={() => setShowApForm(false)}>キャンセル</button>
+                    <button className="btn btn-primary" type="button" disabled={saving} onClick={addAfterParty}>{saving ? '追加中...' : '追加'}</button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <button className="btn btn-secondary" type="button" onClick={() => { setApForm({ location: '', start_time: event.end_time || '20:00', end_time: '22:00', fee: '' }); setShowApForm(true); }}>
+                🍻 懇親会を追加
+              </button>
+            )
+          ) : null}
+        </div>
       )}
 
       {/* ── Attendance Tab ── */}
