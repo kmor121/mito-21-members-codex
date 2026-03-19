@@ -313,19 +313,23 @@ Deno.serve(async (req) => {
       sendHtml = buildUrlLinksHtml(urlLinks) + eventRsvpHtml;
     }
 
-    // Send emails via Resend API in batches
+    // Send emails via Resend API in batches — track per-recipient results
     let successCount = 0;
     let failCount = 0;
     const errors: string[] = [];
+    const failedRecipients: Array<Record<string, unknown>> = [];
     const batchSize = 10;
 
     for (let i = 0; i < recipients.length; i += batchSize) {
       const batch = recipients.slice(i, i + batchSize);
       const results = await Promise.allSettled(
         batch.map(async (member: Record<string, unknown>) => {
+          const memberEmail = String(member.email);
+          const memberId = String(member.id || "");
+          const memberName = [normalize(member.last_name), normalize(member.first_name)].filter(Boolean).join(" ") || memberEmail;
           const emailPayload: Record<string, unknown> = {
             from: resendFromEmail,
-            to: [String(member.email)],
+            to: [memberEmail],
             subject: title,
             text: bodyText,
           };
@@ -344,8 +348,11 @@ Deno.serve(async (req) => {
 
           if (!response.ok) {
             const errorBody = await response.text();
-            throw new Error(`Resend API error for ${member.email}: ${response.status} ${errorBody}`);
+            const errMsg = `HTTP ${response.status}: ${errorBody.substring(0, 200)}`;
+            failedRecipients.push({ member_id: memberId, member_name: memberName, email: memberEmail, error: errMsg });
+            throw new Error(errMsg);
           }
+          return { memberId, memberName, memberEmail };
         })
       );
 
@@ -358,9 +365,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Update newsletter status
+    // Update newsletter status with failure tracking
     const newStatus = scheduledAt ? "scheduled" : "sent";
-    const updateData: Record<string, unknown> = { status: newStatus, sent_count: successCount };
+    const updateData: Record<string, unknown> = {
+      status: newStatus,
+      sent_count: successCount,
+      total_recipients: recipients.length,
+      failed_count: failCount,
+      failed_recipients_json: failedRecipients.length > 0 ? JSON.stringify(failedRecipients) : "",
+    };
     if (!scheduledAt) updateData.last_sent_at = new Date().toISOString();
     if (failCount > 0) {
       updateData.error_message = errors.slice(0, 3).join("; ");
@@ -376,10 +389,13 @@ Deno.serve(async (req) => {
       fail_count: failCount,
       total_recipients: recipients.length,
       filtered_out: filteredOutCount,
+      failed_details: failedRecipients.slice(0, 10),
       errors: errors.slice(0, 5),
-      message: filteredOutCount > 0
-        ? `${successCount}名に送信しました（回答済み${filteredOutCount}名を除外）`
-        : `${successCount}名に送信しました`,
+      message: failCount > 0
+        ? `${recipients.length}件中${failCount}件の送信に失敗しました`
+        : filteredOutCount > 0
+          ? `${successCount}名に送信しました（回答済み${filteredOutCount}名を除外）`
+          : `${successCount}名に送信しました`,
     });
   } catch (error) {
     console.error(error);

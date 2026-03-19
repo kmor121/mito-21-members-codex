@@ -75,6 +75,18 @@
     "is_reminder": {
       "type": "boolean",
       "description": "リマインドメールフラグ（未回答者のみに送信）"
+    },
+    "total_recipients": {
+      "type": "number",
+      "description": "送信対象の総数"
+    },
+    "failed_count": {
+      "type": "number",
+      "description": "送信失敗の件数"
+    },
+    "failed_recipients_json": {
+      "type": "string",
+      "description": "送信失敗した宛先の詳細（JSON文字列）"
     }
   },
   "required": ["title", "channel", "status", "audience_type"],

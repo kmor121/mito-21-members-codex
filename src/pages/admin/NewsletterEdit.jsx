@@ -314,6 +314,7 @@ export default function NewsletterEdit() {
     audience_type: "all", audience_filter_json: "", audience_detail: "",
     scheduled_at: "", status: "", sent_at: "", sent_count: 0, is_template: false,
     linked_event_id: "", is_reminder: false,
+    total_recipients: 0, failed_count: 0, failed_recipients_json: "",
   });
   const [editorMode, setEditorMode] = useState("text");
   const [isScheduled, setIsScheduled] = useState(false);
@@ -411,6 +412,9 @@ export default function NewsletterEdit() {
             is_template: data.is_template || false,
             linked_event_id: data.linked_event_id || "",
             is_reminder: data.is_reminder || false,
+            total_recipients: data.total_recipients || 0,
+            failed_count: data.failed_count || 0,
+            failed_recipients_json: data.failed_recipients_json || "",
           });
           if (data.body_html) setEditorMode("rich");
           if (data.scheduled_at) {
@@ -731,7 +735,7 @@ export default function NewsletterEdit() {
       }
 
       // Send with full Base64 attachments
-      await apiRequest("send-newsletter", {
+      const sendResult = await apiRequest("send-newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -741,7 +745,10 @@ export default function NewsletterEdit() {
       });
       invalidateReadCache("Newsletter");
       setSendComplete(true);
-      setTimeout(() => { navigate("/admin/newsletters"); }, 2000);
+      if (sendResult?.fail_count > 0) {
+        setToast({ type: "error", message: `${sendResult.total_recipients}件中${sendResult.fail_count}件の送信に失敗しました。配信履歴をご確認ください。` });
+      }
+      setTimeout(() => { navigate("/admin/newsletters"); }, 2500);
     } catch (err) {
       console.error("Send error:", err);
       setConfirmSend(false);
@@ -943,10 +950,41 @@ export default function NewsletterEdit() {
                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 4 }}>チャネル</div>
                 <div style={{ fontSize: 14, color: "var(--text)" }}>{channelLabel(form.channel)}</div>
               </div>
-              <div>
+              <div style={{ marginBottom: form.total_recipients ? 16 : 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 4 }}>対象人数</div>
                 <div style={{ fontSize: 14, color: "var(--text)" }}>{form.sent_count}名</div>
               </div>
+              {form.total_recipients > 0 && (
+                <div style={{ marginBottom: form.failed_count > 0 ? 16 : 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 4 }}>送信結果</div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: 13 }}>
+                    <span style={{ color: 'var(--success)', fontWeight: 600 }}>成功 {form.sent_count}</span>
+                    {form.failed_count > 0 && <span style={{ color: 'var(--error)', fontWeight: 600 }}>失敗 {form.failed_count}</span>}
+                  </div>
+                </div>
+              )}
+              {form.failed_count > 0 && (() => {
+                let failedList = [];
+                try { failedList = JSON.parse(form.failed_recipients_json || '[]'); } catch { /* ignore */ }
+                if (failedList.length === 0) return null;
+                return (
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--error)', marginBottom: 8 }}>送信失敗</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {failedList.map((f, i) => (
+                        <div key={i} style={{ padding: '10px 12px', background: '#fef2f2', borderRadius: 'var(--radius)', border: '1px solid #fecaca' }}>
+                          <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)', marginBottom: 2 }}>{f.member_name}</div>
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4, wordBreak: 'break-all' }}>{f.email}</div>
+                          <div style={{ fontSize: 11, color: '#dc2626', wordBreak: 'break-all' }}>{f.error}</div>
+                          {f.member_id && (
+                            <a href={`/admin/members/${f.member_id}`} style={{ fontSize: 11, color: 'var(--primary)', marginTop: 4, display: 'inline-block' }}>会員詳細を表示 →</a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

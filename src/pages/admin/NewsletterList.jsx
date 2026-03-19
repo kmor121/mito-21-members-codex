@@ -960,13 +960,24 @@ export default function NewsletterList() {
                           <td>{audienceLabel(nl)}</td>
                           <td style={{ textAlign: "center" }}>
                             {nl.sent_count ? (
-                              <span style={{
-                                display: "inline-block", padding: "2px 10px", borderRadius: 999,
-                                fontSize: 12, fontWeight: 600,
-                                background: "#eff6ff", color: "#1d4ed8",
-                              }}>
-                                {nl.sent_count}
-                              </span>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                                <span style={{
+                                  display: "inline-block", padding: "2px 10px", borderRadius: 999,
+                                  fontSize: 12, fontWeight: 600,
+                                  background: "#eff6ff", color: "#1d4ed8",
+                                }}>
+                                  {nl.sent_count}
+                                </span>
+                                {nl.failed_count > 0 && (
+                                  <span style={{
+                                    display: "inline-block", padding: "1px 8px", borderRadius: 999,
+                                    fontSize: 11, fontWeight: 600,
+                                    background: "#fef2f2", color: "#dc2626",
+                                  }}>
+                                    失敗{nl.failed_count}
+                                  </span>
+                                )}
+                              </div>
                             ) : "-"}
                           </td>
                           <td style={{ textAlign: "center" }}>
