@@ -1199,6 +1199,79 @@ export default function MeetingDetail() {
         </section>
       )}
 
+      {/* ── After Party section (always visible, outside tabs) ── */}
+      {afterParty ? (
+        <div style={{ marginBottom: 16, padding: 16, background: '#fffbeb', borderRadius: 'var(--radius-lg)', border: '1px solid #fde68a' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 16 }}>🍻</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#92400e' }}>懇親会</span>
+            </div>
+            {canEditAttendance && !apEditing && (
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button className="btn btn-secondary" type="button" style={{ fontSize: 12, padding: '4px 10px' }}
+                  onClick={() => { setApForm({ location: afterParty.location || '', start_time: afterParty.start_time || '', end_time: afterParty.end_time || '', fee: afterParty.fee || '' }); setApEditing(true); }}>
+                  編集
+                </button>
+                <button className="btn btn-danger" type="button" style={{ fontSize: 12, padding: '4px 10px' }} disabled={saving}
+                  onClick={requestDeleteAfterPartyMeeting}>
+                  中止
+                </button>
+              </div>
+            )}
+          </div>
+          {apEditing ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div><label className="mtg-label">場所</label><input className="mtg-input" value={apForm.location} onChange={e => setApForm(f => ({ ...f, location: e.target.value }))} /></div>
+              <div className="mtg-form-2col">
+                <div><label className="mtg-label">開始時刻</label><TimeSelect value={apForm.start_time} onChange={v => setApForm(f => ({ ...f, start_time: v }))} /></div>
+                <div><label className="mtg-label">終了時刻</label><TimeSelect value={apForm.end_time} onChange={v => setApForm(f => ({ ...f, end_time: v }))} /></div>
+              </div>
+              <div><label className="mtg-label">参加費</label><input className="mtg-input" type="number" min="0" value={apForm.fee} onChange={e => setApForm(f => ({ ...f, fee: e.target.value }))} /></div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
+                <button className="btn btn-secondary" type="button" onClick={() => setApEditing(false)}>キャンセル</button>
+                <button className="btn btn-primary" type="button" disabled={saving} onClick={saveAfterPartyMeeting}>{saving ? '保存中...' : '保存'}</button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#78350f', marginBottom: 6 }}>
+                {afterParty.location && <span>📍 {afterParty.location}</span>}
+                {afterParty.start_time && <span>🕐 {afterParty.start_time}{afterParty.end_time ? `〜${afterParty.end_time}` : ''}</span>}
+                {afterParty.fee > 0 && <span>¥{Number(afterParty.fee).toLocaleString()}</span>}
+              </div>
+              <div style={{ fontSize: 12, color: '#92400e' }}>
+                出欠: 出席 <strong>{afterPartyAtts.filter(a => a.response === '出席').length}</strong> / 欠席 <strong>{afterPartyAtts.filter(a => a.response === '欠席').length}</strong>
+              </div>
+            </>
+          )}
+        </div>
+      ) : canEditAttendance ? (
+        showApForm ? (
+          <div style={{ marginBottom: 16, padding: 16, background: 'var(--bg)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--line)' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 12 }}>🍻 懇親会を追加</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div><label className="mtg-label">場所</label><input className="mtg-input" value={apForm.location} onChange={e => setApForm(f => ({ ...f, location: e.target.value }))} placeholder="例: 居酒屋XX" /></div>
+              <div className="mtg-form-2col">
+                <div><label className="mtg-label">開始時刻</label><TimeSelect value={apForm.start_time} onChange={v => setApForm(f => ({ ...f, start_time: v }))} /></div>
+                <div><label className="mtg-label">終了時刻</label><TimeSelect value={apForm.end_time} onChange={v => setApForm(f => ({ ...f, end_time: v }))} /></div>
+              </div>
+              <div><label className="mtg-label">参加費</label><input className="mtg-input" type="number" min="0" placeholder="0 = 無料" value={apForm.fee} onChange={e => setApForm(f => ({ ...f, fee: e.target.value }))} /></div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
+                <button className="btn btn-secondary" type="button" onClick={() => setShowApForm(false)}>キャンセル</button>
+                <button className="btn btn-primary" type="button" disabled={saving} onClick={addAfterPartyMeeting}>{saving ? '追加中...' : '追加'}</button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div style={{ marginBottom: 16 }}>
+            <button className="btn btn-secondary" type="button" onClick={() => { setApForm({ location: '', start_time: meeting.end_time || '21:00', end_time: '23:00', fee: '' }); setShowApForm(true); }}>
+              🍻 懇親会を追加
+            </button>
+          </div>
+        )
+      ) : null}
+
       {/* ── ATTENDANCE TAB ── */}
       {activeTab === "attendance" && (() => {
         const presentCount = attendeeIds.length;
@@ -1361,79 +1434,6 @@ export default function MeetingDetail() {
                   )}
                 </>
               )}
-
-              {/* ── After Party section ── */}
-              {afterParty ? (
-                <div style={{ marginTop: 20, padding: 16, background: '#fffbeb', borderRadius: 'var(--radius)', border: '1px solid #fde68a' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 16 }}>🍻</span>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: '#92400e' }}>懇親会</span>
-                    </div>
-                    {canEditAttendance && !apEditing && (
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button className="btn btn-secondary" type="button" style={{ fontSize: 12, padding: '4px 10px' }}
-                          onClick={() => { setApForm({ location: afterParty.location || '', start_time: afterParty.start_time || '', end_time: afterParty.end_time || '', fee: afterParty.fee || '' }); setApEditing(true); }}>
-                          編集
-                        </button>
-                        <button className="btn btn-danger" type="button" style={{ fontSize: 12, padding: '4px 10px' }} disabled={saving}
-                          onClick={requestDeleteAfterPartyMeeting}>
-                          中止
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  {apEditing ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>場所</label><input className="mtg-input" value={apForm.location} onChange={e => setApForm(f => ({ ...f, location: e.target.value }))} /></div>
-                      <div className="mtg-form-2col">
-                        <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>開始時刻</label><TimeSelect value={apForm.start_time} onChange={v => setApForm(f => ({ ...f, start_time: v }))} /></div>
-                        <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>終了時刻</label><TimeSelect value={apForm.end_time} onChange={v => setApForm(f => ({ ...f, end_time: v }))} /></div>
-                      </div>
-                      <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>参加費</label><input className="mtg-input" type="number" min="0" value={apForm.fee} onChange={e => setApForm(f => ({ ...f, fee: e.target.value }))} /></div>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
-                        <button className="btn btn-secondary" type="button" onClick={() => setApEditing(false)}>キャンセル</button>
-                        <button className="btn btn-primary" type="button" disabled={saving} onClick={saveAfterPartyMeeting}>{saving ? '保存中...' : '保存'}</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#78350f', marginBottom: 6 }}>
-                        {afterParty.location && <span>📍 {afterParty.location}</span>}
-                        {afterParty.start_time && <span>🕐 {afterParty.start_time}{afterParty.end_time ? `〜${afterParty.end_time}` : ''}</span>}
-                        {afterParty.fee > 0 && <span>¥{Number(afterParty.fee).toLocaleString()}</span>}
-                      </div>
-                      <div style={{ fontSize: 12, color: '#92400e' }}>
-                        出欠: 出席 <strong>{afterPartyAtts.filter(a => a.response === '出席').length}</strong> / 欠席 <strong>{afterPartyAtts.filter(a => a.response === '欠席').length}</strong> / 未回答 <strong>{Math.max(0, boardMembers.length - afterPartyAtts.length)}</strong>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ) : canEditAttendance ? (
-                showApForm ? (
-                  <div style={{ marginTop: 20, padding: 16, background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--line)' }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 12 }}>🍻 懇親会を追加</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      <div><label className="mtg-label">場所</label><input className="mtg-input" value={apForm.location} onChange={e => setApForm(f => ({ ...f, location: e.target.value }))} placeholder="例: 居酒屋XX" /></div>
-                      <div className="mtg-form-2col">
-                        <div><label className="mtg-label">開始時刻</label><TimeSelect value={apForm.start_time} onChange={v => setApForm(f => ({ ...f, start_time: v }))} /></div>
-                        <div><label className="mtg-label">終了時刻</label><TimeSelect value={apForm.end_time} onChange={v => setApForm(f => ({ ...f, end_time: v }))} /></div>
-                      </div>
-                      <div><label className="mtg-label">参加費</label><input className="mtg-input" type="number" min="0" placeholder="0 = 無料" value={apForm.fee} onChange={e => setApForm(f => ({ ...f, fee: e.target.value }))} /></div>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
-                        <button className="btn btn-secondary" type="button" onClick={() => setShowApForm(false)}>キャンセル</button>
-                        <button className="btn btn-primary" type="button" disabled={saving} onClick={addAfterPartyMeeting}>{saving ? '追加中...' : '追加'}</button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ marginTop: 20 }}>
-                    <button className="btn btn-secondary" type="button" onClick={() => { setApForm({ location: '', start_time: meeting.end_time || '21:00', end_time: '23:00', fee: '' }); setShowApForm(true); }}>
-                      🍻 懇親会を追加
-                    </button>
-                  </div>
-                )
-              ) : null}
 
               {/* ── Attendance Records (会員回答) ── */}
               {meetingAtts.length > 0 && (
