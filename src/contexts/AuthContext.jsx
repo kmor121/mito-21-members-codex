@@ -86,8 +86,8 @@ export function AuthProvider({ children }) {
         const me = await auth.me();
         if (me) {
           setUser(me);
-          // Best-effort link (syncs User.data.app_role from Member.app_role)
-          try { await base44.functions.invoke("link-user-to-member", {}); } catch { /* ignore */ }
+          // Best-effort link (syncs User.data.app_role from Member.app_role) — fire-and-forget
+          base44.functions.invoke("link-user-to-member", {}).catch(() => {});
           await fetchMemberInfo(me.id || me._id);
         } else {
           setUser(null);
