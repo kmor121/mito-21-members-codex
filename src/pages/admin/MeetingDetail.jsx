@@ -1234,11 +1234,12 @@ export default function MeetingDetail() {
                 </div>
               )}
 
-              {boardMembers.length === 0 ? (
+              {boardMembers.length === 0 && (
                 <p style={{ color: "var(--text-secondary)", textAlign: "center", padding: "2rem 0", fontSize: 13 }}>
                   この年度の幹事会メンバーが見つかりません。組織図から幹事会の配属を確認してください。
                 </p>
-              ) : (
+              )}
+              {boardMembers.length > 0 && (
                 <>
                   {/* Bulk actions - only in draft */}
                   {canEditAttendance && (
