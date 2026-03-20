@@ -111,6 +111,7 @@ export default function EventsView() {
 
   /* ── Response handlers ── */
   async function handleResponse(eventId, response) {
+    if (saving) return; // 二重送信防止
     setSaving(eventId);
     const existing = myAttMap[eventId];
     try {
@@ -127,16 +128,33 @@ export default function EventsView() {
         invalidateReadCache('Attendance');
         showToast('回答を変更しました');
       } else {
-        // New response
-        await base44.entities.Attendance.create({
+        // New response — double check no existing record on server
+        const existingCheck = await base44.entities.Attendance.filter({
           event_id: eventId, member_id: currentMemberId,
-          response, status: response, responded_at: new Date().toISOString(),
-        });
+        }).catch(() => []);
+        if (existingCheck && existingCheck.length > 0) {
+          await base44.entities.Attendance.update(existingCheck[0].id, {
+            response, status: response, responded_at: new Date().toISOString(),
+          });
+        } else {
+          await base44.entities.Attendance.create({
+            event_id: eventId, member_id: currentMemberId,
+            response, status: response, responded_at: new Date().toISOString(),
+          });
+        }
         invalidateReadCache('Attendance');
         showToast('出欠を回答しました');
       }
-      setEventAttsCache(prev => { const n = { ...prev }; delete n[eventId]; return n; });
       await loadData();
+      // Re-fetch attendance cache for responded event and expanded event
+      const idsToRefresh = new Set([eventId]);
+      if (expandedId) idsToRefresh.add(expandedId);
+      for (const id of idsToRefresh) {
+        try {
+          const freshAtts = await base44.entities.Attendance.filter({ event_id: id });
+          setEventAttsCache(prev => ({ ...prev, [id]: freshAtts || [] }));
+        } catch { /* ignore */ }
+      }
     } catch (err) {
       showToast(err.message || '回答に失敗しました', 'error');
     }
