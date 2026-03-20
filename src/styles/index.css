@@ -3,48 +3,16 @@
 
 /* ===== Design System: MITO21 Members ===== */
 :root {
-  /* ── Legacy aliases (backward compat — use tokens.css variables instead) ── */
-  --primary: var(--color-accent);
-  --primary-hover: var(--color-accent-dark);
-  --primary-light: var(--color-accent-light);
-  --primary-50: var(--color-accent-light);
-  --primary-100: var(--color-accent-light);
-  --primary-600: var(--color-accent);
-  --primary-700: var(--color-accent-dark);
-  --primary-800: #3730a3;
-
-  --success: var(--color-success);
-  --success-light: var(--color-success-light);
-  --success-text: #065f46;
-  --error: var(--color-danger);
-  --error-light: var(--color-danger-light);
-  --warning: var(--color-warning);
-  --warning-light: var(--color-warning-light);
-  --info: var(--color-accent);
-  --info-light: var(--color-accent-light);
-
-  --bg: var(--color-bg-sub);
-  --panel: var(--color-bg);
-  --text: var(--color-text-primary);
-  --text-secondary: var(--color-text-secondary);
-  --muted: var(--color-text-tertiary);
-  --line: var(--color-border);
-  --line-light: var(--color-border);
-
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow: var(--shadow-md);
   --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04);
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
 
   --radius-sm: 6px;
-  --radius: var(--radius-md);
   --radius-lg: 12px;
   --radius-xl: 16px;
 
   --sidebar-width: 240px;
   --header-height: 56px;
-
-  --transition: var(--transition-fast);
 }
 
 * { box-sizing: border-box; }
@@ -1139,7 +1107,7 @@ textarea { resize: vertical; }
   font-weight: 700;
   color: var(--color-accent);
   padding: 6px 0 2px;
-  border-top: 1px solid var(--line-light);
+  border-top: 1px solid var(--color-bg-sub);
 }
 
 /* Attachment */
@@ -1846,7 +1814,7 @@ textarea { resize: vertical; }
   font-weight: 700;
   color: var(--color-text-primary);
   padding-bottom: 4px;
-  border-bottom: 1px solid var(--line-light);
+  border-bottom: 1px solid var(--color-bg-sub);
 }
 
 .fy-field { display: flex; flex-direction: column; gap: 5px; }
@@ -2402,7 +2370,7 @@ textarea { resize: vertical; }
   gap: 0.75rem;
   margin-top: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px solid var(--line-light);
+  border-top: 1px solid var(--color-bg-sub);
 }
 
 .dp-today-btn, .dp-clear-btn {
@@ -2492,7 +2460,7 @@ textarea { resize: vertical; }
 }
 
 .skeleton {
-  background: linear-gradient(90deg, var(--line-light) 25%, #e8ecf1 50%, var(--line-light) 75%);
+  background: linear-gradient(90deg, var(--color-bg-sub) 25%, #e8ecf1 50%, var(--color-bg-sub) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-sm);

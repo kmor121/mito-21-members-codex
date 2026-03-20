@@ -481,7 +481,7 @@ export default function MemberDuesView() {
                   key={r.id}
                   style={{
                     padding: "10px 16px", display: "flex", alignItems: "center", gap: 10,
-                    borderBottom: "1px solid var(--line-light)",
+                    borderBottom: "1px solid var(--color-border)",
                   }}
                 >
                   {/* Avatar */}
