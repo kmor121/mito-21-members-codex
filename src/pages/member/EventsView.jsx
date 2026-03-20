@@ -79,11 +79,19 @@ export default function EventsView() {
 
   // On-demand attendance loading per event
   async function loadEventAtts(evtId) {
-    if (eventAttsCache[evtId]) return;
-    try {
-      const atts = await base44.entities.Attendance.filter({ event_id: evtId });
-      setEventAttsCache(prev => ({ ...prev, [evtId]: atts || [] }));
-    } catch { /* ignore */ }
+    if (!eventAttsCache[evtId]) {
+      try {
+        const atts = await base44.entities.Attendance.filter({ event_id: evtId });
+        setEventAttsCache(prev => ({ ...prev, [evtId]: atts || [] }));
+      } catch { /* ignore */ }
+    }
+    const ap = afterPartyByEvent[evtId];
+    if (ap && !eventAttsCache[ap.id]) {
+      try {
+        const apAtts = await base44.entities.Attendance.filter({ event_id: ap.id });
+        setEventAttsCache(prev => ({ ...prev, [ap.id]: apAtts || [] }));
+      } catch { /* ignore */ }
+    }
   }
 
   const memberMap = useMemo(() => {
@@ -146,9 +154,11 @@ export default function EventsView() {
         showToast('出欠を回答しました');
       }
       await loadData();
-      // Re-fetch attendance cache for responded event and expanded event
+      // Re-fetch attendance cache for responded event, expanded event, and after-parties
       const idsToRefresh = new Set([eventId]);
       if (expandedId) idsToRefresh.add(expandedId);
+      const ap = afterPartyByEvent[eventId];
+      if (ap) idsToRefresh.add(ap.id);
       for (const id of idsToRefresh) {
         try {
           const freshAtts = await base44.entities.Attendance.filter({ event_id: id });
@@ -407,6 +417,63 @@ export default function EventsView() {
                       ) : (
                         <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>まだ回答がありません</p>
                       )}
+
+                      {/* After party participants */}
+                      {(() => {
+                        const ap = afterPartyByEvent[evt.id];
+                        if (!ap) return null;
+                        const apAtts = eventAttsCache[ap.id] || [];
+                        const apResponseCounts = { '出席': 0, '欠席': 0 };
+                        apAtts.forEach(a => { const r = a.response || a.status; if (apResponseCounts[r] !== undefined) apResponseCounts[r]++; });
+                        const apTargetCount = evt.target_member_types?.length > 0
+                          ? members.filter(m => evt.target_member_types.includes(m.member_type)).length
+                          : members.length;
+                        const apRate = apTargetCount > 0 ? Math.round((apAtts.length / apTargetCount) * 100) : 0;
+                        const apNotRespondedCount = Math.max(0, apTargetCount - apAtts.length);
+                        return (
+                          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px dashed var(--line)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                              <span style={{ fontSize: 14 }}>🍻</span>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: '#92400e' }}>懇親会</span>
+                              {ap.location && <span style={{ fontSize: 12, color: '#78350f' }}>📍 {ap.location}</span>}
+                            </div>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8, fontSize: 12, alignItems: 'center' }}>
+                              <span style={{
+                                padding: '2px 10px', borderRadius: 'var(--radius)',
+                                background: apRate === 100 ? 'var(--success-light)' : 'var(--bg)',
+                                border: `1px solid ${apRate === 100 ? 'var(--success)' : 'var(--line)'}`,
+                                fontWeight: 600, color: apRate === 100 ? 'var(--success)' : 'var(--text)',
+                              }}>
+                                回答率 {apRate}% ({apAtts.length}/{apTargetCount})
+                              </span>
+                              <span style={{ color: 'var(--text-secondary)' }}>出席: <strong style={{ color: 'var(--success)' }}>{apResponseCounts['出席']}名</strong></span>
+                              <span style={{ color: 'var(--text-secondary)' }}>欠席: <strong style={{ color: 'var(--error)' }}>{apResponseCounts['欠席']}名</strong></span>
+                              <span style={{ color: 'var(--muted)' }}>未回答: <strong>{apNotRespondedCount}名</strong></span>
+                            </div>
+                            {apAtts.length > 0 ? (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                {apAtts.map(a => {
+                                  const m = memberMap[a.member_id];
+                                  if (!m) return null;
+                                  const r = a.response || a.status;
+                                  const rc = getResponseColor(r);
+                                  return (
+                                    <span key={a.id} style={{
+                                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                                      padding: '3px 10px', borderRadius: 999, fontSize: 12,
+                                      background: rc.bg, color: rc.color, border: `1px solid ${rc.border}`,
+                                    }}>
+                                      {fullName(m)} <span style={{ fontWeight: 600 }}>{r}</span>
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>まだ回答がありません</p>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
