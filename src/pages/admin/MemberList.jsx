@@ -46,6 +46,7 @@ export default function MemberList() {
 
   const [members, setMembers] = useState([]);
   const [orgOptions, setOrgOptions] = useState([]);
+  const [showOrgDropdown, setShowOrgDropdown] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -704,32 +705,45 @@ export default function MemberList() {
 
             {/* Filter row: Organization dropdown + count */}
             <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", position: "relative" }}>
                 <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>所属</span>
-                <select
-                  value={organizationId}
-                  onChange={(e) => setOrganizationId(e.target.value)}
+                <button type="button" onClick={() => setShowOrgDropdown(v => !v)}
                   style={{
-                    padding: "4px 24px 4px 10px",
-                    borderRadius: "999px",
+                    padding: "4px 10px", borderRadius: "999px",
                     border: organizationId ? "2px solid var(--color-accent)" : "1px solid var(--color-border)",
-                    background: organizationId ? "var(--color-accent-light)" : "#fff",
-                    color: organizationId ? "var(--color-accent)" : "var(--color-text-secondary)",
-                    fontSize: "12px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    outline: "none",
-                    lineHeight: 1,
-                    appearance: "auto",
-                    width: "auto",
-                    minWidth: 0,
-                  }}
-                >
-                  <option value="">全て</option>
-                  {orgOptions.map((opt) => (
-                    <option key={opt.id} value={opt.id}>{opt.name}</option>
-                  ))}
-                </select>
+                    background: organizationId ? "var(--color-accent)" : "#fff",
+                    color: organizationId ? "#fff" : "var(--color-text-secondary)",
+                    fontSize: "12px", fontWeight: 600, cursor: "pointer", outline: "none",
+                    display: "inline-flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap", transition: "all 0.15s",
+                  }}>
+                  {organizationId ? (orgOptions.find(o => o.id === organizationId)?.name || '選択中') : '全て'}
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: showOrgDropdown ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+                    <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                {showOrgDropdown && (
+                  <>
+                    <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => setShowOrgDropdown(false)} />
+                    <div style={{
+                      position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100,
+                      background: "#fff", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
+                      boxShadow: "var(--shadow-hover)", minWidth: 180, maxHeight: 240, overflowY: "auto", padding: "4px 0",
+                    }}>
+                      <button type="button" onClick={() => { setOrganizationId(''); setShowOrgDropdown(false); }}
+                        style={{ width: "100%", padding: "7px 14px", border: "none", background: !organizationId ? "var(--color-accent-light)" : "transparent", color: !organizationId ? "var(--color-accent)" : "var(--color-text-primary)", fontSize: "12px", fontWeight: !organizationId ? 700 : 500, textAlign: "left", cursor: "pointer", transition: "background 0.1s" }}
+                        onMouseEnter={e => { if (organizationId) e.currentTarget.style.background = "var(--color-bg-sub)"; }}
+                        onMouseLeave={e => { if (organizationId) e.currentTarget.style.background = "transparent"; }}
+                      >全て</button>
+                      {orgOptions.map(opt => (
+                        <button key={opt.id} type="button" onClick={() => { setOrganizationId(opt.id); setShowOrgDropdown(false); }}
+                          style={{ width: "100%", padding: "7px 14px", border: "none", background: organizationId === opt.id ? "var(--color-accent-light)" : "transparent", color: organizationId === opt.id ? "var(--color-accent)" : "var(--color-text-primary)", fontSize: "12px", fontWeight: organizationId === opt.id ? 700 : 500, textAlign: "left", cursor: "pointer", transition: "background 0.1s" }}
+                          onMouseEnter={e => { if (organizationId !== opt.id) e.currentTarget.style.background = "var(--color-bg-sub)"; }}
+                          onMouseLeave={e => { if (organizationId !== opt.id) e.currentTarget.style.background = "transparent"; }}
+                        >{opt.name}</button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "12px" }}>
