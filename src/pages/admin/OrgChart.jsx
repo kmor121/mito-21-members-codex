@@ -4,6 +4,7 @@ import { apiRequest, base44, invalidateReadCache } from "../../api/base44Client"
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import { Button, PageHeader, Modal } from '../../components/ui';
+import YearPillNav from '../../components/ui/YearPillNav';
 import { fullName, fullNameKana } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -216,7 +217,7 @@ function OrgTreeNode({
         {/* Card header */}
         <div style={{
           display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "12px 18px", borderBottom: isExpanded ? "1px solid var(--color-border)" : "none",
+          padding: isMobile ? "10px 12px" : "12px 18px", borderBottom: isExpanded ? "1px solid var(--color-border)" : "none",
           background: "#fff",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flexWrap: "wrap" }}>
@@ -329,7 +330,7 @@ function OrgTreeNode({
         {/* Card body - member chips */}
         {isExpanded && (
           <div style={{
-            padding: "10px 18px 12px",
+            padding: isMobile ? "8px 12px 10px" : "10px 18px 12px",
             animation: "orgSlideDown 0.2s ease",
           }}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
@@ -409,7 +410,7 @@ function OrgTreeNode({
       {/* Children (recursive) */}
       {isExpanded && children.length > 0 && (
         <div style={{
-          marginLeft: isMobile ? 8 : 18, marginTop: 0, paddingLeft: isMobile ? 12 : 28,
+          marginLeft: isMobile ? 4 : 18, marginTop: 0, paddingLeft: isMobile ? 8 : 28,
           borderLeft: "2px solid var(--color-border)",
           display: "grid", gap: 10, paddingTop: 10, position: "relative",
         }}>
@@ -558,11 +559,6 @@ export default function OrgChart() {
   /* ── Year nav ── */
   const sortedYears = useMemo(() => [...fiscalYears].sort((a, b) => (a.year || 0) - (b.year || 0)), [fiscalYears]);
   const currentIdx = sortedYears.findIndex(fy => fy.id === activeFiscalYearId);
-
-  function goYear(delta) {
-    const next = sortedYears[currentIdx + delta];
-    if (next) setSearchParams({ fiscalYearId: next.id });
-  }
 
   function toggleExpand(orgId) {
     setExpandedOrgs(prev => {
@@ -882,105 +878,19 @@ export default function OrgChart() {
       )}
 
       {/* ── Year navigator ── */}
-      {isMobile ? (
-        /* Mobile: inline ◂ year ▸ switcher */
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "8px 0", borderBottom: "1px solid var(--color-border)", marginBottom: 16,
-        }}>
-          <button
-            type="button"
-            onClick={() => goYear(-1)}
-            disabled={currentIdx <= 0}
-            style={{
-              background: "none", border: "none", padding: "4px 8px",
-              fontSize: 16, cursor: currentIdx <= 0 ? "default" : "pointer",
-              color: currentIdx <= 0 ? "var(--color-text-tertiary)" : "var(--color-text-primary)",
-              opacity: currentIdx <= 0 ? 0.3 : 1,
-            }}
-          >◂</button>
-          <span style={{ fontWeight: 600, fontSize: 14, color: "var(--color-text-primary)" }}>
-            {sortedYears[currentIdx]?.year_label || (sortedYears[currentIdx]?.year ? `${sortedYears[currentIdx].year}年度` : "-")}
-          </span>
-          <button
-            type="button"
-            onClick={() => goYear(1)}
-            disabled={currentIdx >= sortedYears.length - 1}
-            style={{
-              background: "none", border: "none", padding: "4px 8px",
-              fontSize: 16, cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
-              color: currentIdx >= sortedYears.length - 1 ? "var(--color-text-tertiary)" : "var(--color-text-primary)",
-              opacity: currentIdx >= sortedYears.length - 1 ? 0.3 : 1,
-            }}
-          >▸</button>
-        </div>
-      ) : (
-        /* Desktop: full pill navigator */
-        <div style={{
-          display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
-          borderBottom: "1px solid var(--color-border)", marginBottom: 20,
-          overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none",
-          flexWrap: "nowrap",
-        }}>
-          <button type="button" onClick={() => goYear(-1)} disabled={currentIdx <= 0}
-            style={{
-              background: "none", border: "1px solid var(--color-border)", borderRadius: 6,
-              width: 32, height: 32, cursor: currentIdx <= 0 ? "default" : "pointer",
-              color: currentIdx <= 0 ? "var(--color-text-tertiary)" : "var(--color-text-primary)", fontSize: 13,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "all var(--transition-fast)",
-              opacity: currentIdx <= 0 ? 0.4 : 1,
-              pointerEvents: currentIdx <= 0 ? "none" : "auto",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--color-accent)"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--color-border)"; }}
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 3L5 8l5 5"/>
-            </svg>
-          </button>
-          <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "nowrap" }}>
-            {sortedYears.map(fy => {
-              const isActive = fy.id === activeFiscalYearId;
-              return (
-                <button
-                  key={fy.id}
-                  type="button"
-                  onClick={() => setSearchParams({ fiscalYearId: fy.id })}
-                  style={{
-                    fontSize: 13, height: 32, padding: "0 18px", borderRadius: 20, border: "none",
-                    cursor: "pointer", fontWeight: isActive ? 600 : 400,
-                    background: isActive ? "var(--color-accent)" : "transparent",
-                    color: isActive ? "#fff" : "var(--color-text-secondary)",
-                    transition: "all var(--transition-fast)",
-                  }}
-                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--bg)"; }}
-                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
-                >
-                  {fy.year_label || `${fy.year}年度`}
-                </button>
-              );
-            })}
-          </div>
-          <button type="button" onClick={() => goYear(1)} disabled={currentIdx >= sortedYears.length - 1}
-            style={{
-              background: "none", border: "1px solid var(--color-border)", borderRadius: 6,
-              width: 32, height: 32, cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
-              color: currentIdx >= sortedYears.length - 1 ? "var(--color-text-tertiary)" : "var(--color-text-primary)", fontSize: 13,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "all var(--transition-fast)",
-              opacity: currentIdx >= sortedYears.length - 1 ? 0.4 : 1,
-              pointerEvents: currentIdx >= sortedYears.length - 1 ? "none" : "auto",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--color-accent)"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--color-border)"; }}
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 3l5 5-5 5"/>
-            </svg>
-          </button>
-
-          <div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        gap: 12, marginBottom: isMobile ? 16 : 20,
+        flexWrap: "wrap",
+      }}>
+        <YearPillNav
+          fiscalYears={fiscalYears}
+          activeFyId={activeFiscalYearId}
+          currentFyId={fiscalYears.find(fy => fy.is_current)?.id || ""}
+          onChange={(id) => setSearchParams({ fiscalYearId: id })}
+        />
+        {!isMobile && (
+          <div style={{ display: "flex", gap: 4 }}>
             <button type="button" onClick={expandAll}
               title="すべて展開"
               style={{
@@ -1012,8 +922,8 @@ export default function OrgChart() {
               閉じる
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── Empty state ── */}
       {orgTree.length === 0 ? (
