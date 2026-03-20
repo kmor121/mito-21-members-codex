@@ -32,25 +32,6 @@ function getDayParts(dateStr) {
   return { dateMain: `${d.getMonth() + 1}/${d.getDate()}`, dowLabel: `${dow}曜日` };
 }
 
-function AttendanceRing({ present, total, size = 44 }) {
-  if (!total) return null;
-  const r = (size - 6) / 2;
-  const circ = 2 * Math.PI * r;
-  const pct = total > 0 ? present / total : 0;
-  return (
-    <svg width={size} height={size} style={{ flexShrink: 0 }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" style={{ stroke: 'var(--color-border)' }} strokeWidth={3} />
-      <circle cx={size/2} cy={size/2} r={r} fill="none" style={{ stroke: 'var(--color-success)' }} strokeWidth={3}
-        strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)}
-        strokeLinecap="round" transform={`rotate(-90 ${size/2} ${size/2})`} />
-      <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="central"
-        style={{ fontSize: 11, fontWeight: 500, fill: 'var(--color-text-primary)' }}>
-        {present}/{total}
-      </text>
-    </svg>
-  );
-}
-
 const DEFAULT_OPTIONS = ["出席", "欠席"];
 const DETAIL_OPTIONS = ["出席", "欠席", "遅刻参加", "オンライン参加", "未定"];
 const MEMBER_TYPES = ["正会員", "賛助会員", "OB会員", "名誉顧問"];
@@ -61,7 +42,6 @@ export default function Events() {
 
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState([]);
-  const [attendances, setAttendances] = useState([]);
   const [fiscalYears, setFiscalYears] = useState([]);
   const [selectedFYId, setSelectedFYId] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -88,7 +68,6 @@ export default function Events() {
       ]);
       setFiscalYears(fyList || []);
       setEvents(evtList || []);
-      base44.entities.Attendance.list().then(a => setAttendances(a || [])).catch(() => {});
       if (!selectedFYId) {
         const current = (fyList || []).find(fy => fy.is_current);
         if (current) setSelectedFYId(current.id);
@@ -112,27 +91,15 @@ export default function Events() {
       .sort((a, b) => (b.event_date || '').localeCompare(a.event_date || ''));
   }, [events, selectedFYId]);
 
-  const attendanceByEvent = useMemo(() => {
-    const map = {};
-    attendances.forEach(a => {
-      if (!a.event_id) return;
-      if (!map[a.event_id]) map[a.event_id] = [];
-      map[a.event_id].push(a);
-    });
-    return map;
-  }, [attendances]);
-
   const stats = useMemo(() => {
-    let completed = 0, published = 0, draft = 0, totalAttend = 0;
+    let completed = 0, published = 0, draft = 0;
     filteredEvents.forEach(e => {
       if (e.status === 'completed') completed++;
       else if (e.status === 'published' || e.status === 'closed') published++;
       else draft++;
-      const atts = attendanceByEvent[e.id] || [];
-      totalAttend += atts.filter(a => a.response === '出席' || a.status === '出席').length;
     });
-    return { completed, published, draft, totalAttend };
-  }, [filteredEvents, attendanceByEvent]);
+    return { completed, published, draft };
+  }, [filteredEvents]);
 
   const nextEventId = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -294,14 +261,12 @@ export default function Events() {
           <span className="stat-chip">完了 <span className="stat-chip-value" style={{ color: 'var(--color-success)' }}>{stats.completed}</span></span>
           <span className="stat-chip">公開中 <span className="stat-chip-value" style={{ color: 'var(--color-accent)' }}>{stats.published}</span></span>
           <span className="stat-chip">下書き <span className="stat-chip-value">{stats.draft}</span></span>
-          <span className="stat-chip">参加者計 <span className="stat-chip-value" style={{ color: 'var(--color-text-secondary)' }}>{stats.totalAttend}</span></span>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginBottom: 24 }}>
           <Card padding="14px 16px"><div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>完了</div><div style={{ fontSize: 22, fontWeight: 600, color: 'var(--color-success)' }}>{stats.completed}</div></Card>
           <Card padding="14px 16px"><div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>公開中</div><div style={{ fontSize: 22, fontWeight: 600, color: 'var(--color-accent)' }}>{stats.published}</div></Card>
           <Card padding="14px 16px"><div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>下書き</div><div style={{ fontSize: 22, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{stats.draft}</div></Card>
-          <Card padding="14px 16px"><div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>参加者計</div><div style={{ fontSize: 22, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{stats.totalAttend}</div></Card>
         </div>
       )}
 
@@ -318,9 +283,6 @@ export default function Events() {
             const sb = STATUS_BADGE[evt.status] || STATUS_BADGE.draft;
             const tb = EVENT_TYPE_BADGE[evt.event_type] || EVENT_TYPE_BADGE["その他"];
             const isNext = evt.id === nextEventId;
-            const atts = attendanceByEvent[evt.id] || [];
-            const attendCount = atts.filter(a => a.response === '出席' || a.status === '出席').length;
-            const totalTarget = atts.length;
 
             return (
               <Card
@@ -349,10 +311,6 @@ export default function Events() {
                       {evt.start_time && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.25" stroke="currentColor" strokeWidth="1.2"/><path d="M7 4.25V7l2.25 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>{evt.start_time}{evt.end_time ? `〜${evt.end_time}` : ''}</span>}
                       {evt.fee > 0 && <span>¥{Number(evt.fee).toLocaleString()}</span>}
                     </div>
-                  </div>
-                  {/* Ring */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-                    {totalTarget > 0 && <AttendanceRing present={attendCount} total={totalTarget} />}
                   </div>
                 </div>
               </Card>

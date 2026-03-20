@@ -25,25 +25,7 @@ const DEFAULT_CEREMONY_ITEMS = [
   { order: 6, title: "閉会のことば", person_id: "" },
 ];
 
-/* ── AttendanceRing ── */
-function AttendanceRing({ present, total, size = 44 }) {
-  if (!total) return null;
-  const r = (size - 6) / 2;
-  const circ = 2 * Math.PI * r;
-  const pct = total > 0 ? present / total : 0;
-  return (
-    <svg width={size} height={size} style={{ flexShrink: 0 }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" style={{ stroke: 'var(--line)' }} strokeWidth={3} />
-      <circle cx={size/2} cy={size/2} r={r} fill="none" style={{ stroke: 'var(--success)' }} strokeWidth={3}
-        strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)}
-        strokeLinecap="round" transform={`rotate(-90 ${size/2} ${size/2})`} />
-      <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="central"
-        style={{ fontSize: 11, fontWeight: 500, fill: 'var(--text)' }}>
-        {present}/{total}
-      </text>
-    </svg>
-  );
-}
+
 
 /* ── helpers ── */
 function showToast(msg, type) {
@@ -413,8 +395,6 @@ export default function Meetings() {
             const agendaCount = Array.isArray(m.agenda_items) ? m.agenda_items.length : 0;
             const isNext = m.id === nextMeetingId;
             const timeStr = formatTimeRange(m.start_time, m.end_time);
-            const attendees = Array.isArray(m.attendees) ? m.attendees.length : 0;
-            const boardCount = Object.keys(memberRoleMap).length;
 
             return (
               <div key={m.id}
@@ -465,9 +445,8 @@ export default function Meetings() {
                   </div>
                 </div>
 
-                {/* attendance ring (desktop) + delete */}
+                {/* delete button */}
                 <div className="mtg-card-right" style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-                  {attendees > 0 && <AttendanceRing present={attendees} total={boardCount || attendees} />}
                   {m.status === '下書き' && (
                     <button type="button" className="mtg-delete-btn"
                       onClick={(e) => { e.stopPropagation(); handleDelete(m.id); }}
