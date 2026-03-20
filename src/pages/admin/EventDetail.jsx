@@ -731,11 +731,11 @@ export default function EventDetail() {
               <div style={{ marginBottom: 20 }}>
                 <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, color: 'var(--text)' }}>所属別内訳</h3>
                 <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                  <div style={{ minWidth: 400, border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+                  <div style={{ minWidth: isMobile ? 0 : 400, border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
                     <div style={{
-                      display: 'grid', gridTemplateColumns: isMobile ? '1fr 50px 55px 40px 40px' : '1fr 70px 70px 70px 70px',
-                      padding: '8px 14px', background: 'var(--line-light)',
-                      fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)',
+                      display: 'grid', gridTemplateColumns: isMobile ? '1fr 36px 46px 32px 32px' : '1fr 70px 70px 70px 70px',
+                      padding: isMobile ? '8px 10px' : '8px 14px', background: 'var(--line-light)',
+                      fontSize: isMobile ? 11 : 12, fontWeight: 600, color: 'var(--text-secondary)',
                       borderBottom: '1px solid var(--line)',
                     }}>
                       <span>所属</span>
@@ -746,8 +746,8 @@ export default function EventDetail() {
                     </div>
                     {orgBreakdown.map((row, idx) => (
                       <div key={row.orgId} style={{
-                        display: 'grid', gridTemplateColumns: isMobile ? '1fr 50px 55px 40px 40px' : '1fr 70px 70px 70px 70px',
-                        padding: '10px 14px', fontSize: 13,
+                        display: 'grid', gridTemplateColumns: isMobile ? '1fr 36px 46px 32px 32px' : '1fr 70px 70px 70px 70px',
+                        padding: isMobile ? '8px 10px' : '10px 14px', fontSize: isMobile ? 11 : 13,
                         borderBottom: idx < orgBreakdown.length - 1 ? '1px solid var(--line)' : 'none',
                       }}>
                         <span style={{ fontWeight: 500, color: 'var(--text)' }}>{row.orgName}</span>
