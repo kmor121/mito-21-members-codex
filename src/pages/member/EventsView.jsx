@@ -256,9 +256,9 @@ export default function EventsView() {
                             fontSize: 13, fontWeight: 600, cursor: disabled ? 'default' : 'pointer',
                             transition: 'all 0.15s',
                             minHeight: 36,
-                            background: isSelected ? rc.bg : 'transparent',
-                            color: isSelected ? rc.color : 'var(--text-secondary)',
-                            border: isSelected ? `2px solid ${rc.border}` : '1px solid var(--line)',
+                            background: isSelected ? rc.color : 'transparent',
+                            color: isSelected ? '#fff' : 'var(--text-secondary)',
+                            border: isSelected ? `2px solid ${rc.color}` : '1px solid var(--line)',
                             opacity: disabled && !isSelected ? 0.5 : 1,
                           }}
                         >
@@ -314,8 +314,8 @@ export default function EventsView() {
                                   borderRadius: 8, fontSize: 13, fontWeight: 600,
                                   cursor: disabled ? 'default' : 'pointer',
                                   transition: 'all 0.15s', minHeight: 36,
-                                  background: isSelected ? (isAttend ? 'var(--success-light)' : 'var(--error-light)') : 'transparent',
-                                  color: isSelected ? (isAttend ? 'var(--success)' : 'var(--error)') : '#78350f',
+                                  background: isSelected ? (isAttend ? 'var(--success)' : 'var(--error)') : 'transparent',
+                                  color: isSelected ? '#fff' : '#78350f',
                                   border: isSelected ? `2px solid ${isAttend ? 'var(--success)' : 'var(--error)'}` : '1px solid #FDE68A',
                                   opacity: disabled && !isSelected ? 0.5 : 1,
                                 }}>
@@ -340,8 +340,26 @@ export default function EventsView() {
                   </button>
                   {isExpanded && (
                     <div style={{ marginTop: 8 }}>
-                      {/* Summary */}
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8, fontSize: 12 }}>
+                      {/* Summary with response rate */}
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8, fontSize: 12, alignItems: 'center' }}>
+                        {(() => {
+                          const targetCount = evt.target_member_types?.length > 0
+                            ? members.filter(m => evt.target_member_types.includes(m.member_type)).length
+                            : members.length;
+                          const respondedCount = evtAtts.length;
+                          const rate = targetCount > 0 ? Math.round((respondedCount / targetCount) * 100) : 0;
+                          return (
+                            <span style={{
+                              padding: '2px 10px', borderRadius: 'var(--radius)',
+                              background: rate === 100 ? 'var(--success-light)' : 'var(--bg)',
+                              border: `1px solid ${rate === 100 ? 'var(--success)' : 'var(--line)'}`,
+                              fontWeight: 600,
+                              color: rate === 100 ? 'var(--success)' : 'var(--text)',
+                            }}>
+                              回答率 {rate}% ({respondedCount}/{targetCount})
+                            </span>
+                          );
+                        })()}
                         {options.map(opt => (
                           <span key={opt} style={{ color: 'var(--text-secondary)' }}>
                             {opt}: <strong style={{ color: opt.includes('出席') ? 'var(--success)' : opt.includes('欠席') ? 'var(--error)' : 'var(--text)' }}>{responseCounts[opt] || 0}名</strong>
