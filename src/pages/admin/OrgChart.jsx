@@ -220,23 +220,25 @@ function OrgTreeNode({
           padding: isMobile ? "10px 12px" : "12px 18px", borderBottom: isExpanded ? "1px solid var(--color-border)" : "none",
           background: "#fff",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flexWrap: "wrap" }}>
-            {/* Drag handle */}
-            <span style={{
-              cursor: "grab", color: "var(--color-text-tertiary)", fontSize: 15, userSelect: "none",
-              display: "flex", alignItems: "center", opacity: 0.5,
-              transition: "opacity var(--transition-fast)",
-            }}
-              onMouseEnter={e => e.currentTarget.style.opacity = "1"}
-              onMouseLeave={e => e.currentTarget.style.opacity = "0.5"}
-              title="ドラッグで並び替え"
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                <circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>
-                <circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/>
-                <circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/>
-              </svg>
-            </span>
+          <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 10, minWidth: 0, flexWrap: "wrap" }}>
+            {/* Drag handle (PC only) */}
+            {!isMobile && (
+              <span style={{
+                cursor: "grab", color: "var(--color-text-tertiary)", fontSize: 15, userSelect: "none",
+                display: "flex", alignItems: "center", opacity: 0.5,
+                transition: "opacity var(--transition-fast)",
+              }}
+                onMouseEnter={e => e.currentTarget.style.opacity = "1"}
+                onMouseLeave={e => e.currentTarget.style.opacity = "0.5"}
+                title="ドラッグで並び替え"
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                  <circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>
+                  <circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/>
+                  <circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/>
+                </svg>
+              </span>
+            )}
 
             {/* Collapse toggle */}
             {(hasChildren || assignments.length > 0) && (
@@ -256,7 +258,7 @@ function OrgTreeNode({
               </button>
             )}
 
-            <span style={{ fontWeight: 600, fontSize: 15, color: "var(--color-text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>
+            <span style={{ fontWeight: 600, fontSize: isMobile ? 13 : 15, color: "var(--color-text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>
               {org.org_name || "\uFF08\u540D\u79F0\u672A\u8A2D\u5B9A\uFF09"}
             </span>
             <span style={{
@@ -264,7 +266,7 @@ function OrgTreeNode({
               fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", lineHeight: "16px",
               color: "var(--color-text-tertiary)", border: "1px solid var(--color-border)", background: "transparent",
             }}>{org.org_type || "その他"}</span>
-            {org.supervisor_id && memberMap?.[org.supervisor_id] && (() => {
+            {!isMobile && org.supervisor_id && memberMap?.[org.supervisor_id] && (() => {
               const svRole = supervisorRoleMap?.[org.supervisor_id];
               const label = svRole ? `担当${svRole}` : "担当";
               return (
@@ -285,41 +287,43 @@ function OrgTreeNode({
             })()}
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 8, flexShrink: 0 }}>
             {/* Member count pill */}
             <span style={{
-              fontSize: 12, color: "var(--color-text-secondary)", background: "var(--bg)",
-              padding: "2px 8px", borderRadius: 10, fontWeight: 500,
+              fontSize: isMobile ? 11 : 12, color: "var(--color-text-secondary)", background: "var(--bg)",
+              padding: isMobile ? "1px 6px" : "2px 8px", borderRadius: 10, fontWeight: 500,
               whiteSpace: "nowrap",
             }}>{assignments.length}名</span>
 
             {/* Edit/delete actions */}
-            <div style={{ display: "flex", gap: 2 }}>
+            <div style={{ display: "flex", gap: isMobile ? 0 : 2 }}>
               <button type="button" onClick={() => onEditOrg(org)}
                 style={{
-                  background: "none", border: "none", cursor: "pointer", padding: "4px 6px",
+                  background: "none", border: "none", cursor: "pointer",
+                  padding: isMobile ? "4px" : "4px 6px",
                   borderRadius: "var(--radius)", fontSize: 13, color: "var(--color-text-secondary)",
-                  opacity: 0.4, transition: "all var(--transition-fast)",
+                  opacity: isMobile ? 0.6 : 0.4, transition: "all var(--transition-fast)",
                   display: "flex", alignItems: "center",
                 }}
                 onMouseEnter={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.background = "var(--bg)"; }}
-                onMouseLeave={e => { e.currentTarget.style.opacity = "0.4"; e.currentTarget.style.background = "none"; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = isMobile ? "0.6" : "0.4"; e.currentTarget.style.background = "none"; }}
                 title="編集">
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width={isMobile ? 13 : 14} height={isMobile ? 13 : 14} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z"/>
                 </svg>
               </button>
               <button type="button" onClick={() => onDeleteOrg(org)}
                 style={{
-                  background: "none", border: "none", cursor: "pointer", padding: "4px 6px",
+                  background: "none", border: "none", cursor: "pointer",
+                  padding: isMobile ? "4px" : "4px 6px",
                   borderRadius: "var(--radius)", fontSize: 13, color: "var(--color-text-secondary)",
-                  opacity: 0.4, transition: "all var(--transition-fast)",
+                  opacity: isMobile ? 0.6 : 0.4, transition: "all var(--transition-fast)",
                   display: "flex", alignItems: "center",
                 }}
                 onMouseEnter={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.color = "var(--color-danger)"; e.currentTarget.style.background = "#fef2f2"; }}
-                onMouseLeave={e => { e.currentTarget.style.opacity = "0.4"; e.currentTarget.style.color = "var(--color-text-secondary)"; e.currentTarget.style.background = "none"; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = isMobile ? "0.6" : "0.4"; e.currentTarget.style.color = "var(--color-text-secondary)"; e.currentTarget.style.background = "none"; }}
                 title="削除">
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width={isMobile ? 13 : 14} height={isMobile ? 13 : 14} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M2 4h12M5.33 4V2.67a1.33 1.33 0 011.34-1.34h2.66a1.33 1.33 0 011.34 1.34V4M13.33 4v9.33a1.33 1.33 0 01-1.33 1.34H4a1.33 1.33 0 01-1.33-1.34V4"/>
                 </svg>
               </button>
@@ -883,12 +887,14 @@ export default function OrgChart() {
         gap: 12, marginBottom: isMobile ? 16 : 20,
         flexWrap: "wrap",
       }}>
-        <YearPillNav
-          fiscalYears={fiscalYears}
-          activeFyId={activeFiscalYearId}
-          currentFyId={fiscalYears.find(fy => fy.is_current)?.id || ""}
-          onChange={(id) => setSearchParams({ fiscalYearId: id })}
-        />
+        <div style={{ maxWidth: "100%", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <YearPillNav
+            fiscalYears={fiscalYears}
+            activeFyId={activeFiscalYearId}
+            currentFyId={fiscalYears.find(fy => fy.is_current)?.id || ""}
+            onChange={(id) => setSearchParams({ fiscalYearId: id })}
+          />
+        </div>
         {!isMobile && (
           <div style={{ display: "flex", gap: 4 }}>
             <button type="button" onClick={expandAll}
