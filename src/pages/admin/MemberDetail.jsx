@@ -1025,7 +1025,12 @@ export default function MemberDetail() {
       <div className={`tab-panel${activeTab === "changelog" ? " is-active" : ""}`}>
         <section className="card panel-card single-panel">
           <div className="card-body" style={{ padding: "1.25rem" }}>
-            <SectionHeader icon="📋" title="変更履歴" />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <SectionHeader icon="📋" title="変更履歴" />
+              <Link to={`/admin/change-logs?member_id=${member?.id || ''}`} className="text-link" style={{ fontSize: 13 }}>
+                全画面で見る →
+              </Link>
+            </div>
             {changeLogs.length === 0 ? (
               <p style={{ color: "var(--text-tertiary, var(--color-text-tertiary))", fontSize: "0.875rem" }}>変更履歴はありません。</p>
             ) : (
