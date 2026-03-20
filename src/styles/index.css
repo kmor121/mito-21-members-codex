@@ -222,7 +222,7 @@ a { color: var(--primary); }
 }
 
 .workspace-breadcrumb { margin: 0; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-.workspace-content { padding: 24px; flex: 1; min-width: 0; overflow-x: hidden; }
+.workspace-content { padding: 24px; flex: 1; min-width: 0; overflow-x: hidden; display: flex; flex-direction: column; }
 
 /* Mobile nav toggle */
 .mobile-nav-toggle {
