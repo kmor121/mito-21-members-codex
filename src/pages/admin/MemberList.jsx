@@ -715,11 +715,10 @@ export default function MemberList() {
                     border: organizationId ? "2px solid var(--color-accent)" : "1px solid var(--color-border)",
                     background: organizationId ? "var(--color-accent-light)" : "#fff",
                     color: organizationId ? "var(--color-accent)" : "var(--color-text-secondary)",
-                    fontSize: "12px",
+                    fontSize: "11px",
                     fontWeight: 500,
                     cursor: "pointer",
                     outline: "none",
-                    height: "28px",
                     lineHeight: 1,
                     appearance: "auto",
                   }}
