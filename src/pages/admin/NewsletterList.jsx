@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { PageHeader } from '../../components/ui';
+import { PageHeader, Button } from '../../components/ui';
 
 /* ── Inline SVG Icons ── */
 function MailIcon() {
@@ -754,29 +754,14 @@ export default function NewsletterList() {
       )}
 
       {/* ── Page Header ── */}
-      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h1 className="page-title">配信管理</h1>
-        {!isHistoryTab && (
-          <button
-            onClick={() => navigate('/admin/newsletters/new')}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "10px 20px",
-              background: "#4f46e5",
-              color: "#fff",
-              border: "none",
-              borderRadius: 8,
-              fontWeight: 700,
-              fontSize: 14,
-              cursor: "pointer",
-            }}
-          >
+      <PageHeader
+        title="配信管理"
+        actions={!isHistoryTab && (
+          <Button variant="primary" onClick={() => navigate('/admin/newsletters/new')}>
             <PlusIcon /> 新規作成
-          </button>
+          </Button>
         )}
-      </div>
+      />
 
       {/* ── Pill Tabs ── */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>

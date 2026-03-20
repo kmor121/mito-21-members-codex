@@ -1089,22 +1089,22 @@ export default function NewsletterEdit() {
           })()}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 8, flexWrap: "wrap" }}>
           {!isTemplate && (
             <button
               className="button ghost"
-              style={{ fontSize: 13, padding: "6px 14px", border: "1px solid var(--color-border)", color: "var(--color-text-secondary)" }}
+              style={{ fontSize: isMobile ? 11 : 13, padding: isMobile ? "4px 8px" : "6px 14px", border: "1px solid var(--color-border)", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}
               onClick={() => handleSaveDraft()}
               disabled={saving}
             >
-              {saving ? "保存中..." : "下書き保存"}
+              {saving ? "保存中..." : isMobile ? "保存" : "下書き保存"}
             </button>
           )}
 
           {!isTemplate && (
             <button
               className="button ghost"
-              style={{ fontSize: 13, padding: "6px 14px", border: "1px solid #10b981", color: "#10b981" }}
+              style={{ fontSize: isMobile ? 11 : 13, padding: isMobile ? "4px 8px" : "6px 14px", border: "1px solid #10b981", color: "#10b981", whiteSpace: "nowrap" }}
               onClick={async () => {
                 if (!form.title.trim()) { setErrorDialog("件名を入力してください"); return; }
                 if (!form.id) {
@@ -1114,17 +1114,17 @@ export default function NewsletterEdit() {
                 setShowTestSend(true);
               }}
             >
-              テスト送信
+              テスト
             </button>
           )}
 
           {!isTemplate && (
             <button
               className="button ghost"
-              style={{ fontSize: 13, padding: "6px 14px", border: "1px solid #6366f1", color: "#6366f1" }}
+              style={{ fontSize: isMobile ? 11 : 13, padding: isMobile ? "4px 8px" : "6px 14px", border: "1px solid #6366f1", color: "#6366f1", whiteSpace: "nowrap" }}
               onClick={handlePreview}
             >
-              プレビュー
+              {isMobile ? "PV" : "プレビュー"}
             </button>
           )}
 
@@ -1134,10 +1134,10 @@ export default function NewsletterEdit() {
               <button
                 className="button"
                 style={{
-                  fontSize: 14, padding: "8px 22px",
+                  fontSize: isMobile ? 12 : 14, padding: isMobile ? "6px 12px" : "8px 22px",
                   background: scheduled ? "#f59e0b" : "#4f46e5",
                   color: "#fff", border: "none", borderRadius: "var(--radius)",
-                  display: "flex", alignItems: "center", gap: 6, fontWeight: 600,
+                  display: "flex", alignItems: "center", gap: 6, fontWeight: 600, whiteSpace: "nowrap",
                 }}
                 onClick={handleSendClick}
               >
