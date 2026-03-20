@@ -637,8 +637,8 @@ export default function MemberList() {
         )
       ) : (
         /* Desktop: always-visible filter card */
-        <div className="card panel-card single-panel" style={{ marginBottom: "20px" }}>
-          <div className="card-body" style={{ padding: "20px" }}>
+        <div className="card panel-card single-panel" style={{ marginBottom: "20px", overflow: "visible" }}>
+          <div className="card-body" style={{ padding: "20px", overflow: "visible" }}>
             {/* Search bar */}
             <div style={{ position: "relative", marginBottom: "16px" }}>
               <span style={{
