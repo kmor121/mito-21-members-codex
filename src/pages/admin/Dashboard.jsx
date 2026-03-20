@@ -122,11 +122,21 @@ export default function Dashboard() {
 
   return (
     <section className="admin-shell">
-      <PageHeader
-        title="ダッシュボード"
-        subtitle="水戸21の会 管理ダッシュボード"
-        actions={fyLabel && <span className="db-fy-badge">{fyLabel}</span>}
-      />
+      {isMobile ? (
+        <div style={{ padding: '0 0 12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <h1 className="page-title" style={{ margin: 0, fontSize: 18 }}>ダッシュボード</h1>
+            {fyLabel && <span className="db-fy-badge">{fyLabel}</span>}
+          </div>
+          <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--color-text-tertiary)' }}>水戸21の会 管理ダッシュボード</p>
+        </div>
+      ) : (
+        <PageHeader
+          title="ダッシュボード"
+          subtitle="水戸21の会 管理ダッシュボード"
+          actions={fyLabel && <span className="db-fy-badge">{fyLabel}</span>}
+        />
+      )}
 
       {/* ═══ Tier 1: KPI Cards ═══ */}
       <div className="db-tier1">
