@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { apiRequest, base44 } from '../../api/base44Client';
+import { apiRequest, base44, invalidateReadCache } from '../../api/base44Client';
 import DatePicker from '../../components/ui/DatePicker';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { fullName, fullNameKana, nameInitial } from '../../utils/formatName';
@@ -178,6 +178,11 @@ export default function ApplicationDetail() {
   const [rejectSubmitting, setRejectSubmitting] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
 
+  /* referrer edit state */
+  const [refEditing, setRefEditing] = useState(false);
+  const [refForm, setRefForm] = useState({ referrer_1: '', referrer_2: '' });
+  const [refSaving, setRefSaving] = useState(false);
+
   /* messages */
   const [toast, setToast] = useState(null);
   const [fieldError, setFieldError] = useState("");
@@ -204,6 +209,23 @@ export default function ApplicationDetail() {
   function showToastMsg(msg) {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
+  }
+
+  async function saveReferrers() {
+    setRefSaving(true);
+    try {
+      await base44.entities.Member.update(applicationId, {
+        referrer_1: refForm.referrer_1.trim(),
+        referrer_2: refForm.referrer_2.trim(),
+      });
+      invalidateReadCache('Member');
+      setRefEditing(false);
+      showToastMsg('紹介者を更新しました');
+      await loadDetail();
+    } catch (err) {
+      showToastMsg(err.message || '更新に失敗しました');
+    }
+    setRefSaving(false);
   }
 
   /* ── Approve flow ── */
@@ -590,36 +612,61 @@ export default function ApplicationDetail() {
 
       {/* ══ Referrer matching card ══ */}
       <SectionCard title="紹介者照合" icon={<UsersIcon />}>
-        <div style={{ display: "grid", gap: 12 }}>
-          {/* Referrer 1 */}
-          <div style={{
-            padding: "14px 16px", borderRadius: "var(--radius)",
-            background: detail.referrer_matches?.referrer_1 ? "#f0fdf4" : "#fffbeb",
-            border: `1px solid ${detail.referrer_matches?.referrer_1 ? "#bbf7d0" : "#fde68a"}`,
-            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
-          }}>
+        {refEditing ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>紹介者 1</div>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>{displayValue(detail.referrer_1)}</div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>紹介者 1</label>
+              <input type="text" value={refForm.referrer_1} onChange={e => setRefForm(f => ({ ...f, referrer_1: e.target.value }))}
+                style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--line)", borderRadius: "var(--radius)", fontSize: 14, boxSizing: "border-box" }} />
             </div>
-            {detail.referrer_1 && renderRefBadge("referrer_1")}
+            <div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>紹介者 2</label>
+              <input type="text" value={refForm.referrer_2} onChange={e => setRefForm(f => ({ ...f, referrer_2: e.target.value }))}
+                style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--line)", borderRadius: "var(--radius)", fontSize: 14, boxSizing: "border-box" }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button className="btn btn-secondary" type="button" onClick={() => setRefEditing(false)}>キャンセル</button>
+              <button className="btn btn-primary" type="button" disabled={refSaving} onClick={saveReferrers}>{refSaving ? '保存中...' : '保存'}</button>
+            </div>
           </div>
-          {/* Referrer 2 */}
-          {detail.referrer_2 && (
+        ) : (
+          <div style={{ display: "grid", gap: 12 }}>
+            {/* Referrer 1 */}
             <div style={{
               padding: "14px 16px", borderRadius: "var(--radius)",
-              background: detail.referrer_matches?.referrer_2 ? "#f0fdf4" : "#fffbeb",
-              border: `1px solid ${detail.referrer_matches?.referrer_2 ? "#bbf7d0" : "#fde68a"}`,
+              background: detail.referrer_matches?.referrer_1 ? "#f0fdf4" : "#fffbeb",
+              border: `1px solid ${detail.referrer_matches?.referrer_1 ? "#bbf7d0" : "#fde68a"}`,
               display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
             }}>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>紹介者 2</div>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>{displayValue(detail.referrer_2)}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>紹介者 1</div>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>{displayValue(detail.referrer_1)}</div>
               </div>
-              {renderRefBadge("referrer_2")}
+              {detail.referrer_1 && renderRefBadge("referrer_1")}
             </div>
-          )}
-        </div>
+            {/* Referrer 2 */}
+            {detail.referrer_2 && (
+              <div style={{
+                padding: "14px 16px", borderRadius: "var(--radius)",
+                background: detail.referrer_matches?.referrer_2 ? "#f0fdf4" : "#fffbeb",
+                border: `1px solid ${detail.referrer_matches?.referrer_2 ? "#bbf7d0" : "#fde68a"}`,
+                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
+              }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>紹介者 2</div>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>{displayValue(detail.referrer_2)}</div>
+                </div>
+                {renderRefBadge("referrer_2")}
+              </div>
+            )}
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button className="btn btn-secondary" type="button" style={{ fontSize: 12 }}
+                onClick={() => { setRefForm({ referrer_1: detail.referrer_1 || '', referrer_2: detail.referrer_2 || '' }); setRefEditing(true); }}>
+                紹介者を編集
+              </button>
+            </div>
+          </div>
+        )}
       </SectionCard>
 
       {/* ══ Error message ══ */}
