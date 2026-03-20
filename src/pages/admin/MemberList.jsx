@@ -710,15 +710,18 @@ export default function MemberList() {
                   value={organizationId}
                   onChange={(e) => setOrganizationId(e.target.value)}
                   style={{
-                    padding: "5px 12px",
+                    padding: "4px 10px",
                     borderRadius: "999px",
                     border: organizationId ? "2px solid var(--color-accent)" : "1px solid var(--color-border)",
                     background: organizationId ? "var(--color-accent-light)" : "#fff",
                     color: organizationId ? "var(--color-accent)" : "var(--color-text-secondary)",
                     fontSize: "12px",
-                    fontWeight: 600,
+                    fontWeight: 500,
                     cursor: "pointer",
                     outline: "none",
+                    height: "28px",
+                    lineHeight: 1,
+                    appearance: "auto",
                   }}
                 >
                   <option value="">全て</option>
