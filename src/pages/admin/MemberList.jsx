@@ -722,9 +722,9 @@ export default function MemberList() {
                     height: "30px",
                   }}
                 >
-                  <option value="">全て</option>
+                  <option value="" style={{ color: 'var(--color-text-primary)' }}>全て</option>
                   {orgOptions.map((opt) => (
-                    <option key={opt.id} value={opt.id}>{opt.name}</option>
+                    <option key={opt.id} value={opt.id} style={{ color: 'var(--color-text-primary)' }}>{opt.name}</option>
                   ))}
                 </select>
               </div>
