@@ -143,10 +143,10 @@ const PRESET_TEMPLATES = [
 function SkeletonCard() {
   return (
     <div style={{ padding: "14px 16px", display: "flex", gap: 12, alignItems: "center" }}>
-      <div style={{ width: 3, height: 36, borderRadius: 2, background: "var(--line-light)", animation: "nlPulse 1.5s ease infinite" }} />
+      <div style={{ width: 3, height: 36, borderRadius: 2, background: "var(--color-bg-sub)", animation: "nlPulse 1.5s ease infinite" }} />
       <div style={{ flex: 1 }}>
-        <div style={{ width: "60%", height: 14, borderRadius: 4, background: "var(--line-light)", animation: "nlPulse 1.5s ease infinite", marginBottom: 6 }} />
-        <div style={{ width: "40%", height: 10, borderRadius: 4, background: "var(--line-light)", animation: "nlPulse 1.5s ease infinite" }} />
+        <div style={{ width: "60%", height: 14, borderRadius: 4, background: "var(--color-bg-sub)", animation: "nlPulse 1.5s ease infinite", marginBottom: 6 }} />
+        <div style={{ width: "40%", height: 10, borderRadius: 4, background: "var(--color-bg-sub)", animation: "nlPulse 1.5s ease infinite" }} />
       </div>
     </div>
   );
@@ -155,10 +155,10 @@ function SkeletonCard() {
 function SkeletonDetail() {
   return (
     <div style={{ padding: 32 }}>
-      <div style={{ width: "40%", height: 24, borderRadius: 4, background: "var(--line-light)", animation: "nlPulse 1.5s ease infinite", marginBottom: 24 }} />
-      <div style={{ width: "100%", height: 48, borderRadius: 8, background: "var(--line-light)", animation: "nlPulse 1.5s ease infinite", marginBottom: 16 }} />
-      <div style={{ width: "100%", height: 200, borderRadius: 8, background: "var(--line-light)", animation: "nlPulse 1.5s ease infinite", marginBottom: 16 }} />
-      <div style={{ width: "50%", height: 14, borderRadius: 4, background: "var(--line-light)", animation: "nlPulse 1.5s ease infinite" }} />
+      <div style={{ width: "40%", height: 24, borderRadius: 4, background: "var(--color-bg-sub)", animation: "nlPulse 1.5s ease infinite", marginBottom: 24 }} />
+      <div style={{ width: "100%", height: 48, borderRadius: 8, background: "var(--color-bg-sub)", animation: "nlPulse 1.5s ease infinite", marginBottom: 16 }} />
+      <div style={{ width: "100%", height: 200, borderRadius: 8, background: "var(--color-bg-sub)", animation: "nlPulse 1.5s ease infinite", marginBottom: 16 }} />
+      <div style={{ width: "50%", height: 14, borderRadius: 4, background: "var(--color-bg-sub)", animation: "nlPulse 1.5s ease infinite" }} />
     </div>
   );
 }
@@ -761,7 +761,7 @@ export default function Newsletters() {
         <div className="page-header"><h1 className="page-title">配信管理</h1></div>
         <div className="nl2-layout">
           <div className="nl2-master">
-            <div style={{ padding: "16px 16px 8px" }}><div style={{ width: 80, height: 18, borderRadius: 4, background: "var(--line-light)", animation: "nlPulse 1.5s ease infinite" }} /></div>
+            <div style={{ padding: "16px 16px 8px" }}><div style={{ width: 80, height: 18, borderRadius: 4, background: "var(--color-bg-sub)", animation: "nlPulse 1.5s ease infinite" }} /></div>
             {[1, 2, 3, 4].map(i => <SkeletonCard key={i} />)}
           </div>
           <div className="nl2-detail"><SkeletonDetail /></div>
@@ -959,7 +959,7 @@ export default function Newsletters() {
                           overflow: "hidden",
                         }}
                         onClick={() => handleSelect(nl.id)}
-                        onMouseEnter={e => { if (selectedId !== nl.id) e.currentTarget.style.background = "var(--line-light)"; }}
+                        onMouseEnter={e => { if (selectedId !== nl.id) e.currentTarget.style.background = "var(--color-bg-sub)"; }}
                         onMouseLeave={e => { if (selectedId !== nl.id) e.currentTarget.style.background = "transparent"; }}
                       >
                         <div style={{
@@ -1113,7 +1113,7 @@ export default function Newsletters() {
               {(form.attachment_name || form.attachment_url) && (
                 <div style={{
                   display: "flex", alignItems: "center", gap: 8, padding: "10px 14px",
-                  borderRadius: "var(--radius-md)", background: "var(--line-light)", fontSize: 13,
+                  borderRadius: "var(--radius-md)", background: "var(--color-bg-sub)", fontSize: 13,
                 }}>
                   <ClipIcon size={14} color="var(--color-text-secondary)" />
                   <span>{form.attachment_name || "添付ファイル"}</span>
@@ -1263,7 +1263,7 @@ export default function Newsletters() {
                         LINE
                         <span style={{
                           fontSize: 12, padding: "1px 6px", borderRadius: 8,
-                          background: "var(--line-light)", color: "var(--color-text-tertiary)",
+                          background: "var(--color-bg-sub)", color: "var(--color-text-tertiary)",
                         }}>準備中</span>
                       </button>
                     </div>

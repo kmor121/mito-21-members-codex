@@ -80,7 +80,7 @@ function MemberAvatar({ member, size = 32 }) {
   return (
     <div style={{
       width: size, height: size, borderRadius: "50%", flexShrink: 0,
-      background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center",
+      background: "var(--color-bg-sub)", display: "flex", alignItems: "center", justifyContent: "center",
       fontSize: size * 0.44, fontWeight: 600, color: "#64748b",
     }}>
       {initial}
@@ -136,7 +136,7 @@ function SpeakerInput({ value, label, onChange, onLabelChange, members, roleMap,
           {selectedMember ? (
             <MemberAvatar member={selectedMember} size={22} />
           ) : (
-            <span style={{ width: 22, height: 22, borderRadius: "50%", background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#64748b", flexShrink: 0 }}>外</span>
+            <span style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--color-bg-sub)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#64748b", flexShrink: 0 }}>外</span>
           )}
           <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {displayText}
@@ -1371,7 +1371,7 @@ export default function MeetingDetail() {
                           <span style={{
                             marginLeft: "auto", flexShrink: 0,
                             fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 10,
-                            background: isPresent ? "#ecfdf5" : "#f1f5f9",
+                            background: isPresent ? "#ecfdf5" : "var(--color-bg-sub)",
                             color: isPresent ? "#059669" : "#64748b",
                           }}>
                             {isPresent ? "出席" : "欠席"}

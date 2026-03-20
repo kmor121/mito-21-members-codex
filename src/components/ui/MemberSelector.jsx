@@ -226,7 +226,7 @@ function MemberAvatar({ member, size = 28 }) {
   return (
     <div style={{
       width: size, height: size, borderRadius: "50%", flexShrink: 0,
-      background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center",
+      background: "var(--color-bg-sub)", display: "flex", alignItems: "center", justifyContent: "center",
       fontSize: size * 0.45, fontWeight: 600, color: "#64748b",
     }}>
       {initial}

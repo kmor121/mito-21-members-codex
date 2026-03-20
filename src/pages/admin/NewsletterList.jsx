@@ -440,7 +440,7 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
                         {fj.member_ids.map((id, i) => (
                           <span key={i} style={{
                             display: "inline-block", padding: "3px 10px", margin: "0 4px 4px 0",
-                            borderRadius: 6, background: "var(--bg, #f1f5f9)", fontSize: 12,
+                            borderRadius: 6, background: "var(--color-bg-sub)", fontSize: 12,
                           }}>
                             ID: {id}
                           </span>
@@ -849,7 +849,7 @@ export default function NewsletterList() {
             </div>
 
             {/* Period filter */}
-            <div style={{ display: "flex", gap: 4, background: "var(--bg, #f1f5f9)", borderRadius: 8, padding: 3 }}>
+            <div style={{ display: "flex", gap: 4, background: "var(--color-bg-sub)", borderRadius: 8, padding: 3 }}>
               {PERIOD_FILTERS.map(pf => (
                 <button
                   key={pf.key}
@@ -922,7 +922,7 @@ export default function NewsletterList() {
                           key={nl.id}
                           onClick={() => setSelectedHistory(nl)}
                           style={{ cursor: "pointer" }}
-                          onMouseEnter={e => { e.currentTarget.style.background = "var(--line-light, #f8fafc)"; }}
+                          onMouseEnter={e => { e.currentTarget.style.background = "var(--color-bg-sub)"; }}
                           onMouseLeave={e => { e.currentTarget.style.background = ""; }}
                         >
                           <td style={{ whiteSpace: "nowrap", fontSize: 13 }}>

@@ -147,7 +147,7 @@ function ImageModal({ open, onInsert, onCancel }) {
             </div>
             {url.trim() && (
               <div style={{
-                padding: 12, background: 'var(--line-light)', borderRadius: 'var(--radius-md)',
+                padding: 12, background: 'var(--color-bg-sub)', borderRadius: 'var(--radius-md)',
                 textAlign: 'center',
               }}>
                 <img

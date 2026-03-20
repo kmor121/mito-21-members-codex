@@ -951,7 +951,7 @@ export default function MemberDetail() {
                         ? { backgroundColor: "#ecfdf5", color: "#059669" }
                         : d.status === "未納"
                           ? { backgroundColor: "#fee2e2", color: "#991b1b" }
-                          : { backgroundColor: "#f1f5f9", color: "#64748b" };
+                          : { backgroundColor: "var(--color-bg-sub)", color: "var(--color-text-secondary)" };
                       return (
                         <tr key={idx}>
                           <td>{displayValue(d.fiscal_year_label)}</td>
