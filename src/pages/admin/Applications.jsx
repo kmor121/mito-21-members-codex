@@ -260,7 +260,7 @@ export default function Applications() {
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {/* Applicant summary */}
               <div style={{
-                padding: "12px 16px", borderRadius: "var(--radius)",
+                padding: "12px 16px", borderRadius: "var(--radius-md)",
                 background: "var(--color-border)", border: "1px solid var(--color-border)",
                 display: "grid", gap: 4,
               }}>
@@ -316,7 +316,7 @@ export default function Applications() {
               </p>
 
               {approveError && (
-                <div style={{ padding: "8px 12px", borderRadius: "var(--radius)", background: "#fee2e2", color: "#991b1b", fontSize: 13 }}>
+                <div style={{ padding: "8px 12px", borderRadius: "var(--radius-md)", background: "#fee2e2", color: "#991b1b", fontSize: 13 }}>
                   {approveError}
                 </div>
               )}
@@ -347,7 +347,7 @@ export default function Applications() {
         {rejectTarget && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div style={{
-                padding: "12px 16px", borderRadius: "var(--radius)",
+                padding: "12px 16px", borderRadius: "var(--radius-md)",
                 background: "var(--color-border)", border: "1px solid var(--color-border)",
                 fontSize: 13,
               }}>
@@ -401,7 +401,7 @@ export default function Applications() {
               )}
             </div>
             <button type="button" onClick={() => setShowFilters(v => !v)} style={{
-              width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--color-border)',
+              width: 36, height: 36, borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: showFilters ? 'var(--color-accent-light)' : '#fff', cursor: 'pointer',
               color: showFilters ? 'var(--color-accent)' : 'var(--color-text-secondary)', flexShrink: 0,
@@ -435,8 +435,8 @@ export default function Applications() {
         showFilters && (
           <div style={{
             padding: '12px 16px', marginBottom: 8,
-            borderRadius: 'var(--radius)', border: '1px solid var(--color-border)',
-            background: 'var(--bg)',
+            borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
+            background: 'var(--color-bg-sub)',
           }}>
             {/* Search bar */}
             <div style={{ position: 'relative', marginBottom: 10 }}>
@@ -448,7 +448,7 @@ export default function Applications() {
                 placeholder="氏名・会社名で検索"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', fontSize: 13 }}
+                style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13 }}
               />
             </div>
             {/* Status pills */}
@@ -487,7 +487,7 @@ export default function Applications() {
                   width: "100%",
                   padding: "12px 14px 12px 42px",
                   border: "1px solid var(--color-border)",
-                  borderRadius: "var(--radius)",
+                  borderRadius: "var(--radius-md)",
                   fontSize: "14px",
                   background: "#fff",
                   transition: "border-color 0.15s, box-shadow 0.15s",
@@ -527,7 +527,7 @@ export default function Applications() {
       {error && (
         <div style={{
           padding: "12px 16px",
-          borderRadius: "var(--radius)",
+          borderRadius: "var(--radius-md)",
           background: "#fee2e2",
           color: "#991b1b",
           fontSize: "13px",

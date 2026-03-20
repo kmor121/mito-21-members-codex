@@ -234,7 +234,7 @@ function MemberSearchModal({ open, onClose, selectedMembers, onToggleMember }) {
               placeholder="氏名・メールアドレスで検索..."
               style={{
                 width: "100%", padding: "10px 14px 10px 36px", fontSize: 14,
-                border: "1px solid var(--color-border)", borderRadius: "var(--radius)",
+                border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
                 boxSizing: "border-box",
               }}
             />
@@ -891,7 +891,7 @@ export default function NewsletterEdit() {
   /* ── Sent Read-Only View ── */
   if (isSent) {
     return (
-      <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
+      <div style={{ minHeight: "100vh", background: "var(--color-bg-sub)" }}>
         <style>{ANIMATIONS}</style>
         <div style={{
           position: "sticky", top: 0, zIndex: 20, background: "#fff",
@@ -939,7 +939,7 @@ export default function NewsletterEdit() {
             </div>
           </div>
           <div className="nl-edit-sidebar" style={{ background: "#f8f9fa", padding: 24, borderLeft: "1px solid var(--color-border)" }}>
-            <div style={{ background: "#fff", borderRadius: "var(--radius)", padding: 20, border: "1px solid var(--color-border)" }}>
+            <div style={{ background: "#fff", borderRadius: "var(--radius-md)", padding: 20, border: "1px solid var(--color-border)" }}>
               <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 4 }}>送信日時</div>
                 <div style={{ fontSize: 14, color: "var(--color-text-primary)" }}>{formatDateJa(form.sent_at)}</div>
@@ -970,7 +970,7 @@ export default function NewsletterEdit() {
                     <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-danger)', marginBottom: 8 }}>送信失敗</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {failedList.map((f, i) => (
-                        <div key={i} style={{ padding: '10px 12px', background: '#fef2f2', borderRadius: 'var(--radius)', border: '1px solid #fecaca' }}>
+                        <div key={i} style={{ padding: '10px 12px', background: '#fef2f2', borderRadius: 'var(--radius-md)', border: '1px solid #fecaca' }}>
                           <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--color-text-primary)', marginBottom: 2 }}>{f.member_name}</div>
                           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4, wordBreak: 'break-all' }}>{f.email}</div>
                           <div style={{ fontSize: 11, color: '#dc2626', wordBreak: 'break-all' }}>{f.error}</div>
@@ -998,7 +998,7 @@ export default function NewsletterEdit() {
 
   /* ── Editable View ── */
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
+    <div style={{ minHeight: "100vh", background: "var(--color-bg-sub)" }}>
       <style>{ANIMATIONS}</style>
 
       {/* ── Toast ── */}
@@ -1041,8 +1041,8 @@ export default function NewsletterEdit() {
                 onClick={() => setShowDeleteConfirm(false)}
                 style={{
                   padding: "9px 20px", borderRadius: 8,
-                  border: "1px solid var(--line, #e2e8f0)",
-                  background: "#fff", color: "var(--text, #1e293b)",
+                  border: "1px solid var(--color-border, #e2e8f0)",
+                  background: "#fff", color: "var(--color-text-primary, #1e293b)",
                   fontSize: 14, fontWeight: 600, cursor: "pointer",
                 }}
               >
@@ -1136,7 +1136,7 @@ export default function NewsletterEdit() {
                 style={{
                   fontSize: isMobile ? 12 : 14, padding: isMobile ? "6px 12px" : "8px 22px",
                   background: scheduled ? "#f59e0b" : "#4f46e5",
-                  color: "#fff", border: "none", borderRadius: "var(--radius)",
+                  color: "#fff", border: "none", borderRadius: "var(--radius-md)",
                   display: "flex", alignItems: "center", gap: 6, fontWeight: 600, whiteSpace: "nowrap",
                 }}
                 onClick={handleSendClick}
@@ -1152,7 +1152,7 @@ export default function NewsletterEdit() {
               className="button"
               style={{
                 fontSize: 14, padding: "8px 20px",
-                background: "#4f46e5", color: "#fff", border: "none", borderRadius: "var(--radius)",
+                background: "#4f46e5", color: "#fff", border: "none", borderRadius: "var(--radius-md)",
                 fontWeight: 600,
               }}
               onClick={() => handleSaveDraft()}
@@ -1191,7 +1191,7 @@ export default function NewsletterEdit() {
         <div style={{ padding: isMobile ? 12 : 32 }}>
           {isTemplate && (
             <div style={{
-              background: "#fffbeb", border: "1px solid #fbbf24", borderRadius: "var(--radius)",
+              background: "#fffbeb", border: "1px solid #fbbf24", borderRadius: "var(--radius-md)",
               padding: "10px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 8,
               fontSize: 14, color: "#92400e",
             }}>
@@ -1202,7 +1202,7 @@ export default function NewsletterEdit() {
 
           {fromTemplateId && fromTemplateName && !isTemplate && (
             <div style={{
-              background: "#ecfdf5", border: "1px solid #6ee7b7", borderRadius: "var(--radius)",
+              background: "#ecfdf5", border: "1px solid #6ee7b7", borderRadius: "var(--radius-md)",
               padding: "10px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 8,
               fontSize: 14, color: "#065f46",
             }}>
@@ -1234,7 +1234,7 @@ export default function NewsletterEdit() {
               style={{
                 padding: "6px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
                 border: "1px solid var(--color-border)", borderRight: "none",
-                borderRadius: "var(--radius) 0 0 var(--radius)",
+                borderRadius: "var(--radius-md) 0 0 var(--radius-md)",
                 background: editorMode === "text" ? "var(--color-accent)" : "#fff",
                 color: editorMode === "text" ? "#fff" : "var(--color-text-secondary)",
               }}
@@ -1247,7 +1247,7 @@ export default function NewsletterEdit() {
               style={{
                 padding: "6px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
                 border: "1px solid var(--color-border)",
-                borderRadius: "0 var(--radius) var(--radius) 0",
+                borderRadius: "0 var(--radius-md) var(--radius-md) 0",
                 background: editorMode === "rich" ? "var(--color-accent)" : "#fff",
                 color: editorMode === "rich" ? "#fff" : "var(--color-text-secondary)",
               }}
@@ -1267,7 +1267,7 @@ export default function NewsletterEdit() {
                 placeholder="本文を入力してください"
                 style={{
                   width: "100%", minHeight: 400, resize: "none",
-                  border: "1px solid var(--color-border)", borderRadius: "var(--radius)",
+                  border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
                   padding: 16, fontSize: 14, lineHeight: 1.8, outline: "none",
                   fontFamily: "inherit", color: "var(--color-text-primary)", boxSizing: "border-box",
                   background: "#fff",
@@ -1284,7 +1284,7 @@ export default function NewsletterEdit() {
 
           {/* Rich mode */}
           {editorMode === "rich" && (
-            <div style={{ minHeight: 500, border: "1px solid var(--color-border)", borderRadius: "var(--radius)", overflow: "hidden" }}>
+            <div style={{ minHeight: 500, border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
               <RichTextEditor
                 content={form.body_html}
                 onChange={(html) => updateForm("body_html", html)}
@@ -1309,7 +1309,7 @@ export default function NewsletterEdit() {
                 onClick={() => updateForm("channel", "email")}
                 style={{
                   display: "flex", alignItems: "center", gap: 8,
-                  padding: "10px 14px", borderRadius: "var(--radius)", cursor: "pointer",
+                  padding: "10px 14px", borderRadius: "var(--radius-md)", cursor: "pointer",
                   border: form.channel === "email" ? "none" : "1px solid var(--color-border)",
                   borderLeft: form.channel === "email" ? "3px solid #4f46e5" : "1px solid var(--color-border)",
                   background: form.channel === "email" ? "#eef2ff" : "#fff",
@@ -1322,7 +1322,7 @@ export default function NewsletterEdit() {
               </button>
               <div style={{
                 display: "flex", alignItems: "center", gap: 8,
-                padding: "10px 14px", borderRadius: "var(--radius)",
+                padding: "10px 14px", borderRadius: "var(--radius-md)",
                 border: "1px solid var(--color-border)", background: "#f9fafb",
                 color: "var(--color-text-tertiary)", fontSize: 14, cursor: "not-allowed",
               }}>
@@ -1387,7 +1387,7 @@ export default function NewsletterEdit() {
                   onClick={() => setMemberSearchOpen(true)}
                   style={{
                     display: "flex", alignItems: "center", gap: 6, width: "100%",
-                    padding: "10px 14px", borderRadius: "var(--radius)",
+                    padding: "10px 14px", borderRadius: "var(--radius-md)",
                     border: "1px dashed var(--color-accent)", background: "#fff",
                     cursor: "pointer", fontSize: 13, color: "var(--color-accent)", fontWeight: 600,
                     justifyContent: "center",
@@ -1434,7 +1434,7 @@ export default function NewsletterEdit() {
                   </button>
                 ) : (
                   <div style={{
-                    marginTop: 10, padding: 12, background: "#fff", borderRadius: "var(--radius)",
+                    marginTop: 10, padding: 12, background: "#fff", borderRadius: "var(--radius-md)",
                     border: "1px solid var(--color-border)", animation: "nlSlide 0.3s ease",
                   }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 8 }}>
@@ -1463,7 +1463,7 @@ export default function NewsletterEdit() {
                           onChange={(e) => setFilterOrgId(e.target.value)}
                           style={{
                             width: "100%", padding: "6px 8px", fontSize: 12,
-                            border: "1px solid var(--color-border)", borderRadius: "var(--radius)",
+                            border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
                             marginLeft: 23,
                           }}
                         >
@@ -1518,7 +1518,7 @@ export default function NewsletterEdit() {
                 const evt = publishedEvents.find(e => e.id === form.linked_event_id);
                 return (
                   <div style={{
-                    padding: "10px 14px", borderRadius: "var(--radius)",
+                    padding: "10px 14px", borderRadius: "var(--radius-md)",
                     background: "#f5f3ff", border: "1px solid #ddd6fe",
                   }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
@@ -1541,7 +1541,7 @@ export default function NewsletterEdit() {
                   value=""
                   onChange={e => { if (e.target.value) updateForm("linked_event_id", e.target.value); }}
                   style={{
-                    width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
+                    width: "100%", padding: "10px 14px", borderRadius: "var(--radius-md)",
                     border: "1px solid var(--color-border)", background: "#fff", fontSize: 13,
                     color: "var(--color-text-secondary)",
                   }}
@@ -1590,7 +1590,7 @@ export default function NewsletterEdit() {
                         type="button"
                         onClick={() => { setSchedHour(qt.h); setSchedMin(qt.m); }}
                         style={{
-                          padding: "4px 10px", fontSize: 12, borderRadius: "var(--radius)",
+                          padding: "4px 10px", fontSize: 12, borderRadius: "var(--radius-md)",
                           border: "1px solid var(--color-border)", cursor: "pointer",
                           background: schedHour === qt.h && schedMin === qt.m ? "#4f46e5" : "#fff",
                           color: schedHour === qt.h && schedMin === qt.m ? "#fff" : "var(--color-text-primary)",
@@ -1604,7 +1604,7 @@ export default function NewsletterEdit() {
                     <select
                       value={schedHour}
                       onChange={(e) => setSchedHour(Number(e.target.value))}
-                      style={{ padding: "6px 10px", borderRadius: "var(--radius)", border: "1px solid var(--color-border)", fontSize: 14 }}
+                      style={{ padding: "6px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: 14 }}
                     >
                       {HOURS.map((h) => (<option key={h} value={h}>{pad2(h)}時</option>))}
                     </select>
@@ -1612,7 +1612,7 @@ export default function NewsletterEdit() {
                     <select
                       value={schedMin}
                       onChange={(e) => setSchedMin(Number(e.target.value))}
-                      style={{ padding: "6px 10px", borderRadius: "var(--radius)", border: "1px solid var(--color-border)", fontSize: 14 }}
+                      style={{ padding: "6px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: 14 }}
                     >
                       {MINUTES.map((m) => (<option key={m} value={m}>{pad2(m)}分</option>))}
                     </select>
@@ -1620,7 +1620,7 @@ export default function NewsletterEdit() {
                   {schedDate && (
                     <div style={{
                       marginTop: 12, padding: "10px 14px",
-                      background: "#eef2ff", borderRadius: "var(--radius)",
+                      background: "#eef2ff", borderRadius: "var(--radius-md)",
                       fontSize: 13, color: "#4f46e5", fontWeight: 600,
                     }}>
                       {formatScheduleDisplay(schedDate, schedHour, schedMin)} に送信予定
@@ -1646,7 +1646,7 @@ export default function NewsletterEdit() {
                       display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
                       background: att.needsReselect ? "#fffbeb" : "#fff",
                       border: `1px solid ${att.needsReselect ? "#f59e0b" : "var(--color-border)"}`,
-                      borderRadius: "var(--radius)",
+                      borderRadius: "var(--radius-md)",
                       marginBottom: 4,
                     }}>
                       <ClipIcon />
@@ -1675,7 +1675,7 @@ export default function NewsletterEdit() {
                 <div
                   style={{
                     border: fileDragging ? "2px dashed var(--color-accent)" : "1px dashed var(--color-border)",
-                    borderRadius: "var(--radius)",
+                    borderRadius: "var(--radius-md)",
                     padding: "16px 12px",
                     textAlign: "center",
                     background: fileDragging ? "#eef2ff" : "#fff",
@@ -1715,7 +1715,7 @@ export default function NewsletterEdit() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
                   {attachLinks.map((link, idx) => (
                     <div key={idx} style={{
-                      padding: "10px 12px", borderRadius: "var(--radius)",
+                      padding: "10px 12px", borderRadius: "var(--radius-md)",
                       background: "var(--color-border)", border: "1px solid var(--color-border)",
                       position: "relative",
                     }}>
@@ -1777,7 +1777,7 @@ export default function NewsletterEdit() {
                 onClick={() => setAttachLinks((prev) => [...prev, { url: "", name: "" }])}
                 style={{
                   display: "flex", alignItems: "center", gap: 6, justifyContent: "center",
-                  padding: "8px 14px", borderRadius: "var(--radius)",
+                  padding: "8px 14px", borderRadius: "var(--radius-md)",
                   border: "1px dashed var(--color-border)", background: "transparent",
                   color: "var(--color-accent)", fontSize: 13, fontWeight: 500,
                   cursor: "pointer", width: "100%", transition: "all 0.15s",
@@ -1838,7 +1838,7 @@ export default function NewsletterEdit() {
         </>}
       >
         <div style={{
-          border: "1px solid var(--color-border)", borderRadius: "var(--radius)",
+          border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
           overflow: "hidden",
         }}>
           <div style={{

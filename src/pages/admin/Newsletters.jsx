@@ -244,7 +244,7 @@ function SendConfirmDialog({ open, form, previewCount, isScheduled, scheduleDisp
           <>
             <div className="nl2-send-dialog-header">
               <div className="nl2-send-icon">
-                {isScheduled ? <MailIcon size={28} color="var(--warning)" /> : <SendIcon size={28} color="var(--primary)" />}
+                {isScheduled ? <MailIcon size={28} color="var(--color-warning)" /> : <SendIcon size={28} color="var(--color-accent)" />}
               </div>
               <h3>{isScheduled ? "送信予約の確認" : "送信確認"}</h3>
             </div>
@@ -331,7 +331,7 @@ function TestSendModal({ open, newsletterId, onClose, onSuccess }) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="test@example.com"
               style={{
-                width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
+                width: "100%", padding: "10px 14px", borderRadius: "var(--radius-md)",
                 border: "1px solid var(--color-border)", fontSize: 14,
               }}
               autoFocus
@@ -384,15 +384,15 @@ function AnimatedCount({ value }) {
 function EditorModeTabs({ mode, onChange }) {
   return (
     <div style={{
-      display: "inline-flex", borderRadius: "var(--radius)", overflow: "hidden",
-      border: "1px solid var(--line)", marginBottom: 8,
+      display: "inline-flex", borderRadius: "var(--radius-md)", overflow: "hidden",
+      border: "1px solid var(--color-border)", marginBottom: 8,
     }}>
       <button
         type="button"
         onClick={() => onChange("text")}
         style={{
           padding: "6px 16px", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
-          background: mode === "text" ? "var(--primary)" : "#fff",
+          background: mode === "text" ? "var(--color-accent)" : "#fff",
           color: mode === "text" ? "#fff" : "var(--color-text-secondary)",
           transition: "all 0.15s",
         }}
@@ -401,9 +401,9 @@ function EditorModeTabs({ mode, onChange }) {
         type="button"
         onClick={() => onChange("rich")}
         style={{
-          padding: "6px 16px", border: "none", borderLeft: "1px solid var(--line)",
+          padding: "6px 16px", border: "none", borderLeft: "1px solid var(--color-border)",
           cursor: "pointer", fontSize: 12, fontWeight: 600,
-          background: mode === "rich" ? "var(--primary)" : "#fff",
+          background: mode === "rich" ? "var(--color-accent)" : "#fff",
           color: mode === "rich" ? "#fff" : "var(--color-text-secondary)",
           transition: "all 0.15s",
         }}
@@ -866,12 +866,12 @@ export default function Newsletters() {
                     <div style={{ padding: "16px 12px" }}>
                       <div style={{
                         textAlign: "center", padding: "20px 16px",
-                        border: "2px dashed var(--line)", borderRadius: "var(--radius-lg)",
+                        border: "2px dashed var(--color-border)", borderRadius: "var(--radius-lg)",
                         color: "var(--color-text-secondary)",
                       }}>
-                        <FileIcon size={32} color="var(--muted)" />
+                        <FileIcon size={32} color="var(--color-text-tertiary)" />
                         <p style={{ margin: "8px 0 4px", fontWeight: 600, fontSize: 13 }}>テンプレートがありません</p>
-                        <p style={{ margin: "0 0 16px", fontSize: 12, color: "var(--muted)" }}>
+                        <p style={{ margin: "0 0 16px", fontSize: 12, color: "var(--color-text-tertiary)" }}>
                           よく使う文面をテンプレートとして保存できます
                         </p>
                       </div>
@@ -885,13 +885,13 @@ export default function Newsletters() {
                           style={{
                             display: "block", width: "100%", textAlign: "left",
                             padding: "10px 14px", marginBottom: 4,
-                            borderRadius: "var(--radius)", border: "1px dashed var(--line)",
+                            borderRadius: "var(--radius-md)", border: "1px dashed var(--color-border)",
                             background: "#fff", cursor: "pointer", transition: "all 0.15s", fontSize: 13,
                           }}
-                          onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.background = "var(--primary-light)"; }}
-                          onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.background = "#fff"; }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.background = "var(--color-accent-light)"; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.background = "#fff"; }}
                         >
-                          <div style={{ fontWeight: 600, color: "var(--text)", marginBottom: 2 }}>{pt.name || pt.title}</div>
+                          <div style={{ fontWeight: 600, color: "var(--color-text-primary)", marginBottom: 2 }}>{pt.name || pt.title}</div>
                           <div style={{ fontSize: 12, color: "var(--color-text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {pt.body.slice(0, 50)}...
                           </div>
@@ -904,16 +904,16 @@ export default function Newsletters() {
                       key={tmpl.id}
                       style={{
                         margin: "0 12px 4px", padding: "12px 14px",
-                        borderRadius: "var(--radius)",
-                        border: selectedId === tmpl.id ? "2px solid var(--primary)" : "2px dashed var(--line)",
-                        background: selectedId === tmpl.id ? "var(--primary-light)" : "#fff",
+                        borderRadius: "var(--radius-md)",
+                        border: selectedId === tmpl.id ? "2px solid var(--color-accent)" : "2px dashed var(--color-border)",
+                        background: selectedId === tmpl.id ? "var(--color-accent-light)" : "#fff",
                         cursor: "pointer", transition: "all 0.15s",
                       }}
                       onClick={() => handleSelect(tmpl.id)}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                         <FileIcon size={14} color="var(--color-text-secondary)" />
-                        <span style={{ fontWeight: 600, fontSize: 13, color: "var(--text)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <span style={{ fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {tmpl.title || "（件名なし）"}
                         </span>
                       </div>
@@ -926,12 +926,12 @@ export default function Newsletters() {
                           onClick={(e) => { e.stopPropagation(); createFromTemplate(tmpl); }}
                           style={{
                             padding: "3px 10px", borderRadius: 999,
-                            border: "1px solid var(--success)", background: "var(--success-light)",
-                            color: "var(--success)", fontSize: 12, fontWeight: 600,
+                            border: "1px solid var(--color-success)", background: "var(--color-success-light)",
+                            color: "var(--color-success)", fontSize: 12, fontWeight: 600,
                             cursor: "pointer", transition: "all 0.15s",
                           }}
-                          onMouseEnter={e => { e.currentTarget.style.background = "var(--success)"; e.currentTarget.style.color = "#fff"; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = "var(--success-light)"; e.currentTarget.style.color = "var(--success)"; }}
+                          onMouseEnter={e => { e.currentTarget.style.background = "var(--color-success)"; e.currentTarget.style.color = "#fff"; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = "var(--color-success-light)"; e.currentTarget.style.color = "var(--color-success)"; }}
                         >
                           この内容で配信作成
                         </button>
@@ -942,7 +942,7 @@ export default function Newsletters() {
               ) : (
                 filteredNewsletters.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "40px 16px", color: "var(--color-text-secondary)" }}>
-                    <MailIcon size={32} color="var(--muted)" />
+                    <MailIcon size={32} color="var(--color-text-tertiary)" />
                     <p style={{ margin: "8px 0 0", fontSize: 13 }}>配信データがありません</p>
                   </div>
                 ) : (
@@ -953,8 +953,8 @@ export default function Newsletters() {
                         key={nl.id}
                         style={{
                           display: "flex", width: "calc(100% - 16px)", margin: "0 8px 2px",
-                          padding: 0, border: "none", borderRadius: "var(--radius)",
-                          background: selectedId === nl.id ? "var(--primary-light)" : "transparent",
+                          padding: 0, border: "none", borderRadius: "var(--radius-md)",
+                          background: selectedId === nl.id ? "var(--color-accent-light)" : "transparent",
                           cursor: "pointer", textAlign: "left", transition: "all 0.15s",
                           overflow: "hidden",
                         }}
@@ -964,7 +964,7 @@ export default function Newsletters() {
                       >
                         <div style={{
                           width: 3, minHeight: "100%", flexShrink: 0, borderRadius: "3px 0 0 3px",
-                          background: selectedId === nl.id ? "var(--primary)" : sc.bar,
+                          background: selectedId === nl.id ? "var(--color-accent)" : sc.bar,
                         }} />
                         <div style={{ flex: 1, padding: "10px 12px", minWidth: 0 }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
@@ -975,10 +975,10 @@ export default function Newsletters() {
                             <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{channelLabel(nl.channel)}</span>
                           </div>
                           <div style={{
-                            fontSize: 13, fontWeight: 600, color: "var(--text)",
+                            fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)",
                             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 2,
                           }}>{nl.title || "（件名なし）"}</div>
-                          <div style={{ fontSize: 12, color: "var(--muted)" }}>
+                          <div style={{ fontSize: 12, color: "var(--color-text-tertiary)" }}>
                             {nl.sent_at || nl.scheduled_at || nl.updated_at || nl.created_at || "-"}
                           </div>
                         </div>
@@ -992,21 +992,21 @@ export default function Newsletters() {
 
           {/* ── Bottom fixed button ── */}
           <div style={{
-            padding: "12px", borderTop: "1px solid var(--line)", background: "#fff",
+            padding: "12px", borderTop: "1px solid var(--color-border)", background: "#fff",
           }}>
             {activeTab === "template" ? (
               <button
                 type="button"
                 onClick={resetTemplateForm}
                 style={{
-                  width: "100%", padding: "10px 0", borderRadius: "var(--radius)",
-                  border: "none", background: "var(--primary)", color: "#fff",
+                  width: "100%", padding: "10px 0", borderRadius: "var(--radius-md)",
+                  border: "none", background: "var(--color-accent)", color: "#fff",
                   fontSize: 13, fontWeight: 600, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                   transition: "background 0.15s",
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--primary-hover)"}
-                onMouseLeave={e => e.currentTarget.style.background = "var(--primary)"}
+                onMouseEnter={e => e.currentTarget.style.background = "var(--color-accent-hover)"}
+                onMouseLeave={e => e.currentTarget.style.background = "var(--color-accent)"}
               >
                 <PlusIcon size={14} color="#fff" /> テンプレート作成
               </button>
@@ -1015,14 +1015,14 @@ export default function Newsletters() {
                 type="button"
                 onClick={resetForm}
                 style={{
-                  width: "100%", padding: "10px 0", borderRadius: "var(--radius)",
-                  border: "none", background: "var(--primary)", color: "#fff",
+                  width: "100%", padding: "10px 0", borderRadius: "var(--radius-md)",
+                  border: "none", background: "var(--color-accent)", color: "#fff",
                   fontSize: 13, fontWeight: 600, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                   transition: "background 0.15s",
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--primary-hover)"}
-                onMouseLeave={e => e.currentTarget.style.background = "var(--primary)"}
+                onMouseEnter={e => e.currentTarget.style.background = "var(--color-accent-hover)"}
+                onMouseLeave={e => e.currentTarget.style.background = "var(--color-accent)"}
               >
                 <PlusIcon size={14} color="#fff" /> 新規作成
               </button>
@@ -1040,11 +1040,11 @@ export default function Newsletters() {
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
               height: "100%", minHeight: 400, padding: 40, textAlign: "center",
             }}>
-              <div style={{ color: "var(--line)", marginBottom: 20 }}>
-                <MailIcon size={64} color="var(--line)" />
+              <div style={{ color: "var(--color-border)", marginBottom: 20 }}>
+                <MailIcon size={64} color="var(--color-border)" />
               </div>
-              <h3 style={{ fontSize: 16, color: "var(--text)", margin: "0 0 8px" }}>配信を選択してください</h3>
-              <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 24px" }}>
+              <h3 style={{ fontSize: 16, color: "var(--color-text-primary)", margin: "0 0 8px" }}>配信を選択してください</h3>
+              <p style={{ fontSize: 13, color: "var(--color-text-tertiary)", margin: "0 0 24px" }}>
                 左の一覧から配信を選択するか、新規作成してください
               </p>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
@@ -1052,7 +1052,7 @@ export default function Newsletters() {
                   type="button" className="btn"
                   onClick={resetForm}
                   style={{
-                    background: "var(--primary)", color: "#fff", border: "none",
+                    background: "var(--color-accent)", color: "#fff", border: "none",
                     display: "flex", alignItems: "center", gap: 6,
                   }}
                 >
@@ -1080,7 +1080,7 @@ export default function Newsletters() {
               {/* Sent meta */}
               <div style={{
                 display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-                gap: 12, padding: 16, background: "var(--bg)", borderRadius: "var(--radius-lg)",
+                gap: 12, padding: 16, background: "var(--color-bg-sub)", borderRadius: "var(--radius-lg)",
               }}>
                 <div>
                   <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 2 }}>送信日時</div>
@@ -1098,7 +1098,7 @@ export default function Newsletters() {
 
               {/* Body */}
               <div style={{
-                padding: 20, background: "#fff", border: "1px solid var(--line)",
+                padding: 20, background: "#fff", border: "1px solid var(--color-border)",
                 borderRadius: "var(--radius-lg)", fontSize: 14, lineHeight: 1.7,
               }}>
                 {form.body_html ? (
@@ -1106,14 +1106,14 @@ export default function Newsletters() {
                 ) : (
                   form.body ? form.body.split("\n").map((line, i) => (
                     <p key={i} style={{ margin: "0.25em 0" }}>{line || "\u00A0"}</p>
-                  )) : <p style={{ color: "var(--muted)" }}>（本文なし）</p>
+                  )) : <p style={{ color: "var(--color-text-tertiary)" }}>（本文なし）</p>
                 )}
               </div>
 
               {(form.attachment_name || form.attachment_url) && (
                 <div style={{
                   display: "flex", alignItems: "center", gap: 8, padding: "10px 14px",
-                  borderRadius: "var(--radius)", background: "var(--line-light)", fontSize: 13,
+                  borderRadius: "var(--radius-md)", background: "var(--line-light)", fontSize: 13,
                 }}>
                   <ClipIcon size={14} color="var(--color-text-secondary)" />
                   <span>{form.attachment_name || "添付ファイル"}</span>
@@ -1125,7 +1125,7 @@ export default function Newsletters() {
 
               <div>
                 <button type="button" className="btn" onClick={handleResend}
-                  style={{ background: "var(--primary)", color: "#fff", border: "none", display: "flex", alignItems: "center", gap: 6 }}
+                  style={{ background: "var(--color-accent)", color: "#fff", border: "none", display: "flex", alignItems: "center", gap: 6 }}
                 >
                   <RefreshIcon size={14} color="#fff" /> この内容で新規作成
                 </button>
@@ -1141,7 +1141,7 @@ export default function Newsletters() {
                 {/* Banner */}
                 {isTemplate && (
                   <div style={{
-                    padding: "10px 16px", marginBottom: 16, borderRadius: "var(--radius)",
+                    padding: "10px 16px", marginBottom: 16, borderRadius: "var(--radius-md)",
                     border: "1px solid #fde68a", background: "#fffbeb",
                     display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, color: "#92400e",
                   }}>
@@ -1151,7 +1151,7 @@ export default function Newsletters() {
                 )}
                 {isFromTemplate && (
                   <div style={{
-                    padding: "10px 16px", marginBottom: 16, borderRadius: "var(--radius)",
+                    padding: "10px 16px", marginBottom: 16, borderRadius: "var(--radius-md)",
                     border: "1px solid #a7f3d0", background: "#ecfdf5",
                     display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 500, color: "#065f46",
                   }}>
@@ -1187,11 +1187,11 @@ export default function Newsletters() {
                     onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))}
                     style={{
                       width: "100%", padding: "12px 4px", fontSize: 20, fontWeight: 600,
-                      border: "none", borderBottom: "2px solid var(--line)",
+                      border: "none", borderBottom: "2px solid var(--color-border)",
                       background: "transparent", outline: "none", transition: "border-color 0.15s",
                     }}
-                    onFocus={e => e.currentTarget.style.borderBottomColor = "var(--primary)"}
-                    onBlur={e => e.currentTarget.style.borderBottomColor = "var(--line)"}
+                    onFocus={e => e.currentTarget.style.borderBottomColor = "var(--color-accent)"}
+                    onBlur={e => e.currentTarget.style.borderBottomColor = "var(--color-border)"}
                   />
                 </div>
 
@@ -1220,30 +1220,30 @@ export default function Newsletters() {
                         rows={8}
                         style={{
                           width: "100%", minHeight: 200, padding: "14px 16px", fontSize: 14,
-                          lineHeight: 1.7, borderRadius: "var(--radius-lg)", border: "1px solid var(--line)",
+                          lineHeight: 1.7, borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
                           background: "#fff", resize: "vertical", outline: "none", transition: "border-color 0.15s",
                         }}
-                        onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
-                        onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
+                        onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
+                        onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
                       />
                       <span style={{
                         position: "absolute", bottom: 10, right: 14, fontSize: 12,
-                        color: "var(--muted)", pointerEvents: "none",
+                        color: "var(--color-text-tertiary)", pointerEvents: "none",
                       }}>{form.body.length}文字</span>
                     </div>
                   )}
                 </div>
 
                 {/* Channel - segment control */}
-                <div style={{ marginBottom: 20, padding: "16px 0", borderTop: "1px solid var(--line)" }}>
+                <div style={{ marginBottom: 20, padding: "16px 0", borderTop: "1px solid var(--color-border)" }}>
                   <span style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", letterSpacing: "0.3px", marginBottom: 10 }}>
                     配信チャネル
                   </span>
-                  <div style={{ display: "flex", gap: 0, borderRadius: "var(--radius)", overflow: "hidden", border: "1px solid var(--line)", width: "fit-content" }}>
+                  <div style={{ display: "flex", gap: 0, borderRadius: "var(--radius-md)", overflow: "hidden", border: "1px solid var(--color-border)", width: "fit-content" }}>
                     <button type="button" onClick={() => setForm(prev => ({ ...prev, channel: "email" }))}
                       style={{
                         padding: "8px 20px", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600,
-                        background: form.channel === "email" ? "var(--primary)" : "#fff",
+                        background: form.channel === "email" ? "var(--color-accent)" : "#fff",
                         color: form.channel === "email" ? "#fff" : "var(--color-text-secondary)",
                         display: "flex", alignItems: "center", gap: 6, transition: "all 0.15s",
                       }}
@@ -1254,16 +1254,16 @@ export default function Newsletters() {
                     <div style={{ position: "relative" }}>
                       <button type="button" disabled
                         style={{
-                          padding: "8px 20px", border: "none", borderLeft: "1px solid var(--line)",
+                          padding: "8px 20px", border: "none", borderLeft: "1px solid var(--color-border)",
                           cursor: "not-allowed", fontSize: 13, fontWeight: 600,
-                          background: "#f8fafc", color: "var(--muted)",
+                          background: "#f8fafc", color: "var(--color-text-tertiary)",
                           display: "flex", alignItems: "center", gap: 6, opacity: 0.6,
                         }}
                       >
                         LINE
                         <span style={{
                           fontSize: 12, padding: "1px 6px", borderRadius: 8,
-                          background: "var(--line-light)", color: "var(--muted)",
+                          background: "var(--line-light)", color: "var(--color-text-tertiary)",
                         }}>準備中</span>
                       </button>
                     </div>
@@ -1271,7 +1271,7 @@ export default function Newsletters() {
                 </div>
 
                 {/* Audience */}
-                <div style={{ marginBottom: 20, padding: "16px 0", borderTop: "1px solid var(--line)" }}>
+                <div style={{ marginBottom: 20, padding: "16px 0", borderTop: "1px solid var(--color-border)" }}>
                   <span style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", letterSpacing: "0.3px", marginBottom: 10 }}>
                     配信対象
                   </span>
@@ -1283,9 +1283,9 @@ export default function Newsletters() {
                         style={{
                           padding: "6px 16px", borderRadius: 20, fontSize: 13, fontWeight: 600,
                           cursor: "pointer", transition: "all 0.15s",
-                          background: form.audience_type === opt.key ? "var(--primary)" : "#fff",
+                          background: form.audience_type === opt.key ? "var(--color-accent)" : "#fff",
                           color: form.audience_type === opt.key ? "#fff" : "var(--color-text-secondary)",
-                          border: `1px solid ${form.audience_type === opt.key ? "var(--primary)" : "var(--line)"}`,
+                          border: `1px solid ${form.audience_type === opt.key ? "var(--color-accent)" : "var(--color-border)"}`,
                         }}
                       >{opt.label}</button>
                     ))}
@@ -1299,9 +1299,9 @@ export default function Newsletters() {
                           style={{
                             padding: "5px 14px", borderRadius: 20, fontSize: 12, fontWeight: 500,
                             cursor: "pointer", transition: "all 0.15s",
-                            background: form.audience_detail === opt.key ? "var(--primary-light)" : "#fff",
-                            color: form.audience_detail === opt.key ? "var(--primary)" : "var(--color-text-secondary)",
-                            border: `1px solid ${form.audience_detail === opt.key ? "var(--primary)" : "var(--line)"}`,
+                            background: form.audience_detail === opt.key ? "var(--color-accent-light)" : "#fff",
+                            color: form.audience_detail === opt.key ? "var(--color-accent)" : "var(--color-text-secondary)",
+                            border: `1px solid ${form.audience_detail === opt.key ? "var(--color-accent)" : "var(--color-border)"}`,
                           }}
                         >{opt.label}</button>
                       ))}
@@ -1310,7 +1310,7 @@ export default function Newsletters() {
                   {previewCount !== null && (
                     <div style={{
                       display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 12px",
-                      borderRadius: 20, background: "var(--primary-light)", fontSize: 13, color: "var(--primary)",
+                      borderRadius: 20, background: "var(--color-accent-light)", fontSize: 13, color: "var(--color-accent)",
                     }}>
                       対象: <AnimatedCount value={previewCount} />名
                     </div>
@@ -1322,13 +1322,13 @@ export default function Newsletters() {
                   <div style={{
                     display: "flex", alignItems: "center", gap: 10,
                     padding: "12px 16px", marginBottom: 20,
-                    borderRadius: "var(--radius)",
-                    border: form.is_template ? "1px solid #fde68a" : "1px solid var(--line)",
+                    borderRadius: "var(--radius-md)",
+                    border: form.is_template ? "1px solid #fde68a" : "1px solid var(--color-border)",
                     background: form.is_template ? "#fffbeb" : "#fff",
                     transition: "all 0.15s",
                   }}>
                     <FileIcon size={16} color={form.is_template ? "#92400e" : "var(--color-text-secondary)"} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", flex: 1 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)", flex: 1 }}>
                       テンプレートとして保存
                     </span>
                     <button
@@ -1341,7 +1341,7 @@ export default function Newsletters() {
 
                 {/* Schedule toggle — not for templates */}
                 {!isTemplate && !form.is_template && (
-                  <div style={{ marginBottom: 20, padding: "16px 0", borderTop: "1px solid var(--line)" }}>
+                  <div style={{ marginBottom: 20, padding: "16px 0", borderTop: "1px solid var(--color-border)" }}>
                     <span style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", letterSpacing: "0.3px", marginBottom: 10 }}>
                       送信タイミング
                     </span>
@@ -1356,7 +1356,7 @@ export default function Newsletters() {
 
                     {isScheduled && (
                       <div style={{
-                        padding: 16, background: "var(--bg)", borderRadius: "var(--radius-lg)",
+                        padding: 16, background: "var(--color-bg-sub)", borderRadius: "var(--radius-lg)",
                         display: "grid", gap: 14, animation: "nlSlide 0.2s ease",
                         overflow: "visible",
                       }}>
@@ -1381,9 +1381,9 @@ export default function Newsletters() {
                                 style={{
                                   padding: "5px 14px", borderRadius: 20, fontSize: 12, fontWeight: 600,
                                   cursor: "pointer", transition: "all 0.15s",
-                                  background: schedHour === qt.h && schedMin === qt.m ? "var(--primary)" : "#fff",
+                                  background: schedHour === qt.h && schedMin === qt.m ? "var(--color-accent)" : "#fff",
                                   color: schedHour === qt.h && schedMin === qt.m ? "#fff" : "var(--color-text-secondary)",
-                                  border: `1px solid ${schedHour === qt.h && schedMin === qt.m ? "var(--primary)" : "var(--line)"}`,
+                                  border: `1px solid ${schedHour === qt.h && schedMin === qt.m ? "var(--color-accent)" : "var(--color-border)"}`,
                                 }}
                               >{qt.label}</button>
                             ))}
@@ -1392,7 +1392,7 @@ export default function Newsletters() {
                             <select
                               value={schedHour}
                               onChange={e => setSchedHour(Number(e.target.value))}
-                              style={{ padding: "6px 10px", borderRadius: "var(--radius)", border: "1px solid var(--line)", fontSize: 14 }}
+                              style={{ padding: "6px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: 14 }}
                             >
                               {HOURS.map(h => <option key={h} value={h}>{pad2(h)}</option>)}
                             </select>
@@ -1400,7 +1400,7 @@ export default function Newsletters() {
                             <select
                               value={schedMin}
                               onChange={e => setSchedMin(Number(e.target.value))}
-                              style={{ padding: "6px 10px", borderRadius: "var(--radius)", border: "1px solid var(--line)", fontSize: 14 }}
+                              style={{ padding: "6px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: 14 }}
                             >
                               {MINUTES.map(m => <option key={m} value={m}>{pad2(m)}</option>)}
                             </select>
@@ -1409,8 +1409,8 @@ export default function Newsletters() {
 
                         {schedDate && (
                           <div style={{
-                            padding: "10px 14px", borderRadius: "var(--radius)",
-                            background: "var(--primary-light)", color: "var(--primary)",
+                            padding: "10px 14px", borderRadius: "var(--radius-md)",
+                            background: "var(--color-accent-light)", color: "var(--color-accent)",
                             fontSize: 13, fontWeight: 600,
                           }}>
                             {formatScheduleDisplay(schedDate, `${pad2(schedHour)}:${pad2(schedMin)}`)} に送信予約
@@ -1433,7 +1433,7 @@ export default function Newsletters() {
                         fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)",
                         transition: "color 0.15s",
                       }}
-                      onMouseEnter={e => e.currentTarget.style.color = "var(--text)"}
+                      onMouseEnter={e => e.currentTarget.style.color = "var(--color-text-primary)"}
                       onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-secondary)"}
                     >
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{
@@ -1444,7 +1444,7 @@ export default function Newsletters() {
                       <ClipIcon size={14} /> 添付ファイル
                       {(form.attachment_name || form.attachment_url) && (
                         <span style={{
-                          width: 18, height: 18, borderRadius: "50%", background: "var(--primary)",
+                          width: 18, height: 18, borderRadius: "50%", background: "var(--color-accent)",
                           color: "#fff", fontSize: 12, fontWeight: 700,
                           display: "inline-flex", alignItems: "center", justifyContent: "center",
                         }}>1</span>
@@ -1453,7 +1453,7 @@ export default function Newsletters() {
                     {attachOpen && (
                       <div style={{
                         marginTop: 8, padding: 16, borderRadius: "var(--radius-lg)",
-                        border: "2px dashed var(--line)", textAlign: "center",
+                        border: "2px dashed var(--color-border)", textAlign: "center",
                         animation: "nlSlide 0.2s ease",
                       }}>
                         <p style={{ margin: "0 0 12px", fontSize: 13, color: "var(--color-text-secondary)" }}>
@@ -1465,7 +1465,7 @@ export default function Newsletters() {
                             <input type="text" placeholder="例: 案内.pdf"
                               value={form.attachment_name}
                               onChange={e => setForm(prev => ({ ...prev, attachment_name: e.target.value }))}
-                              style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius)", border: "1px solid var(--line)", fontSize: 13 }}
+                              style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: 13 }}
                             />
                           </div>
                           <div>
@@ -1473,7 +1473,7 @@ export default function Newsletters() {
                             <input type="url" placeholder="https://..."
                               value={form.attachment_url}
                               onChange={e => setForm(prev => ({ ...prev, attachment_url: e.target.value }))}
-                              style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius)", border: "1px solid var(--line)", fontSize: 13 }}
+                              style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: 13 }}
                             />
                           </div>
                         </div>
@@ -1485,7 +1485,7 @@ export default function Newsletters() {
 
               {/* ═══ Action bar (fixed bottom) ═══ */}
               <div style={{
-                padding: "14px 28px", borderTop: "1px solid var(--line)", background: "#fff",
+                padding: "14px 28px", borderTop: "1px solid var(--color-border)", background: "#fff",
                 display: "flex", alignItems: "center", gap: 8, flexShrink: 0, flexWrap: "wrap",
               }}>
                 {isTemplate ? (
@@ -1494,7 +1494,7 @@ export default function Newsletters() {
                       {form.id && (
                         <button type="button" onClick={() => setConfirmDeleteTemplate(true)} disabled={saving}
                           style={{
-                            padding: "7px 16px", borderRadius: "var(--radius)",
+                            padding: "7px 16px", borderRadius: "var(--radius-md)",
                             border: "1px solid var(--color-danger)", background: "var(--error-light)",
                             color: "#991b1b", fontSize: 13, fontWeight: 600, cursor: "pointer",
                           }}
@@ -1502,15 +1502,15 @@ export default function Newsletters() {
                       )}
                     </div>
                     <button type="submit" className="btn" disabled={saving}
-                      style={{ background: "var(--primary)", color: "#fff", border: "none", fontSize: 13 }}
+                      style={{ background: "var(--color-accent)", color: "#fff", border: "none", fontSize: 13 }}
                     >{saving ? "保存中..." : isNewTemplate ? "テンプレートとして保存" : "テンプレートを更新"}</button>
                   </>
                 ) : (
                   <>
                     <button type="submit" disabled={saving}
                       style={{
-                        padding: "7px 16px", borderRadius: "var(--radius)",
-                        border: "1px solid var(--line)", background: "#fff",
+                        padding: "7px 16px", borderRadius: "var(--radius-md)",
+                        border: "1px solid var(--color-border)", background: "#fff",
                         color: "var(--color-text-secondary)", fontSize: 13, fontWeight: 600,
                         cursor: "pointer", transition: "all 0.15s",
                       }}
@@ -1522,39 +1522,39 @@ export default function Newsletters() {
                         {form.id && (
                           <button type="button" onClick={() => setShowTestSend(true)} disabled={saving}
                             style={{
-                              padding: "7px 16px", borderRadius: "var(--radius)",
-                              border: "1px solid var(--primary)", background: "#fff",
-                              color: "var(--primary)", fontSize: 13, fontWeight: 600,
+                              padding: "7px 16px", borderRadius: "var(--radius-md)",
+                              border: "1px solid var(--color-accent)", background: "#fff",
+                              color: "var(--color-accent)", fontSize: 13, fontWeight: 600,
                               cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
                               transition: "all 0.15s",
                             }}
-                            onMouseEnter={e => { e.currentTarget.style.background = "var(--primary-light)"; }}
+                            onMouseEnter={e => { e.currentTarget.style.background = "var(--color-accent-light)"; }}
                             onMouseLeave={e => { e.currentTarget.style.background = "#fff"; }}
                           >
-                            <MailIcon size={13} color="var(--primary)" /> テスト送信
+                            <MailIcon size={13} color="var(--color-accent)" /> テスト送信
                           </button>
                         )}
                         <button type="button" onClick={handlePreview} disabled={saving}
                           style={{
-                            padding: "7px 16px", borderRadius: "var(--radius)",
-                            border: "1px solid var(--primary)", background: "#fff",
-                            color: "var(--primary)", fontSize: 13, fontWeight: 600,
+                            padding: "7px 16px", borderRadius: "var(--radius-md)",
+                            border: "1px solid var(--color-accent)", background: "#fff",
+                            color: "var(--color-accent)", fontSize: 13, fontWeight: 600,
                             cursor: "pointer", transition: "all 0.15s",
                           }}
-                          onMouseEnter={e => { e.currentTarget.style.background = "var(--primary-light)"; }}
+                          onMouseEnter={e => { e.currentTarget.style.background = "var(--color-accent-light)"; }}
                           onMouseLeave={e => { e.currentTarget.style.background = "#fff"; }}
                         >プレビュー</button>
                         {form.id && (
                           <button type="button" onClick={handleSendClick} disabled={saving}
                             style={{
-                              padding: "8px 24px", borderRadius: "var(--radius)",
-                              border: "none", background: "var(--primary)", color: "#fff",
+                              padding: "8px 24px", borderRadius: "var(--radius-md)",
+                              border: "none", background: "var(--color-accent)", color: "#fff",
                               fontSize: 14, fontWeight: 700, cursor: "pointer",
                               display: "flex", alignItems: "center", gap: 6,
                               transition: "all 0.15s", boxShadow: "0 2px 8px rgba(79,70,229,0.25)",
                             }}
-                            onMouseEnter={e => { e.currentTarget.style.background = "var(--primary-hover)"; e.currentTarget.style.transform = "scale(1.02)"; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = "var(--primary)"; e.currentTarget.style.transform = "scale(1)"; }}
+                            onMouseEnter={e => { e.currentTarget.style.background = "var(--color-accent-hover)"; e.currentTarget.style.transform = "scale(1.02)"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = "var(--color-accent)"; e.currentTarget.style.transform = "scale(1)"; }}
                           >
                             <SendIcon size={14} color="#fff" />
                             {isScheduled && schedDate ? "予約する" : "送信"}

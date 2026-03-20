@@ -69,11 +69,11 @@ function LinkModal({ open, initialUrl, onInsert, onRemove, onCancel, hasExisting
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSubmit(e); } }}
                 placeholder="https://example.com"
                 style={{
-                  width: '100%', padding: '10px 14px', borderRadius: 'var(--radius)',
-                  border: '1px solid var(--line)', fontSize: 14,
+                  width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--color-border)', fontSize: 14,
                 }}
               />
-              <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--muted)' }}>
+              <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--color-text-tertiary)' }}>
                 http:// を省略した場合、自動で https:// が付加されます
               </p>
             </div>
@@ -82,7 +82,7 @@ function LinkModal({ open, initialUrl, onInsert, onRemove, onCancel, hasExisting
             <div>
               {hasExistingLink && (
                 <button type="button" className="btn" onClick={onRemove}
-                  style={{ background: 'none', border: '1px solid var(--error)', color: 'var(--error)' }}
+                  style={{ background: 'none', border: '1px solid var(--color-danger)', color: 'var(--color-danger)' }}
                 >リンクを削除</button>
               )}
             </div>
@@ -92,7 +92,7 @@ function LinkModal({ open, initialUrl, onInsert, onRemove, onCancel, hasExisting
                 type="button" className="btn"
                 disabled={!url.trim()}
                 onClick={handleSubmit}
-                style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}
+                style={{ background: 'var(--color-accent)', color: '#fff', border: 'none' }}
               >{hasExistingLink ? '更新' : '設定'}</button>
             </div>
           </div>
@@ -140,20 +140,20 @@ function ImageModal({ open, onInsert, onCancel }) {
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSubmit(e); } }}
                 placeholder="https://example.com/image.jpg"
                 style={{
-                  width: '100%', padding: '10px 14px', borderRadius: 'var(--radius)',
-                  border: '1px solid var(--line)', fontSize: 14,
+                  width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--color-border)', fontSize: 14,
                 }}
               />
             </div>
             {url.trim() && (
               <div style={{
-                padding: 12, background: 'var(--line-light)', borderRadius: 'var(--radius)',
+                padding: 12, background: 'var(--line-light)', borderRadius: 'var(--radius-md)',
                 textAlign: 'center',
               }}>
                 <img
                   src={url}
                   alt="プレビュー"
-                  style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 'var(--radius)' }}
+                  style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 'var(--radius-md)' }}
                   onError={e => { e.currentTarget.style.display = 'none'; }}
                   onLoad={e => { e.currentTarget.style.display = 'block'; }}
                 />
@@ -166,7 +166,7 @@ function ImageModal({ open, onInsert, onCancel }) {
               type="button" className="btn"
               disabled={!url.trim()}
               onClick={handleSubmit}
-              style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}
+              style={{ background: 'var(--color-accent)', color: '#fff', border: 'none' }}
             >挿入</button>
           </div>
         </div>

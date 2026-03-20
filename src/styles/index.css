@@ -3,47 +3,48 @@
 
 /* ===== Design System: MITO21 Members ===== */
 :root {
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-light: #eef2ff;
-  --primary-50: #eef2ff;
-  --primary-100: #e0e7ff;
-  --primary-600: #4f46e5;
-  --primary-700: #4338ca;
+  /* ── Legacy aliases (backward compat — use tokens.css variables instead) ── */
+  --primary: var(--color-accent);
+  --primary-hover: var(--color-accent-dark);
+  --primary-light: var(--color-accent-light);
+  --primary-50: var(--color-accent-light);
+  --primary-100: var(--color-accent-light);
+  --primary-600: var(--color-accent);
+  --primary-700: var(--color-accent-dark);
   --primary-800: #3730a3;
 
-  --success: #059669;
-  --success-light: #ecfdf5;
+  --success: var(--color-success);
+  --success-light: var(--color-success-light);
   --success-text: #065f46;
-  --error: #dc2626;
-  --error-light: #fef2f2;
-  --warning: #d97706;
-  --warning-light: #fffbeb;
-  --info: #2563eb;
-  --info-light: #eff6ff;
+  --error: var(--color-danger);
+  --error-light: var(--color-danger-light);
+  --warning: var(--color-warning);
+  --warning-light: var(--color-warning-light);
+  --info: var(--color-accent);
+  --info-light: var(--color-accent-light);
 
-  --bg: #f8fafc;
-  --panel: #ffffff;
-  --text: #1e293b;
-  --text-secondary: #64748b;
-  --muted: #94a3b8;
-  --line: #e2e8f0;
-  --line-light: #f1f5f9;
+  --bg: var(--color-bg-sub);
+  --panel: var(--color-bg);
+  --text: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --muted: var(--color-text-tertiary);
+  --line: var(--color-border);
+  --line-light: var(--color-border);
 
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow: var(--shadow-md);
   --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04);
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
 
   --radius-sm: 6px;
-  --radius: 8px;
+  --radius: var(--radius-md);
   --radius-lg: 12px;
   --radius-xl: 16px;
 
   --sidebar-width: 240px;
   --header-height: 56px;
 
-  --transition: 0.15s ease;
+  --transition: var(--transition-fast);
 }
 
 * { box-sizing: border-box; }

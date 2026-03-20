@@ -1244,7 +1244,7 @@ export default function MeetingDetail() {
         </div>
       ) : canEditAttendance ? (
         showApForm ? (
-          <div style={{ marginBottom: 16, padding: 16, background: 'var(--bg)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
+          <div style={{ marginBottom: 16, padding: 16, background: 'var(--color-bg-sub)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12 }}>🍻 懇親会を追加</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div><label className="mtg-label">場所</label><input className="mtg-input" value={apForm.location} onChange={e => setApForm(f => ({ ...f, location: e.target.value }))} placeholder="例: 居酒屋XX" /></div>
@@ -1484,7 +1484,7 @@ export default function MeetingDetail() {
 
       <style>{`
         .mtg-dropdown-item { border-bottom: 1px solid var(--color-border); }
-        .mtg-dropdown-item:hover { background: var(--bg); }
+        .mtg-dropdown-item:hover { background: var(--color-bg-sub); }
         .mtg-dropdown-item-add:hover { background: var(--color-accent-light); }
       `}</style>
     </section>

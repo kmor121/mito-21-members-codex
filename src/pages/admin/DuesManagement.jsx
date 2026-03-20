@@ -251,7 +251,7 @@ function ReconcileModal({ target, allDues, toggleDate, setToggleDate, togglePaye
         <div>
           {/* Member info */}
           <div style={{
-            padding: 16, borderRadius: "var(--radius)", background: "var(--bg)",
+            padding: 16, borderRadius: "var(--radius-md)", background: "var(--color-bg-sub)",
             marginBottom: 20, textAlign: "center",
           }}>
             <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>{target.member_name}</div>
@@ -263,7 +263,7 @@ function ReconcileModal({ target, allDues, toggleDate, setToggleDate, togglePaye
 
           {isPaid ? (
             <div style={{
-              padding: 16, borderRadius: "var(--radius)",
+              padding: 16, borderRadius: "var(--radius-md)",
               background: "#fef2f2", border: "1px solid #fecaca",
               textAlign: "center",
             }}>
@@ -290,7 +290,7 @@ function ReconcileModal({ target, allDues, toggleDate, setToggleDate, togglePaye
                   type="text" value={togglePayerName}
                   placeholder="例: 株式会社○○"
                   onChange={(e) => setTogglePayerName(e.target.value)}
-                  style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius)", border: "1px solid var(--color-border)", fontSize: 14 }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: 14 }}
                 />
                 <PayerSuggest memberId={target.member_id} allDues={allDues} value={togglePayerName} onChange={setTogglePayerName} />
               </div>
@@ -302,7 +302,7 @@ function ReconcileModal({ target, allDues, toggleDate, setToggleDate, togglePaye
                   type="text" value={toggleNotes}
                   placeholder="備考があれば入力"
                   onChange={(e) => setToggleNotes(e.target.value)}
-                  style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius)", border: "1px solid var(--color-border)", fontSize: 14 }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: 14 }}
                 />
               </div>
             </div>
@@ -336,7 +336,7 @@ function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, curren
       <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 16px" }}>全年度の会費履歴</p>
           {totalUnpaid > 0 && (
             <div style={{
-              padding: "10px 16px", borderRadius: "var(--radius)",
+              padding: "10px 16px", borderRadius: "var(--radius-md)",
               background: "#fef2f2", border: "1px solid #fecaca",
               marginBottom: 16, display: "flex", alignItems: "center", gap: 8,
               fontSize: 13, color: "#991b1b", fontWeight: 500,
@@ -423,7 +423,7 @@ function SettingsField({ id, label, description, value, onChange }) {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           style={{
-            flex: 1, padding: "8px 12px", borderRadius: "var(--radius)",
+            flex: 1, padding: "8px 12px", borderRadius: "var(--radius-md)",
             border: "1px solid var(--color-border)", fontSize: 14,
             fontVariantNumeric: "tabular-nums",
           }}
@@ -997,7 +997,7 @@ export default function DuesManagement() {
             <h1 className="page-title" style={{ margin: 0, fontSize: 18, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>会費管理</h1>
             <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
               <button type="button" onClick={() => setShowFilters(v => !v)} style={{
-                width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--color-border)',
+                width: 36, height: 36, borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: showFilters ? 'var(--color-accent-light)' : '#fff', cursor: 'pointer',
                 color: showFilters ? 'var(--color-accent)' : 'var(--color-text-secondary)',
@@ -1005,7 +1005,7 @@ export default function DuesManagement() {
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </button>
               <button type="button" onClick={() => setActiveTab('settings')} style={{
-                width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--color-border)',
+                width: 36, height: 36, borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: activeTab === 'settings' ? 'var(--color-accent-light)' : '#fff', cursor: 'pointer',
                 color: activeTab === 'settings' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
@@ -1099,7 +1099,7 @@ export default function DuesManagement() {
         </>}
       >
         <div style={{
-          padding: 16, borderRadius: "var(--radius)", background: "var(--bg)",
+          padding: 16, borderRadius: "var(--radius-md)", background: "var(--color-bg-sub)",
           marginBottom: 20, textAlign: "center",
         }}>
           <div style={{ fontSize: 28, fontWeight: 700, color: "var(--color-accent)" }}>{selectedIds.size}件</div>
@@ -1269,15 +1269,15 @@ export default function DuesManagement() {
           {isMobile && showFilters && (
             <div style={{
               padding: '12px 16px', marginBottom: 8,
-              borderRadius: 'var(--radius)', border: '1px solid var(--color-border)',
-              background: 'var(--bg)',
+              borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
+              background: 'var(--color-bg-sub)',
             }}>
               <div style={{ position: 'relative', marginBottom: 10 }}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-secondary)' }}>
                   <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
                 <input type="text" placeholder={"\u6C0F\u540D\u30FB\u632F\u8FBC\u540D\u7FA9\u3067\u691C\u7D22"} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', fontSize: 13 }} />
+                  style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13 }} />
               </div>
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
                 {[{ key: 'all', label: '\u5168\u3066' }, { key: 'unpaid', label: '\u672A\u7D0D' }, { key: 'paid', label: '\u7D0D\u5165\u6E08' }, { key: 'unissued', label: '\u672A\u767A\u884C' }].map(opt => (
@@ -1295,11 +1295,11 @@ export default function DuesManagement() {
               )}
               <div style={{ display: 'flex', gap: 8 }}>
                 <select value={memberTypeFilter} onChange={(e) => setMemberTypeFilter(e.target.value)}
-                  style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', fontSize: 13 }}>
+                  style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13 }}>
                   <option value="all">{"\u5168\u7A2E\u5225"}</option><option value={"\u6B63\u4F1A\u54E1"}>{"\u6B63\u4F1A\u54E1"}</option><option value={"\u8CDB\u52A9\u4F1A\u54E1"}>{"\u8CDB\u52A9\u4F1A\u54E1"}</option>
                 </select>
                 <select value={orgFilter} onChange={(e) => setOrgFilter(e.target.value)}
-                  style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', fontSize: 13 }}>
+                  style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13 }}>
                   <option value="all">{"\u5168\u7D44\u7E54"}</option>
                   {fyOrgs.map(o => (<option key={o.id} value={o.id}>{o.org_name}</option>))}
                 </select>
@@ -1338,7 +1338,7 @@ export default function DuesManagement() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     style={{
                       width: "100%", padding: "8px 12px 8px 34px",
-                      borderRadius: "var(--radius)", border: "1px solid var(--color-border)",
+                      borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)",
                       fontSize: 13,
                     }}
                   />
@@ -1349,7 +1349,7 @@ export default function DuesManagement() {
                   value={memberTypeFilter}
                   onChange={(e) => setMemberTypeFilter(e.target.value)}
                   style={{
-                    padding: "8px 12px", borderRadius: "var(--radius)",
+                    padding: "8px 12px", borderRadius: "var(--radius-md)",
                     border: "1px solid var(--color-border)", fontSize: 13,
                   }}
                 >
@@ -1363,7 +1363,7 @@ export default function DuesManagement() {
                   value={orgFilter}
                   onChange={(e) => setOrgFilter(e.target.value)}
                   style={{
-                    padding: "8px 12px", borderRadius: "var(--radius)",
+                    padding: "8px 12px", borderRadius: "var(--radius-md)",
                     border: "1px solid var(--color-border)", fontSize: 13,
                   }}
                 >
@@ -1942,7 +1942,7 @@ export default function DuesManagement() {
                     value={settingsFyId}
                     onChange={(e) => loadSettingsForFy(e.target.value)}
                     style={{
-                      padding: "6px 12px", borderRadius: "var(--radius)",
+                      padding: "6px 12px", borderRadius: "var(--radius-md)",
                       border: "1px solid var(--color-border)", fontSize: 13, fontWeight: 600,
                     }}
                   >
@@ -1959,7 +1959,7 @@ export default function DuesManagement() {
               {priorYearSettings && (
                 <div style={{
                   display: "flex", alignItems: "center", gap: 8,
-                  padding: "10px 16px", borderRadius: "var(--radius)",
+                  padding: "10px 16px", borderRadius: "var(--radius-md)",
                   background: "var(--info-light)", border: "1px solid #bfdbfe",
                   fontSize: 13,
                 }}>
@@ -2042,7 +2042,7 @@ export default function DuesManagement() {
                 {/* Summary box */}
                 <div style={{
                   padding: 16, borderRadius: "var(--radius-lg)",
-                  background: "var(--bg)", border: "1px solid var(--color-border)",
+                  background: "var(--color-bg-sub)", border: "1px solid var(--color-border)",
                   marginBottom: 20,
                 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: "var(--color-text-primary)" }}>会費生成ルール (プレビュー)</div>
