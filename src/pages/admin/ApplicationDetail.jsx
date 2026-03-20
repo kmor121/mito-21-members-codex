@@ -25,32 +25,32 @@ function formatDate(d) {
 const iconBase = { width: 18, height: 18, fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
 
 const UserIcon = () => (
-  <svg style={{ ...iconBase, color: 'var(--primary)' }} viewBox="0 0 24 24">
+  <svg style={{ ...iconBase, color: 'var(--color-accent)' }} viewBox="0 0 24 24">
     <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
   </svg>
 );
 const BuildingIcon = () => (
-  <svg style={{ ...iconBase, color: 'var(--primary)' }} viewBox="0 0 24 24">
+  <svg style={{ ...iconBase, color: 'var(--color-accent)' }} viewBox="0 0 24 24">
     <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
   </svg>
 );
 const MailIcon = () => (
-  <svg style={{ ...iconBase, color: 'var(--primary)' }} viewBox="0 0 24 24">
+  <svg style={{ ...iconBase, color: 'var(--color-accent)' }} viewBox="0 0 24 24">
     <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
   </svg>
 );
 const HomeIcon = () => (
-  <svg style={{ ...iconBase, color: 'var(--primary)' }} viewBox="0 0 24 24">
+  <svg style={{ ...iconBase, color: 'var(--color-accent)' }} viewBox="0 0 24 24">
     <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" />
   </svg>
 );
 const NoteIcon = () => (
-  <svg style={{ ...iconBase, color: 'var(--primary)' }} viewBox="0 0 24 24">
+  <svg style={{ ...iconBase, color: 'var(--color-accent)' }} viewBox="0 0 24 24">
     <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
   </svg>
 );
 const UsersIcon = () => (
-  <svg style={{ ...iconBase, color: 'var(--primary)' }} viewBox="0 0 24 24">
+  <svg style={{ ...iconBase, color: 'var(--color-accent)' }} viewBox="0 0 24 24">
     <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
   </svg>
 );
@@ -107,10 +107,10 @@ function InfoGrid({ items, singleColumn }) {
       {items.map((item, i) => item && (
         <div key={i} style={{
           padding: "10px 12px", borderRadius: "var(--radius)",
-          background: "var(--line-light)", border: "1px solid var(--line)",
+          background: "var(--color-border)", border: "1px solid var(--color-border)",
           gridColumn: item.span2 ? "span 2" : undefined,
         }}>
-          <dt style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4 }}>
+          <dt style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 4 }}>
             {item.label}
           </dt>
           <dd style={{ fontSize: 13, fontWeight: 600, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
@@ -142,9 +142,9 @@ function MemberTypePills({ value, onChange }) {
             onClick={() => onChange(opt.value)}
             style={{
               padding: "8px 20px", borderRadius: "999px", fontSize: 14, fontWeight: 600,
-              border: active ? "2px solid " + opt.color : "2px solid var(--line)",
+              border: active ? "2px solid " + opt.color : "2px solid var(--color-border)",
               background: active ? opt.bg : "#fff",
-              color: active ? opt.color : "var(--text-secondary)",
+              color: active ? opt.color : "var(--color-text-secondary)",
               cursor: "pointer", transition: "all 0.15s",
             }}
           >
@@ -296,12 +296,12 @@ export default function ApplicationDetail() {
       <a
         href="/admin/applications"
         onClick={(e) => { e.preventDefault(); navigate("/admin/applications"); }}
-        style={{ fontSize: 13, color: "var(--primary)", textDecoration: "none", fontWeight: 600, marginBottom: 16, display: "inline-block" }}
+        style={{ fontSize: 13, color: "var(--color-accent)", textDecoration: "none", fontWeight: 600, marginBottom: 16, display: "inline-block" }}
       >
         &larr; 申込一覧に戻る
       </a>
       <div style={{
-        background: "var(--error-light)", border: "1px solid #fecaca",
+        background: "var(--color-danger-light)", border: "1px solid #fecaca",
         borderRadius: "var(--radius)", padding: 24, color: "#991b1b", fontSize: 14,
       }}>
         {error || "データを取得できませんでした"}
@@ -361,7 +361,7 @@ export default function ApplicationDetail() {
           >
             <div className="modal-header" style={{ padding: "20px 24px" }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>入会を承認</h3>
-              <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{fullName(detail)}</span>
+              <span style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>{fullName(detail)}</span>
             </div>
             <div className="modal-body" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20, overflow: "visible" }}>
               {/* Member type pills */}
@@ -405,7 +405,7 @@ export default function ApplicationDetail() {
               <button className="btn btn-secondary" onClick={() => setShowApproveModal(false)}>キャンセル</button>
               <button
                 className="btn btn-primary"
-                style={{ background: "var(--primary)", display: "flex", alignItems: "center", gap: 6 }}
+                style={{ background: "var(--color-accent)", display: "flex", alignItems: "center", gap: 6 }}
                 onClick={confirmApprove}
                 disabled={approveSubmitting}
               >
@@ -427,13 +427,13 @@ export default function ApplicationDetail() {
             style={{ maxWidth: 500, borderRadius: "var(--radius-xl)", animation: "fadeIn 0.15s ease" }}
           >
             <div className="modal-header" style={{ padding: "20px 24px" }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--error)" }}>入会申込を却下</h3>
-              <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{fullName(detail)}</span>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--color-danger)" }}>入会申込を却下</h3>
+              <span style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>{fullName(detail)}</span>
             </div>
             <div className="modal-body" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
-                  却下理由 <span style={{ color: "var(--error)" }}>*</span>
+                  却下理由 <span style={{ color: "var(--color-danger)" }}>*</span>
                 </label>
                 <textarea
                   rows={4}
@@ -442,7 +442,7 @@ export default function ApplicationDetail() {
                   placeholder="却下理由を入力してください（申込者に通知されます）"
                   style={{ width: "100%", fontFamily: "inherit", resize: "vertical" }}
                 />
-                <div style={{ textAlign: "right", fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                <div style={{ textAlign: "right", fontSize: 12, color: "var(--color-text-tertiary)", marginTop: 4 }}>
                   {rejectionReason.length} 文字
                 </div>
               </div>
@@ -452,7 +452,7 @@ export default function ApplicationDetail() {
               <button
                 className="btn"
                 style={{
-                  background: "var(--error)", color: "#fff", border: "none",
+                  background: "var(--color-danger)", color: "#fff", border: "none",
                   opacity: rejectSubmitting ? 0.6 : 1,
                   display: "flex", alignItems: "center", gap: 6,
                 }}
@@ -472,7 +472,7 @@ export default function ApplicationDetail() {
       <a
         href="/admin/applications"
         onClick={(e) => { e.preventDefault(); navigate("/admin/applications"); }}
-        style={{ fontSize: 13, color: "var(--primary)", textDecoration: "none", fontWeight: 600, marginBottom: 16, display: "inline-block" }}
+        style={{ fontSize: 13, color: "var(--color-accent)", textDecoration: "none", fontWeight: 600, marginBottom: 16, display: "inline-block" }}
       >
         &larr; 申込一覧に戻る
       </a>
@@ -504,7 +504,7 @@ export default function ApplicationDetail() {
           <div>
             却下{detail.rejected_at ? `（${formatDate(detail.rejected_at)}）` : ""}
             {detail.rejection_reason && (
-              <div style={{ fontWeight: 400, fontSize: 13, marginTop: 4, color: "var(--text)", lineHeight: 1.6 }}>
+              <div style={{ fontWeight: 400, fontSize: 13, marginTop: 4, color: "var(--color-text-primary)", lineHeight: 1.6 }}>
                 理由: {detail.rejection_reason}
               </div>
             )}
@@ -517,11 +517,11 @@ export default function ApplicationDetail() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4, flexWrap: "wrap" }}>
             <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{displayValue(fullName(detail))}</h1>
-            <span style={{ fontSize: 13, color: "var(--muted)" }}>{displayValue(fullNameKana(detail))}</span>
+            <span style={{ fontSize: 13, color: "var(--color-text-tertiary)" }}>{displayValue(fullNameKana(detail))}</span>
             <StatusBadge status={detail.approval_status} large />
           </div>
           {detail.applied_at && (
-            <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
               {formatDate(detail.applied_at)} 申込
             </p>
           )}
@@ -536,15 +536,15 @@ export default function ApplicationDetail() {
             {detail.profile_image ? (
               <img src={detail.profile_image} alt="" style={{
                 width: 80, height: 80, borderRadius: "50%", objectFit: "cover",
-                border: "2px solid var(--line)",
+                border: "2px solid var(--color-border)",
               }} />
             ) : (
               <div style={{
                 width: 80, height: 80, borderRadius: "50%",
-                background: "linear-gradient(135deg, var(--primary-100), var(--primary-50))",
-                border: "2px solid var(--line)",
+                background: "linear-gradient(135deg, var(--color-accent-light), var(--primary-50))",
+                border: "2px solid var(--color-border)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 28, fontWeight: 700, color: "var(--primary)",
+                fontSize: 28, fontWeight: 700, color: "var(--color-accent)",
               }}>
                 {nameInitial(detail)}
               </div>
@@ -615,14 +615,14 @@ export default function ApplicationDetail() {
         {refEditing ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>紹介者 1</label>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>紹介者 1</label>
               <input type="text" value={refForm.referrer_1} onChange={e => setRefForm(f => ({ ...f, referrer_1: e.target.value }))}
-                style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--line)", borderRadius: "var(--radius)", fontSize: 14, boxSizing: "border-box" }} />
+                style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--color-border)", borderRadius: "var(--radius)", fontSize: 14, boxSizing: "border-box" }} />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>紹介者 2</label>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>紹介者 2</label>
               <input type="text" value={refForm.referrer_2} onChange={e => setRefForm(f => ({ ...f, referrer_2: e.target.value }))}
-                style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--line)", borderRadius: "var(--radius)", fontSize: 14, boxSizing: "border-box" }} />
+                style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--color-border)", borderRadius: "var(--radius)", fontSize: 14, boxSizing: "border-box" }} />
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <button className="btn btn-secondary" type="button" onClick={() => setRefEditing(false)}>キャンセル</button>
@@ -639,7 +639,7 @@ export default function ApplicationDetail() {
               display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
             }}>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>紹介者 1</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 2 }}>紹介者 1</div>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>{displayValue(detail.referrer_1)}</div>
               </div>
               {detail.referrer_1 && renderRefBadge("referrer_1")}
@@ -653,7 +653,7 @@ export default function ApplicationDetail() {
                 display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
               }}>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>紹介者 2</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 2 }}>紹介者 2</div>
                   <div style={{ fontSize: 14, fontWeight: 600 }}>{displayValue(detail.referrer_2)}</div>
                 </div>
                 {renderRefBadge("referrer_2")}
@@ -683,7 +683,7 @@ export default function ApplicationDetail() {
       {isPending && (
         <div style={{
           position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100,
-          background: "#fff", borderTop: "1px solid var(--line)",
+          background: "#fff", borderTop: "1px solid var(--color-border)",
           boxShadow: "0 -4px 12px rgba(0,0,0,0.06)",
           padding: "14px 24px",
           display: "flex", alignItems: "center", justifyContent: "center",
@@ -702,7 +702,7 @@ export default function ApplicationDetail() {
               disabled={rejectSubmitting}
               style={{
                 padding: "10px 24px", borderRadius: "var(--radius)", fontSize: 14, fontWeight: 600,
-                background: "#fff", color: "var(--error)", border: "1px solid var(--error)",
+                background: "#fff", color: "var(--color-danger)", border: "1px solid var(--color-danger)",
                 cursor: rejectSubmitting ? "not-allowed" : "pointer",
                 opacity: rejectSubmitting ? 0.6 : 1, transition: "all 0.15s",
               }}
@@ -717,7 +717,7 @@ export default function ApplicationDetail() {
               disabled={approveSubmitting}
               style={{
                 padding: "10px 32px", borderRadius: "var(--radius)", fontSize: 14, fontWeight: 700,
-                background: "var(--primary)", color: "#fff", border: "none",
+                background: "var(--color-accent)", color: "#fff", border: "none",
                 cursor: approveSubmitting ? "not-allowed" : "pointer",
                 opacity: approveSubmitting ? 0.6 : 1, transition: "all 0.15s",
                 boxShadow: "var(--shadow-md)",
@@ -743,7 +743,7 @@ export default function ApplicationDetail() {
               placeholder="却下理由を入力してください（申込者に通知されます）"
               style={{ width: "100%", fontFamily: "inherit", resize: "vertical" }}
             />
-            <div style={{ textAlign: "right", fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+            <div style={{ textAlign: "right", fontSize: 12, color: "var(--color-text-tertiary)", marginTop: 4 }}>
               {rejectionReason.length} 文字
             </div>
           </div>

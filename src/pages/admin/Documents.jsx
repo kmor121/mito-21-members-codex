@@ -13,7 +13,7 @@ const DOC_TYPE_BADGE = {
 };
 
 function getTypeBadge(type) {
-  return DOC_TYPE_BADGE[type] || { color: "var(--text-secondary)", bg: "var(--line-light)", icon: "📄" };
+  return DOC_TYPE_BADGE[type] || { color: "var(--color-text-secondary)", bg: "var(--color-border)", icon: "📄" };
 }
 
 /* ── Toggle Switch ── */
@@ -44,7 +44,7 @@ function DocConfirmDialog({ open, title, children, confirmLabel, onConfirm, onCa
         <div className="fy-confirm-footer">
           <button type="button" className="btn btn-secondary" onClick={onCancel}>キャンセル</button>
           <button type="button" className="btn btn-primary" onClick={onConfirm}
-            style={danger ? { background: "var(--error)", borderColor: "var(--error)" } : {}}
+            style={danger ? { background: "var(--color-danger)", borderColor: "var(--color-danger)" } : {}}
           >{confirmLabel}</button>
         </div>
       </div>
@@ -301,7 +301,7 @@ export default function Documents() {
                       display: 'flex',
                       alignItems: 'center',
                       gap: 10,
-                      borderBottom: '1px solid var(--line-light)',
+                      borderBottom: '1px solid var(--color-border)',
                       cursor: 'pointer',
                     }}
                     onClick={() => navigate(`/admin/documents/${doc.id}/edit`)}
@@ -326,14 +326,14 @@ export default function Documents() {
                       <div style={{
                         fontWeight: 600,
                         fontSize: 14,
-                        color: 'var(--text)',
+                        color: 'var(--color-text-primary)',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                       }}>
                         {doc.title || "-"}
                       </div>
-                      <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1 }}>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 1 }}>
                         {doc.doc_type || "-"} · {doc.fiscal_year_label || "常設"} · {doc.updated_at ? doc.updated_at.slice(0, 10) : "-"}
                       </div>
                     </div>

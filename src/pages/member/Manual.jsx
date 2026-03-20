@@ -58,7 +58,7 @@ function ManualCategoryGroup({ title, items, defaultOpen = false }) {
         <ChevronDown
           size={18}
           style={{
-            color: "var(--text-secondary)",
+            color: "var(--color-text-secondary)",
             transition: "transform 0.2s ease",
             transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
           }}
@@ -166,9 +166,9 @@ export default function Manual() {
             </>
           ) : (
             <div className="empty-state-enhanced">
-              <FileText size={32} style={{ color: "var(--muted)", marginBottom: 8 }} />
-              <p style={{ fontWeight: 600, color: "var(--text)", margin: "0 0 4px" }}>運用マニュアルはまだ登録されていません</p>
-              <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>管理者がマニュアルを公開すると、ここに表示されます</p>
+              <FileText size={32} style={{ color: "var(--color-text-tertiary)", marginBottom: 8 }} />
+              <p style={{ fontWeight: 600, color: "var(--color-text-primary)", margin: "0 0 4px" }}>運用マニュアルはまだ登録されていません</p>
+              <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>管理者がマニュアルを公開すると、ここに表示されます</p>
             </div>
           )}
         </div>

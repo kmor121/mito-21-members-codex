@@ -70,7 +70,7 @@ function MemberAvatar({ src, name, initial: initialOverride, size = 26 }) {
     return (
       <div style={{
         width: size, height: size, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
-        border: "2px solid #fff", boxShadow: "0 0 0 1px var(--line)",
+        border: "2px solid #fff", boxShadow: "0 0 0 1px var(--color-border)",
       }}>
         <img src={src} alt={name || ""} loading="lazy"
           style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -107,22 +107,22 @@ function SkeletonCard({ delay = 0 }) {
   const shimmer = { animation: `pulse 1.5s ease infinite ${delay}ms` };
   return (
     <div style={{
-      padding: "18px 20px", borderRadius: "var(--radius-lg)", border: "1px solid var(--line-light)",
-      background: "#fff", borderLeft: "4px solid var(--line-light)",
+      padding: "18px 20px", borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
+      background: "#fff", borderLeft: "4px solid var(--color-border)",
       animation: `orgViewSlide 0.3s ease ${delay}ms both`,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <div style={{ width: 120, height: 16, borderRadius: 4, background: "var(--line-light)", ...shimmer }} />
-          <div style={{ width: 48, height: 20, borderRadius: 6, background: "var(--line-light)", ...shimmer }} />
+          <div style={{ width: 120, height: 16, borderRadius: 4, background: "var(--color-border)", ...shimmer }} />
+          <div style={{ width: 48, height: 20, borderRadius: 6, background: "var(--color-border)", ...shimmer }} />
         </div>
-        <div style={{ width: 32, height: 16, borderRadius: 8, background: "var(--line-light)", ...shimmer }} />
+        <div style={{ width: 32, height: 16, borderRadius: 8, background: "var(--color-border)", ...shimmer }} />
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {[1, 2, 3].map(i => (
           <div key={i} style={{
             width: 130, height: 38, borderRadius: 20,
-            background: "var(--line-light)", ...shimmer,
+            background: "var(--color-border)", ...shimmer,
           }} />
         ))}
       </div>
@@ -131,7 +131,7 @@ function SkeletonCard({ delay = 0 }) {
 }
 
 /* ═══ Chevron SVG ═══ */
-function ChevronRight({ size = 14, color = "var(--text-secondary)" }) {
+function ChevronRight({ size = 14, color = "var(--color-text-secondary)" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ display: "block" }}>
       <path d="M6 3l5 5-5 5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -159,8 +159,8 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
         className="orgview-card"
         style={{
           borderRadius: "var(--radius-lg)", background: "#fff",
-          border: "1px solid var(--line)", borderLeft: `4px solid ${accentColor}`,
-          overflow: "hidden", transition: "box-shadow var(--transition)",
+          border: "1px solid var(--color-border)", borderLeft: `4px solid ${accentColor}`,
+          overflow: "hidden", transition: "box-shadow var(--transition-fast)",
         }}
       >
         {/* Header */}
@@ -169,9 +169,9 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
           style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
             padding: "12px 18px",
-            borderBottom: isExpanded ? "1px solid var(--line-light)" : "none",
+            borderBottom: isExpanded ? "1px solid var(--color-border)" : "none",
             cursor: hasContent ? "pointer" : "default",
-            transition: "background var(--transition)",
+            transition: "background var(--transition-fast)",
             userSelect: "none",
           }}
           onMouseEnter={e => { if (hasContent) e.currentTarget.style.background = "var(--bg)"; }}
@@ -184,10 +184,10 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
                 transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
                 display: "flex", alignItems: "center", flexShrink: 0,
               }}>
-                <ChevronRight size={12} color="var(--text-secondary)" />
+                <ChevronRight size={12} color="var(--color-text-secondary)" />
               </span>
             )}
-            <span style={{ fontWeight: nameWeight, fontSize: nameSize, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <span style={{ fontWeight: nameWeight, fontSize: nameSize, color: "var(--color-text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {org.org_name || "（名称未設定）"}
             </span>
             {org.supervisor_id && memberMap?.[org.supervisor_id] && (() => {
@@ -212,7 +212,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
           </div>
           {assignments.length > 0 && (
             <span style={{
-              fontSize: 12, color: "var(--text-secondary)", background: "var(--bg)",
+              fontSize: 12, color: "var(--color-text-secondary)", background: "var(--bg)",
               padding: "2px 8px", borderRadius: 10, fontWeight: 500, flexShrink: 0, marginLeft: 8,
             }}>{assignments.length}名</span>
           )}
@@ -236,18 +236,18 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
                     style={{
                       display: "flex", alignItems: "center", gap: 5,
                       padding: "3px 10px 3px 3px",
-                      borderRadius: 16, border: "1px solid var(--line)", background: "#fff",
-                      textDecoration: "none", color: "var(--text)", fontSize: 12,
-                      transition: "all var(--transition)",
+                      borderRadius: 16, border: "1px solid var(--color-border)", background: "#fff",
+                      textDecoration: "none", color: "var(--color-text-primary)", fontSize: 12,
+                      transition: "all var(--transition-fast)",
                       animation: `chipEnter 0.25s ease ${idx * 30}ms both`,
                     }}
                     onMouseEnter={e => {
-                      e.currentTarget.style.borderColor = "var(--primary)";
+                      e.currentTarget.style.borderColor = "var(--color-accent)";
                       e.currentTarget.style.transform = "translateY(-1px)";
                       e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.06)";
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.borderColor = "var(--line)";
+                      e.currentTarget.style.borderColor = "var(--color-border)";
                       e.currentTarget.style.transform = "translateY(0)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
@@ -269,12 +269,12 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
                   onClick={(e) => { e.stopPropagation(); setShowAllMembers(true); }}
                   style={{
                     display: "flex", alignItems: "center", gap: 4,
-                    padding: "4px 12px", borderRadius: 16, border: "1px dashed var(--line)",
-                    background: "var(--line-light)", color: "var(--text-secondary)", fontSize: 12,
-                    fontWeight: 500, cursor: "pointer", transition: "all var(--transition)",
+                    padding: "4px 12px", borderRadius: 16, border: "1px dashed var(--color-border)",
+                    background: "var(--color-border)", color: "var(--color-text-secondary)", fontSize: 12,
+                    fontWeight: 500, cursor: "pointer", transition: "all var(--transition-fast)",
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.color = "var(--color-accent)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.color = "var(--color-text-secondary)"; }}
                 >
                   +{sorted.length - MEMBER_COLLAPSE_THRESHOLD}名を表示
                 </button>
@@ -285,9 +285,9 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
                   onClick={(e) => { e.stopPropagation(); setShowAllMembers(false); }}
                   style={{
                     display: "flex", alignItems: "center", gap: 4,
-                    padding: "4px 12px", borderRadius: 16, border: "1px dashed var(--line)",
-                    background: "var(--line-light)", color: "var(--text-secondary)", fontSize: 12,
-                    fontWeight: 500, cursor: "pointer", transition: "all var(--transition)",
+                    padding: "4px 12px", borderRadius: 16, border: "1px dashed var(--color-border)",
+                    background: "var(--color-border)", color: "var(--color-text-secondary)", fontSize: 12,
+                    fontWeight: 500, cursor: "pointer", transition: "all var(--transition-fast)",
                   }}
                 >
                   閉じる
@@ -303,7 +303,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
       {isExpanded && children.length > 0 && (
         <div style={{
           marginTop: 8, paddingLeft: isMobile ? 12 : 24,
-          borderLeft: "2px solid var(--line)",
+          borderLeft: "2px solid var(--color-border)",
           marginLeft: isMobile ? 6 : 14,
           display: "grid", gap: 8,
         }}>
@@ -466,30 +466,30 @@ export default function OrgChartView() {
 
       {/* ── Year navigator ── */}
       <div style={{
-        borderBottom: "1px solid var(--line)", marginBottom: 20,
+        borderBottom: "1px solid var(--color-border)", marginBottom: 20,
       }}>
         {isMobile ? (
           /* Mobile: compact inline year switcher */
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 0 8px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
               <button type="button" disabled={currentIdx <= 0} onClick={() => goYear(-1)}
-                style={{ background: "none", border: "none", padding: "4px", fontSize: 14, color: currentIdx <= 0 ? "var(--text-muted)" : "var(--primary)", cursor: currentIdx <= 0 ? "default" : "pointer" }}>◂</button>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)", whiteSpace: "nowrap" }}>{yearLabel}</span>
+                style={{ background: "none", border: "none", padding: "4px", fontSize: 14, color: currentIdx <= 0 ? "var(--color-text-tertiary)" : "var(--color-accent)", cursor: currentIdx <= 0 ? "default" : "pointer" }}>◂</button>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-accent)", whiteSpace: "nowrap" }}>{yearLabel}</span>
               <button type="button" disabled={currentIdx >= sortedYears.length - 1} onClick={() => goYear(1)}
-                style={{ background: "none", border: "none", padding: "4px", fontSize: 14, color: currentIdx >= sortedYears.length - 1 ? "var(--text-muted)" : "var(--primary)", cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer" }}>▸</button>
+                style={{ background: "none", border: "none", padding: "4px", fontSize: 14, color: currentIdx >= sortedYears.length - 1 ? "var(--color-text-tertiary)" : "var(--color-accent)", cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer" }}>▸</button>
             </div>
             <div style={{ display: "flex", gap: 6 }}>
               <button type="button" onClick={expandAll}
                 style={{
-                  background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-                  padding: "4px 10px", cursor: "pointer", fontSize: 11, color: "var(--text-secondary)",
+                  background: "none", border: "1px solid var(--color-border)", borderRadius: "var(--radius)",
+                  padding: "4px 10px", cursor: "pointer", fontSize: 11, color: "var(--color-text-secondary)",
                   fontWeight: 500,
                 }}
               >展開</button>
               <button type="button" onClick={collapseAll}
                 style={{
-                  background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-                  padding: "4px 10px", cursor: "pointer", fontSize: 11, color: "var(--text-secondary)",
+                  background: "none", border: "1px solid var(--color-border)", borderRadius: "var(--radius)",
+                  padding: "4px 10px", cursor: "pointer", fontSize: 11, color: "var(--color-text-secondary)",
                   fontWeight: 500,
                 }}
               >閉じる</button>
@@ -503,16 +503,16 @@ export default function OrgChartView() {
           }}>
             <button type="button" onClick={() => goYear(-1)} disabled={currentIdx <= 0}
               style={{
-                background: "none", border: "1px solid var(--line)", borderRadius: 6,
+                background: "none", border: "1px solid var(--color-border)", borderRadius: 6,
                 width: 44, height: 44, cursor: currentIdx <= 0 ? "default" : "pointer",
-                color: currentIdx <= 0 ? "var(--muted)" : "var(--text)", fontSize: 13,
+                color: currentIdx <= 0 ? "var(--color-text-tertiary)" : "var(--color-text-primary)", fontSize: 13,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "all var(--transition)",
+                transition: "all var(--transition-fast)",
                 opacity: currentIdx <= 0 ? 0.4 : 1,
                 pointerEvents: currentIdx <= 0 ? "none" : "auto",
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--color-accent)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--color-border)"; }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                 <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -530,9 +530,9 @@ export default function OrgChartView() {
                     style={{
                       fontSize: 13, minHeight: 44, padding: "0 18px", borderRadius: 20, border: "none",
                       cursor: "pointer", fontWeight: isActive ? 600 : 400,
-                      background: isActive ? "var(--primary)" : "transparent",
-                      color: isActive ? "#fff" : "var(--text-secondary)",
-                      transition: "all var(--transition)",
+                      background: isActive ? "var(--color-accent)" : "transparent",
+                      color: isActive ? "#fff" : "var(--color-text-secondary)",
+                      transition: "all var(--transition-fast)",
                     }}
                     onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--bg)"; }}
                     onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
@@ -545,16 +545,16 @@ export default function OrgChartView() {
 
             <button type="button" onClick={() => goYear(1)} disabled={currentIdx >= sortedYears.length - 1}
               style={{
-                background: "none", border: "1px solid var(--line)", borderRadius: 6,
+                background: "none", border: "1px solid var(--color-border)", borderRadius: 6,
                 width: 44, height: 44, cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
-                color: currentIdx >= sortedYears.length - 1 ? "var(--muted)" : "var(--text)", fontSize: 13,
+                color: currentIdx >= sortedYears.length - 1 ? "var(--color-text-tertiary)" : "var(--color-text-primary)", fontSize: 13,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "all var(--transition)",
+                transition: "all var(--transition-fast)",
                 opacity: currentIdx >= sortedYears.length - 1 ? 0.4 : 1,
                 pointerEvents: currentIdx >= sortedYears.length - 1 ? "none" : "auto",
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--color-accent)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--color-border)"; }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                 <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -564,21 +564,21 @@ export default function OrgChartView() {
             <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
               <button type="button" onClick={expandAll}
                 style={{
-                  background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-                  padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
-                  transition: "all var(--transition)", fontWeight: 500,
+                  background: "none", border: "1px solid var(--color-border)", borderRadius: "var(--radius)",
+                  padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--color-text-secondary)",
+                  transition: "all var(--transition-fast)", fontWeight: 500,
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.color = "var(--color-accent)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.color = "var(--color-text-secondary)"; }}
               >すべて展開</button>
               <button type="button" onClick={collapseAll}
                 style={{
-                  background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-                  padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
-                  transition: "all var(--transition)", fontWeight: 500,
+                  background: "none", border: "1px solid var(--color-border)", borderRadius: "var(--radius)",
+                  padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--color-text-secondary)",
+                  transition: "all var(--transition-fast)", fontWeight: 500,
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.color = "var(--color-accent)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.color = "var(--color-text-secondary)"; }}
               >すべて閉じる</button>
             </div>
           </div>
@@ -589,21 +589,21 @@ export default function OrgChartView() {
       {orgTree.length === 0 ? (
         <div style={{
           textAlign: "center", padding: "64px 24px", background: "#fff",
-          borderRadius: "var(--radius-lg)", border: "1px solid var(--line)",
+          borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
         }}>
           <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style={{ marginBottom: 20, opacity: 0.6 }}>
-            <rect x="8" y="6" width="20" height="14" rx="3" stroke="var(--line)" strokeWidth="2" fill="var(--bg)" />
-            <rect x="36" y="6" width="20" height="14" rx="3" stroke="var(--line)" strokeWidth="2" fill="var(--bg)" />
-            <rect x="8" y="44" width="20" height="14" rx="3" stroke="var(--line)" strokeWidth="2" fill="var(--bg)" />
-            <rect x="36" y="44" width="20" height="14" rx="3" stroke="var(--line)" strokeWidth="2" fill="var(--bg)" />
-            <line x1="18" y1="20" x2="18" y2="44" stroke="var(--line)" strokeWidth="2" strokeDasharray="4 3" />
-            <line x1="46" y1="20" x2="46" y2="44" stroke="var(--line)" strokeWidth="2" strokeDasharray="4 3" />
-            <line x1="18" y1="32" x2="46" y2="32" stroke="var(--line)" strokeWidth="2" strokeDasharray="4 3" />
+            <rect x="8" y="6" width="20" height="14" rx="3" stroke="var(--color-border)" strokeWidth="2" fill="var(--bg)" />
+            <rect x="36" y="6" width="20" height="14" rx="3" stroke="var(--color-border)" strokeWidth="2" fill="var(--bg)" />
+            <rect x="8" y="44" width="20" height="14" rx="3" stroke="var(--color-border)" strokeWidth="2" fill="var(--bg)" />
+            <rect x="36" y="44" width="20" height="14" rx="3" stroke="var(--color-border)" strokeWidth="2" fill="var(--bg)" />
+            <line x1="18" y1="20" x2="18" y2="44" stroke="var(--color-border)" strokeWidth="2" strokeDasharray="4 3" />
+            <line x1="46" y1="20" x2="46" y2="44" stroke="var(--color-border)" strokeWidth="2" strokeDasharray="4 3" />
+            <line x1="18" y1="32" x2="46" y2="32" stroke="var(--color-border)" strokeWidth="2" strokeDasharray="4 3" />
           </svg>
-          <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 8, color: "var(--text)" }}>
+          <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 8, color: "var(--color-text-primary)" }}>
             この年度の組織図はまだ登録されていません
           </h3>
-          <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0, lineHeight: 1.6 }}>
+          <p style={{ color: "var(--color-text-secondary)", fontSize: 14, margin: 0, lineHeight: 1.6 }}>
             管理者が組織データを登録すると、ここに表示されます
           </p>
         </div>

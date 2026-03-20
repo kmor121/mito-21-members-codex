@@ -28,9 +28,9 @@ function formatDate(d) {
 }
 
 function getResponseColor(opt) {
-  if (opt.includes('出席')) return { color: 'var(--success)', bg: 'var(--success-light)', border: 'var(--success)' };
-  if (opt.includes('欠席')) return { color: 'var(--error)', bg: 'var(--error-light)', border: 'var(--error)' };
-  return { color: 'var(--primary)', bg: 'var(--primary-light)', border: 'var(--primary)' };
+  if (opt.includes('出席')) return { color: 'var(--color-success)', bg: 'var(--color-success-light)', border: 'var(--color-success)' };
+  if (opt.includes('欠席')) return { color: 'var(--color-danger)', bg: 'var(--color-danger-light)', border: 'var(--color-danger)' };
+  return { color: 'var(--color-accent)', bg: 'var(--color-accent-light)', border: 'var(--color-accent)' };
 }
 
 export default function EventsView() {
@@ -207,12 +207,12 @@ export default function EventsView() {
 
       {/* Event list */}
       {displayEvents.length === 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', color: 'var(--text-secondary)' }}>
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="10" width="36" height="32" rx="4" stroke="var(--line)" strokeWidth="2" fill="var(--bg)"/><path d="M6 18h36" stroke="var(--line)" strokeWidth="2"/><line x1="16" y1="6" x2="16" y2="14" stroke="var(--line)" strokeWidth="2" strokeLinecap="round"/><line x1="32" y1="6" x2="32" y2="14" stroke="var(--line)" strokeWidth="2" strokeLinecap="round"/></svg>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', color: 'var(--color-text-secondary)' }}>
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="10" width="36" height="32" rx="4" stroke="var(--color-border)" strokeWidth="2" fill="var(--bg)"/><path d="M6 18h36" stroke="var(--color-border)" strokeWidth="2"/><line x1="16" y1="6" x2="16" y2="14" stroke="var(--color-border)" strokeWidth="2" strokeLinecap="round"/><line x1="32" y1="6" x2="32" y2="14" stroke="var(--color-border)" strokeWidth="2" strokeLinecap="round"/></svg>
           <p style={{ fontSize: 14, marginTop: 16 }}>
             {tab === 'upcoming' ? '現在公開中のイベントはありません' : '過去のイベントはありません'}
           </p>
-          {tab === 'upcoming' && <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>新しいイベントが公開されるとここに表示されます。</p>}
+          {tab === 'upcoming' && <p style={{ fontSize: 13, color: 'var(--color-text-tertiary)', marginTop: 4 }}>新しいイベントが公開されるとここに表示されます。</p>}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -243,8 +243,8 @@ export default function EventsView() {
               <div key={evt.id} className="mevt-card">
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap' }}>{formatDate(evt.event_date)}</span>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', flex: 1, minWidth: 0 }}>{evt.title}</span>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', whiteSpace: 'nowrap' }}>{formatDate(evt.event_date)}</span>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', flex: 1, minWidth: 0 }}>{evt.title}</span>
                   <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                     <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: 6, fontSize: 11, fontWeight: 500, background: tb.bg, color: tb.color, border: `1px solid ${tb.border}` }}>{evt.event_type}</span>
                     <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: 6, fontSize: 11, fontWeight: 500, background: sb.bg, color: sb.color, border: `1px solid ${sb.border}` }}>{sb.label}</span>
@@ -252,7 +252,7 @@ export default function EventsView() {
                 </div>
 
                 {/* Meta */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 13, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
                   {evt.location && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.75a3.5 3.5 0 0 0-3.5 3.5C3.5 8.75 7 12.25 7 12.25s3.5-3.5 3.5-7a3.5 3.5 0 0 0-3.5-3.5Zm0 4.75a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z" fill="currentColor"/></svg>{evt.location}</span>}
                   {evt.start_time && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.25" stroke="currentColor" strokeWidth="1.2"/><path d="M7 4.25V7l2.25 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>{evt.start_time}{evt.end_time ? `〜${evt.end_time}` : ''}</span>}
                   {evt.fee > 0 && <span>¥{Number(evt.fee).toLocaleString()}</span>}
@@ -260,7 +260,7 @@ export default function EventsView() {
 
                 {/* Deadline */}
                 {evt.rsvp_deadline && (
-                  <p style={{ fontSize: 12, color: isDeadlinePassed ? 'var(--error)' : 'var(--text-secondary)', margin: '0 0 8px' }}>
+                  <p style={{ fontSize: 12, color: isDeadlinePassed ? 'var(--color-danger)' : 'var(--color-text-secondary)', margin: '0 0 8px' }}>
                     回答期限: {formatDate(evt.rsvp_deadline)}{isDeadlinePassed ? '（締切済み）' : ''}
                   </p>
                 )}
@@ -285,8 +285,8 @@ export default function EventsView() {
                             transition: 'all 0.15s',
                             minHeight: 36,
                             background: isSelected ? rc.color : 'transparent',
-                            color: isSelected ? '#fff' : 'var(--text-secondary)',
-                            border: isSelected ? `2px solid ${rc.color}` : '1px solid var(--line)',
+                            color: isSelected ? '#fff' : 'var(--color-text-secondary)',
+                            border: isSelected ? `2px solid ${rc.color}` : '1px solid var(--color-border)',
                             opacity: disabled && !isSelected ? 0.5 : 1,
                           }}
                         >
@@ -299,14 +299,14 @@ export default function EventsView() {
 
                 {/* Current response */}
                 {myResponse && evt.status === 'completed' && (
-                  <p style={{ fontSize: 13, color: 'var(--success)', fontWeight: 600, margin: '4px 0 0' }}>
+                  <p style={{ fontSize: 13, color: 'var(--color-success)', fontWeight: 600, margin: '4px 0 0' }}>
                     ✓ あなたの回答: {myResponse}
                   </p>
                 )}
 
                 {/* Cannot respond message */}
                 {!canRespond && !myResponse && evt.status !== 'completed' && (
-                  <p style={{ fontSize: 12, color: 'var(--muted)', margin: '4px 0 0' }}>回答期限が過ぎています</p>
+                  <p style={{ fontSize: 12, color: 'var(--color-text-tertiary)', margin: '4px 0 0' }}>回答期限が過ぎています</p>
                 )}
 
                 {/* After party section */}
@@ -342,9 +342,9 @@ export default function EventsView() {
                                   borderRadius: 8, fontSize: 13, fontWeight: 600,
                                   cursor: disabled ? 'default' : 'pointer',
                                   transition: 'all 0.15s', minHeight: 36,
-                                  background: isSelected ? (isAttend ? 'var(--success)' : 'var(--error)') : 'transparent',
+                                  background: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : 'transparent',
                                   color: isSelected ? '#fff' : '#78350f',
-                                  border: isSelected ? `2px solid ${isAttend ? 'var(--success)' : 'var(--error)'}` : '1px solid #FDE68A',
+                                  border: isSelected ? `2px solid ${isAttend ? 'var(--color-success)' : 'var(--color-danger)'}` : '1px solid #FDE68A',
                                   opacity: disabled && !isSelected ? 0.5 : 1,
                                 }}>
                                 {isSelected && '✓ '}{opt}
@@ -354,16 +354,16 @@ export default function EventsView() {
                         </div>
                       )}
                       {evt.status === 'completed' && apMyResponse && (
-                        <p style={{ fontSize: 12, color: 'var(--success)', fontWeight: 600, margin: '4px 0 0' }}>✓ 懇親会: {apMyResponse}</p>
+                        <p style={{ fontSize: 12, color: 'var(--color-success)', fontWeight: 600, margin: '4px 0 0' }}>✓ 懇親会: {apMyResponse}</p>
                       )}
                     </div>
                   );
                 })()}
 
                 {/* Participants toggle */}
-                <div style={{ marginTop: 8, borderTop: '1px solid var(--line-light)', paddingTop: 8 }}>
+                <div style={{ marginTop: 8, borderTop: '1px solid var(--color-border)', paddingTop: 8 }}>
                   <button type="button" onClick={() => { const next = isExpanded ? null : evt.id; setExpandedId(next); if (next) loadEventAtts(evt.id); }}
-                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
+                    style={{ background: 'none', border: 'none', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
                     {isExpanded ? '▾ 参加者を閉じる' : `▸ 参加者を見る`}
                   </button>
                   {isExpanded && (
@@ -379,21 +379,21 @@ export default function EventsView() {
                           return (
                             <span style={{
                               padding: '2px 10px', borderRadius: 'var(--radius)',
-                              background: rate === 100 ? 'var(--success-light)' : 'var(--bg)',
-                              border: `1px solid ${rate === 100 ? 'var(--success)' : 'var(--line)'}`,
+                              background: rate === 100 ? 'var(--color-success-light)' : 'var(--bg)',
+                              border: `1px solid ${rate === 100 ? 'var(--color-success)' : 'var(--color-border)'}`,
                               fontWeight: 600,
-                              color: rate === 100 ? 'var(--success)' : 'var(--text)',
+                              color: rate === 100 ? 'var(--color-success)' : 'var(--color-text-primary)',
                             }}>
                               回答率 {rate}% ({respondedCount}/{targetCount})
                             </span>
                           );
                         })()}
                         {options.map(opt => (
-                          <span key={opt} style={{ color: 'var(--text-secondary)' }}>
-                            {opt}: <strong style={{ color: opt.includes('出席') ? 'var(--success)' : opt.includes('欠席') ? 'var(--error)' : 'var(--text)' }}>{responseCounts[opt] || 0}名</strong>
+                          <span key={opt} style={{ color: 'var(--color-text-secondary)' }}>
+                            {opt}: <strong style={{ color: opt.includes('出席') ? 'var(--color-success)' : opt.includes('欠席') ? 'var(--color-danger)' : 'var(--color-text-primary)' }}>{responseCounts[opt] || 0}名</strong>
                           </span>
                         ))}
-                        <span style={{ color: 'var(--muted)' }}>未回答: <strong>{notRespondedCount}名</strong></span>
+                        <span style={{ color: 'var(--color-text-tertiary)' }}>未回答: <strong>{notRespondedCount}名</strong></span>
                       </div>
                       {/* List */}
                       {evtAtts.length > 0 ? (
@@ -415,7 +415,7 @@ export default function EventsView() {
                           })}
                         </div>
                       ) : (
-                        <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>まだ回答がありません</p>
+                        <p style={{ fontSize: 12, color: 'var(--color-text-tertiary)', margin: 0 }}>まだ回答がありません</p>
                       )}
 
                       {/* After party participants */}
@@ -431,7 +431,7 @@ export default function EventsView() {
                         const apRate = apTargetCount > 0 ? Math.round((apAtts.length / apTargetCount) * 100) : 0;
                         const apNotRespondedCount = Math.max(0, apTargetCount - apAtts.length);
                         return (
-                          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px dashed var(--line)' }}>
+                          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px dashed var(--color-border)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                               <span style={{ fontSize: 14 }}>🍻</span>
                               <span style={{ fontSize: 13, fontWeight: 700, color: '#92400e' }}>懇親会</span>
@@ -440,15 +440,15 @@ export default function EventsView() {
                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8, fontSize: 12, alignItems: 'center' }}>
                               <span style={{
                                 padding: '2px 10px', borderRadius: 'var(--radius)',
-                                background: apRate === 100 ? 'var(--success-light)' : 'var(--bg)',
-                                border: `1px solid ${apRate === 100 ? 'var(--success)' : 'var(--line)'}`,
-                                fontWeight: 600, color: apRate === 100 ? 'var(--success)' : 'var(--text)',
+                                background: apRate === 100 ? 'var(--color-success-light)' : 'var(--bg)',
+                                border: `1px solid ${apRate === 100 ? 'var(--color-success)' : 'var(--color-border)'}`,
+                                fontWeight: 600, color: apRate === 100 ? 'var(--color-success)' : 'var(--color-text-primary)',
                               }}>
                                 回答率 {apRate}% ({apAtts.length}/{apTargetCount})
                               </span>
-                              <span style={{ color: 'var(--text-secondary)' }}>出席: <strong style={{ color: 'var(--success)' }}>{apResponseCounts['出席']}名</strong></span>
-                              <span style={{ color: 'var(--text-secondary)' }}>欠席: <strong style={{ color: 'var(--error)' }}>{apResponseCounts['欠席']}名</strong></span>
-                              <span style={{ color: 'var(--muted)' }}>未回答: <strong>{apNotRespondedCount}名</strong></span>
+                              <span style={{ color: 'var(--color-text-secondary)' }}>出席: <strong style={{ color: 'var(--color-success)' }}>{apResponseCounts['出席']}名</strong></span>
+                              <span style={{ color: 'var(--color-text-secondary)' }}>欠席: <strong style={{ color: 'var(--color-danger)' }}>{apResponseCounts['欠席']}名</strong></span>
+                              <span style={{ color: 'var(--color-text-tertiary)' }}>未回答: <strong>{apNotRespondedCount}名</strong></span>
                             </div>
                             {apAtts.length > 0 ? (
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
@@ -469,7 +469,7 @@ export default function EventsView() {
                                 })}
                               </div>
                             ) : (
-                              <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>まだ回答がありません</p>
+                              <p style={{ fontSize: 12, color: 'var(--color-text-tertiary)', margin: 0 }}>まだ回答がありません</p>
                             )}
                           </div>
                         );
@@ -486,7 +486,7 @@ export default function EventsView() {
       {/* Scoped styles */}
       <style>{`
         .mevt-card {
-          background: var(--panel); border: 1px solid var(--line);
+          background: var(--color-bg); border: 1px solid var(--color-border);
           border-radius: var(--radius-lg); padding: 16px 20px;
           box-shadow: var(--shadow-sm);
         }

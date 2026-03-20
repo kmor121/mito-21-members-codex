@@ -382,9 +382,9 @@ export default function Directory() {
             <p className="message error" aria-live="polite">{error}</p>
           ) : members.length === 0 ? (
             <div className="empty-state-enhanced">
-              <Search size={32} style={{ color: "var(--muted)", marginBottom: 8 }} />
-              <p style={{ fontWeight: 600, color: "var(--text)", margin: "0 0 4px" }}>該当する会員が見つかりませんでした</p>
-              <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>検索条件を変更してお試しください</p>
+              <Search size={32} style={{ color: "var(--color-text-tertiary)", marginBottom: 8 }} />
+              <p style={{ fontWeight: 600, color: "var(--color-text-primary)", margin: "0 0 4px" }}>該当する会員が見つかりませんでした</p>
+              <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>検索条件を変更してお試しください</p>
             </div>
           ) : isMobile ? (
             <>

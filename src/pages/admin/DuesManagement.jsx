@@ -88,24 +88,24 @@ function SummaryCard({ icon, label, value, sub, color, progress }) {
       display: "flex", flexDirection: "column", gap: 6,
       padding: "18px 20px",
       borderRadius: "var(--radius-lg)",
-      border: "1px solid var(--line)",
+      border: "1px solid var(--color-border)",
       background: "#fff",
-      borderTop: `3px solid ${color || "var(--primary)"}`,
+      borderTop: `3px solid ${color || "var(--color-accent)"}`,
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-secondary)", fontWeight: 500 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500 }}>
         <span style={{ fontSize: 16 }}>{icon}</span>
         {label}
       </div>
-      <div style={{ fontSize: 26, fontWeight: 700, color: color || "var(--text)", lineHeight: 1.2 }}>
+      <div style={{ fontSize: 26, fontWeight: 700, color: color || "var(--color-text-primary)", lineHeight: 1.2 }}>
         {value}
       </div>
-      {sub && <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{sub}</div>}
       {progress !== undefined && (
-        <div style={{ height: 6, borderRadius: 3, background: "var(--line-light)", overflow: "hidden", marginTop: 2 }}>
+        <div style={{ height: 6, borderRadius: 3, background: "var(--color-border)", overflow: "hidden", marginTop: 2 }}>
           <div style={{
             height: "100%", borderRadius: 3,
             width: `${Math.min(100, progress)}%`,
-            background: color || "var(--primary)",
+            background: color || "var(--color-accent)",
             transition: "width 0.5s ease",
           }} />
         </div>
@@ -116,7 +116,7 @@ function SummaryCard({ icon, label, value, sub, color, progress }) {
 
 /* ── Due Type Badge ── */
 function DueTypeBadge({ type }) {
-  const badge = DUE_TYPE_BADGE[type] || { color: "var(--text-secondary)", bg: "var(--line-light)" };
+  const badge = DUE_TYPE_BADGE[type] || { color: "var(--color-text-secondary)", bg: "var(--color-border)" };
   return (
     <span style={{
       display: "inline-block", padding: "3px 10px",
@@ -130,7 +130,7 @@ function DueTypeBadge({ type }) {
 
 /* ── Member Type Badge ── */
 function MemberTypeBadge({ type }) {
-  const badge = MEMBER_TYPE_BADGE[type] || { color: "var(--text-secondary)", bg: "var(--line-light)" };
+  const badge = MEMBER_TYPE_BADGE[type] || { color: "var(--color-text-secondary)", bg: "var(--color-border)" };
   return (
     <span style={{
       display: "inline-block", padding: "2px 8px",
@@ -201,16 +201,16 @@ function PayerSuggest({ memberId, allDues, value, onChange }) {
 
   return (
     <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
-      <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>過去の名義:</span>
+      <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>過去の名義:</span>
       {suggestions.map((s, i) => (
         <button
           key={i}
           type="button"
           onClick={() => onChange(s)}
           style={{
-            padding: "2px 8px", borderRadius: 999, border: "1px solid var(--line)",
-            background: value === s ? "var(--primary-light)" : "#fff",
-            fontSize: 12, cursor: "pointer", color: "var(--text)",
+            padding: "2px 8px", borderRadius: 999, border: "1px solid var(--color-border)",
+            background: value === s ? "var(--color-accent-light)" : "#fff",
+            fontSize: 12, cursor: "pointer", color: "var(--color-text-primary)",
             transition: "all 0.15s",
           }}
         >
@@ -246,7 +246,7 @@ function ReconcileModal({ target, allDues, toggleDate, setToggleDate, togglePaye
             <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>{target.member_name}</div>
             <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 8 }}>
               <DueTypeBadge type={target.due_type || "年会費"} />
-              <span style={{ fontSize: 20, fontWeight: 700, color: "var(--text)" }}>{formatCurrency(target.amount)}</span>
+              <span style={{ fontSize: 20, fontWeight: 700, color: "var(--color-text-primary)" }}>{formatCurrency(target.amount)}</span>
             </div>
           </div>
 
@@ -266,32 +266,32 @@ function ReconcileModal({ target, allDues, toggleDate, setToggleDate, togglePaye
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div style={{ position: "relative", zIndex: 10 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)", marginBottom: 4 }}>
                   入金日
                 </label>
                 <DatePicker id="reconcile-date" value={toggleDate} onChange={setToggleDate} />
               </div>
               <div>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)", marginBottom: 4 }}>
                   振込名義
                 </label>
                 <input
                   type="text" value={togglePayerName}
                   placeholder="例: 株式会社○○"
                   onChange={(e) => setTogglePayerName(e.target.value)}
-                  style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius)", border: "1px solid var(--line)", fontSize: 14 }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius)", border: "1px solid var(--color-border)", fontSize: 14 }}
                 />
                 <PayerSuggest memberId={target.member_id} allDues={allDues} value={togglePayerName} onChange={setTogglePayerName} />
               </div>
               <div>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>
-                  備考 <span style={{ fontWeight: 400, color: "var(--text-secondary)" }}>(任意)</span>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)", marginBottom: 4 }}>
+                  備考 <span style={{ fontWeight: 400, color: "var(--color-text-secondary)" }}>(任意)</span>
                 </label>
                 <input
                   type="text" value={toggleNotes}
                   placeholder="備考があれば入力"
                   onChange={(e) => setToggleNotes(e.target.value)}
-                  style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius)", border: "1px solid var(--line)", fontSize: 14 }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius)", border: "1px solid var(--color-border)", fontSize: 14 }}
                 />
               </div>
             </div>
@@ -337,7 +337,7 @@ function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, curren
         <div className="modal-header">
           <div>
             <h3 style={{ margin: 0 }}>{memberName}</h3>
-            <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>全年度の会費履歴</span>
+            <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>全年度の会費履歴</span>
           </div>
           <button type="button" className="modal-close" onClick={onClose}>&times;</button>
         </div>
@@ -356,7 +356,7 @@ function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, curren
           {memberDues.length === 0 ? (
             <div style={{ padding: "32px 0", textAlign: "center" }}>
               <div style={{ fontSize: 32, marginBottom: 8, opacity: 0.4 }}>{"📄"}</div>
-              <p style={{ margin: 0, color: "var(--text-secondary)" }}>会費データがありません</p>
+              <p style={{ margin: 0, color: "var(--color-text-secondary)" }}>会費データがありません</p>
             </div>
           ) : (
             <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
@@ -386,7 +386,7 @@ function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, curren
                         {isCurrent && (
                           <span style={{
                             marginLeft: 4, padding: "1px 6px", borderRadius: 999,
-                            background: "var(--primary-light)", color: "var(--primary)",
+                            background: "var(--color-accent-light)", color: "var(--color-accent)",
                             fontSize: 12, fontWeight: 600, whiteSpace: "nowrap",
                           }}>当年度</span>
                         )}
@@ -425,8 +425,8 @@ function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, curren
 function SettingsField({ id, label, description, value, onChange }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <label htmlFor={id} style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{label}</label>
-      {description && <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{description}</span>}
+      <label htmlFor={id} style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)" }}>{label}</label>
+      {description && <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{description}</span>}
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input
           id={id}
@@ -437,11 +437,11 @@ function SettingsField({ id, label, description, value, onChange }) {
           onChange={(e) => onChange(e.target.value)}
           style={{
             flex: 1, padding: "8px 12px", borderRadius: "var(--radius)",
-            border: "1px solid var(--line)", fontSize: 14,
+            border: "1px solid var(--color-border)", fontSize: 14,
             fontVariantNumeric: "tabular-nums",
           }}
         />
-        <span style={{ fontSize: 14, color: "var(--text-secondary)", fontWeight: 500, flexShrink: 0 }}>円</span>
+        <span style={{ fontSize: 14, color: "var(--color-text-secondary)", fontWeight: 500, flexShrink: 0 }}>円</span>
       </div>
     </div>
   );
@@ -1010,18 +1010,18 @@ export default function DuesManagement() {
             <h1 className="page-title" style={{ margin: 0, fontSize: 18, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>会費管理</h1>
             <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
               <button type="button" onClick={() => setShowFilters(v => !v)} style={{
-                width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+                width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--color-border)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: showFilters ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
-                color: showFilters ? 'var(--primary)' : 'var(--text-secondary)',
+                background: showFilters ? 'var(--color-accent-light)' : '#fff', cursor: 'pointer',
+                color: showFilters ? 'var(--color-accent)' : 'var(--color-text-secondary)',
               }}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </button>
               <button type="button" onClick={() => setActiveTab('settings')} style={{
-                width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+                width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--color-border)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: activeTab === 'settings' ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
-                color: activeTab === 'settings' ? 'var(--primary)' : 'var(--text-secondary)',
+                background: activeTab === 'settings' ? 'var(--color-accent-light)' : '#fff', cursor: 'pointer',
+                color: activeTab === 'settings' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               </button>
@@ -1042,10 +1042,10 @@ export default function DuesManagement() {
             return (
               <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <button type="button" disabled={!canPrev} onClick={() => canPrev && handleFiscalYearChange(fiscalYears[idx + 1].id)}
-                  style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canPrev ? 'var(--primary)' : 'var(--text-muted)', cursor: canPrev ? 'pointer' : 'default' }}>{"\u25C2"}</button>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{yearLabel}</span>
+                  style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canPrev ? 'var(--color-accent)' : 'var(--color-text-tertiary)', cursor: canPrev ? 'pointer' : 'default' }}>{"\u25C2"}</button>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', whiteSpace: 'nowrap' }}>{yearLabel}</span>
                 <button type="button" disabled={!canNext} onClick={() => canNext && handleFiscalYearChange(fiscalYears[idx - 1].id)}
-                  style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canNext ? 'var(--primary)' : 'var(--text-muted)', cursor: canNext ? 'pointer' : 'default' }}>{"\u25B8"}</button>
+                  style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canNext ? 'var(--color-accent)' : 'var(--color-text-tertiary)', cursor: canNext ? 'pointer' : 'default' }}>{"\u25B8"}</button>
               </div>
             );
           })()}
@@ -1058,7 +1058,7 @@ export default function DuesManagement() {
               {selectedFiscalYear && (
                 <span style={{
                   padding: "4px 12px", borderRadius: 999,
-                  background: "var(--primary-light)", color: "var(--primary)",
+                  background: "var(--color-accent-light)", color: "var(--color-accent)",
                   fontSize: 12, fontWeight: 700,
                 }}>
                   {selectedFiscalYear.year_label || `${selectedFiscalYear.year}年度`}
@@ -1112,11 +1112,11 @@ export default function DuesManagement() {
                 padding: 16, borderRadius: "var(--radius)", background: "var(--bg)",
                 marginBottom: 20, textAlign: "center",
               }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: "var(--primary)" }}>{selectedIds.size}件</div>
-                <div style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 4 }}>を納入済にします</div>
+                <div style={{ fontSize: 28, fontWeight: 700, color: "var(--color-accent)" }}>{selectedIds.size}件</div>
+                <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginTop: 4 }}>を納入済にします</div>
               </div>
               <div style={{ position: "relative", zIndex: 10 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)", marginBottom: 4 }}>
                   入金日（全件共通）
                 </label>
                 <DatePicker id="batch-date" value={batchDate} onChange={setBatchDate} />
@@ -1258,7 +1258,7 @@ export default function DuesManagement() {
                 icon={"📊"}
                 label="全体"
                 value={`${computedSummary.total}名`}
-                color="var(--primary)"
+                color="var(--color-accent)"
               />
               <SummaryCard
                 icon={"\u2705"}
@@ -1284,7 +1284,7 @@ export default function DuesManagement() {
                 icon={"📈"}
                 label="納入率"
                 value={`${paidRate}%`}
-                color="var(--primary)"
+                color="var(--color-accent)"
                 progress={paidRate}
               />
             </div>
@@ -1294,15 +1294,15 @@ export default function DuesManagement() {
           {isMobile && showFilters && (
             <div style={{
               padding: '12px 16px', marginBottom: 8,
-              borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+              borderRadius: 'var(--radius)', border: '1px solid var(--color-border)',
               background: 'var(--bg)',
             }}>
               <div style={{ position: 'relative', marginBottom: 10 }}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-secondary)' }}>
                   <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
                 <input type="text" placeholder={"\u6C0F\u540D\u30FB\u632F\u8FBC\u540D\u7FA9\u3067\u691C\u7D22"} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', fontSize: 13 }} />
+                  style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', fontSize: 13 }} />
               </div>
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
                 {[{ key: 'all', label: '\u5168\u3066' }, { key: 'unpaid', label: '\u672A\u7D0D' }, { key: 'paid', label: '\u7D0D\u5165\u6E08' }, { key: 'unissued', label: '\u672A\u767A\u884C' }].map(opt => (
@@ -1320,11 +1320,11 @@ export default function DuesManagement() {
               )}
               <div style={{ display: 'flex', gap: 8 }}>
                 <select value={memberTypeFilter} onChange={(e) => setMemberTypeFilter(e.target.value)}
-                  style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', fontSize: 13 }}>
+                  style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', fontSize: 13 }}>
                   <option value="all">{"\u5168\u7A2E\u5225"}</option><option value={"\u6B63\u4F1A\u54E1"}>{"\u6B63\u4F1A\u54E1"}</option><option value={"\u8CDB\u52A9\u4F1A\u54E1"}>{"\u8CDB\u52A9\u4F1A\u54E1"}</option>
                 </select>
                 <select value={orgFilter} onChange={(e) => setOrgFilter(e.target.value)}
-                  style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', fontSize: 13 }}>
+                  style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', fontSize: 13 }}>
                   <option value="all">{"\u5168\u7D44\u7E54"}</option>
                   {fyOrgs.map(o => (<option key={o.id} value={o.id}>{o.org_name}</option>))}
                 </select>
@@ -1351,7 +1351,7 @@ export default function DuesManagement() {
                 <div style={{ position: "relative", flex: "1 1 260px", minWidth: 200 }}>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{
                     position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
-                    color: "var(--text-secondary)",
+                    color: "var(--color-text-secondary)",
                   }}>
                     <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
                     <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -1363,7 +1363,7 @@ export default function DuesManagement() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     style={{
                       width: "100%", padding: "8px 12px 8px 34px",
-                      borderRadius: "var(--radius)", border: "1px solid var(--line)",
+                      borderRadius: "var(--radius)", border: "1px solid var(--color-border)",
                       fontSize: 13,
                     }}
                   />
@@ -1375,7 +1375,7 @@ export default function DuesManagement() {
                   onChange={(e) => setMemberTypeFilter(e.target.value)}
                   style={{
                     padding: "8px 12px", borderRadius: "var(--radius)",
-                    border: "1px solid var(--line)", fontSize: 13,
+                    border: "1px solid var(--color-border)", fontSize: 13,
                   }}
                 >
                   <option value="all">全種別</option>
@@ -1389,7 +1389,7 @@ export default function DuesManagement() {
                   onChange={(e) => setOrgFilter(e.target.value)}
                   style={{
                     padding: "8px 12px", borderRadius: "var(--radius)",
-                    border: "1px solid var(--line)", fontSize: 13,
+                    border: "1px solid var(--color-border)", fontSize: 13,
                   }}
                 >
                   <option value="all">全組織</option>
@@ -1400,7 +1400,7 @@ export default function DuesManagement() {
 
                 {/* Status filter pills */}
                 <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", whiteSpace: "nowrap", marginRight: 2 }}>ステータス</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", whiteSpace: "nowrap", marginRight: 2 }}>ステータス</span>
                   {[
                     { key: "all", label: "全て" },
                     { key: "unpaid", label: "未納" },
@@ -1421,7 +1421,7 @@ export default function DuesManagement() {
                 {/* Due type filter pills */}
                 {dueTypes.length > 1 && (
                   <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", whiteSpace: "nowrap", marginRight: 2 }}>種類</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", whiteSpace: "nowrap", marginRight: 2 }}>種類</span>
                     <button
                       type="button"
                       className={`nl2-pill-tab${dueTypeFilter === "all" ? " active" : ""}`}
@@ -1462,11 +1462,11 @@ export default function DuesManagement() {
               ) : filteredDues.length === 0 ? (
                 <div style={{ padding: "48px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 40, marginBottom: 8, opacity: 0.4 }}>{"💰"}</div>
-                  <p style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>
+                  <p style={{ margin: 0, fontWeight: 600, color: "var(--color-text-primary)" }}>
                     {dues.length === 0 ? "会費データがありません" : "条件に一致するデータがありません"}
                   </p>
                   {dues.length === 0 && (
-                    <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-secondary)" }}>
+                    <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--color-text-secondary)" }}>
                       会費設定を行い、会費を生成してください
                     </p>
                   )}
@@ -1485,7 +1485,7 @@ export default function DuesManagement() {
                         onClick={() => { if (!isVirtual) handleRowClick(due); }}
                         style={{
                           padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10,
-                          borderBottom: '1px solid var(--line-light)',
+                          borderBottom: '1px solid var(--color-border)',
                           cursor: isVirtual ? 'default' : 'pointer',
                           background: isSelected ? 'rgba(79, 70, 229, 0.06)' : undefined,
                           transition: 'background 0.15s',
@@ -1506,7 +1506,7 @@ export default function DuesManagement() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                             <button type="button" style={{
                               fontWeight: 600, fontSize: 14, padding: 0, border: 'none', background: 'none',
-                              cursor: 'pointer', color: 'var(--text)', textDecoration: 'none',
+                              cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none',
                               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                               maxWidth: '100%',
                             }}
@@ -1516,7 +1516,7 @@ export default function DuesManagement() {
                             {due.is_new && <span style={{ padding: '0 4px', borderRadius: 999, background: '#dbeafe', color: '#1d4ed8', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, lineHeight: '16px' }}>新入</span>}
                             {!isVirtual && priorCount > 0 && <span style={{ fontSize: 12, lineHeight: 1, flexShrink: 0 }}>{"\u26A0\uFE0F"}</span>}
                           </div>
-                          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {due.member_type}{!isVirtual && <>{" \u00B7 "}{due.due_type || "\u5E74\u4F1A\u8CBB"}{" "}{formatCurrency(due.amount)}</>}
                           </div>
                         </div>
@@ -1562,7 +1562,7 @@ export default function DuesManagement() {
                               background: isSelected ? "rgba(79, 70, 229, 0.06)" : undefined,
                               transition: "background 0.15s",
                             }}
-                            onMouseEnter={(e) => { if (!isSelected && !isVirtual) e.currentTarget.style.background = "var(--line-light)"; }}
+                            onMouseEnter={(e) => { if (!isSelected && !isVirtual) e.currentTarget.style.background = "var(--color-border)"; }}
                             onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = ""; }}
                           >
                             <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
@@ -1577,7 +1577,7 @@ export default function DuesManagement() {
                                   style={{
                                     fontWeight: 600, fontSize: 13, padding: 0,
                                     border: "none", background: "none", cursor: "pointer",
-                                    color: "var(--primary)", textDecoration: "none",
+                                    color: "var(--color-accent)", textDecoration: "none",
                                   }}
                                   onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
                                   title="全年度の会費履歴を表示"
@@ -1610,9 +1610,9 @@ export default function DuesManagement() {
                             <td style={{ textAlign: "center" }}>
                               <StatusBadge status={due.status} disabled={isVirtual} onClick={isVirtual ? undefined : (e) => { e.stopPropagation(); openReconcileModal(due); }} />
                             </td>
-                            <td style={{ fontSize: 13, color: "var(--text-secondary)" }}>{isVirtual ? "-" : displayValue(due.paid_date)}</td>
+                            <td style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>{isVirtual ? "-" : displayValue(due.paid_date)}</td>
                             <td style={{ fontSize: 13 }}>{isVirtual ? "-" : displayValue(due.payer_name)}</td>
-                            <td style={{ fontSize: 13, color: "var(--text-secondary)", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <td style={{ fontSize: 13, color: "var(--color-text-secondary)", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                               {isVirtual ? "-" : displayValue(due.notes)}
                             </td>
                           </tr>
@@ -1634,13 +1634,13 @@ export default function DuesManagement() {
               transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               zIndex: 100,
               background: "#fff",
-              borderTop: "1px solid var(--line)",
+              borderTop: "1px solid var(--color-border)",
               boxShadow: "0 -4px 12px rgba(0,0,0,0.08)",
               padding: "12px 24px",
               display: "flex", alignItems: "center", justifyContent: "center", gap: isMobile ? 8 : 16, flexWrap: "wrap",
             }}
           >
-            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--primary)" }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--color-accent)" }}>
               {selectedIds.size}件選択中
             </span>
             <button
@@ -1706,7 +1706,7 @@ export default function DuesManagement() {
                 label="当年度分"
                 value={`${allUnpaidSummary.totalCount - allUnpaidSummary.priorCount}件`}
                 sub={formatCurrency(allUnpaidSummary.totalAmount - allUnpaidSummary.priorAmount)}
-                color="var(--primary)"
+                color="var(--color-accent)"
               />
             </div>
           )}
@@ -1734,8 +1734,8 @@ export default function DuesManagement() {
             <section className="card panel-card single-panel">
               <div className="card-body" style={{ padding: "48px 20px", textAlign: "center" }}>
                 <div style={{ fontSize: 40, marginBottom: 8, opacity: 0.4 }}>{"\u2705"}</div>
-                <p style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>全年度で未納はありません</p>
-                <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-secondary)" }}>素晴らしい！すべての会費が納入済です</p>
+                <p style={{ margin: 0, fontWeight: 600, color: "var(--color-text-primary)" }}>全年度で未納はありません</p>
+                <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--color-text-secondary)" }}>素晴らしい！すべての会費が納入済です</p>
               </div>
             </section>
           ) : (
@@ -1755,15 +1755,15 @@ export default function DuesManagement() {
                     padding: isMobile ? "8px 12px" : "12px 20px",
                     background: isPrior ? "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)" : "linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)",
                     borderRadius: "var(--radius-lg) var(--radius-lg) 0 0",
-                    borderBottom: `1px solid ${isPrior ? "#fde68a" : "var(--primary-100)"}`,
+                    borderBottom: `1px solid ${isPrior ? "#fde68a" : "var(--color-accent-light)"}`,
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       {isPrior && <span style={{ fontSize: 16 }}>{"\u26A0\uFE0F"}</span>}
-                      <span style={{ fontSize: 15, fontWeight: 700, color: isPrior ? "#92400e" : "var(--primary)" }}>{label}</span>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: isPrior ? "#92400e" : "var(--color-accent)" }}>{label}</span>
                       {isCurrent && (
                         <span style={{
                           padding: "2px 8px", borderRadius: 999,
-                          background: "var(--primary)", color: "#fff",
+                          background: "var(--color-accent)", color: "#fff",
                           fontSize: 12, fontWeight: 700, whiteSpace: "nowrap",
                         }}>当年度</span>
                       )}
@@ -1778,7 +1778,7 @@ export default function DuesManagement() {
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <span style={{
                         fontSize: 13, fontWeight: 700,
-                        color: isPrior ? "#c2410c" : "var(--primary)",
+                        color: isPrior ? "#c2410c" : "var(--color-accent)",
                       }}>
                         {items.length}件 / {formatCurrency(groupTotal)}
                       </span>
@@ -1799,7 +1799,7 @@ export default function DuesManagement() {
                               }}
                               style={{
                                 padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10,
-                                borderBottom: '1px solid var(--line-light)',
+                                borderBottom: '1px solid var(--color-border)',
                                 cursor: 'pointer',
                                 background: isSelected ? 'rgba(79, 70, 229, 0.06)' : undefined,
                                 transition: 'background 0.15s',
@@ -1818,7 +1818,7 @@ export default function DuesManagement() {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                                   <button type="button" style={{
                                     fontWeight: 600, fontSize: 14, padding: 0, border: 'none', background: 'none',
-                                    cursor: 'pointer', color: 'var(--text)', textDecoration: 'none',
+                                    cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none',
                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                     maxWidth: '100%',
                                   }}
@@ -1827,7 +1827,7 @@ export default function DuesManagement() {
                                   </button>
                                   {due.is_new && <span style={{ padding: '0 4px', borderRadius: 999, background: '#dbeafe', color: '#1d4ed8', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, lineHeight: '16px' }}>新入</span>}
                                 </div>
-                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {due.member_type}{" \u00B7 "}{due.due_type || "\u5E74\u4F1A\u8CBB"}{" "}{formatCurrency(due.amount)}
                                 </div>
                               </div>
@@ -1883,7 +1883,7 @@ export default function DuesManagement() {
                                     background: isSelected ? "rgba(79, 70, 229, 0.06)" : (isPrior ? "#fffdf7" : undefined),
                                     transition: "background 0.15s",
                                   }}
-                                  onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = isPrior ? "#fff8f0" : "var(--line-light)"; }}
+                                  onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = isPrior ? "#fff8f0" : "var(--color-border)"; }}
                                   onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = isPrior ? "#fffdf7" : ""; }}
                                 >
                                   <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
@@ -1896,7 +1896,7 @@ export default function DuesManagement() {
                                         style={{
                                           fontWeight: 600, fontSize: 13, padding: 0,
                                           border: "none", background: "none", cursor: "pointer",
-                                          color: "var(--primary)",
+                                          color: "var(--color-accent)",
                                         }}
                                         onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
                                         title="全年度の会費履歴を表示"
@@ -1918,7 +1918,7 @@ export default function DuesManagement() {
                                     {formatCurrency(due.amount)}
                                   </td>
                                   <td style={{ fontSize: 13 }}>{displayValue(due.payer_name)}</td>
-                                  <td style={{ fontSize: 13, color: "var(--text-secondary)", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  <td style={{ fontSize: 13, color: "var(--color-text-secondary)", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                     {displayValue(due.notes)}
                                   </td>
                                   <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
@@ -1944,12 +1944,12 @@ export default function DuesManagement() {
             transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             zIndex: 100,
             background: "#fff",
-            borderTop: "1px solid var(--line)",
+            borderTop: "1px solid var(--color-border)",
             boxShadow: "0 -4px 12px rgba(0,0,0,0.08)",
             padding: "12px 24px",
             display: "flex", alignItems: "center", justifyContent: "center", gap: isMobile ? 8 : 16, flexWrap: "wrap",
           }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--primary)" }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--color-accent)" }}>
               {selectedIds.size}件選択中
             </span>
             <button className="btn btn-primary" type="button" onClick={() => { setBatchDate(todayStr()); setShowBatchModal(true); }} disabled={saving} style={{ fontSize: 13 }}>
@@ -1980,13 +1980,13 @@ export default function DuesManagement() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
                 <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>年度別会費設定</h2>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 500 }}>年度:</span>
+                  <span style={{ fontSize: 13, color: "var(--color-text-secondary)", fontWeight: 500 }}>年度:</span>
                   <select
                     value={settingsFyId}
                     onChange={(e) => loadSettingsForFy(e.target.value)}
                     style={{
                       padding: "6px 12px", borderRadius: "var(--radius)",
-                      border: "1px solid var(--line)", fontSize: 13, fontWeight: 600,
+                      border: "1px solid var(--color-border)", fontSize: 13, fontWeight: 600,
                     }}
                   >
                     {fiscalYears.map(fy => (
@@ -2026,10 +2026,10 @@ export default function DuesManagement() {
                 {/* Existing members */}
                 <div style={{ marginBottom: 24 }}>
                   <h3 style={{
-                    fontSize: 14, fontWeight: 700, color: "var(--text)",
+                    fontSize: 14, fontWeight: 700, color: "var(--color-text-primary)",
                     margin: "0 0 16px",
                     padding: "0 0 8px",
-                    borderBottom: "1px solid var(--line)",
+                    borderBottom: "1px solid var(--color-border)",
                     display: "flex", alignItems: "center", gap: 6,
                   }}>
                     <span style={{ fontSize: 16 }}>{"👥"}</span>
@@ -2054,10 +2054,10 @@ export default function DuesManagement() {
                 {/* New members */}
                 <div style={{ marginBottom: 24 }}>
                   <h3 style={{
-                    fontSize: 14, fontWeight: 700, color: "var(--text)",
+                    fontSize: 14, fontWeight: 700, color: "var(--color-text-primary)",
                     margin: "0 0 16px",
                     padding: "0 0 8px",
-                    borderBottom: "1px solid var(--line)",
+                    borderBottom: "1px solid var(--color-border)",
                     display: "flex", alignItems: "center", gap: 6,
                   }}>
                     <span style={{ fontSize: 16 }}>{"🆕"}</span>
@@ -2088,27 +2088,27 @@ export default function DuesManagement() {
                 {/* Summary box */}
                 <div style={{
                   padding: 16, borderRadius: "var(--radius-lg)",
-                  background: "var(--bg)", border: "1px solid var(--line)",
+                  background: "var(--bg)", border: "1px solid var(--color-border)",
                   marginBottom: 20,
                 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: "var(--text)" }}>会費生成ルール (プレビュー)</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: "var(--color-text-primary)" }}>会費生成ルール (プレビュー)</div>
                   <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "6px 24px", fontSize: 13 }}>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ color: "var(--text-secondary)" }}>正会員</span>
+                      <span style={{ color: "var(--color-text-secondary)" }}>正会員</span>
                       <span style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{formatCurrency(settingsForm.regular_annual_fee)}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ color: "var(--text-secondary)" }}>賛助会員</span>
+                      <span style={{ color: "var(--color-text-secondary)" }}>賛助会員</span>
                       <span style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{formatCurrency(settingsForm.associate_annual_fee)}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ color: "var(--text-secondary)" }}>新入会 (前期)</span>
+                      <span style={{ color: "var(--color-text-secondary)" }}>新入会 (前期)</span>
                       <span style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
                         入会金 {formatCurrency(settingsForm.admission_fee)} + {formatCurrency(settingsForm.first_half_fee)}
                       </span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ color: "var(--text-secondary)" }}>新入会 (後期)</span>
+                      <span style={{ color: "var(--color-text-secondary)" }}>新入会 (後期)</span>
                       <span style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
                         入会金 {formatCurrency(settingsForm.admission_fee)} + {formatCurrency(settingsForm.second_half_fee)}
                       </span>

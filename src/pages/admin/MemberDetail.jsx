@@ -9,7 +9,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 /* ---------- constants ---------- */
 
 const MEMBER_TYPE_BADGE = {
-  "正会員": { bg: "var(--primary-light)", color: "var(--primary)" },
+  "正会員": { bg: "var(--color-accent-light)", color: "var(--color-accent)" },
   "賛助会員": { bg: "#ecfdf5", color: "#059669" },
   "OB会員": { bg: "#f1f5f9", color: "#64748b" },
   "名誉顧問": { bg: "#fffbeb", color: "#d97706" },
@@ -451,7 +451,7 @@ export default function MemberDetail() {
               <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>アカウント紐付けを解除しますか？</h3>
             </div>
             <div className="modal-body" style={{ padding: "0 24px 24px" }}>
-              <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
                 このメンバーのBase44ユーザーアカウントとの紐付けを解除します。
                 解除するとログインしてもメンバー情報にアクセスできなくなります。
               </p>
@@ -460,7 +460,7 @@ export default function MemberDetail() {
               <button className="btn btn-secondary" onClick={() => setShowUnlinkConfirm(false)}>キャンセル</button>
               <button
                 className="btn"
-                style={{ background: "var(--error)", color: "#fff", border: "none" }}
+                style={{ background: "var(--color-danger)", color: "#fff", border: "none" }}
                 onClick={async () => {
                   setShowUnlinkConfirm(false);
                   try {
@@ -496,7 +496,7 @@ export default function MemberDetail() {
                 会員名: {fullName(member)}
               </p>
               {deleteRelatedCounts && (
-                <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.8 }}>
+                <div style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
                   <p style={{ margin: "0 0 4px 0" }}>以下のデータも同時に削除されます:</p>
                   <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
                     <li>組織配属 {deleteRelatedCounts.assignments}件</li>
@@ -513,7 +513,7 @@ export default function MemberDetail() {
               <button className="btn btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>キャンセル</button>
               <button
                 className="btn"
-                style={{ background: "var(--error)", color: "#fff", border: "none" }}
+                style={{ background: "var(--color-danger)", color: "#fff", border: "none" }}
                 onClick={handleDeleteMember}
                 disabled={deleting}
               >

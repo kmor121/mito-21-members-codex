@@ -73,9 +73,9 @@ function MemberTypePills({ value, onChange }) {
             onClick={() => onChange(opt.value)}
             style={{
               padding: "8px 20px", borderRadius: "999px", fontSize: 14, fontWeight: 600,
-              border: active ? `2px solid ${opt.color}` : "2px solid var(--line)",
+              border: active ? `2px solid ${opt.color}` : "2px solid var(--color-border)",
               background: active ? opt.bg : "#fff",
-              color: active ? opt.color : "var(--text-secondary)",
+              color: active ? opt.color : "var(--color-text-secondary)",
               cursor: "pointer", transition: "all 0.15s",
             }}
           >
@@ -255,15 +255,15 @@ export default function Applications() {
               {/* Applicant summary */}
               <div style={{
                 padding: "12px 16px", borderRadius: "var(--radius)",
-                background: "var(--line-light)", border: "1px solid var(--line)",
+                background: "var(--color-border)", border: "1px solid var(--color-border)",
                 display: "grid", gap: 4,
               }}>
                 <div style={{ fontSize: 13 }}>
-                  <span style={{ color: "var(--text-secondary)", marginRight: 8 }}>申込者:</span>
+                  <span style={{ color: "var(--color-text-secondary)", marginRight: 8 }}>申込者:</span>
                   <span style={{ fontWeight: 600 }}>{fullName(approveTarget)}</span>
                 </div>
                 <div style={{ fontSize: 13 }}>
-                  <span style={{ color: "var(--text-secondary)", marginRight: 8 }}>メール:</span>
+                  <span style={{ color: "var(--color-text-secondary)", marginRight: 8 }}>メール:</span>
                   <span>{approveTarget.email || "-"}</span>
                 </div>
               </div>
@@ -305,7 +305,7 @@ export default function Applications() {
                 <DatePicker value={joinDate} onChange={setJoinDate} />
               </div>
 
-              <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
                 ※ 承認すると会員として登録され、会費レコードが自動生成されます。
               </p>
 
@@ -341,15 +341,15 @@ export default function Applications() {
             style={{ maxWidth: 480, borderRadius: "var(--radius-xl)", animation: "fadeIn 0.15s ease" }}
           >
             <div className="modal-header" style={{ padding: "20px 24px" }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--error)" }}>入会申込を却下しますか？</h3>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--color-danger)" }}>入会申込を却下しますか？</h3>
             </div>
             <div className="modal-body" style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
               <div style={{
                 padding: "12px 16px", borderRadius: "var(--radius)",
-                background: "var(--line-light)", border: "1px solid var(--line)",
+                background: "var(--color-border)", border: "1px solid var(--color-border)",
                 fontSize: 13,
               }}>
-                <span style={{ color: "var(--text-secondary)", marginRight: 8 }}>申込者:</span>
+                <span style={{ color: "var(--color-text-secondary)", marginRight: 8 }}>申込者:</span>
                 <span style={{ fontWeight: 600 }}>{fullName(rejectTarget)}</span>
               </div>
               <div>
@@ -363,7 +363,7 @@ export default function Applications() {
                   placeholder="却下理由を入力してください（申込者に通知されます）"
                   style={{ width: "100%", fontFamily: "inherit", resize: "vertical" }}
                 />
-                <div style={{ textAlign: "right", fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                <div style={{ textAlign: "right", fontSize: 12, color: "var(--color-text-tertiary)", marginTop: 4 }}>
                   {rejectionReason.length} 文字
                 </div>
               </div>
@@ -373,7 +373,7 @@ export default function Applications() {
               <button
                 className="btn"
                 style={{
-                  background: "var(--error)", color: "#fff", border: "none",
+                  background: "var(--color-danger)", color: "#fff", border: "none",
                   opacity: rejectSubmitting ? 0.6 : 1,
                   display: "flex", alignItems: "center", gap: 6,
                 }}
@@ -417,10 +417,10 @@ export default function Applications() {
               )}
             </div>
             <button type="button" onClick={() => setShowFilters(v => !v)} style={{
-              width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+              width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--color-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: showFilters ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
-              color: showFilters ? 'var(--primary)' : 'var(--text-secondary)', flexShrink: 0,
+              background: showFilters ? 'var(--color-accent-light)' : '#fff', cursor: 'pointer',
+              color: showFilters ? 'var(--color-accent)' : 'var(--color-text-secondary)', flexShrink: 0,
             }}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </button>
@@ -453,12 +453,12 @@ export default function Applications() {
         showFilters && (
           <div style={{
             padding: '12px 16px', marginBottom: 8,
-            borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+            borderRadius: 'var(--radius)', border: '1px solid var(--color-border)',
             background: 'var(--bg)',
           }}>
             {/* Search bar */}
             <div style={{ position: 'relative', marginBottom: 10 }}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-secondary)' }}>
                 <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
               <input
@@ -466,7 +466,7 @@ export default function Applications() {
                 placeholder="氏名・会社名で検索"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', fontSize: 13 }}
+                style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', fontSize: 13 }}
               />
             </div>
             {/* Status pills */}
@@ -492,7 +492,7 @@ export default function Applications() {
             <div style={{ position: "relative", marginBottom: 16 }}>
               <svg style={{
                 position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
-                width: 16, height: 16, color: "var(--text-secondary)", pointerEvents: "none",
+                width: 16, height: 16, color: "var(--color-text-secondary)", pointerEvents: "none",
               }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -504,7 +504,7 @@ export default function Applications() {
                 style={{
                   width: "100%",
                   padding: "12px 14px 12px 42px",
-                  border: "1px solid var(--line)",
+                  border: "1px solid var(--color-border)",
                   borderRadius: "var(--radius)",
                   fontSize: "14px",
                   background: "#fff",
@@ -515,7 +515,7 @@ export default function Applications() {
 
             {/* Pill tabs */}
             <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginRight: 4 }}>ステータス</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginRight: 4 }}>ステータス</span>
               {STATUS_TABS.map((tab) => (
                 <button
                   key={tab.key}
@@ -532,7 +532,7 @@ export default function Applications() {
                 marginLeft: "auto",
                 fontSize: 13,
                 fontWeight: 600,
-                color: "var(--text-secondary)",
+                color: "var(--color-text-secondary)",
               }}>
                 {filteredMembers.length}件表示中
               </span>
@@ -566,10 +566,10 @@ export default function Applications() {
       ) : !error && filteredMembers.length === 0 ? (
         <div className="card panel-card single-panel">
           <div className="card-body" style={{ padding: "60px 20px", textAlign: "center" }}>
-            <svg style={{ width: 48, height: 48, color: "var(--muted)", margin: "0 auto 16px", display: "block", opacity: 0.4 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg style={{ width: 48, height: 48, color: "var(--color-text-tertiary)", margin: "0 auto 16px", display: "block", opacity: 0.4 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <p style={{ fontSize: 15, color: "var(--text-secondary)", margin: 0 }}>該当する申込はありません。</p>
+            <p style={{ fontSize: 15, color: "var(--color-text-secondary)", margin: 0 }}>該当する申込はありません。</p>
           </div>
         </div>
       ) : !error && isMobile ? (
@@ -645,7 +645,7 @@ export default function Applications() {
                       style={{
                         padding: "6px 16px", borderRadius: "var(--radius-sm)",
                         fontSize: 13, fontWeight: 500,
-                        background: "transparent", color: "var(--primary)",
+                        background: "transparent", color: "var(--color-accent)",
                         border: "none", cursor: "pointer",
                       }}
                     >
@@ -660,7 +660,7 @@ export default function Applications() {
             textAlign: "center",
             padding: "12px 20px",
             fontSize: 12,
-            color: "var(--text-secondary)",
+            color: "var(--color-text-secondary)",
             marginTop: 8,
           }}>
             全 {filteredMembers.length} 件
@@ -690,10 +690,10 @@ export default function Applications() {
                       key={item.id}
                       style={{ cursor: "pointer", transition: "background 0.12s" }}
                       onClick={() => navigate(`/admin/applications/${item.id}`)}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--primary-light)"; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-accent-light)"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = ""; }}
                     >
-                      <td style={{ fontVariantNumeric: "tabular-nums", fontSize: 13, color: "var(--text-secondary)" }}>
+                      <td style={{ fontVariantNumeric: "tabular-nums", fontSize: 13, color: "var(--color-text-secondary)" }}>
                         {item.applied_at ? item.applied_at.slice(0, 10).replace(/-/g, '/') : "-"}
                       </td>
                       <td>
@@ -701,13 +701,13 @@ export default function Applications() {
                           {displayValue(fullName(item))}
                         </span>
                       </td>
-                      <td style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                      <td style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
                         {displayValue(fullNameKana(item))}
                       </td>
                       <td style={{ fontSize: 13 }}>
                         {displayValue(item.company_name)}
                       </td>
-                      <td style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                      <td style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
                         {displayValue(item.referrer_1)}
                         {item.referrer_2 ? `, ${item.referrer_2}` : ""}
                       </td>
@@ -758,7 +758,7 @@ export default function Applications() {
                             style={{
                               padding: "4px 12px", height: 30, borderRadius: "var(--radius-sm)",
                               fontSize: 12, fontWeight: 500,
-                              background: "transparent", color: "var(--primary)",
+                              background: "transparent", color: "var(--color-accent)",
                               border: "none", cursor: "pointer",
                               whiteSpace: "nowrap",
                             }}
@@ -778,9 +778,9 @@ export default function Applications() {
           <div style={{
             textAlign: "center",
             padding: "12px 20px",
-            borderTop: "1px solid var(--line)",
+            borderTop: "1px solid var(--color-border)",
             fontSize: 12,
-            color: "var(--text-secondary)",
+            color: "var(--color-text-secondary)",
           }}>
             全 {filteredMembers.length} 件
           </div>

@@ -430,11 +430,11 @@ export default function MyPage() {
                   onImageClick={handleImageClick}
                 />
                 <div>
-                  <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
+                  <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
                     クリックして写真を変更（JPG/PNG、5MB以下）
                   </p>
                   {imageFile && (
-                    <p style={{ fontSize: 13, color: "var(--success)", margin: "4px 0 0" }}>
+                    <p style={{ fontSize: 13, color: "var(--color-success)", margin: "4px 0 0" }}>
                       新しい画像が選択されています（保存時にアップロードされます）
                     </p>
                   )}

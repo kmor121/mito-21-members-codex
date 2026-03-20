@@ -762,9 +762,9 @@ export default function MeetingsView() {
                                         borderRadius: 8, fontSize: 13, fontWeight: 600,
                                         cursor: isSaving ? 'default' : 'pointer',
                                         transition: 'all 0.15s', minHeight: 36,
-                                        background: isSelected ? (isAttend ? 'var(--success-light)' : 'var(--error-light)') : 'transparent',
-                                        color: isSelected ? (isAttend ? 'var(--success)' : 'var(--error)') : '#5F5E5A',
-                                        border: isSelected ? `2px solid ${isAttend ? 'var(--success)' : 'var(--error)'}` : '1px solid #E8E6DF',
+                                        background: isSelected ? (isAttend ? 'var(--color-success-light)' : 'var(--color-danger-light)') : 'transparent',
+                                        color: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : '#5F5E5A',
+                                        border: isSelected ? `2px solid ${isAttend ? 'var(--color-success)' : 'var(--color-danger)'}` : '1px solid #E8E6DF',
                                         opacity: isSaving ? 0.5 : 1,
                                       }}>
                                       {isSelected && '✓ '}{opt}
@@ -777,7 +777,7 @@ export default function MeetingsView() {
 
                           {/* Show result for completed */}
                           {isCompleted && myResponse && (
-                            <p style={{ fontSize: 13, color: 'var(--success)', fontWeight: 600, margin: '0 0 10px' }}>
+                            <p style={{ fontSize: 13, color: 'var(--color-success)', fontWeight: 600, margin: '0 0 10px' }}>
                               ✓ あなたの回答: {myResponse}
                             </p>
                           )}
@@ -849,9 +849,9 @@ export default function MeetingsView() {
                                         borderRadius: 8, fontSize: 13, fontWeight: 600,
                                         cursor: apIsSaving ? 'default' : 'pointer',
                                         transition: 'all 0.15s', minHeight: 36,
-                                        background: isSelected ? (isAttend ? 'var(--success-light)' : 'var(--error-light)') : 'transparent',
-                                        color: isSelected ? (isAttend ? 'var(--success)' : 'var(--error)') : '#78350f',
-                                        border: isSelected ? `2px solid ${isAttend ? 'var(--success)' : 'var(--error)'}` : '1px solid #FDE68A',
+                                        background: isSelected ? (isAttend ? 'var(--color-success-light)' : 'var(--color-danger-light)') : 'transparent',
+                                        color: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : '#78350f',
+                                        border: isSelected ? `2px solid ${isAttend ? 'var(--color-success)' : 'var(--color-danger)'}` : '1px solid #FDE68A',
                                         opacity: apIsSaving ? 0.5 : 1,
                                       }}>
                                       {isSelected && '✓ '}{opt}
@@ -862,7 +862,7 @@ export default function MeetingsView() {
                             </div>
                           )}
                           {isCompleted && apMyResponse && (
-                            <p style={{ fontSize: 13, color: 'var(--success)', fontWeight: 600, margin: '4px 0 0' }}>
+                            <p style={{ fontSize: 13, color: 'var(--color-success)', fontWeight: 600, margin: '4px 0 0' }}>
                               ✓ 懇親会: {apMyResponse}
                             </p>
                           )}

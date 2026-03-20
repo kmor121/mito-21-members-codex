@@ -530,7 +530,7 @@ export default function FiscalYears() {
                           <button
                             className="text-link"
                             type="button"
-                            style={{ color: "var(--error)" }}
+                            style={{ color: "var(--color-danger)" }}
                             onClick={() => { setDeleteTargetId(y.id); setConfirmDelete(true); }}
                           >
                             削除
@@ -591,7 +591,7 @@ export default function FiscalYears() {
                                 <button
                                   className="text-link"
                                   type="button"
-                                  style={{ color: "var(--error)" }}
+                                  style={{ color: "var(--color-danger)" }}
                                   onClick={() => { setDeleteTargetId(y.id); setConfirmDelete(true); }}
                                 >
                                   削除

@@ -1080,7 +1080,7 @@ export default function NewsletterList() {
                         key={tmpl.id}
                         onClick={() => navigate(`/admin/newsletters/template/${tmpl.id}/edit`)}
                         style={{ cursor: "pointer" }}
-                        onMouseEnter={e => { e.currentTarget.style.background = "var(--line-light)"; }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "var(--color-border)"; }}
                         onMouseLeave={e => { e.currentTarget.style.background = ""; }}
                       >
                         <td style={{ fontWeight: 600 }}>{tmpl.title || "(無題)"}</td>
@@ -1152,7 +1152,7 @@ export default function NewsletterList() {
                           key={nl.id}
                           onClick={() => navigate(`/admin/newsletters/${nl.id}/edit`)}
                           style={{ cursor: "pointer" }}
-                          onMouseEnter={e => { e.currentTarget.style.background = "var(--line-light)"; }}
+                          onMouseEnter={e => { e.currentTarget.style.background = "var(--color-border)"; }}
                           onMouseLeave={e => { e.currentTarget.style.background = ""; }}
                         >
                           <td style={{ fontWeight: 600 }}>{nl.title || "(無題)"}</td>

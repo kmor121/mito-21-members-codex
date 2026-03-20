@@ -157,26 +157,26 @@ function buildOrgHierarchy(orgs, excludeId) {
 function SkeletonCard() {
   return (
     <div style={{
-      borderRadius: "var(--radius-lg)", border: "1px solid var(--line-light)",
+      borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
       background: "#fff", overflow: "hidden",
     }}>
       {/* Header skeleton */}
       <div style={{
         display: "flex", alignItems: "center", gap: 12, padding: "14px 18px",
-        borderLeft: "4px solid var(--line-light)",
+        borderLeft: "4px solid var(--color-border)",
       }}>
-        <div style={{ width: 14, height: 14, borderRadius: 3, background: "var(--line-light)", animation: "pulse 1.8s ease infinite" }} />
-        <div style={{ width: 130, height: 16, borderRadius: 4, background: "var(--line-light)", animation: "pulse 1.8s ease infinite 0.1s" }} />
-        <div style={{ width: 48, height: 20, borderRadius: 6, background: "var(--line-light)", animation: "pulse 1.8s ease infinite 0.2s" }} />
+        <div style={{ width: 14, height: 14, borderRadius: 3, background: "var(--color-border)", animation: "pulse 1.8s ease infinite" }} />
+        <div style={{ width: 130, height: 16, borderRadius: 4, background: "var(--color-border)", animation: "pulse 1.8s ease infinite 0.1s" }} />
+        <div style={{ width: 48, height: 20, borderRadius: 6, background: "var(--color-border)", animation: "pulse 1.8s ease infinite 0.2s" }} />
         <div style={{ flex: 1 }} />
-        <div style={{ width: 36, height: 18, borderRadius: 10, background: "var(--line-light)", animation: "pulse 1.8s ease infinite 0.3s" }} />
+        <div style={{ width: 36, height: 18, borderRadius: 10, background: "var(--color-border)", animation: "pulse 1.8s ease infinite 0.3s" }} />
       </div>
       {/* Body skeleton */}
       <div style={{ padding: "14px 18px", display: "flex", gap: 8, flexWrap: "wrap" }}>
         {[1, 2, 3, 4].map(i => (
           <div key={i} style={{
             width: 90 + i * 12, height: 34, borderRadius: 20,
-            background: "var(--line-light)", animation: `pulse 1.8s ease infinite ${0.1 * i}s`,
+            background: "var(--color-border)", animation: `pulse 1.8s ease infinite ${0.1 * i}s`,
           }} />
         ))}
       </div>
@@ -203,9 +203,9 @@ function OrgTreeNode({
       <div
         style={{
           borderRadius: "var(--radius-lg)", background: "#fff",
-          border: "1px solid var(--line-light)",
+          border: "1px solid var(--color-border)",
           borderLeft: `4px solid ${tc.text}`,
-          transition: "box-shadow var(--transition), border-color var(--transition)",
+          transition: "box-shadow var(--transition-fast), border-color var(--transition-fast)",
           overflow: "hidden",
         }}
         onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"; }}
@@ -215,15 +215,15 @@ function OrgTreeNode({
         {/* Card header */}
         <div style={{
           display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "12px 18px", borderBottom: isExpanded ? "1px solid var(--line-light)" : "none",
+          padding: "12px 18px", borderBottom: isExpanded ? "1px solid var(--color-border)" : "none",
           background: "#fff",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flexWrap: "wrap" }}>
             {/* Drag handle */}
             <span style={{
-              cursor: "grab", color: "var(--muted)", fontSize: 15, userSelect: "none",
+              cursor: "grab", color: "var(--color-text-tertiary)", fontSize: 15, userSelect: "none",
               display: "flex", alignItems: "center", opacity: 0.5,
-              transition: "opacity var(--transition)",
+              transition: "opacity var(--transition-fast)",
             }}
               onMouseEnter={e => e.currentTarget.style.opacity = "1"}
               onMouseLeave={e => e.currentTarget.style.opacity = "0.5"}
@@ -243,7 +243,7 @@ function OrgTreeNode({
                 onClick={() => toggleExpand(org.id)}
                 style={{
                   background: "none", border: "none", cursor: "pointer", padding: "2px 4px",
-                  fontSize: 12, color: "var(--text-secondary)", transition: "transform 0.2s ease",
+                  fontSize: 12, color: "var(--color-text-secondary)", transition: "transform 0.2s ease",
                   transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
                   display: "flex", alignItems: "center",
                 }}
@@ -254,7 +254,7 @@ function OrgTreeNode({
               </button>
             )}
 
-            <span style={{ fontWeight: 600, fontSize: 15, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>
+            <span style={{ fontWeight: 600, fontSize: 15, color: "var(--color-text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>
               {org.org_name || "\uFF08\u540D\u79F0\u672A\u8A2D\u5B9A\uFF09"}
             </span>
             <span style={{
@@ -286,7 +286,7 @@ function OrgTreeNode({
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {/* Member count pill */}
             <span style={{
-              fontSize: 12, color: "var(--text-secondary)", background: "var(--bg)",
+              fontSize: 12, color: "var(--color-text-secondary)", background: "var(--bg)",
               padding: "2px 8px", borderRadius: 10, fontWeight: 500,
               whiteSpace: "nowrap",
             }}>{assignments.length}名</span>
@@ -296,8 +296,8 @@ function OrgTreeNode({
               <button type="button" onClick={() => onEditOrg(org)}
                 style={{
                   background: "none", border: "none", cursor: "pointer", padding: "4px 6px",
-                  borderRadius: "var(--radius)", fontSize: 13, color: "var(--text-secondary)",
-                  opacity: 0.4, transition: "all var(--transition)",
+                  borderRadius: "var(--radius)", fontSize: 13, color: "var(--color-text-secondary)",
+                  opacity: 0.4, transition: "all var(--transition-fast)",
                   display: "flex", alignItems: "center",
                 }}
                 onMouseEnter={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.background = "var(--bg)"; }}
@@ -310,12 +310,12 @@ function OrgTreeNode({
               <button type="button" onClick={() => onDeleteOrg(org)}
                 style={{
                   background: "none", border: "none", cursor: "pointer", padding: "4px 6px",
-                  borderRadius: "var(--radius)", fontSize: 13, color: "var(--text-secondary)",
-                  opacity: 0.4, transition: "all var(--transition)",
+                  borderRadius: "var(--radius)", fontSize: 13, color: "var(--color-text-secondary)",
+                  opacity: 0.4, transition: "all var(--transition-fast)",
                   display: "flex", alignItems: "center",
                 }}
-                onMouseEnter={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.color = "var(--error)"; e.currentTarget.style.background = "#fef2f2"; }}
-                onMouseLeave={e => { e.currentTarget.style.opacity = "0.4"; e.currentTarget.style.color = "var(--text-secondary)"; e.currentTarget.style.background = "none"; }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.color = "var(--color-danger)"; e.currentTarget.style.background = "#fef2f2"; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = "0.4"; e.currentTarget.style.color = "var(--color-text-secondary)"; e.currentTarget.style.background = "none"; }}
                 title="削除">
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M2 4h12M5.33 4V2.67a1.33 1.33 0 011.34-1.34h2.66a1.33 1.33 0 011.34 1.34V4M13.33 4v9.33a1.33 1.33 0 01-1.33 1.34H4a1.33 1.33 0 01-1.33-1.34V4"/>
@@ -338,7 +338,7 @@ function OrgTreeNode({
                   onClick={() => onEditAssignment(org, a)}
                   style={{
                     display: "flex", alignItems: "center", gap: 5, padding: "3px 8px 3px 3px",
-                    borderRadius: 16, border: "1px solid var(--line)", background: "#fff",
+                    borderRadius: 16, border: "1px solid var(--color-border)", background: "#fff",
                     cursor: "pointer", transition: "all 0.15s ease", fontSize: 12,
                     animation: "chipEnter 0.2s ease",
                     position: "relative",
@@ -346,14 +346,14 @@ function OrgTreeNode({
                   onMouseEnter={e => {
                     e.currentTarget.style.transform = "translateY(-1px)";
                     e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.06)";
-                    e.currentTarget.style.borderColor = "var(--primary)";
+                    e.currentTarget.style.borderColor = "var(--color-accent)";
                     const rmBtn = e.currentTarget.querySelector("[data-rm]");
                     if (rmBtn) rmBtn.style.opacity = "1";
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.transform = "translateY(0)";
                     e.currentTarget.style.boxShadow = "none";
-                    e.currentTarget.style.borderColor = "var(--line)";
+                    e.currentTarget.style.borderColor = "var(--color-border)";
                     const rmBtn = e.currentTarget.querySelector("[data-rm]");
                     if (rmBtn) rmBtn.style.opacity = "0";
                   }}
@@ -372,11 +372,11 @@ function OrgTreeNode({
                     onClick={(e) => { e.stopPropagation(); onRemoveAssignment(org, a); }}
                     style={{
                       background: "none", border: "none", cursor: "pointer", padding: "0 2px",
-                      fontSize: 12, color: "var(--muted)", lineHeight: 1, opacity: 0,
-                      transition: "all var(--transition)", marginLeft: 1,
+                      fontSize: 12, color: "var(--color-text-tertiary)", lineHeight: 1, opacity: 0,
+                      transition: "all var(--transition-fast)", marginLeft: 1,
                     }}
-                    onMouseEnter={e => e.currentTarget.style.color = "var(--error)"}
-                    onMouseLeave={e => e.currentTarget.style.color = "var(--muted)"}
+                    onMouseEnter={e => e.currentTarget.style.color = "var(--color-danger)"}
+                    onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-tertiary)"}
                     title="配属解除"
                   >&times;</button>
                 </div>
@@ -388,12 +388,12 @@ function OrgTreeNode({
                 onClick={() => onAddMember(org)}
                 style={{
                   display: "flex", alignItems: "center", gap: 4, padding: "3px 10px",
-                  borderRadius: 16, border: "1px dashed var(--line)", background: "transparent",
-                  cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
-                  transition: "all var(--transition)",
+                  borderRadius: 16, border: "1px dashed var(--color-border)", background: "transparent",
+                  cursor: "pointer", fontSize: 12, color: "var(--color-text-secondary)",
+                  transition: "all var(--transition-fast)",
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; e.currentTarget.style.background = "var(--primary-light)"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; e.currentTarget.style.background = "transparent"; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.color = "var(--color-accent)"; e.currentTarget.style.background = "var(--color-accent-light)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.color = "var(--color-text-secondary)"; e.currentTarget.style.background = "transparent"; }}
               >
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M8 3v10M3 8h10"/>
@@ -409,7 +409,7 @@ function OrgTreeNode({
       {isExpanded && children.length > 0 && (
         <div style={{
           marginLeft: isMobile ? 8 : 18, marginTop: 0, paddingLeft: isMobile ? 12 : 28,
-          borderLeft: "2px solid var(--line)",
+          borderLeft: "2px solid var(--color-border)",
           display: "grid", gap: 10, paddingTop: 10, position: "relative",
         }}>
           {children.map(child => (
@@ -882,7 +882,7 @@ export default function OrgChart() {
               type="button"
               onClick={openNewOrg}
               style={{
-                background: "var(--primary)", color: "#fff", border: "none",
+                background: "var(--color-accent)", color: "#fff", border: "none",
                 display: "flex", alignItems: "center", gap: 6, fontSize: 13,
               }}
             >
@@ -900,7 +900,7 @@ export default function OrgChart() {
         /* Mobile: inline ◂ year ▸ switcher */
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "8px 0", borderBottom: "1px solid var(--line-light)", marginBottom: 16,
+          padding: "8px 0", borderBottom: "1px solid var(--color-border)", marginBottom: 16,
         }}>
           <button
             type="button"
@@ -909,11 +909,11 @@ export default function OrgChart() {
             style={{
               background: "none", border: "none", padding: "4px 8px",
               fontSize: 16, cursor: currentIdx <= 0 ? "default" : "pointer",
-              color: currentIdx <= 0 ? "var(--muted)" : "var(--text)",
+              color: currentIdx <= 0 ? "var(--color-text-tertiary)" : "var(--color-text-primary)",
               opacity: currentIdx <= 0 ? 0.3 : 1,
             }}
           >◂</button>
-          <span style={{ fontWeight: 600, fontSize: 14, color: "var(--text)" }}>
+          <span style={{ fontWeight: 600, fontSize: 14, color: "var(--color-text-primary)" }}>
             {sortedYears[currentIdx]?.year_label || (sortedYears[currentIdx]?.year ? `${sortedYears[currentIdx].year}年度` : "-")}
           </span>
           <button
@@ -923,7 +923,7 @@ export default function OrgChart() {
             style={{
               background: "none", border: "none", padding: "4px 8px",
               fontSize: 16, cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
-              color: currentIdx >= sortedYears.length - 1 ? "var(--muted)" : "var(--text)",
+              color: currentIdx >= sortedYears.length - 1 ? "var(--color-text-tertiary)" : "var(--color-text-primary)",
               opacity: currentIdx >= sortedYears.length - 1 ? 0.3 : 1,
             }}
           >▸</button>
@@ -932,22 +932,22 @@ export default function OrgChart() {
         /* Desktop: full pill navigator */
         <div style={{
           display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
-          borderBottom: "1px solid var(--line-light)", marginBottom: 20,
+          borderBottom: "1px solid var(--color-border)", marginBottom: 20,
           overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none",
           flexWrap: "nowrap",
         }}>
           <button type="button" onClick={() => goYear(-1)} disabled={currentIdx <= 0}
             style={{
-              background: "none", border: "1px solid var(--line)", borderRadius: 6,
+              background: "none", border: "1px solid var(--color-border)", borderRadius: 6,
               width: 32, height: 32, cursor: currentIdx <= 0 ? "default" : "pointer",
-              color: currentIdx <= 0 ? "var(--muted)" : "var(--text)", fontSize: 13,
+              color: currentIdx <= 0 ? "var(--color-text-tertiary)" : "var(--color-text-primary)", fontSize: 13,
               display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "all var(--transition)",
+              transition: "all var(--transition-fast)",
               opacity: currentIdx <= 0 ? 0.4 : 1,
               pointerEvents: currentIdx <= 0 ? "none" : "auto",
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
+            onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--color-accent)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--color-border)"; }}
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 3L5 8l5 5"/>
@@ -964,9 +964,9 @@ export default function OrgChart() {
                   style={{
                     fontSize: 13, height: 32, padding: "0 18px", borderRadius: 20, border: "none",
                     cursor: "pointer", fontWeight: isActive ? 600 : 400,
-                    background: isActive ? "var(--primary)" : "transparent",
-                    color: isActive ? "#fff" : "var(--text-secondary)",
-                    transition: "all var(--transition)",
+                    background: isActive ? "var(--color-accent)" : "transparent",
+                    color: isActive ? "#fff" : "var(--color-text-secondary)",
+                    transition: "all var(--transition-fast)",
                   }}
                   onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--bg)"; }}
                   onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
@@ -978,16 +978,16 @@ export default function OrgChart() {
           </div>
           <button type="button" onClick={() => goYear(1)} disabled={currentIdx >= sortedYears.length - 1}
             style={{
-              background: "none", border: "1px solid var(--line)", borderRadius: 6,
+              background: "none", border: "1px solid var(--color-border)", borderRadius: 6,
               width: 32, height: 32, cursor: currentIdx >= sortedYears.length - 1 ? "default" : "pointer",
-              color: currentIdx >= sortedYears.length - 1 ? "var(--muted)" : "var(--text)", fontSize: 13,
+              color: currentIdx >= sortedYears.length - 1 ? "var(--color-text-tertiary)" : "var(--color-text-primary)", fontSize: 13,
               display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "all var(--transition)",
+              transition: "all var(--transition-fast)",
               opacity: currentIdx >= sortedYears.length - 1 ? 0.4 : 1,
               pointerEvents: currentIdx >= sortedYears.length - 1 ? "none" : "auto",
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--line)"; }}
+            onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--color-accent)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--color-border)"; }}
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 3l5 5-5 5"/>
@@ -998,12 +998,12 @@ export default function OrgChart() {
             <button type="button" onClick={expandAll}
               title="すべて展開"
               style={{
-                background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-                padding: "4px 8px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
-                display: "flex", alignItems: "center", gap: 4, transition: "all var(--transition)",
+                background: "none", border: "1px solid var(--color-border)", borderRadius: "var(--radius)",
+                padding: "4px 8px", cursor: "pointer", fontSize: 12, color: "var(--color-text-secondary)",
+                display: "flex", alignItems: "center", gap: 4, transition: "all var(--transition-fast)",
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.color = "var(--color-accent)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.color = "var(--color-text-secondary)"; }}
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M2 4l4 4 4-4"/>
@@ -1013,12 +1013,12 @@ export default function OrgChart() {
             <button type="button" onClick={collapseAll}
               title="すべて閉じる"
               style={{
-                background: "none", border: "1px solid var(--line)", borderRadius: "var(--radius)",
-                padding: "4px 8px", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
-                display: "flex", alignItems: "center", gap: 4, transition: "all var(--transition)",
+                background: "none", border: "1px solid var(--color-border)", borderRadius: "var(--radius)",
+                padding: "4px 8px", cursor: "pointer", fontSize: 12, color: "var(--color-text-secondary)",
+                display: "flex", alignItems: "center", gap: 4, transition: "all var(--transition-fast)",
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.color = "var(--color-accent)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.color = "var(--color-text-secondary)"; }}
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M2 8l4-4 4 4"/>
@@ -1033,22 +1033,22 @@ export default function OrgChart() {
       {orgTree.length === 0 ? (
         <div style={{
           textAlign: "center", padding: "72px 24px", background: "#fff",
-          borderRadius: "var(--radius-lg)", border: "1px solid var(--line-light)",
+          borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
         }}>
           <div style={{
             width: 64, height: 64, borderRadius: 16, background: "var(--bg)",
             display: "flex", alignItems: "center", justifyContent: "center",
             margin: "0 auto 20px",
           }}>
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="4" y="4" width="10" height="10" rx="2"/>
               <rect x="18" y="4" width="10" height="10" rx="2"/>
               <rect x="11" y="18" width="10" height="10" rx="2"/>
               <path d="M9 14v4h7M23 14v8h-7" strokeDasharray="2 2"/>
             </svg>
           </div>
-          <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 8, color: "var(--text)" }}>この年度の組織はまだありません</h3>
-          <p style={{ color: "var(--text-secondary)", marginBottom: 28, fontSize: 14, lineHeight: 1.6 }}>
+          <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 8, color: "var(--color-text-primary)" }}>この年度の組織はまだありません</h3>
+          <p style={{ color: "var(--color-text-secondary)", marginBottom: 28, fontSize: 14, lineHeight: 1.6 }}>
             新規組織を追加するか、前年度のデータをコピーして始めましょう
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
@@ -1057,7 +1057,7 @@ export default function OrgChart() {
               type="button"
               onClick={openNewOrg}
               style={{
-                background: "var(--primary)", color: "#fff", border: "none",
+                background: "var(--color-accent)", color: "#fff", border: "none",
                 display: "flex", alignItems: "center", gap: 6,
               }}
             >
@@ -1130,16 +1130,16 @@ export default function OrgChart() {
         <div style={{
           position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
           background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-          border: "1px solid var(--line)", borderRadius: "var(--radius-xl)",
+          border: "1px solid var(--color-border)", borderRadius: "var(--radius-xl)",
           padding: "12px 24px", display: "flex", alignItems: "center", gap: 14,
           boxShadow: "0 8px 32px rgba(0,0,0,0.12)", zIndex: 100, animation: "orgSlideUp 0.3s ease",
           maxWidth: "calc(100vw - 32px)", flexWrap: "wrap",
         }}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="8" cy="8" r="7"/>
             <path d="M8 5v3.5l2.5 1.5"/>
           </svg>
-          <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 500 }}>未保存の並び順変更があります</span>
+          <span style={{ fontSize: 13, color: "var(--color-text-primary)", fontWeight: 500 }}>未保存の並び順変更があります</span>
           <button
             className="btn"
             type="button"
@@ -1162,7 +1162,7 @@ export default function OrgChart() {
               } finally { setSaving(false); }
             }}
             style={{
-              background: "var(--primary)", color: "#fff", border: "none",
+              background: "var(--color-accent)", color: "#fff", border: "none",
               fontSize: 13, padding: "6px 16px", borderRadius: "var(--radius)",
             }}
           >{saving ? "保存中..." : "並び順を保存"}</button>
@@ -1171,11 +1171,11 @@ export default function OrgChart() {
             onClick={() => { setUnsavedOrder(false); reloadData(); }}
             style={{
               background: "none", border: "none", cursor: "pointer", fontSize: 13,
-              color: "var(--text-secondary)", padding: "6px 8px",
-              transition: "color var(--transition)",
+              color: "var(--color-text-secondary)", padding: "6px 8px",
+              transition: "color var(--transition-fast)",
             }}
-            onMouseEnter={e => e.currentTarget.style.color = "var(--text)"}
-            onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}
+            onMouseEnter={e => e.currentTarget.style.color = "var(--color-text-primary)"}
+            onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-secondary)"}
           >取り消す</button>
         </div>
       )}
@@ -1193,7 +1193,7 @@ export default function OrgChart() {
               <div className="modal-body" style={{ padding: 24 }}>
                 {/* Name */}
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--color-text-primary)", letterSpacing: "0.02em" }}>
                     組織名
                   </label>
                   <input
@@ -1202,19 +1202,19 @@ export default function OrgChart() {
                     placeholder="例: 総務委員会"
                     style={{
                       width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
-                      border: "1px solid var(--line)", fontSize: 15, fontWeight: 500,
-                      transition: "border-color var(--transition)",
+                      border: "1px solid var(--color-border)", fontSize: 15, fontWeight: 500,
+                      transition: "border-color var(--transition-fast)",
                       outline: "none",
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
-                    onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
+                    onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
+                    onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
                     autoFocus
                   />
                 </div>
 
                 {/* Type - pill selector */}
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--color-text-primary)", letterSpacing: "0.02em" }}>
                     種別
                   </label>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -1230,8 +1230,8 @@ export default function OrgChart() {
                             cursor: "pointer", transition: "all 0.15s",
                             transform: isActive ? "scale(1.02)" : "scale(1)",
                             background: isActive ? tc.text : "#fff",
-                            color: isActive ? "#fff" : "var(--text-secondary)",
-                            border: `1.5px solid ${isActive ? tc.text : "var(--line)"}`,
+                            color: isActive ? "#fff" : "var(--color-text-secondary)",
+                            border: `1.5px solid ${isActive ? tc.text : "var(--color-border)"}`,
                             boxShadow: isActive ? `0 2px 8px ${tc.text}30` : "none",
                           }}
                         >{t}</button>
@@ -1242,7 +1242,7 @@ export default function OrgChart() {
 
                 {/* Parent */}
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--color-text-primary)", letterSpacing: "0.02em" }}>
                     親組織
                   </label>
                   <select
@@ -1250,11 +1250,11 @@ export default function OrgChart() {
                     onChange={e => setOrgForm(p => ({ ...p, parent_id: e.target.value }))}
                     style={{
                       width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
-                      border: "1px solid var(--line)", fontSize: 14,
-                      transition: "border-color var(--transition)", outline: "none",
+                      border: "1px solid var(--color-border)", fontSize: 14,
+                      transition: "border-color var(--transition-fast)", outline: "none",
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
-                    onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
+                    onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
+                    onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
                   >
                     <option value="">なし（ルート）</option>
                     {orgHierarchyOptions.map(o => (
@@ -1265,7 +1265,7 @@ export default function OrgChart() {
 
                 {/* Sort order */}
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--color-text-primary)", letterSpacing: "0.02em" }}>
                     表示順
                   </label>
                   <input
@@ -1273,24 +1273,24 @@ export default function OrgChart() {
                     onChange={e => setOrgForm(p => ({ ...p, sort_order: e.target.value }))}
                     style={{
                       width: 100, padding: "10px 14px", borderRadius: "var(--radius)",
-                      border: "1px solid var(--line)", fontSize: 14,
-                      transition: "border-color var(--transition)", outline: "none",
+                      border: "1px solid var(--color-border)", fontSize: 14,
+                      transition: "border-color var(--transition-fast)", outline: "none",
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
-                    onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
+                    onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
+                    onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
                   />
                 </div>
 
                 {/* Supervisor */}
                 <div>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--color-text-primary)", letterSpacing: "0.02em" }}>
                     担当者（上位監督者）
                   </label>
-                  <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "0 0 8px", lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 8px", lineHeight: 1.5 }}>
                     この組織を統括する副会長・代表幹事等を設定できます（任意）
                   </p>
                   <div style={{ position: "relative", marginBottom: 8 }}>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
                       style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
                       <circle cx="7" cy="7" r="5"/>
                       <path d="M14 14l-3.5-3.5"/>
@@ -1302,11 +1302,11 @@ export default function OrgChart() {
                       onChange={e => setSupervisorSearch(e.target.value)}
                       style={{
                         width: "100%", padding: "8px 12px 8px 34px", borderRadius: "var(--radius)",
-                        border: "1px solid var(--line)", fontSize: 13,
-                        transition: "border-color var(--transition)", outline: "none",
+                        border: "1px solid var(--color-border)", fontSize: 13,
+                        transition: "border-color var(--transition-fast)", outline: "none",
                       }}
-                      onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
-                      onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
+                      onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
+                      onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
                     />
                   </div>
                   <select
@@ -1314,11 +1314,11 @@ export default function OrgChart() {
                     onChange={e => setOrgForm(p => ({ ...p, supervisor_id: e.target.value }))}
                     style={{
                       width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
-                      border: "1px solid var(--line)", fontSize: 14,
-                      transition: "border-color var(--transition)", outline: "none",
+                      border: "1px solid var(--color-border)", fontSize: 14,
+                      transition: "border-color var(--transition-fast)", outline: "none",
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
-                    onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
+                    onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
+                    onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
                   >
                     <option value="">なし</option>
                     {filteredSupervisors.map(m => (
@@ -1334,9 +1334,9 @@ export default function OrgChart() {
                   {orgForm.id && (
                     <button type="button" onClick={() => { setShowOrgModal(false); handleDeleteOrgClick(orgForm); }}
                       style={{
-                        background: "none", border: "1px solid var(--error)", color: "var(--error)",
+                        background: "none", border: "1px solid var(--color-danger)", color: "var(--color-danger)",
                         borderRadius: "var(--radius)", padding: "8px 16px", cursor: "pointer", fontSize: 13,
-                        transition: "all var(--transition)",
+                        transition: "all var(--transition-fast)",
                       }}
                       onMouseEnter={e => { e.currentTarget.style.background = "#fef2f2"; }}
                       onMouseLeave={e => { e.currentTarget.style.background = "none"; }}
@@ -1347,7 +1347,7 @@ export default function OrgChart() {
                 <div style={{ display: "flex", gap: 8 }}>
                   <button type="button" className="btn btn-secondary" onClick={() => setShowOrgModal(false)}>キャンセル</button>
                   <button type="submit" className="btn" disabled={saving || !orgForm.org_name.trim()}
-                    style={{ background: "var(--primary)", color: "#fff", border: "none" }}
+                    style={{ background: "var(--color-accent)", color: "#fff", border: "none" }}
                   >{saving ? "保存中..." : "保存"}</button>
                 </div>
               </div>
@@ -1362,7 +1362,7 @@ export default function OrgChart() {
           style={{ animation: "modalFadeIn 0.2s ease" }}>
           <div className="modal-dialog" style={{ maxWidth: 520, animation: "modalSlideIn 0.25s ease" }} onClick={e => e.stopPropagation()}>
             <div className="modal-header" style={{
-              borderLeft: `4px solid ${TYPE_COLORS[assignOrg.org_type]?.text || "var(--muted)"}`,
+              borderLeft: `4px solid ${TYPE_COLORS[assignOrg.org_type]?.text || "var(--color-text-tertiary)"}`,
             }}>
               <h3 style={{ fontSize: "1rem" }}>
                 {assignForm.id ? "配属を編集" : `${assignOrg.org_name || "組織"}にメンバーを追加`}
@@ -1373,12 +1373,12 @@ export default function OrgChart() {
               <div className="modal-body" style={{ padding: 24 }}>
                 {/* Member selection */}
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--color-text-primary)", letterSpacing: "0.02em" }}>
                     会員
                   </label>
                   {!assignForm.id && (
                     <div style={{ position: "relative", marginBottom: 8 }}>
-                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
                         style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
                         <circle cx="7" cy="7" r="5"/>
                         <path d="M14 14l-3.5-3.5"/>
@@ -1390,11 +1390,11 @@ export default function OrgChart() {
                         onChange={e => setAssignSearch(e.target.value)}
                         style={{
                           width: "100%", padding: "8px 12px 8px 34px", borderRadius: "var(--radius)",
-                          border: "1px solid var(--line)", fontSize: 13,
-                          transition: "border-color var(--transition)", outline: "none",
+                          border: "1px solid var(--color-border)", fontSize: 13,
+                          transition: "border-color var(--transition-fast)", outline: "none",
                         }}
-                        onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
-                        onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
+                        onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
+                        onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
                       />
                     </div>
                   )}
@@ -1404,19 +1404,19 @@ export default function OrgChart() {
                     disabled={!!assignForm.id}
                     style={{
                       width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
-                      border: "1px solid var(--line)", fontSize: 14,
-                      background: assignForm.id ? "var(--line-light)" : "#fff",
-                      transition: "border-color var(--transition)", outline: "none",
+                      border: "1px solid var(--color-border)", fontSize: 14,
+                      background: assignForm.id ? "var(--color-border)" : "#fff",
+                      transition: "border-color var(--transition-fast)", outline: "none",
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = "var(--primary)"}
-                    onBlur={e => e.currentTarget.style.borderColor = "var(--line)"}
+                    onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
+                    onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
                   >
                     <option value="">-- 会員を選択 --</option>
                     {filteredMembers.map(m => {
                       const isAssigned = assignedMemberIds.has(m.id) && m.id !== assignForm.member_id;
                       return (
                         <option key={m.id} value={m.id} disabled={isAssigned}
-                          style={{ color: isAssigned ? "var(--muted)" : "inherit" }}
+                          style={{ color: isAssigned ? "var(--color-text-tertiary)" : "inherit" }}
                         >
                           {fullName(m)}{isAssigned ? "（配属済）" : ""}{fullNameKana(m) ? ` (${fullNameKana(m)})` : ""}
                         </option>
@@ -1427,7 +1427,7 @@ export default function OrgChart() {
 
                 {/* Role */}
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text)", letterSpacing: "0.02em" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--color-text-primary)", letterSpacing: "0.02em" }}>
                     役職
                   </label>
                   <input
@@ -1437,11 +1437,11 @@ export default function OrgChart() {
                     placeholder="例: 委員長、副委員長、幹事、委員"
                     style={{
                       width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
-                      border: `1px solid ${assignRoleError ? "var(--error)" : "var(--line)"}`, fontSize: 14, marginBottom: 8,
-                      transition: "border-color var(--transition)", outline: "none",
+                      border: `1px solid ${assignRoleError ? "var(--color-danger)" : "var(--color-border)"}`, fontSize: 14, marginBottom: 8,
+                      transition: "border-color var(--transition-fast)", outline: "none",
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = assignRoleError ? "var(--error)" : "var(--primary)"}
-                    onBlur={e => e.currentTarget.style.borderColor = assignRoleError ? "var(--error)" : "var(--line)"}
+                    onFocus={e => e.currentTarget.style.borderColor = assignRoleError ? "var(--color-danger)" : "var(--color-accent)"}
+                    onBlur={e => e.currentTarget.style.borderColor = assignRoleError ? "var(--color-danger)" : "var(--color-border)"}
                   />
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     {(ROLES_BY_ORG_TYPE[assignOrg.org_type] || ROLES_BY_ORG_TYPE["その他"]).map(r => {
@@ -1454,9 +1454,9 @@ export default function OrgChart() {
                             padding: "3px 10px", borderRadius: 16, fontSize: 12, fontWeight: 500,
                             cursor: "pointer", transition: "all 0.15s",
                             transform: isActive ? "scale(1.02)" : "scale(1)",
-                            background: isActive ? "var(--primary)" : "#fff",
-                            color: isActive ? "#fff" : "var(--text-secondary)",
-                            border: `1px solid ${isActive ? "var(--primary)" : "var(--line)"}`,
+                            background: isActive ? "var(--color-accent)" : "#fff",
+                            color: isActive ? "#fff" : "var(--color-text-secondary)",
+                            border: `1px solid ${isActive ? "var(--color-accent)" : "var(--color-border)"}`,
                           }}
                         >{r}</button>
                       );
@@ -1476,9 +1476,9 @@ export default function OrgChart() {
                         });
                       }}
                       style={{
-                        background: "none", border: "1px solid var(--error)", color: "var(--error)",
+                        background: "none", border: "1px solid var(--color-danger)", color: "var(--color-danger)",
                         borderRadius: "var(--radius)", padding: "8px 16px", cursor: "pointer", fontSize: 13,
-                        transition: "all var(--transition)",
+                        transition: "all var(--transition-fast)",
                       }}
                       onMouseEnter={e => e.currentTarget.style.background = "#fef2f2"}
                       onMouseLeave={e => e.currentTarget.style.background = "none"}
@@ -1489,7 +1489,7 @@ export default function OrgChart() {
                 <div style={{ display: "flex", gap: 8 }}>
                   <button type="button" className="btn btn-secondary" onClick={() => setShowAssignModal(false)}>キャンセル</button>
                   <button type="submit" className="btn" disabled={saving || !assignForm.member_id}
-                    style={{ background: "var(--primary)", color: "#fff", border: "none" }}
+                    style={{ background: "var(--color-accent)", color: "#fff", border: "none" }}
                   >{saving ? "保存中..." : assignForm.id ? "更新" : "追加"}</button>
                 </div>
               </div>
@@ -1514,10 +1514,10 @@ export default function OrgChart() {
                   padding: "40px 20px", gap: 16,
                 }}>
                   <div style={{
-                    width: 40, height: 40, border: "3px solid var(--line)", borderTopColor: "var(--primary)",
+                    width: 40, height: 40, border: "3px solid var(--color-border)", borderTopColor: "var(--color-accent)",
                     borderRadius: "50%", animation: "spin 0.8s linear infinite",
                   }} />
-                  <span style={{ fontSize: 14, color: "var(--text-secondary)", fontWeight: 500 }}>コピー中...</span>
+                  <span style={{ fontSize: 14, color: "var(--color-text-secondary)", fontWeight: 500 }}>コピー中...</span>
                 </div>
               ) : (
                 <>
@@ -1527,14 +1527,14 @@ export default function OrgChart() {
                   }}>
                     <span style={{
                       padding: "5px 16px", borderRadius: "var(--radius)", background: "#fff",
-                      border: "1px solid var(--line)", fontSize: 14, fontWeight: 600,
+                      border: "1px solid var(--color-border)", fontSize: 14, fontWeight: 600,
                     }}>{prevYearLabel}</span>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M4 10h12M12 6l4 4-4 4"/>
                     </svg>
                     <span style={{
-                      padding: "5px 16px", borderRadius: "var(--radius)", background: "var(--primary-light)",
-                      color: "var(--primary)", fontSize: 14, fontWeight: 600, border: "1px solid transparent",
+                      padding: "5px 16px", borderRadius: "var(--radius)", background: "var(--color-accent-light)",
+                      color: "var(--color-accent)", fontSize: 14, fontWeight: 600, border: "1px solid transparent",
                     }}>{yearLabel}</span>
                   </div>
 
@@ -1561,12 +1561,12 @@ export default function OrgChart() {
                       </div>
                       <span>配属メンバーと役職</span>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--text-secondary)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--color-text-secondary)" }}>
                       <div style={{
                         width: 20, height: 20, borderRadius: "50%", background: "var(--bg)",
                         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
                       }}>
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                           <circle cx="6" cy="6" r="5"/>
                           <path d="M6 4v3M6 8.5v0"/>
                         </svg>
@@ -1597,7 +1597,7 @@ export default function OrgChart() {
                   type="button" className="btn"
                   onClick={executeCopy}
                   disabled={copying}
-                  style={{ background: "var(--primary)", color: "#fff", border: "none" }}
+                  style={{ background: "var(--color-accent)", color: "#fff", border: "none" }}
                 >コピーする</button>
               </div>
             )}

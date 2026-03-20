@@ -232,7 +232,7 @@ export default function MemberProfile() {
                     <div key={aId} style={{
                       display: "flex", justifyContent: "space-between", alignItems: "center",
                       padding: "0.6rem 1rem", borderRadius: 8,
-                      background: "var(--line-light)", border: "1px solid var(--line)",
+                      background: "var(--color-border)", border: "1px solid var(--color-border)",
                     }}>
                       <span style={{ fontWeight: 600, fontSize: 14 }}>
                         {org?.org_name || "不明な組織"}

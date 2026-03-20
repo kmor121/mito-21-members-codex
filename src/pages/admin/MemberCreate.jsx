@@ -25,7 +25,7 @@ const INITIAL_FORM = {
 const SECTION_STEPS = ["基本情報", "会社情報", "連絡先", "自宅情報", "その他", "名簿設定"];
 
 /* ---------- SVG Icon Components ---------- */
-const iconProps = { width: 20, height: 20, fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", style: { color: 'var(--primary)' } };
+const iconProps = { width: 20, height: 20, fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", style: { color: 'var(--color-accent)' } };
 
 function UserIcon() {
   return (
@@ -90,11 +90,11 @@ function SectionHeader({ icon, title }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 10,
-      borderBottom: '1px solid var(--line)',
+      borderBottom: '1px solid var(--color-border)',
       paddingBottom: 10, marginBottom: 4,
     }}>
       <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>{icon}</span>
-      <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--text)' }}>{title}</h2>
+      <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>{title}</h2>
     </div>
   );
 }
@@ -105,7 +105,7 @@ function ToggleSwitch({ checked, onChange, label, description }) {
     <label style={{
       display: 'flex', alignItems: 'flex-start', gap: 12,
       cursor: 'pointer', padding: '12px 0',
-      borderBottom: '1px solid var(--line-light)',
+      borderBottom: '1px solid var(--color-border)',
     }}>
       <button
         type="button"
@@ -116,9 +116,9 @@ function ToggleSwitch({ checked, onChange, label, description }) {
         <span className="doc-toggle-knob" />
       </button>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{label}</span>
+        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}>{label}</span>
         {description && (
-          <span style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4 }}>{description}</span>
+          <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>{description}</span>
         )}
       </div>
     </label>
@@ -167,9 +167,9 @@ function ProgressIndicator({ currentSection }) {
                 width: 24, height: 24, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 12, fontWeight: 700, lineHeight: 1,
-                background: isPast ? 'var(--success)' : isCurrent ? 'var(--primary)' : 'var(--line)',
-                color: isPast || isCurrent ? '#fff' : 'var(--text-secondary)',
-                transition: 'var(--transition)',
+                background: isPast ? 'var(--color-success)' : isCurrent ? 'var(--color-accent)' : 'var(--color-border)',
+                color: isPast || isCurrent ? '#fff' : 'var(--color-text-secondary)',
+                transition: 'var(--transition-fast)',
               }}>
                 {isPast ? (
                   <svg width="12" height="12" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -179,7 +179,7 @@ function ProgressIndicator({ currentSection }) {
               </div>
               <span style={{
                 fontSize: 12, fontWeight: isCurrent ? 700 : 500,
-                color: isCurrent ? 'var(--primary)' : isPast ? 'var(--success-text)' : 'var(--muted)',
+                color: isCurrent ? 'var(--color-accent)' : isPast ? 'var(--success-text)' : 'var(--color-text-tertiary)',
                 whiteSpace: 'nowrap',
               }}>
                 {step}
@@ -188,8 +188,8 @@ function ProgressIndicator({ currentSection }) {
             {i < SECTION_STEPS.length - 1 && (
               <div style={{
                 width: 24, height: 1, margin: '0 4px',
-                background: isPast ? 'var(--success)' : 'var(--line)',
-                transition: 'var(--transition)',
+                background: isPast ? 'var(--color-success)' : 'var(--color-border)',
+                transition: 'var(--transition-fast)',
               }} />
             )}
           </div>
@@ -204,7 +204,7 @@ function FieldError({ message }) {
   if (!message) return null;
   return (
     <span style={{
-      color: 'var(--error)', fontSize: 12, marginTop: 4,
+      color: 'var(--color-danger)', fontSize: 12, marginTop: 4,
       display: 'flex', alignItems: 'center', gap: 4,
     }}>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -309,7 +309,7 @@ export default function MemberCreate() {
   }
 
   const fieldErrorStyle = (key) => errors[key]
-    ? { border: '1.5px solid var(--error)', background: 'var(--error-light)' }
+    ? { border: '1.5px solid var(--color-danger)', background: 'var(--color-danger-light)' }
     : {};
 
   const sectionStyle = {
@@ -318,7 +318,7 @@ export default function MemberCreate() {
     overflow: 'visible',
   };
 
-  const requiredMark = <span style={{ color: 'var(--error)', fontWeight: 600 }}> *</span>;
+  const requiredMark = <span style={{ color: 'var(--color-danger)', fontWeight: 600 }}> *</span>;
 
   return (
     <section className="admin-shell">
@@ -336,9 +336,9 @@ export default function MemberCreate() {
           href="/admin/members"
           onClick={(e) => { e.preventDefault(); navigate("/admin/members"); }}
           style={{
-            fontSize: 13, color: 'var(--primary)', textDecoration: 'none',
+            fontSize: 13, color: 'var(--color-accent)', textDecoration: 'none',
             marginBottom: 4, display: 'inline-flex', alignItems: 'center', gap: 4,
-            fontWeight: 500, transition: 'var(--transition)',
+            fontWeight: 500, transition: 'var(--transition-fast)',
           }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -357,10 +357,10 @@ export default function MemberCreate() {
       {error && (
         <div
           style={{
-            background: 'var(--error-light)', border: '1px solid var(--error)',
+            background: 'var(--color-danger-light)', border: '1px solid var(--color-danger)',
             borderRadius: 'var(--radius)', padding: '12px 16px',
             display: 'flex', alignItems: 'center', gap: 8,
-            fontSize: 14, color: 'var(--error)', marginBottom: 16,
+            fontSize: 14, color: 'var(--color-danger)', marginBottom: 16,
           }}
           aria-live="polite"
         >
@@ -704,8 +704,8 @@ export default function MemberCreate() {
         {/* ======== Sticky Action Bar ======== */}
         <div style={{
           position: 'sticky', bottom: 0, left: 0, right: 0,
-          background: 'var(--panel)',
-          borderTop: '1px solid var(--line)',
+          background: 'var(--color-bg)',
+          borderTop: '1px solid var(--color-border)',
           padding: '14px 16px',
           display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 12, flexWrap: 'wrap',
           zIndex: 100,
@@ -714,7 +714,7 @@ export default function MemberCreate() {
         }}>
           {Object.keys(errors).length > 0 && (
             <span style={{
-              fontSize: 13, color: 'var(--error)',
+              fontSize: 13, color: 'var(--color-danger)',
               display: 'flex', alignItems: 'center', gap: 4, marginRight: 'auto',
             }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
