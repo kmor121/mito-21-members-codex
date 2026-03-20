@@ -712,19 +712,18 @@ export default function MemberList() {
                   style={{
                     padding: "5px 12px",
                     borderRadius: "999px",
-                    border: organizationId ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
-                    background: organizationId ? "var(--color-accent)" : "#fff",
-                    color: organizationId ? "#fff" : "var(--color-text-secondary)",
+                    border: organizationId ? "2px solid var(--color-accent)" : "1px solid var(--color-border)",
+                    background: organizationId ? "var(--color-accent-light)" : "#fff",
+                    color: organizationId ? "var(--color-accent)" : "var(--color-text-secondary)",
                     fontSize: "12px",
                     fontWeight: 600,
                     cursor: "pointer",
                     outline: "none",
-                    height: "30px",
                   }}
                 >
-                  <option value="" style={{ color: 'var(--color-text-primary)' }}>全て</option>
+                  <option value="">全て</option>
                   {orgOptions.map((opt) => (
-                    <option key={opt.id} value={opt.id} style={{ color: 'var(--color-text-primary)' }}>{opt.name}</option>
+                    <option key={opt.id} value={opt.id}>{opt.name}</option>
                   ))}
                 </select>
               </div>
