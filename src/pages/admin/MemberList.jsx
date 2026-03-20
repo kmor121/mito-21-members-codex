@@ -584,7 +584,7 @@ export default function MemberList() {
         showFilters && (
           <div style={{
             padding: '12px 16px', marginBottom: 8,
-            borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)',
             background: 'var(--color-bg-sub)',
           }}>
             {/* Search input */}
@@ -597,7 +597,7 @@ export default function MemberList() {
                 placeholder="氏名・フリガナ・会員番号・会社名で検索"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13 }}
+                style={{ width: '100%', padding: '10px 12px 10px 34px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, background: '#fff' }}
               />
             </div>
             {/* Member type pills */}
@@ -617,8 +617,8 @@ export default function MemberList() {
             {/* Organization select */}
             <div style={{ display: 'flex', gap: 8 }}>
               <select value={organizationId} onChange={(e) => setOrganizationId(e.target.value)}
-                style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13 }}>
-                <option value="">全所属</option>
+                style={{ flex: 1, padding: '6px 10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13, background: '#fff', color: 'var(--color-text-primary)' }}>
+                <option value="">すべて</option>
                 {orgOptions.map((opt) => (
                   <option key={opt.id} value={opt.id}>{opt.name}</option>
                 ))}
@@ -628,7 +628,7 @@ export default function MemberList() {
             {(memberType !== "すべて" || status !== "すべて" || organizationId || q) && (
               <div style={{ marginTop: 10 }}>
                 <button className="btn btn-secondary" type="button" onClick={handleReset}
-                  style={{ fontSize: 12, padding: '6px 12px', width: '100%' }}>
+                  style={{ fontSize: 12, padding: '8px 12px', width: '100%', borderRadius: 'var(--radius-md)' }}>
                   リセット
                 </button>
               </div>
