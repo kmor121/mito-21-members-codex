@@ -1,14 +1,4 @@
-import { useEffect } from "react";
-
-export default function RegistrationGuide() {
-  const appOrigin = window.location.origin;
-  const appHost = appOrigin.replace('https://', '').replace('http://', '');
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  const html = `
+import{r as o,j as i}from"./index-BF7ISRAf.js";function a(){const r=window.location.origin.replace("https://","").replace("http://","");o.useEffect(()=>{window.scrollTo(0,0)},[]);const t=`
 <!-- HEADER -->
 <div class="rg-header">
   <div class="rg-header-left">
@@ -71,13 +61,13 @@ export default function RegistrationGuide() {
 
       <div class="rg-callout rg-callout-info">
         <strong>アプリURL</strong><br>
-        ${appHost}/signin
+        ${r}/signin
       </div>
 
       <div class="rg-mockup">
         <div class="rg-mockup-bar">
           <div class="rg-dot"></div><div class="rg-dot"></div><div class="rg-dot"></div>
-          <div class="rg-url">${appHost}/signin</div>
+          <div class="rg-url">${r}/signin</div>
         </div>
         <div class="rg-mockup-body" style="text-align: center;">
           <div style="margin-bottom: 20px;">
@@ -116,7 +106,7 @@ export default function RegistrationGuide() {
       <div class="rg-mockup">
         <div class="rg-mockup-bar">
           <div class="rg-dot"></div><div class="rg-dot"></div><div class="rg-dot"></div>
-          <div class="rg-url">${appHost}/signin</div>
+          <div class="rg-url">${r}/signin</div>
         </div>
         <div class="rg-mockup-body" style="text-align: center;">
           <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">新規登録</div>
@@ -194,7 +184,7 @@ export default function RegistrationGuide() {
       <div class="rg-mockup">
         <div class="rg-mockup-bar">
           <div class="rg-dot"></div><div class="rg-dot"></div><div class="rg-dot"></div>
-          <div class="rg-url">${appHost}/signin</div>
+          <div class="rg-url">${r}/signin</div>
         </div>
         <div class="rg-mockup-body" style="text-align: center;">
           <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">認証コードの入力</div>
@@ -255,7 +245,7 @@ export default function RegistrationGuide() {
 
       <div class="rg-callout rg-callout-info">
         <strong>アプリURL</strong><br>
-        ${appHost}/signin
+        ${r}/signin
       </div>
     </div>
 
@@ -266,7 +256,7 @@ export default function RegistrationGuide() {
       <div class="rg-mockup">
         <div class="rg-mockup-bar">
           <div class="rg-dot"></div><div class="rg-dot"></div><div class="rg-dot"></div>
-          <div class="rg-url">${appHost}/signin</div>
+          <div class="rg-url">${r}/signin</div>
         </div>
         <div class="rg-mockup-body" style="text-align: center;">
           <div style="margin-bottom: 20px;">
@@ -315,7 +305,7 @@ export default function RegistrationGuide() {
       <div class="rg-mockup">
         <div class="rg-mockup-bar">
           <div class="rg-dot"></div><div class="rg-dot"></div><div class="rg-dot"></div>
-          <div class="rg-url">${appHost}/signin</div>
+          <div class="rg-url">${r}/signin</div>
         </div>
         <div class="rg-mockup-body" style="text-align: center;">
           <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">パスワード再設定</div>
@@ -496,11 +486,7 @@ export default function RegistrationGuide() {
 <div class="rg-footer">
   水戸21の会 会員管理アプリ ご利用ガイド
 </div>
-  `;
-
-  return (
-    <>
-      <style>{`
+  `;return i.jsxs(i.Fragment,{children:[i.jsx("style",{children:`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap');
 
         /* ── Scoped CSS variables (rg- prefix) ── */
@@ -879,8 +865,4 @@ export default function RegistrationGuide() {
           .rg-mockup { break-inside: avoid; }
           .rg-section { break-inside: avoid; }
         }
-      `}</style>
-      <div className="rg-root" dangerouslySetInnerHTML={{ __html: html }} />
-    </>
-  );
-}
+      `}),i.jsx("div",{className:"rg-root",dangerouslySetInnerHTML:{__html:t}})]})}export{a as default};
