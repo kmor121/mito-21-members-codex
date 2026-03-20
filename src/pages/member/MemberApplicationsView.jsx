@@ -82,14 +82,14 @@ export default function MemberApplicationsView() {
             <span className="nl2-pill-tab-count">{statusCounts[tab.key] || 0}</span>
           </button>
         ))}
-        <span style={{ marginLeft: "auto", fontSize: 13, color: "var(--text-secondary)" }}>
+        <span style={{ marginLeft: "auto", fontSize: 13, color: "var(--color-text-secondary)" }}>
           {filtered.length}件
         </span>
       </div>
 
       {filtered.length === 0 ? (
         <section className="card panel-card">
-          <div className="card-body" style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text-secondary)" }}>
+          <div className="card-body" style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary)" }}>
             <p>該当する申込はありません。</p>
           </div>
         </section>
@@ -116,16 +116,16 @@ export default function MemberApplicationsView() {
                         {m.approval_status}
                       </span>
                     </div>
-                    <p style={{ margin: 0, fontSize: 12, color: "var(--text-secondary)" }}>
+                    <p style={{ margin: 0, fontSize: 12, color: "var(--color-text-secondary)" }}>
                       {m.applied_at ? m.applied_at.slice(0, 10).replace(/-/g, "/") : ""} 申込
                       {m.company_name && ` / ${m.company_name}`}
                     </p>
                   </div>
-                  <span style={{ fontSize: 16, color: "var(--text-secondary)", transition: "transform 0.2s", transform: isExpanded ? "rotate(180deg)" : "rotate(0)" }}>▼</span>
+                  <span style={{ fontSize: 16, color: "var(--color-text-secondary)", transition: "transform 0.2s", transform: isExpanded ? "rotate(180deg)" : "rotate(0)" }}>▼</span>
                 </div>
 
                 {isExpanded && (
-                  <div style={{ borderTop: "1px solid var(--line)", padding: isMobile ? "12px 16px" : "16px 20px" }}>
+                  <div style={{ borderTop: "1px solid var(--color-border)", padding: isMobile ? "12px 16px" : "16px 20px" }}>
                     <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "10px 24px" }}>
                       <DetailItem label="氏名" value={fullName(m)} />
                       <DetailItem label="フリガナ" value={fullNameKana(m)} />
@@ -152,7 +152,7 @@ export default function MemberApplicationsView() {
 function DetailItem({ label, value }) {
   return (
     <div>
-      <span style={{ fontSize: 12, color: "var(--text-secondary)", display: "block", marginBottom: 2 }}>{label}</span>
+      <span style={{ fontSize: 12, color: "var(--color-text-secondary)", display: "block", marginBottom: 2 }}>{label}</span>
       <span style={{ fontSize: 13 }}>{value || "-"}</span>
     </div>
   );

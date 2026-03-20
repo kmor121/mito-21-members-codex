@@ -254,9 +254,9 @@ export default function MemberDuesView() {
             onClick={() => setShowFilters((v) => !v)}
             style={{
               width: 36, height: 36, borderRadius: 8,
-              border: showFilters ? "1px solid var(--primary)" : "1px solid var(--line)",
-              background: showFilters ? "var(--primary)" : "#fff",
-              color: showFilters ? "#fff" : "var(--text-secondary)",
+              border: showFilters ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
+              background: showFilters ? "var(--color-accent)" : "#fff",
+              color: showFilters ? "#fff" : "var(--color-text-secondary)",
               display: "flex", alignItems: "center", justifyContent: "center",
               cursor: "pointer", flexShrink: 0,
             }}
@@ -320,7 +320,7 @@ export default function MemberDuesView() {
         showFilters && (
           <div style={{
             padding: "12px 16px", marginBottom: 8,
-            borderRadius: "var(--radius)", border: "1px solid var(--line)", background: "var(--bg)",
+            borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", background: "var(--color-bg-sub)",
           }}>
             {/* Search */}
             <div style={{ position: "relative", marginBottom: 10 }}>
@@ -334,7 +334,7 @@ export default function MemberDuesView() {
                 onChange={(e) => setSearchText(e.target.value)}
                 style={{
                   width: "100%", padding: "7px 10px 7px 32px", fontSize: 13,
-                  border: "1px solid var(--line)", borderRadius: 6, background: "#fff",
+                  border: "1px solid var(--color-border)", borderRadius: 6, background: "#fff",
                   outline: "none", boxSizing: "border-box",
                 }}
               />
@@ -345,7 +345,7 @@ export default function MemberDuesView() {
               <select
                 value={memberTypeFilter}
                 onChange={(e) => setMemberTypeFilter(e.target.value)}
-                style={{ flex: 1, padding: "7px 10px", fontSize: 13, border: "1px solid var(--line)", borderRadius: 6, background: "#fff", cursor: "pointer" }}
+                style={{ flex: 1, padding: "7px 10px", fontSize: 13, border: "1px solid var(--color-border)", borderRadius: 6, background: "#fff", cursor: "pointer" }}
               >
                 <option value="全種別">会員種別: 全種別</option>
                 <option value="正会員">正会員</option>
@@ -355,7 +355,7 @@ export default function MemberDuesView() {
               <select
                 value={orgFilter}
                 onChange={(e) => setOrgFilter(e.target.value)}
-                style={{ flex: 1, padding: "7px 10px", fontSize: 13, border: "1px solid var(--line)", borderRadius: 6, background: "#fff", cursor: "pointer" }}
+                style={{ flex: 1, padding: "7px 10px", fontSize: 13, border: "1px solid var(--color-border)", borderRadius: 6, background: "#fff", cursor: "pointer" }}
               >
                 <option value="全組織">所属組織: 全組織</option>
                 {fyOrganizations.map((o) => (
@@ -376,9 +376,9 @@ export default function MemberDuesView() {
                     className="nl2-pill-tab"
                     style={{
                       padding: "5px 12px", fontSize: 12, fontWeight: 500, borderRadius: 999,
-                      border: isActive ? "1px solid var(--primary)" : "1px solid var(--line)",
-                      background: isActive ? "var(--primary)" : "#fff",
-                      color: isActive ? "#fff" : "var(--text-secondary)",
+                      border: isActive ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
+                      background: isActive ? "var(--color-accent)" : "#fff",
+                      color: isActive ? "#fff" : "var(--color-text-secondary)",
                       cursor: "pointer", whiteSpace: "nowrap",
                     }}
                   >
@@ -403,7 +403,7 @@ export default function MemberDuesView() {
               onChange={(e) => setSearchText(e.target.value)}
               style={{
                 width: "100%", padding: "6px 10px 6px 32px", fontSize: 13,
-                border: "1px solid var(--line)", borderRadius: 6, background: "#fff",
+                border: "1px solid var(--color-border)", borderRadius: 6, background: "#fff",
                 outline: "none", boxSizing: "border-box",
               }}
             />
@@ -413,7 +413,7 @@ export default function MemberDuesView() {
           <select
             value={memberTypeFilter}
             onChange={(e) => setMemberTypeFilter(e.target.value)}
-            style={{ padding: "6px 10px", fontSize: 13, border: "1px solid var(--line)", borderRadius: 6, background: "#fff", cursor: "pointer" }}
+            style={{ padding: "6px 10px", fontSize: 13, border: "1px solid var(--color-border)", borderRadius: 6, background: "#fff", cursor: "pointer" }}
           >
             <option value="全種別">会員種別: 全種別</option>
             <option value="正会員">正会員</option>
@@ -424,7 +424,7 @@ export default function MemberDuesView() {
           <select
             value={orgFilter}
             onChange={(e) => setOrgFilter(e.target.value)}
-            style={{ padding: "6px 10px", fontSize: 13, border: "1px solid var(--line)", borderRadius: 6, background: "#fff", cursor: "pointer" }}
+            style={{ padding: "6px 10px", fontSize: 13, border: "1px solid var(--color-border)", borderRadius: 6, background: "#fff", cursor: "pointer" }}
           >
             <option value="全組織">所属組織: 全組織</option>
             {fyOrganizations.map((o) => (
@@ -444,9 +444,9 @@ export default function MemberDuesView() {
                   className="nl2-pill-tab"
                   style={{
                     padding: "5px 12px", fontSize: 12, fontWeight: 500, borderRadius: 999,
-                    border: isActive ? "1px solid var(--primary)" : "1px solid var(--line)",
-                    background: isActive ? "var(--primary)" : "#fff",
-                    color: isActive ? "#fff" : "var(--text-secondary)",
+                    border: isActive ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
+                    background: isActive ? "var(--color-accent)" : "#fff",
+                    color: isActive ? "#fff" : "var(--color-text-secondary)",
                     cursor: "pointer", whiteSpace: "nowrap",
                   }}
                 >
@@ -461,7 +461,7 @@ export default function MemberDuesView() {
       {/* List / Table */}
       {filteredList.length === 0 ? (
         <section className="card panel-card">
-          <div className="card-body" style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text-secondary)" }}>
+          <div className="card-body" style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary)" }}>
             <p>{Object.keys(memberMap).length === 0 ? "対象の会員がいません。" : "該当する会費データはありません。"}</p>
           </div>
         </section>
@@ -502,7 +502,7 @@ export default function MemberDuesView() {
                     }}>
                       {r.member_name}
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 1 }}>
+                    <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 1 }}>
                       {memberTypeText} · {dueTypeText}{amountText ? ` ${amountText}` : ""}
                     </div>
                   </div>
@@ -521,7 +521,7 @@ export default function MemberDuesView() {
               );
             })}
           </div>
-          <div style={{ textAlign: "center", padding: "10px 16px", borderTop: "1px solid var(--line)", fontSize: 12, color: "var(--text-secondary)" }}>
+          <div style={{ textAlign: "center", padding: "10px 16px", borderTop: "1px solid var(--color-border)", fontSize: 12, color: "var(--color-text-secondary)" }}>
             対象 {filteredList.length}名 / 納入済 {paidCount}件 ¥{paidAmount.toLocaleString()} / 全体 ¥{totalAmount.toLocaleString()}
           </div>
         </section>
@@ -557,10 +557,10 @@ export default function MemberDuesView() {
                             {r.member_type}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{r.member_type || "-"}</span>
+                          <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{r.member_type || "-"}</span>
                         )}
                       </td>
-                      <td style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+                      <td style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
                         {r.org_name}
                       </td>
                       <td>
@@ -569,7 +569,7 @@ export default function MemberDuesView() {
                             {r.due_type}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>-</span>
+                          <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>-</span>
                         )}
                       </td>
                       <td style={{ textAlign: "right", fontSize: 13, fontVariantNumeric: "tabular-nums" }}>
@@ -585,7 +585,7 @@ export default function MemberDuesView() {
                           {r.status}
                         </span>
                       </td>
-                      <td style={{ fontSize: 12, color: "var(--text-secondary)", fontVariantNumeric: "tabular-nums" }}>
+                      <td style={{ fontSize: 12, color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
                         {r.paid_date ? r.paid_date.replace(/-/g, "/") : "-"}
                       </td>
                     </tr>
@@ -594,7 +594,7 @@ export default function MemberDuesView() {
               </tbody>
             </table>
           </div>
-          <div style={{ textAlign: "center", padding: "12px 20px", borderTop: "1px solid var(--line)", fontSize: 12, color: "var(--text-secondary)" }}>
+          <div style={{ textAlign: "center", padding: "12px 20px", borderTop: "1px solid var(--color-border)", fontSize: 12, color: "var(--color-text-secondary)" }}>
             対象 {filteredList.length}名 / 納入済 {paidCount}件 ¥{paidAmount.toLocaleString()} / 全体 ¥{totalAmount.toLocaleString()}
           </div>
         </section>
@@ -605,8 +605,8 @@ export default function MemberDuesView() {
 
 function SummaryCard({ label, value, color }) {
   return (
-    <div style={{ padding: "14px 16px", background: "#fff", borderRadius: 8, border: "1px solid var(--line)", textAlign: "center" }}>
-      <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>{label}</div>
+    <div style={{ padding: "14px 16px", background: "#fff", borderRadius: 8, border: "1px solid var(--color-border)", textAlign: "center" }}>
+      <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: 20, fontWeight: 700, color: color || "var(--text)" }}>{value}</div>
     </div>
   );

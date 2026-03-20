@@ -175,7 +175,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
             transition: "background var(--transition-fast)",
             userSelect: "none",
           }}
-          onMouseEnter={e => { if (hasContent) e.currentTarget.style.background = "var(--bg)"; }}
+          onMouseEnter={e => { if (hasContent) e.currentTarget.style.background = "var(--color-bg-sub)"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
@@ -213,7 +213,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
           </div>
           {assignments.length > 0 && (
             <span style={{
-              fontSize: 12, color: "var(--color-text-secondary)", background: "var(--bg)",
+              fontSize: 12, color: "var(--color-text-secondary)", background: "var(--color-bg-sub)",
               padding: "2px 8px", borderRadius: 10, fontWeight: 500, flexShrink: 0, marginLeft: 8,
             }}>{assignments.length}名</span>
           )}
@@ -508,7 +508,7 @@ export default function OrgChartView() {
                 opacity: currentIdx <= 0 ? 0.4 : 1,
                 pointerEvents: currentIdx <= 0 ? "none" : "auto",
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--color-accent)"; }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--color-bg-sub)"; e.currentTarget.style.borderColor = "var(--color-accent)"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--color-border)"; }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -531,7 +531,7 @@ export default function OrgChartView() {
                       color: isActive ? "#fff" : "var(--color-text-secondary)",
                       transition: "all var(--transition-fast)",
                     }}
-                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--bg)"; }}
+                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--color-bg-sub)"; }}
                     onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
                   >
                     {fy.year_label || `${fy.year}年度`}
@@ -550,7 +550,7 @@ export default function OrgChartView() {
                 opacity: currentIdx >= sortedYears.length - 1 ? 0.4 : 1,
                 pointerEvents: currentIdx >= sortedYears.length - 1 ? "none" : "auto",
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.borderColor = "var(--color-accent)"; }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--color-bg-sub)"; e.currentTarget.style.borderColor = "var(--color-accent)"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "var(--color-border)"; }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -589,10 +589,10 @@ export default function OrgChartView() {
           borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
         }}>
           <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style={{ marginBottom: 20, opacity: 0.6 }}>
-            <rect x="8" y="6" width="20" height="14" rx="3" stroke="var(--color-border)" strokeWidth="2" fill="var(--bg)" />
-            <rect x="36" y="6" width="20" height="14" rx="3" stroke="var(--color-border)" strokeWidth="2" fill="var(--bg)" />
-            <rect x="8" y="44" width="20" height="14" rx="3" stroke="var(--color-border)" strokeWidth="2" fill="var(--bg)" />
-            <rect x="36" y="44" width="20" height="14" rx="3" stroke="var(--color-border)" strokeWidth="2" fill="var(--bg)" />
+            <rect x="8" y="6" width="20" height="14" rx="3" stroke="var(--color-border)" strokeWidth="2" fill="var(--color-bg-sub)" />
+            <rect x="36" y="6" width="20" height="14" rx="3" stroke="var(--color-border)" strokeWidth="2" fill="var(--color-bg-sub)" />
+            <rect x="8" y="44" width="20" height="14" rx="3" stroke="var(--color-border)" strokeWidth="2" fill="var(--color-bg-sub)" />
+            <rect x="36" y="44" width="20" height="14" rx="3" stroke="var(--color-border)" strokeWidth="2" fill="var(--color-bg-sub)" />
             <line x1="18" y1="20" x2="18" y2="44" stroke="var(--color-border)" strokeWidth="2" strokeDasharray="4 3" />
             <line x1="46" y1="20" x2="46" y2="44" stroke="var(--color-border)" strokeWidth="2" strokeDasharray="4 3" />
             <line x1="18" y1="32" x2="46" y2="32" stroke="var(--color-border)" strokeWidth="2" strokeDasharray="4 3" />
