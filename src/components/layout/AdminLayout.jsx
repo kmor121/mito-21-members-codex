@@ -135,17 +135,17 @@ export default function AdminLayout() {
               padding: "2px 8px", borderRadius: 4, fontSize: 12, fontWeight: 600,
               background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`,
             }}>{badge.label}</span>
-            <span style={{ color: "#374151", fontWeight: 500 }}>{displayName}</span>
+            <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{displayName}</span>
             <button
               type="button"
               onClick={logout}
               style={{
-                background: "none", border: "1px solid #d1d5db", borderRadius: 6,
-                padding: "4px 10px", fontSize: 12, color: "#64748b", cursor: "pointer",
+                background: "none", border: "1px solid var(--color-border)", borderRadius: 6,
+                padding: "4px 10px", fontSize: 12, color: "var(--color-text-secondary)", cursor: "pointer",
                 transition: "all 0.15s",
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#ef4444"; e.currentTarget.style.color = "#ef4444"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; e.currentTarget.style.color = "#64748b"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--color-danger)"; e.currentTarget.style.color = "var(--color-danger)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.color = "var(--color-text-secondary)"; }}
             >
               ログアウト
             </button>
