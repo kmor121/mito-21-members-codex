@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { apiRequest, base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import { Button } from '../../components/ui';
 
 const RichTextEditor = lazy(() => import('../../components/common/RichTextEditor'));
 
@@ -318,9 +319,9 @@ export default function DocumentEditor() {
 
         {/* Action bar */}
         <div className="doc-ed-action-bar">
-          <button type="button" className="btn btn-secondary" onClick={handleCancel}>
+          <Button variant="secondary" onClick={handleCancel}>
             キャンセル
-          </button>
+          </Button>
           <button type="submit" className="doc-ed-save-btn" disabled={saving}>
             {saving ? "保存中..." : isNew ? "作成" : "保存"}
           </button>

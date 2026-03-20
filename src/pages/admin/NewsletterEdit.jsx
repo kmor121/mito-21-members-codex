@@ -4,6 +4,7 @@ import { apiRequest, base44, invalidateReadCache } from "../../api/base44Client"
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import DatePicker from "../../components/ui/DatePicker";
+import { Button, Modal } from '../../components/ui';
 import RichTextEditor from "../../components/common/RichTextEditor";
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -1824,61 +1825,53 @@ export default function NewsletterEdit() {
       />
 
       {/* ── Preview Modal ── */}
-      {showPreview && (
-        <div className="confirm-overlay" onClick={() => setShowPreview(false)}>
-          <div className="modal-dialog" style={{ maxWidth: 900, width: "80%" }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>プレビュー</h3>
-              <button type="button" className="modal-close" onClick={() => setShowPreview(false)}>&times;</button>
+      <Modal
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        title="プレビュー"
+        width="900px"
+        footer={<>
+          <Button variant="ghost" onClick={() => setShowPreview(false)}>閉じる</Button>
+          {form.id && (
+            <Button variant="primary" onClick={() => { setShowPreview(false); handleSendClick(); }}
+              style={{ background: "#4f46e5" }}>
+              このまま送信
+            </Button>
+          )}
+        </>}
+      >
+        <div style={{
+          border: "1px solid var(--color-border)", borderRadius: "var(--radius)",
+          overflow: "hidden",
+        }}>
+          <div style={{
+            background: "#f8f9fa", padding: "14px 20px",
+            borderBottom: "1px solid var(--color-border)",
+          }}>
+            <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 4 }}>
+              From: <strong style={{ color: "var(--color-text-primary)" }}>MITO21 事務局</strong>
             </div>
-            <div className="modal-body" style={{ padding: 0 }}>
-              <div style={{
-                border: "1px solid var(--color-border)", borderRadius: "var(--radius)",
-                margin: 20, overflow: "hidden",
-              }}>
-                <div style={{
-                  background: "#f8f9fa", padding: "14px 20px",
-                  borderBottom: "1px solid var(--color-border)",
-                }}>
-                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 4 }}>
-                    From: <strong style={{ color: "var(--color-text-primary)" }}>MITO21 事務局</strong>
-                  </div>
-                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 4 }}>
-                    Subject: <strong style={{ color: "var(--color-text-primary)" }}>{form.title || "(件名なし)"}</strong>
-                  </div>
-                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
-                    対象: {previewCount ?? "?"}名
-                    {(attachments.length > 0 || attachLinks.filter((l) => l.url).length > 0) && (
-                      <span style={{ marginLeft: 12 }}>添付: {attachments.length + attachLinks.filter((l) => l.url).length}件</span>
-                    )}
-                  </div>
-                </div>
-                <div style={{ padding: "20px", minHeight: 200, lineHeight: 1.8 }}>
-                  {editorMode === "rich" && form.body_html ? (
-                    <div dangerouslySetInnerHTML={{ __html: form.body_html }} />
-                  ) : (
-                    (form.body || "(本文なし)").split("\n").map((line, i) => (
-                      <p key={i} style={{ margin: "0 0 8px 0" }}>{line || "\u00A0"}</p>
-                    ))
-                  )}
-                </div>
-              </div>
+            <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 4 }}>
+              Subject: <strong style={{ color: "var(--color-text-primary)" }}>{form.title || "(件名なし)"}</strong>
             </div>
-            <div className="modal-footer">
-              <button className="button ghost" onClick={() => setShowPreview(false)}>閉じる</button>
-              {form.id && (
-                <button
-                  className="button"
-                  style={{ background: "#4f46e5", color: "#fff" }}
-                  onClick={() => { setShowPreview(false); handleSendClick(); }}
-                >
-                  このまま送信
-                </button>
+            <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
+              対象: {previewCount ?? "?"}名
+              {(attachments.length > 0 || attachLinks.filter((l) => l.url).length > 0) && (
+                <span style={{ marginLeft: 12 }}>添付: {attachments.length + attachLinks.filter((l) => l.url).length}件</span>
               )}
             </div>
           </div>
+          <div style={{ padding: "20px", minHeight: 200, lineHeight: 1.8 }}>
+            {editorMode === "rich" && form.body_html ? (
+              <div dangerouslySetInnerHTML={{ __html: form.body_html }} />
+            ) : (
+              (form.body || "(本文なし)").split("\n").map((line, i) => (
+                <p key={i} style={{ margin: "0 0 8px 0" }}>{line || "\u00A0"}</p>
+              ))
+            )}
+          </div>
         </div>
-      )}
+      </Modal>
 
       {/* ── Send Confirm Dialog ── */}
       {confirmSend && (() => {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest, invalidateReadCache } from '../../api/base44Client';
 import DatePicker from '../../components/ui/DatePicker';
+import { Button } from '../../components/ui';
 import { fullName, fullNameKana } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -454,10 +455,10 @@ export default function MemberCreate() {
                     onChange={(e) => update("member_number", e.target.value)}
                     placeholder="自動採番されます"
                     style={{ flex: 1 }} />
-                  <button type="button" className="btn btn-secondary" onClick={handleGenerateNumber}
+                  <Button variant="secondary" onClick={handleGenerateNumber}
                     disabled={generatingNumber}
                     style={{
-                      whiteSpace: 'nowrap', fontSize: 13,
+                      fontSize: 13,
                       display: 'flex', alignItems: 'center', gap: 6,
                     }}>
                     {generatingNumber ? (
@@ -475,7 +476,7 @@ export default function MemberCreate() {
                         自動採番
                       </>
                     )}
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -725,11 +726,10 @@ export default function MemberCreate() {
               {Object.keys(errors).length}件の入力エラーがあります
             </span>
           )}
-          <button type="button" className="btn btn-secondary"
-            onClick={() => navigate("/admin/members")}>
+          <Button variant="secondary" onClick={() => navigate("/admin/members")}>
             キャンセル
-          </button>
-          <button type="submit" className="btn btn-primary" disabled={saving}
+          </Button>
+          <Button variant="primary" type="submit" disabled={saving}
             style={{
               minWidth: 140, fontSize: 15,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -742,7 +742,7 @@ export default function MemberCreate() {
                 登録中...
               </>
             ) : "登録する"}
-          </button>
+          </Button>
         </div>
       </form>
 

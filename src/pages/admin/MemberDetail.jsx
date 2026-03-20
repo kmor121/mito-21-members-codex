@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { apiRequest, base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import DatePicker from '../../components/ui/DatePicker';
+import { Button, Modal } from '../../components/ui';
 import { fullName, fullNameKana } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -444,85 +445,67 @@ export default function MemberDetail() {
       <Toast message={toastMessage} onClose={() => setToastMessage("")} />
 
       {/* Unlink confirmation modal */}
-      {showUnlinkConfirm && (
-        <div className="confirm-overlay" onClick={() => setShowUnlinkConfirm(false)}>
-          <div className="modal-dialog" onClick={e => e.stopPropagation()} style={{ maxWidth: 420, borderRadius: "var(--radius-xl)", animation: "fadeIn 0.15s ease" }}>
-            <div className="modal-header" style={{ padding: "20px 24px" }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>アカウント紐付けを解除しますか？</h3>
-            </div>
-            <div className="modal-body" style={{ padding: "0 24px 24px" }}>
-              <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
-                このメンバーのBase44ユーザーアカウントとの紐付けを解除します。
-                解除するとログインしてもメンバー情報にアクセスできなくなります。
-              </p>
-            </div>
-            <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "16px 24px" }}>
-              <button className="btn btn-secondary" onClick={() => setShowUnlinkConfirm(false)}>キャンセル</button>
-              <button
-                className="btn"
-                style={{ background: "var(--color-danger)", color: "#fff", border: "none" }}
-                onClick={async () => {
-                  setShowUnlinkConfirm(false);
-                  try {
-                    await apiRequest("update-member-detail", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ id: member.id, user_id: "" }),
-                    });
-                    invalidateReadCache("Member");
-                    setMember(prev => ({ ...prev, user_id: "" }));
-                    window.__showToast?.("紐付けを解除しました", "success");
-                  } catch (err) {
-                    window.__showToast?.(err.message || "解除に失敗しました", "error");
-                  }
-                }}
-              >
-                解除する
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={showUnlinkConfirm}
+        onClose={() => setShowUnlinkConfirm(false)}
+        title="アカウント紐付けを解除しますか？"
+        width="420px"
+        footer={<>
+          <Button variant="secondary" onClick={() => setShowUnlinkConfirm(false)}>キャンセル</Button>
+          <Button variant="danger" onClick={async () => {
+            setShowUnlinkConfirm(false);
+            try {
+              await apiRequest("update-member-detail", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: member.id, user_id: "" }),
+              });
+              invalidateReadCache("Member");
+              setMember(prev => ({ ...prev, user_id: "" }));
+              window.__showToast?.("紐付けを解除しました", "success");
+            } catch (err) {
+              window.__showToast?.(err.message || "解除に失敗しました", "error");
+            }
+          }} style={{ background: "var(--color-danger)", color: "#fff", border: "none" }}>解除する</Button>
+        </>}
+      >
+        <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
+          このメンバーのBase44ユーザーアカウントとの紐付けを解除します。
+          解除するとログインしてもメンバー情報にアクセスできなくなります。
+        </p>
+      </Modal>
 
       {/* Delete confirmation modal */}
-      {showDeleteConfirm && (
-        <div className="confirm-overlay" onClick={() => !deleting && setShowDeleteConfirm(false)}>
-          <div className="modal-dialog" onClick={e => e.stopPropagation()} style={{ maxWidth: 420, borderRadius: "var(--radius-xl)", animation: "fadeIn 0.15s ease" }}>
-            <div className="modal-header" style={{ padding: "20px 24px" }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>この会員を削除しますか？</h3>
-            </div>
-            <div className="modal-body" style={{ padding: "0 24px 24px" }}>
-              <p style={{ fontSize: 14, color: "var(--text-primary)", margin: "0 0 12px 0", fontWeight: 500 }}>
-                会員名: {fullName(member)}
-              </p>
-              {deleteRelatedCounts && (
-                <div style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-                  <p style={{ margin: "0 0 4px 0" }}>以下のデータも同時に削除されます:</p>
-                  <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
-                    <li>組織配属 {deleteRelatedCounts.assignments}件</li>
-                    <li>会費記録 {deleteRelatedCounts.dues}件</li>
-                    <li>変更ログ {deleteRelatedCounts.logs}件</li>
-                  </ul>
-                </div>
-              )}
-              <p style={{ fontSize: 13, color: "var(--error, #dc2626)", margin: "12px 0 0 0", fontWeight: 500 }}>
-                この操作は取り消せません。
-              </p>
-            </div>
-            <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "16px 24px" }}>
-              <button className="btn btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>キャンセル</button>
-              <button
-                className="btn"
-                style={{ background: "var(--color-danger)", color: "#fff", border: "none" }}
-                onClick={handleDeleteMember}
-                disabled={deleting}
-              >
-                {deleting ? "削除中..." : "削除する"}
-              </button>
-            </div>
+      <Modal
+        isOpen={showDeleteConfirm}
+        onClose={() => { if (!deleting) setShowDeleteConfirm(false); }}
+        title="この会員を削除しますか？"
+        width="420px"
+        footer={<>
+          <Button variant="secondary" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>キャンセル</Button>
+          <Button variant="danger" onClick={handleDeleteMember} disabled={deleting}
+            style={{ background: "var(--color-danger)", color: "#fff", border: "none" }}>
+            {deleting ? "削除中..." : "削除する"}
+          </Button>
+        </>}
+      >
+        <p style={{ fontSize: 14, color: "var(--text-primary)", margin: "0 0 12px 0", fontWeight: 500 }}>
+          会員名: {fullName(member)}
+        </p>
+        {deleteRelatedCounts && (
+          <div style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
+            <p style={{ margin: "0 0 4px 0" }}>以下のデータも同時に削除されます:</p>
+            <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
+              <li>組織配属 {deleteRelatedCounts.assignments}件</li>
+              <li>会費記録 {deleteRelatedCounts.dues}件</li>
+              <li>変更ログ {deleteRelatedCounts.logs}件</li>
+            </ul>
           </div>
-        </div>
-      )}
+        )}
+        <p style={{ fontSize: 13, color: "var(--error, #dc2626)", margin: "12px 0 0 0", fontWeight: 500 }}>
+          この操作は取り消せません。
+        </p>
+      </Modal>
 
       {/* Back link */}
       <div style={{ marginBottom: "0.75rem" }}>
@@ -576,9 +559,9 @@ export default function MemberDetail() {
             {/* Edit button */}
             {!isEditing && (
               <div style={{ flexShrink: 0 }}>
-                <button className="btn btn-primary" type="button" onClick={handleStartEdit} style={{ whiteSpace: "nowrap" }}>
+                <Button variant="primary" onClick={handleStartEdit}>
                   編集する
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -873,12 +856,12 @@ export default function MemberDetail() {
               gap: "0.75rem",
               zIndex: 10,
             }}>
-              <button className="btn btn-secondary" type="button" onClick={handleCancelEdit} disabled={submitting}>
+              <Button variant="secondary" onClick={handleCancelEdit} disabled={submitting}>
                 キャンセル
-              </button>
-              <button className="btn btn-primary" type="submit" disabled={submitting} onClick={handleEditSubmit}>
+              </Button>
+              <Button variant="primary" type="submit" disabled={submitting} onClick={handleEditSubmit}>
                 {submitting ? "保存中..." : "保存"}
-              </button>
+              </Button>
             </div>
           </section>
         )}
@@ -1029,9 +1012,9 @@ export default function MemberDetail() {
                 <p className={`message ${dirMessageType}`} aria-live="polite" style={{ marginTop: "0.75rem" }}>{dirMessage}</p>
               )}
               <div style={{ marginTop: "1rem" }}>
-                <button className="btn btn-primary" type="submit" disabled={dirSubmitting}>
+                <Button variant="primary" type="submit" disabled={dirSubmitting}>
                   {dirSubmitting ? "保存中..." : "名簿設定を保存"}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
