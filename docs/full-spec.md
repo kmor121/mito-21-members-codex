@@ -9,25 +9,32 @@
 4. [主要機能](#主要機能)
 5. [技術構成](#技術構成)
    - [設計原則](#設計原則)
-   - [認証・ログイン設計（将来）](#認証ログイン設計将来)
+   - [認証・ログイン設計](#認証ログイン設計)
    - [デプロイ・移行計画](#デプロイ移行計画)
+   - [デザインシステム](#デザインシステム)
 6. [データモデル設計](#データモデル設計)
-   - [1. Members（会員）](#1-members会員)
-   - [2. FiscalYears（年度）](#2-fiscalyears年度)
-   - [3. Organizations（組織・委員会）](#3-organizations組織委員会)
-   - [4. OrgAssignments（組織配属）](#4-orgassignments組織配属)
-   - [5. Dues（会費）](#5-dues会費)
-   - [6. Newsletters（メルマガ・LINE配信）](#6-newslettersメルマガline配信)
-   - [7. DueSettings（会費金額設定）](#7-duesettings会費金額設定)
-   - [8. OrgDocuments（団体資料）](#8-orgdocuments団体資料)
-   - [9. MemberChangeLogs（会員情報変更ログ）](#9-memberchangelogs会員情報変更ログ)
-7. [年度切替時の運用](#年度切替時の運用)
-8. [リレーション図](#リレーション図)
-9. [UI仕様](#ui仕様)
-   - [画面一覧](#画面一覧)
-   - [画面詳細](#画面詳細)
-   - [レスポンシブ対応](#レスポンシブ対応)
-   - [画面遷移](#画面遷移)
+   - [1. Member（会員）](#1-member会員)
+   - [2. FiscalYear（年度）](#2-fiscalyear年度)
+   - [3. Organization（組織・委員会）](#3-organization組織委員会)
+   - [4. OrgAssignment（組織配属）](#4-orgassignment組織配属)
+   - [5. Due（会費）](#5-due会費)
+   - [6. Newsletter（配信）](#6-newsletter配信)
+   - [7. DueSetting（会費金額設定）](#7-duesetting会費金額設定)
+   - [8. OrgDocument（団体資料）](#8-orgdocument団体資料)
+   - [9. MemberChangeLog（会員情報変更ログ）](#9-memberchangelog会員情報変更ログ)
+   - [10. Meeting（幹事会）](#10-meeting幹事会)
+   - [11. Event（イベント）](#11-eventイベント)
+   - [12. Attendance（出欠）](#12-attendance出欠)
+   - [13. AppSettings（アプリ設定）](#13-appsettingsアプリ設定)
+7. [バックエンド関数一覧](#バックエンド関数一覧)
+8. [年度切替時の運用](#年度切替時の運用)
+9. [リレーション図](#リレーション図)
+10. [UI仕様](#ui仕様)
+    - [画面一覧](#画面一覧)
+    - [画面詳細](#画面詳細)
+    - [管理メニュー順](#管理メニュー順)
+    - [レスポンシブ対応](#レスポンシブ対応)
+    - [画面遷移](#画面遷移)
 
 ---
 
@@ -61,35 +68,49 @@
 | 名誉顧問 | 名誉顧問 | 活動中 | false |
 
 ## ユーザーロール
+
+### アプリ内ロール（app_role）
+| ロール | 説明 |
+|--------|------|
+| admin_member | 管理者メンバー（全管理機能にアクセス可能） |
+| manager | 幹事会メンバー（一部管理機能にアクセス可能） |
+| member | 一般メンバー（会員向け画面のみ） |
+
 ### 管理者（役員・事務局）
 - 会員情報のCRUD（登録・閲覧・編集・削除）
 - 会費の入金ステータス管理
 - 年度ごとの会費集計レポート
-- メルマガ配信
-- LINE公式アカウント送信
+- メルマガ配信（Resend API経由）
 - 組織図の年度別管理
+- 幹事会管理（次第・議事録）
+- イベント管理（RSVP・出欠管理）
 - 年度切替操作
 
 ### 一般会員
 - 会員名簿の閲覧（閲覧範囲は管理者が設定）
 - 自身のプロフィール編集
+- 幹事会・イベントの出欠回答
+- 会費納入状況の確認
 
 ## 主要機能
-1. **会員管理**: 会員情報の登録・編集・検索・一覧表示・CSV入出力
-2. **会費管理**: 入金ステータス管理（未納/納入済）、年度別集計レポート
-3. **組織図管理**: 年度ごとの役職・委員会構成の管理
-4. **メルマガ配信**: Resend（Base44バックエンド関数から直接API連携）でのセグメント配信、HTML対応、添付ファイル対応、予約送信対応、配信履歴管理
-5. **LINE連携**: LINE公式アカウントへのメッセージ送信
-6. **名簿閲覧**: 会員向けの名簿表示（検索・フィルタ付き）
-7. **基本情報**: 事業計画、団体理念・活動方針、会則・規約、年間スケジュールの閲覧（年度別管理、過去年度も閲覧可能）
-8. **運用マニュアル**: 会員向けの団体運営ルール・マニュアルの閲覧
+1. **会員管理**: 会員情報の登録・編集・検索・一覧表示・Excel出力
+2. **会費管理**: 入金ステータス管理（未納/納入済）、年度別集計レポート、未納者一覧
+3. **組織図管理**: 年度ごとの役職・委員会構成の管理、前年度コピー
+4. **配信管理**: Resend APIでのセグメント配信、HTML対応（TipTapリッチテキスト）、添付ファイル対応、予約送信対応、配信履歴管理、リマインダー送信
+5. **幹事会管理**: 幹事会の次第・議事録管理、出欠管理、懇親会セット管理
+6. **イベント管理**: イベントのRSVP管理、出欠率・所属別内訳、懇親会サポート
+7. **名簿閲覧**: 会員向けの名簿表示（検索・フィルタ付き）
+8. **基本情報**: 事業計画、団体理念・活動方針、会則・規約、年間スケジュールの閲覧
+9. **運用マニュアル**: 会員向けの団体運営ルール・マニュアルの閲覧
+10. **変更履歴**: 会員情報の変更ログ閲覧・Excel出力（会員名簿ダウンロード）
+11. **入会申込**: 公開フォームからの入会申込・承認ワークフロー
 
 ## 技術構成
-- フロントエンド: Base44 UI
-- バックエンド: Base44 BaaS (コレクション + バックエンド関数)
-- 外部連携: LINE Messaging API, Resend（メール配信API）
-- 認証: 検証段階はBase44デフォルト認証。本番移行時にAuth0またはClerkでSSO連携（日本語ログイン画面、招待メールによるパスワード設定フロー）
-- プラン: Builderプランで検証 → 完成後Eliteプランへアプリ所有権移転 → SSO有効化
+- フロントエンド: Vite + React（lazy loading, react-router-dom）
+- バックエンド: Base44 BaaS（エンティティ + バックエンド関数）
+- 外部連携: Resend（メール配信API）
+- 認証: Base44デフォルト認証 + カスタムログイン画面（OTP認証、パスワードリセット対応）
+- デザインシステム: CSS変数（tokens.css）+ 共通Reactコンポーネント
 
 ### 設計原則
 - **Base44総合クレジットを消費しない方法で構築する**
@@ -99,208 +120,265 @@
 - バックエンド関数は外部API呼び出し等の非AI処理のみ使用
 - 予約送信はBase44側でスケジュールタスクを使わず、Resend APIの`send_at`パラメータに全面依存する
 
-### 初期リリーススコープ
-- **含む**: Resendによるメール配信（即時送信・予約送信）、全画面の基本機能
-- **含まない（後フェーズ）**: LINE連携機能全般（データモデルと画面枠のみ定義）、HTML形式メール配信、CSV一括取込のバリデーション詳細（実装フェーズで決定）
-
-### 認証・ログイン設計（将来）
-検証段階（Builderプラン）ではBase44デフォルト認証を使用。
-本番移行時（Eliteプラン）に以下を実装予定：
-- 認証プロバイダー: Auth0 または Clerk（OIDC/SSO連携）
-- 日本語ログイン画面
-- 招待フロー:
-  1. 管理者が会員を名簿登録（メールアドレス入力）
-  2. 認証プロバイダーで該当メールのユーザーを自動作成
-  3. パスワード設定メール（招待メール）を自動送信
-  4. 会員がメールのリンクからパスワードを設定
-  5. ログイン可能に
-- 無料枠: Auth0は7,500 MAU、Clerkは10,000 MAU（50〜200名規模で十分）
+### 認証・ログイン設計
+- カスタムログイン画面（`src/pages/Login.jsx`）
+- ログイン / 新規登録 / OTP認証 / パスワードリセットを1画面で切替
+- 新規登録時: バックエンドで会員メールアドレス照合 → アカウント作成 → OTP認証
+- `link-user-to-member` バックエンド関数でBase44ユーザーと会員レコードを紐付け
+- 登録ガイドページ（`/guide`）で手順を案内
 
 ### デプロイ・移行計画
 1. Builderプラン（検証用アカウント）でアプリを構築・検証
 2. 完成後、Eliteプラン（本番アカウント）にアプリ所有権を移転
-   - 移転方法: EliteアカウントをAdmin権限で招待 → 所有権移転（データ・URLそのまま引継ぎ）
-   - バックエンド関数のシークレット（APIキー等）は移転後に再設定
-3. Eliteプランの機能（SSO等）を有効化
-4. Auth0/Clerkを設定し、日本語ログイン・招待フローを実装
+3. バックエンド関数のシークレット（APIキー等）は移転後に再設定
+
+### デザインシステム
+- **デザイントークン**: `src/styles/tokens.css` でカラー・タイポグラフィ・スペーシング・角丸・シャドウを定義
+- **共通Reactコンポーネント**: `src/components/ui/` に Button, Card, PageHeader, Modal, YearPillNav, DatePicker, TimeSelect, MemberSelector 等
+- **カラーパレット**: `--color-accent`（#2563eb）ベースの青系統。成功/警告/エラーのステータス色あり
+- **旧CSS変数**（`--primary`, `--text`, `--line` 等）は完全に新トークンに移行済み
+- **UI/UXスキルファイル**: `.claude/skills/ui-ux-guidelines/SKILL.md` に実装ルールを文書化
 
 ---
 
 # 第2部: データモデル設計
 
-## コレクション一覧
+## エンティティ一覧（14個）
 
-### 1. Members（会員）
+| # | エンティティ名 | ファイル | 説明 |
+|---|---------------|---------|------|
+| 1 | Member | member.jsonc | 会員 |
+| 2 | FiscalYear | fiscal-year.jsonc | 年度 |
+| 3 | Organization | organization.jsonc | 組織・委員会 |
+| 4 | OrgAssignment | org-assignment.jsonc | 組織配属 |
+| 5 | Due | dues.jsonc | 会費 |
+| 6 | Newsletter | newsletter.jsonc | 配信 |
+| 7 | DueSetting | due-setting.jsonc | 会費金額設定 |
+| 8 | OrgDocument | org-document.jsonc | 団体資料 |
+| 9 | MemberChangeLog | member-change-log.jsonc | 会員情報変更ログ |
+| 10 | Meeting | meeting.jsonc | 幹事会 |
+| 11 | Event | event.jsonc | イベント |
+| 12 | Attendance | attendance.jsonc | 出欠 |
+| 13 | AppSettings | app-settings.jsonc | アプリ設定 |
+| 14 | User | User.jsonc | Base44認証ユーザー |
+
+### 1. Member（会員）
 入会申込フォームの項目 + 管理用フィールド
 
-| フィールド | 型 | 説明 | 名簿表示 |
-|-----------|-----|------|---------|
-| id | auto | Base44自動ID | - |
-| member_number | string | 会員番号 | - |
-| name_kanji | string | 氏名（漢字） | ○ |
-| name_kana | string | 氏名（ふりがな） | - |
-| birthday | date | 生年月日 | ○ |
-| join_date | date | 入会日 | ○（入会年） |
-| member_type | enum | 正会員 / 賛助会員 / OB会員 / 名誉顧問 | - |
-| is_graduate | boolean | 卒業生フラグ（年度末時点で55歳以上） | - |
-| status | enum | 活動中 / 休会 / 退会 | - |
-| approval_status | enum | 申請中 / 承認済 / 却下 | - |
-| applied_at | datetime | 申込日時 | - |
-| is_new | boolean | 新入会員フラグ（当年度入会） | - |
-| **会社情報** | | | |
-| company_name | string | 会社名 | ○ |
-| company_position | string | 役職名 | ○ |
-| industry | string | 業種 | - |
-| company_postal_code | string | 会社住所（郵便番号） | ○ |
-| company_address | string | 会社住所（番地まで） | ○ |
-| company_phone | string | 会社電話番号 | ○ |
-| company_fax | string | 会社FAX番号 | ○ |
-| company_pr | text | 会社の概要・PR | - |
-| show_company_in_directory | boolean | 会社情報の名簿掲載可否 | - |
-| **個人連絡先** | | | |
-| email | string | メールアドレス | △（条件付き） |
-| show_email_in_directory | boolean | メールアドレスの名簿掲載可否 | - |
-| mobile_phone | string | 携帯番号 | △（条件付き） |
-| show_mobile_in_directory | boolean | 携帯番号の名簿掲載可否 | - |
-| **自宅情報（名簿非公開）** | | | |
-| home_postal_code | string | 自宅住所（郵便番号） | × |
-| home_address | string | 自宅住所（番地まで） | × |
-| home_phone | string | 自宅電話番号 | × |
-| home_fax | string | 自宅FAX番号 | × |
-| **その他** | | | |
-| hobbies | text | 趣味・信条 | - |
-| referrer_1 | string | 紹介者名1（必須） | - |
-| referrer_2 | string | 紹介者名2（必須） | - |
-| line_user_id | string | LINE UID（連携時） | - |
-| profile_image | file | プロフィール画像 | ○ |
-| rejection_reason | text | 却下理由（申込却下時） | - |
-| role | enum | admin / member | - |
-| notes | text | 備考（管理者用） | - |
-
-#### 名簿表示ルール
-- 基本表示: 氏名、委員会名（OrgAssignmentsから取得）、団体役職（OrgAssignmentsから取得）、生年月日、入会年
-- 条件付き表示: メールアドレス（show_email_in_directory = true の場合）、会社情報（show_company_in_directory = true の場合）、携帯番号（show_mobile_in_directory = true の場合）
-- 非公開: 自宅情報は常に非公開（名簿には一切表示しない）
-
-### 2. FiscalYears（年度）
 | フィールド | 型 | 説明 |
 |-----------|-----|------|
 | id | auto | Base44自動ID |
+| last_name / first_name | string | 姓・名 |
+| last_name_kana / first_name_kana | string | 姓名（ふりがな） |
+| birthday | date | 生年月日 |
+| join_date | date | 入会日 |
+| member_number | string | 会員番号 |
+| member_type | enum | 正会員 / 賛助会員 / OB会員 / 名誉顧問 |
+| is_graduate | boolean | 卒業生フラグ（年度末時点で55歳以上） |
+| status | enum | 活動中 / 休会 / 退会 |
+| is_new | boolean | 新入会員フラグ（当年度入会） |
+| approval_status | enum | 申請中 / 承認済 / 却下 |
+| applied_at | datetime | 申込日時 |
+| company_name, company_position, industry | string | 会社情報 |
+| company_postal_code, company_address | string | 会社住所 |
+| company_phone, company_fax | string | 会社電話・FAX |
+| company_pr | text | 会社の概要・PR |
+| email | string | メールアドレス |
+| mobile_phone | string | 携帯番号 |
+| show_email/mobile/company_in_directory | boolean | 名簿掲載可否 |
+| home_postal_code, home_address, home_phone, home_fax | string | 自宅情報（名簿非公開） |
+| hobbies | text | 趣味・信条 |
+| referrer_1, referrer_2 | string | 紹介者名（必須） |
+| profile_image | file | プロフィール画像 |
+| rejection_reason | text | 却下理由 |
+| role | enum | admin / member |
+| app_role | enum | admin_member / manager / member |
+| user_id | string | Base44認証ユーザーID（紐付け用） |
+| line_user_id | string | LINE UID |
+| notes | text | 備考（管理者用） |
+
+### 2. FiscalYear（年度）
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
 | year | number | 年度（例: 2025） |
-| start_date | date | 年度開始日 |
-| end_date | date | 年度終了日 |
+| year_label | string | 年度ラベル（例: 2025年度） |
+| start_date / end_date | date | 年度開始日・終了日 |
 | is_current | boolean | 現在の年度フラグ |
 
-### 3. Organizations（組織・委員会）
+### 3. Organization（組織・委員会）
 | フィールド | 型 | 説明 |
 |-----------|-----|------|
-| id | auto | Base44自動ID |
-| fiscal_year_id | relation | FiscalYearsへの参照 |
-| org_name | string | 組織名（例: 総務委員会） |
-| org_type | enum | 幹事会 / 委員会 / 部会 / その他 |
+| fiscal_year_id | relation | FiscalYearへの参照 |
+| org_name | string | 組織名 |
+| org_type | enum | 幹事会 / 委員会 / 部会 / 室 / その他 |
 | parent_id | relation | 親組織（階層構造用） |
+| supervisor_id | relation | 担当役員のMember ID |
 | sort_order | number | 表示順 |
 
-### 4. OrgAssignments（組織配属）
+### 4. OrgAssignment（組織配属）
 | フィールド | 型 | 説明 |
 |-----------|-----|------|
-| id | auto | Base44自動ID |
-| fiscal_year_id | relation | FiscalYearsへの参照 |
-| organization_id | relation | Organizationsへの参照 |
-| member_id | relation | Membersへの参照 |
-| role | string | 役職名（自由入力。例: 会長、副会長、委員長、副委員長、幹事、委員等） |
+| fiscal_year_id | relation | FiscalYearへの参照 |
+| organization_id | relation | Organizationへの参照 |
+| member_id | relation | Memberへの参照 |
+| role | string | 役職名（会長、副会長、委員長、委員等） |
+| sort_order | number | 表示順 |
 
-※ 名簿の「委員会名」「団体の役職」はこのコレクションから取得
-
-### 5. Dues（会費）
+### 5. Due（会費）
 | フィールド | 型 | 説明 |
 |-----------|-----|------|
-| id | auto | Base44自動ID |
-| fiscal_year_id | relation | FiscalYearsへの参照 |
-| member_id | relation | Membersへの参照 |
+| fiscal_year_id | relation | FiscalYearへの参照 |
+| member_id | relation | Memberへの参照 |
 | amount | number | 会費金額 |
 | status | enum | 未納 / 納入済 |
 | due_type | enum | 年会費 / 入会金 / 後期入会会費 |
 | paid_date | date | 入金日 |
+| payer_name | string | 入金者名 |
 | notes | text | 備考 |
 
-### 6. Newsletters（メルマガ・LINE配信）
+### 6. Newsletter（配信）
 | フィールド | 型 | 説明 |
 |-----------|-----|------|
-| id | auto | Base44自動ID |
 | subject | string | 件名 |
-| body | text | 本文（プレーンテキスト） |
-| body_html | richtext | 本文（HTML版、実装は後） |
-| attachments | file[] | 添付ファイル（複数可） |
+| body | richtext | 本文（TipTapリッチテキスト） |
+| attachments | file[] | 添付ファイル |
 | target_segment | enum | 全員 / 正会員のみ / 賛助会員のみ / カスタム |
-| send_channel | enum | Resend / LINE / 両方 |
 | status | enum | 下書き / 予約中 / 送信済 |
-| scheduled_at | datetime | 予約送信日時（Resend send_at利用） |
+| scheduled_at | datetime | 予約送信日時 |
 | sent_at | datetime | 実際の送信日時 |
 | sent_by | string | 送信者名 |
+| failed_recipients_json | text | 送信失敗した受信者のJSON |
 
-### 7. DueSettings（会費金額設定）
+### 7. DueSetting（会費金額設定）
 | フィールド | 型 | 説明 |
 |-----------|-----|------|
-| id | auto | Base44自動ID |
-| fiscal_year_id | relation | FiscalYearsへの参照 |
-| regular_annual_fee | number | 正会員 年会費（デフォルト: 30,000円） |
-| associate_annual_fee | number | 賛助会員 年会費（デフォルト: 10,000円） |
-| admission_fee | number | 新入会員 入会金（デフォルト: 10,000円） |
-| first_half_fee | number | 新入会員 前期入会会費（デフォルト: 30,000円） |
-| second_half_fee | number | 新入会員 後期入会会費（デフォルト: 15,000円） |
+| fiscal_year_id | relation | FiscalYearへの参照 |
+| regular_annual_fee | number | 正会員年会費（デフォルト: 30,000円） |
+| associate_annual_fee | number | 賛助会員年会費（デフォルト: 10,000円） |
+| admission_fee | number | 新入会員入会金（デフォルト: 10,000円） |
+| first_half_fee | number | 前期入会会費（デフォルト: 30,000円） |
+| second_half_fee | number | 後期入会会費（デフォルト: 15,000円） |
 
-※ 1年度につき1レコードでまとめる設計
-※ OB会員・休会中は会費対象外とする
-※ 新入会員(is_new=true)は入会金+年会費(前期)/後期入会会費の2レコード生成
-※ 前期/後期の判定: 承認日(join_date)が年度のstart_dateとend_dateの中間日より後なら「後期」
-
-### 8. OrgDocuments（団体資料）
+### 8. OrgDocument（団体資料）
 | フィールド | 型 | 説明 |
 |-----------|-----|------|
-| id | auto | Base44自動ID |
-| fiscal_year_id | relation | FiscalYearsへの参照（運用マニュアル等はnull可） |
+| fiscal_year_id | relation | FiscalYearへの参照（運用マニュアル等はnull可） |
 | doc_type | enum | 事業計画 / 団体理念 / 会則・規約 / 年間スケジュール / 運用マニュアル |
 | title | string | タイトル |
 | content | richtext | 本文 |
-| attachment | file | 添付ファイル（PDF等） |
-| category | string | カテゴリ（運用マニュアル用。例: 例会ルール、委員会運営等） |
+| attachment | file | 添付ファイル |
+| category | string | カテゴリ（運用マニュアル用） |
 | published | boolean | 公開フラグ |
 | sort_order | number | 表示順 |
-| updated_at | datetime | 最終更新日時 |
 
-### 9. MemberChangeLogs（会員情報変更ログ）
+### 9. MemberChangeLog（会員情報変更ログ）
 | フィールド | 型 | 説明 |
 |-----------|-----|------|
-| id | auto | Base44自動ID |
-| member_id | relation | Membersへの参照 |
-| changed_by | string | 変更者（会員本人 or 管理者名） |
+| member_id | relation | Memberへの参照 |
+| changed_by | string | 変更者名 |
 | changed_by_role | enum | member / admin |
 | changed_at | datetime | 変更日時 |
 | field_name | string | 変更されたフィールド名 |
 | old_value | text | 変更前の値 |
 | new_value | text | 変更後の値 |
 
+### 10. Meeting（幹事会）
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
+| fiscal_year_id | relation | FiscalYearへの参照 |
+| title | string | 幹事会名（例: 第1回幹事会） |
+| date / time | string | 開催日・時刻 |
+| location | string | 開催場所 |
+| status | enum | 下書き / 公開 / 完了 |
+| agenda | richtext | 次第 |
+| minutes | richtext | 議事録 |
+
+### 11. Event（イベント）
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
+| fiscal_year_id | relation | FiscalYearへの参照 |
+| title | string | イベント名 |
+| date / time / end_time | string | 開催日・時刻 |
+| location | string | 開催場所 |
+| description | richtext | 詳細説明 |
+| status | enum | 下書き / 公開 / 完了 |
+| is_after_party | boolean | 懇親会フラグ |
+| parent_meeting_id | relation | 親幹事会ID（懇親会紐付け） |
+| parent_event_id | relation | 親イベントID（懇親会紐付け） |
+
+### 12. Attendance（出欠）
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
+| event_id | relation | Eventへの参照 |
+| meeting_id | relation | Meetingへの参照 |
+| member_id | relation | Memberへの参照 |
+| status | enum | 出席 / 欠席 / 未定 |
+| response | enum | 出席 / 欠席 / 未回答 |
+| responded_at | datetime | 回答日時 |
+| comment | text | コメント |
+
+### 13. AppSettings（アプリ設定）
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
+| organization_name | string | 団体名 |
+| email_signature | text | メール署名テンプレート |
+
+---
+
+## バックエンド関数一覧（27個 + _shared）
+
+| # | 関数名 | 説明 |
+|---|--------|------|
+| 1 | approve-member | 入会申込の承認 |
+| 2 | bulk-generate-dues | 会費レコードの一括生成 |
+| 3 | bulk-invite-app-users | アプリユーザーの一括招待 |
+| 4 | copy-organizations-to-year | 前年度の組織構成を新年度にコピー |
+| 5 | create-member-admin | 管理者による会員の直接作成 |
+| 6 | delete-fiscal-year | 年度の削除 |
+| 7 | delete-member | 会員の削除（関連レコード含む） |
+| 8 | delete-org-assignment | 組織配属の削除 |
+| 9 | delete-organization | 組織の削除 |
+| 10 | execute-fiscal-year-transition | 年度切替の実行 |
+| 11 | generate-member-number | 会員番号の自動採番 |
+| 12 | get-my-member-info | ログインユーザーの会員情報取得 |
+| 13 | link-user-to-member | Base44ユーザーと会員レコードの紐付け |
+| 14 | preview-newsletter-audience | 配信対象者のプレビュー |
+| 15 | register-member | 入会申込の登録（公開フォームから） |
+| 16 | reject-member | 入会申込の却下 |
+| 17 | save-due | 会費レコードの保存 |
+| 18 | save-due-settings | 会費金額設定の保存 |
+| 19 | save-fiscal-year | 年度の保存 |
+| 20 | save-org-assignment | 組織配属の保存 |
+| 21 | save-org-document | 団体資料の保存 |
+| 22 | save-organization | 組織の保存 |
+| 23 | send-application-notification | 入会申込通知メール送信 |
+| 24 | send-newsletter | 配信メールの送信（Resend API経由） |
+| 25 | set-current-fiscal-year | 現在年度フラグの切替 |
+| 26 | toggle-org-document-published | 団体資料の公開/非公開切替 |
+| 27 | update-member-detail | 会員詳細の更新（変更ログ自動記録） |
+
+※ `_shared` は共通ユーティリティ
+
+---
+
 ## 年度切替時の運用
 
-※ Membersコレクションは年度に依存しない。年度切替時に会員の基本情報（氏名、会社情報、連絡先等）はすべてそのまま引き継がれる。年度ごとに変わるのは以下のみ：
-- OrgAssignments（組織配属・役職）
-- Dues（会費）
-- OrgDocuments（事業計画・年間スケジュール等の年度別資料）
+※ Memberエンティティは年度に依存しない。年度切替時に会員の基本情報はすべてそのまま引き継がれる。年度ごとに変わるのは以下のみ：
+- OrgAssignment（組織配属・役職）
+- Due（会費）
+- OrgDocument（事業計画・年間スケジュール等の年度別資料）
 
-1. 新年度のFiscalYearsレコードを作成
-2. Organizationsを新年度用にコピー（または新規作成）
-3. OrgAssignmentsを新年度用に登録
-4. Duesを新年度用に一括生成
+1. 新年度のFiscalYearレコードを作成
+2. Organizationを新年度用にコピー（または新規作成）
+3. OrgAssignmentを新年度用に登録
+4. Dueを新年度用に一括生成
 5. 前年度のis_new = true の会員をfalseにリセット
 6. 前年度のis_currentをfalseに、新年度をtrueに切替
 
 ### Dues一括生成ルール
-- 金額はDueSettingsの当年度×会員種別で自動決定
+- 金額はDueSettingの当年度×会員種別で自動決定
 - 対象: status=「活動中」の正会員・賛助会員のみ
-- 休会・退会ステータスの会員はDues一括生成の対象外とする
-
-## リレーション図
+- 休会・退会ステータスの会員はDues一括生成の対象外
 
 ---
 
@@ -309,230 +387,101 @@
 ## 画面一覧
 
 ### 公開画面（ログイン不要）
-| # | 画面名 | 概要 |
-|---|--------|------|
-| P1 | 入会申込フォーム | 新規入会希望者が情報を入力・送信 |
-| P2 | 申込完了画面 | 送信完了メッセージ表示 |
+| # | 画面名 | パス | ファイル | 概要 |
+|---|--------|------|---------|------|
+| P1 | 入会申込フォーム | /apply | Apply.jsx | 入会希望者が情報を入力 |
+| P1b | 入会申込確認 | /apply/confirm | ApplyConfirm.jsx | 入力内容の確認・送信 |
+| P2 | 申込完了画面 | /apply/complete | ApplyComplete.jsx | 送信完了メッセージ |
+| P3 | 登録ガイド | /guide | RegistrationGuide.jsx | アカウント作成手順の案内 |
+| - | ランディング | / | Landing.jsx | トップページ |
+| - | ログイン | /signin | Login.jsx | ログイン・新規登録・OTP認証・パスワードリセット |
 
 ### 管理者向け画面
-| # | 画面名 | 概要 |
-|---|--------|------|
-| A1 | ダッシュボード | 会員数サマリー、会費納入率、未承認申込通知 |
-| A2 | 会員一覧 | 全会員の検索・フィルタ・一覧表示、CSV入出力 |
-| A3 | 会員詳細・編集 | 会員情報の閲覧・編集フォーム |
-| A4 | 入会申込管理 | 申込一覧の確認・承認・却下 |
-| A5 | 会費管理 | 年度別の会費一覧、入金ステータス更新、集計レポート |
-| A6 | 組織図管理 | 年度別の委員会・役職構成の編集 |
-| A7 | 配信管理 | メルマガ・LINE配信の作成・送信・履歴 |
-| A8 | 年度管理 | 年度の作成・切替・年度初期化処理 |
-| A9 | 設定 | アプリ設定、管理者アカウント管理 |
-| A10 | 資料管理 | 基本情報・運用マニュアルのコンテンツ登録・編集 |
+| # | 画面名 | パス | ファイル | 概要 |
+|---|--------|------|---------|------|
+| A1 | ダッシュボード | /admin/dashboard | Dashboard.jsx | 会員数サマリー、会費納入率、未承認通知 |
+| A2 | 会員一覧 | /admin/members | MemberList.jsx | 検索・フィルタ・一覧、一括招待 |
+| A3 | 会員詳細・編集 | /admin/members/:id | MemberDetail.jsx | 基本情報・組織履歴・会費履歴・変更履歴タブ |
+| A3b | 会員新規作成 | /admin/members/new | MemberCreate.jsx | 管理者による会員直接作成 |
+| A4 | 入会申込管理 | /admin/applications | Applications.jsx | 申込一覧の確認・承認・却下 |
+| A4b | 申込詳細 | /admin/applications/:id | ApplicationDetail.jsx | 申込内容の全項目表示・承認/却下 |
+| A5 | 会費管理 | /admin/dues-management | DuesManagement.jsx | 年度別会費一覧、入金管理、未納者一覧 |
+| A6 | 組織図管理 | /admin/organization-chart | OrgChart.jsx | 年度別の組織・役職構成、ドラッグ並替 |
+| A7 | 配信一覧 | /admin/newsletters | NewsletterList.jsx | 配信一覧・ステータス管理 |
+| A7b | 配信編集 | /admin/newsletters/:id/edit | NewsletterEdit.jsx | リッチテキスト配信作成・プレビュー・送信 |
+| A8 | 年度管理 | /admin/fiscal-years | FiscalYears.jsx | 年度作成・切替・年度初期化 |
+| A9 | 設定 | /admin/settings | Settings.jsx | アプリ設定、管理者アカウント管理 |
+| A10 | 資料管理 | /admin/documents | Documents.jsx | 資料一覧・公開/非公開切替 |
+| A10b | 資料編集 | /admin/documents/:id/edit | DocumentEditor.jsx | リッチテキスト資料編集 |
+| A11 | 幹事会管理 | /admin/meetings | Meetings.jsx | 幹事会一覧・新規作成 |
+| A11b | 幹事会詳細 | /admin/meetings/:id | MeetingDetail.jsx | 次第・議事録・出欠管理・懇親会管理 |
+| A12 | イベント管理 | /admin/events | Events.jsx | イベント一覧・新規作成 |
+| A12b | イベント詳細 | /admin/events/:id | EventDetail.jsx | 出欠管理・回答率・所属別内訳・懇親会 |
+| A13 | 変更履歴 | /admin/change-logs | ChangeLogs.jsx | 全会員の変更ログ一覧、Excel出力（会員名簿） |
 
 ### 会員向け画面
-| # | 画面名 | 概要 |
-|---|--------|------|
-| M1 | 会員名簿 | 会員名簿の検索・一覧表示 |
-| M2 | 会員詳細 | 個別会員の公開情報表示 |
-| M3 | マイページ | 自分のプロフィール確認・編集 |
-| M4 | 基本情報 | 事業計画、理念、会則、年間スケジュールの閲覧 |
-| M5 | 組織図 | 組織図をツリー表示、名前クリックで会員詳細(M2)へ遷移（過去年度も閲覧可能） |
-| M6 | 運用マニュアル | 団体の運営ルール・マニュアルの閲覧 |
+| # | 画面名 | パス | ファイル | 概要 |
+|---|--------|------|---------|------|
+| M1 | 会員名簿 | /directory | Directory.jsx | 検索・フィルタ・カード表示 |
+| M2 | 会員詳細 | /directory/:id | MemberProfile.jsx | 公開情報表示 |
+| M3 | マイページ | /mypage | MyPage.jsx | プロフィール確認・編集 |
+| M4 | 基本情報 | /info | BasicInfo.jsx | 事業計画・理念・会則・年間スケジュール |
+| M5 | 組織図 | /org-chart | OrgChartView.jsx | 組織図ツリー表示（閲覧専用） |
+| M6 | 運用マニュアル | /manual | Manual.jsx | 運営ルール・マニュアル閲覧 |
+| M7 | 幹事会 | /meetings | MeetingsView.jsx | 幹事会一覧・議事録閲覧・出欠回答 |
+| M8 | イベント | /events | EventsView.jsx | イベント一覧・RSVP回答 |
+| M9 | 入会申込状況 | /my-applications | MemberApplicationsView.jsx | 自分の申込状況確認 |
+| M10 | 会費状況 | /my-dues | MemberDuesView.jsx | 自分の会費納入状況確認 |
 
-## 画面詳細
-
-### P1: 入会申込フォーム（公開・ログイン不要）
-- URL: 外部共有可能なリンク
-- 入力項目（現行Googleフォームと同等）:
-  - 氏名（漢字）*必須
-  - 氏名（ふりがな）*必須
-  - 生年月日 *必須
-  - 会社名 *必須
-  - 役職名
-  - 業種
-  - メールアドレス *必須
-  - メールアドレスの名簿への掲載（可/不可）
-  - 会社住所（郵便番号）
-  - 会社住所（番地まで）
-  - 会社電話番号
-  - 会社FAX番号
-  - 会社情報の名簿への掲載（はい/いいえ）
-  - 携帯番号 *必須
-  - 携帯番号の名簿への掲載（はい/いいえ）
-  - 自宅住所（郵便番号）
-  - 自宅住所（番地まで）
-  - 自宅電話番号
-  - 自宅FAX番号
-  - 会社の概要・PR欄
-  - 趣味・信条
-  - 紹介者名1 *必須
-  - 紹介者名2 *必須
-  - 顔写真（プロフィール画像）※任意
-- 送信時の処理:
-  - Membersコレクションにapproval_status=「申請中」で保存
-  - 管理者にメール通知（新規申込あり）※Resend API経由
-  - 申込者に受付完了メール送信 ※Resend API経由
-
-### P2: 申込完了画面
-- 「申込を受け付けました」メッセージ
-- 審査後に連絡する旨の案内
-
-### A1: ダッシュボード
-- 未承認申込通知: 申請中の入会申込件数（バッジ表示）
-- 会員数カード: 正会員○名、賛助会員○名、OB会員○名、休会○名、新入○名
-- 会費納入率: 当年度の納入済/全体（プログレスバー）
-- 直近の配信: 最新5件の配信履歴
-- クイックアクション: 入会申込確認、会費管理、配信作成
-
-### A2: 会員一覧
-- 検索: 氏名、フリガナ、会社名でのフリーテキスト検索
-- フィルタ: 会員種別、ステータス（活動中/休会/退会）、委員会、入会年度
-- 一覧表示: 会員番号、氏名、会社名、会員種別、ステータス、委員会・役職
-- アクション: 詳細表示、編集、CSV出力、CSV一括取込
-
-### A3: 会員詳細・編集
-- タブ構成:
-  - 基本情報: 個人情報、会社情報、自宅情報
-  - 組織履歴: 年度ごとの所属委員会・役職（タイムライン表示）
-  - 会費履歴: 年度ごとの会費納入状況
-  - 名簿設定: 掲載可否の設定（メールアドレス、会社情報、携帯番号）
-  - 変更履歴: MemberChangeLogsの一覧表示（日時、変更者、フィールド名、変更前→変更後）
-
-### A4: 入会申込管理
-- 一覧: 申込日、氏名、会社名、紹介者、ステータス
-- 詳細表示: 申込内容の全項目表示
-- アクション:
-  - 承認 → member_type選択（正会員/賛助会員）→ 会員番号自動採番 → ウェルカムメール送信
-  - 却下 → 却下理由入力 → 通知メール送信
-  - 紹介者の会員照合（紹介者名で既存会員を検索・表示）
-
-### A5: 会費管理
-- 年度セレクタ: 表示年度の切替
-- 一覧: 会員名、金額、ステータス（未納/納入済）、入金日
-- 一括操作: 未納者へのリマインド配信、ステータス一括更新
-- 集計レポート: 会員種別ごとの納入率、金額合計
-- ※ 過去年度のデータは保持され、年度セレクタで閲覧可能
-
-### A6: 組織図管理
-- 年度セレクタ: 表示年度の切替
-- ツリービュー: 理事会 > 委員会の階層表示
-- 各組織: 所属メンバーと役職の一覧
-- 操作: 組織の追加・編集・削除、メンバーの配属・役職変更
-- 年度コピー: 前年度の組織構成をコピーして編集
-- ※ 過去年度のデータは保持され、年度セレクタで閲覧可能
-
-### A7: 配信管理
-- 新規作成: 件名、本文（プレーンテキスト / HTML切替、HTML実装は後）、添付ファイル、配信チャネル選択
-- セグメント: 全員 / 会員種別 / 委員会 / カスタム条件
-- 送信オプション: 即時送信 / 予約送信（日時指定、Resend send_at利用）
-- プレビュー: 送信前の内容確認と対象者数表示
-- 送信履歴: 過去の配信一覧（件名、日時、チャネル、対象者数、ステータス）
-- ※ メール配信はResendを利用。Base44バックエンド関数からResend APIを直接呼び出して送信（Base44クレジット消費なし）
-- ※ LINE送信との同時配信機能は実装後対応
-- ※ HTML形式でのメール送信は実装後対応
-
-### A8: 年度管理
-- 年度一覧: 過去年度と現在年度の一覧
-- 新年度作成: 年度情報入力、会費金額設定（会員種別ごと）
-- 年度切替実行: 確認ダイアログ付き、以下を一括実行
-  - 組織構成のコピー（任意）
-  - 会費レコードの一括生成
-  - is_newフラグのリセット
-  - 卒業生フラグ（is_graduate）の自動更新（年度末時点で55歳以上の会員）
-  - 現在年度フラグの切替
-- 実行ログ: 年度切替の実行履歴
-
-### A9: 設定
-- 管理者アカウント管理: 管理者権限の付与・剥奪
-- アプリ基本設定: 団体名、メール署名テンプレート
-- LINE連携設定: LINE公式アカウントのChannel Access Token設定
-- メール配信設定: 送信元アドレス、SMTPまたは外部サービス設定
-
-### A10: 資料管理
-- OrgDocumentsコレクションのCRUD
-- 資料種別: 事業計画 / 団体理念 / 会則・規約 / 年間スケジュール / 運用マニュアル
-- リッチテキストエディタでの本文編集
-- PDFファイルの添付
-- 公開/非公開の切替
-- 年度の紐付け（運用マニュアルは年度なしも可）
-
-### M1: 名簿閲覧（会員向け）
-- 検索: 氏名、会社名でのフリーテキスト検索
-- フィルタ: 委員会
-- カード表示: 顔写真（profile_image）、氏名、委員会・役職、会社名・役職（show_company_in_directory = true の場合のみ）
-- 表示項目（会員詳細クリック時）:
-  - 常時表示: 氏名、委員会名、団体役職、生年月日、入会年
-  - 条件付き: メールアドレス（掲載許可時のみ）
-  - 条件付き: 会社名、会社役職、会社住所、会社電話、会社FAX（掲載許可時のみ）
-  - 条件付き: 携帯番号（掲載許可時のみ）
-
-### M2: 会員詳細
-- M1のカードクリックで遷移
-- 表示項目（名簿表示ルールに準拠）:
-  - 常時表示: 顔写真、氏名、委員会名、団体役職、生年月日、入会年
-  - 条件付き（show_email_in_directory=true）: メールアドレス
-  - 条件付き（show_company_in_directory=true）: 会社名、会社役職、会社住所、会社電話、会社FAX
-  - 条件付き（show_mobile_in_directory=true）: 携帯番号
-- ※ フリガナ（name_kana）は画面表示しないが、M1の検索用に内部利用する
-
-### M3: マイページ
-- 自分の登録情報の確認
-- 編集可能項目:
-  - 個人連絡先: メールアドレス、携帯番号
-  - 会社情報: 会社名、役職名、業種、会社住所（郵便番号・番地）、会社電話番号、会社FAX番号、会社の概要・PR
-  - 自宅情報: 自宅住所（郵便番号・番地）、自宅電話番号、自宅FAX番号
-  - その他: 趣味・信条、名簿掲載設定（メールアドレス・会社情報・携帯番号）
-  - 顔写真: プロフィール画像のアップロード・変更
-  - LINE連携: LINE公式アカウントとの紐づけボタン（実装は後対応）。紐づけ済みの場合は連携済みステータス表示。解除ボタンも用意。
-- 編集不可（管理者のみ）: 氏名、フリガナ、生年月日、会員種別、ステータス、会員番号
-- 更新時の動作: 保存ボタンで即時反映（管理者承認不要）。変更内容はMemberChangeLogsに自動記録。
-
-### M4: 基本情報
-- 年度セレクタ: 当年度がデフォルト、過去年度に切替可能
-- タブまたはセクション構成:
-  - 事業計画: 当年度の事業計画（リッチテキスト or PDF）
-  - 団体理念・活動方針: 団体の基本理念と活動方針
-  - 会則・規約: 団体の会則・規約文書
-  - 年間スケジュール: 当年度の例会・イベント予定
-- 各コンテンツは管理者がOrgDocumentsコレクションから登録・更新
-
-### M5: 組織図（会員向け）
-- 年度セレクタ: 当年度がデフォルト、過去年度に切替可能
-- 組織図をツリービュー表示
-- 理事会 > 委員会の階層構造
-- 各組織に所属メンバーの顔写真（サムネイル）・氏名・役職を表示
-- メンバー名クリック → 会員詳細(M2)へ遷移
-- ※ 管理者向けA6と異なり閲覧専用
-
-### M6: 運用マニュアル
-- 団体の運営ルール・マニュアルを閲覧
-- カテゴリ別に表示（例: 例会ルール、委員会運営、経費精算等）
-- コンテンツは管理者がOrgDocumentsコレクションから登録・更新
-- ※ 年度に依存しない常設コンテンツ
+## 管理メニュー順（サイドバー）
+1. ダッシュボード
+2. 会員一覧
+3. 配信管理
+4. 幹事会管理
+5. イベント管理
+6. 入会申込管理
+7. 会費管理
+8. 資料管理
+9. 組織図管理
+10. 年度管理
+11. 設定
 
 ## レスポンシブ対応
+- **ブレークポイント**: 1080px（サイドバー折りたたみ）、768px（レイアウト変更）、640px（フルモバイル）
 - 入会申込フォーム: スマホ優先
-- 管理者画面: PC優先（タブレット対応）
-- 会員向け名簿: スマホ優先（PCでも閲覧可）
+- 管理者画面: PC優先（モバイル対応済み）
+- 会員向け画面: スマホ優先（PCでも閲覧可）
+- YearPillNav: モバイル時コンパクト表示（`‹ 2026年度 ›`）
+- Modal: モバイル時フルスクリーン表示
 
 ## 画面遷移
 
 【管理者】
 ログイン → ダッシュボード(A1)
-  ├── 会員一覧(A2) → 会員詳細・編集(A3)
-  ├── 入会申込管理(A4)
+  ├── 会員一覧(A2) → 会員詳細・編集(A3) → 変更履歴(A13)
+  │                 └── 会員新規作成(A3b)
+  ├── 配信管理(A7) → 配信編集(A7b)
+  ├── 幹事会管理(A11) → 幹事会詳細(A11b)
+  ├── イベント管理(A12) → イベント詳細(A12b)
+  ├── 入会申込管理(A4) → 申込詳細(A4b)
   ├── 会費管理(A5)
+  ├── 資料管理(A10) → 資料編集(A10b)
   ├── 組織図管理(A6)
-  ├── 配信管理(A7)
   ├── 年度管理(A8)
-  ├── 設定(A9)
-  └── 資料管理(A10)
+  └── 設定(A9)
 
 【会員】
-ログイン → 会員名簿(M1) → 会員詳細(M2)
-  ├── マイページ(M3)
+ログイン → マイページ(M3)
+  ├── 会員名簿(M1) → 会員詳細(M2)
+  ├── 幹事会(M7)
+  ├── イベント(M8)
   ├── 基本情報(M4)
   ├── 組織図(M5) → 会員詳細(M2)
-  └── 運用マニュアル(M6)
+  ├── 運用マニュアル(M6)
+  ├── 入会申込状況(M9)
+  └── 会費状況(M10)
 
 【公開】
-入会申込フォーム(P1) → 申込完了(P2)
+ランディング(/) → ログイン(/signin)
+入会申込フォーム(P1) → 確認(P1b) → 完了(P2)
+登録ガイド(P3)
