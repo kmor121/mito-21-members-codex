@@ -7,14 +7,14 @@ import { useAuth } from '../../contexts/AuthContext';
 const ADMIN_NAV_ITEMS = [
   { to: "/admin/dashboard", label: "ダッシュボード" },
   { to: "/admin/members", label: "会員一覧" },
-  { to: "/admin/applications", label: "入会申込管理" },
-  { to: "/admin/dues-management", label: "会費管理" },
-  { to: "/admin/organization-chart", label: "組織図管理" },
+  { to: "/admin/newsletters", label: "配信管理" },
   { to: "/admin/meetings", label: "幹事会管理" },
   { to: "/admin/events", label: "イベント管理" },
-  { to: "/admin/newsletters", label: "配信管理" },
-  { to: "/admin/fiscal-years", label: "年度管理" },
+  { to: "/admin/applications", label: "入会申込管理" },
+  { to: "/admin/dues-management", label: "会費管理" },
   { to: "/admin/documents", label: "資料管理" },
+  { to: "/admin/organization-chart", label: "組織図管理" },
+  { to: "/admin/fiscal-years", label: "年度管理" },
   { to: "/admin/settings", label: "設定" },
 ];
 
