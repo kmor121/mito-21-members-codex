@@ -477,39 +477,38 @@ export default function EventDetail() {
       </div>
 
       {/* Header */}
-      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: isMobile ? 8 : 12 }}>
+      <div className="page-header" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <h1 className="page-title" style={{ margin: 0, fontSize: isMobile ? 17 : undefined }}>{event.title}</h1>
+          <h1 className="page-title" style={{ margin: 0, fontSize: isMobile ? 18 : undefined }}>{event.title}</h1>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
             <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 6, fontSize: 12, fontWeight: 500, background: tb.bg, color: tb.color, border: `1px solid ${tb.border}` }}>{event.event_type}</span>
             <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 6, fontSize: 12, fontWeight: 500, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>{sc.label}</span>
           </div>
-          <p className="page-description" style={{ margin: '4px 0 0', fontSize: isMobile ? 12 : undefined }}>
+          <p className="page-description" style={{ margin: '6px 0 0', fontSize: 13 }}>
             {formatDateFull(event.event_date)}
             {event.start_time && ` ${event.start_time}`}{event.end_time && `〜${event.end_time}`}
-            {!isMobile && event.location && ` / ${event.location}`}
-            {!isMobile && event.fee > 0 && ` / ¥${Number(event.fee).toLocaleString()}`}
           </p>
-          {isMobile && (event.location || event.fee > 0) && (
-            <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-secondary)' }}>
-              {event.location}{event.location && event.fee > 0 && ' / '}{event.fee > 0 && `¥${Number(event.fee).toLocaleString()}`}
+          {event.location && (
+            <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>
+              {event.location}{event.fee > 0 && ` / ¥${Number(event.fee).toLocaleString()}`}
             </p>
           )}
         </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', width: isMobile ? '100%' : 'auto', flexShrink: 0 }}>
           {(canEdit || canEditPartial) && !isEditing && (
-            <button className="btn btn-secondary" type="button" onClick={startEdit} style={isMobile ? { fontSize: 12, padding: '6px 10px' } : {}}>編集</button>
+            <button className="btn btn-secondary" type="button" onClick={startEdit}
+              style={isMobile ? { fontSize: 12, padding: '6px 12px', flex: 1 } : {}}>編集</button>
           )}
           {transitions.map(t => (
             <button key={t.to} className={`btn ${t.secondary ? 'btn-secondary' : 'btn-primary'}`} type="button" disabled={saving}
               onClick={() => requestStatusChange(t.to, t.msg, t.label)}
-              style={isMobile ? { fontSize: 12, padding: '6px 10px' } : {}}>
+              style={isMobile ? { fontSize: 12, padding: '6px 12px', flex: 1 } : {}}>
               {t.label}
             </button>
           ))}
           {status === 'draft' && (
             <button className="btn btn-danger" type="button" disabled={saving} onClick={requestDelete}
-              style={isMobile ? { fontSize: 12, padding: '6px 10px' } : {}}>削除</button>
+              style={isMobile ? { fontSize: 12, padding: '6px 12px' } : {}}>削除</button>
           )}
         </div>
       </div>
@@ -663,14 +662,14 @@ export default function EventDetail() {
         <section className="card panel-card">
           <div className="card-body stack">
             {/* Summary with rates */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', marginBottom: 20 }}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? 16 : 24, flexWrap: 'wrap', marginBottom: 20 }}>
               <AttendanceRing present={rates.attend} total={rates.totalTarget} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                   <div>
                     <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 }}>回答率</div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                      <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)' }}>{rates.responseRate}</span>
+                      <span style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: 'var(--text)' }}>{rates.responseRate}</span>
                       <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>%</span>
                       <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 4 }}>({rates.responded}/{rates.totalTarget})</span>
                     </div>
@@ -678,7 +677,7 @@ export default function EventDetail() {
                   <div>
                     <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 }}>出席率</div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                      <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--success)' }}>{rates.attendRate}</span>
+                      <span style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: 'var(--success)' }}>{rates.attendRate}</span>
                       <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>%</span>
                       <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 4 }}>({rates.attend}/{rates.responded})</span>
                     </div>
@@ -734,7 +733,7 @@ export default function EventDetail() {
                 <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                   <div style={{ minWidth: 400, border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
                     <div style={{
-                      display: 'grid', gridTemplateColumns: '1fr 70px 70px 70px 70px',
+                      display: 'grid', gridTemplateColumns: isMobile ? '1fr 50px 55px 40px 40px' : '1fr 70px 70px 70px 70px',
                       padding: '8px 14px', background: 'var(--line-light)',
                       fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)',
                       borderBottom: '1px solid var(--line)',
@@ -747,7 +746,7 @@ export default function EventDetail() {
                     </div>
                     {orgBreakdown.map((row, idx) => (
                       <div key={row.orgId} style={{
-                        display: 'grid', gridTemplateColumns: '1fr 70px 70px 70px 70px',
+                        display: 'grid', gridTemplateColumns: isMobile ? '1fr 50px 55px 40px 40px' : '1fr 70px 70px 70px 70px',
                         padding: '10px 14px', fontSize: 13,
                         borderBottom: idx < orgBreakdown.length - 1 ? '1px solid var(--line)' : 'none',
                       }}>
@@ -773,16 +772,17 @@ export default function EventDetail() {
                     const resp = att?.response || att?.status || '';
                     return (
                       <div key={m.id} style={{
-                        display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                        display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+                        alignItems: isMobile ? 'flex-start' : 'center',
+                        gap: isMobile ? 6 : 10, padding: isMobile ? '10px 12px' : '10px 14px',
                         borderBottom: idx < respondedMembers.length - 1 ? '1px solid var(--line-light)' : 'none',
-                        flexWrap: 'wrap',
                       }}>
                         <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80 }}>{fullName(m)}</span>
                         <select value={resp} onChange={e => {
                           if (e.target.value === '__cancel__') handleCancelResponse(m.id);
                           else handleProxyResponse(m.id, e.target.value);
                         }} disabled={saving}
-                          style={{ fontSize: 13, padding: '4px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)', background: '#fff', minWidth: 100 }}>
+                          style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)', background: '#fff', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                           {responseOptions.map(o => <option key={o} value={o}>{o}</option>)}
                           <option value="__cancel__" style={{ color: '#999' }}>-- 取消 --</option>
                         </select>
@@ -801,13 +801,15 @@ export default function EventDetail() {
                 <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
                   {notRespondedMembers.map((m, idx) => (
                     <div key={m.id} style={{
-                      display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                      display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+                      alignItems: isMobile ? 'flex-start' : 'center',
+                      gap: isMobile ? 6 : 10, padding: isMobile ? '10px 12px' : '10px 14px',
                       borderBottom: idx < notRespondedMembers.length - 1 ? '1px solid var(--line-light)' : 'none',
-                      background: 'var(--bg)', flexWrap: 'wrap',
+                      background: 'var(--bg)',
                     }}>
                       <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80, color: 'var(--muted)' }}>{fullName(m)}</span>
                       <select value="" onChange={e => e.target.value && handleProxyResponse(m.id, e.target.value)} disabled={saving}
-                        style={{ fontSize: 13, padding: '4px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)', background: '#fff', color: 'var(--muted)', minWidth: 100 }}>
+                        style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)', background: '#fff', color: 'var(--muted)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                         <option value="">--</option>
                         {responseOptions.map(o => <option key={o} value={o}>{o}</option>)}
                       </select>
@@ -840,14 +842,14 @@ export default function EventDetail() {
                       {childAfterParty.start_time && ` 🕐 ${childAfterParty.start_time}${childAfterParty.end_time ? `〜${childAfterParty.end_time}` : ''}`}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', marginBottom: 20 }}>
+                  <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? 16 : 24, flexWrap: 'wrap', marginBottom: 20 }}>
                     <AttendanceRing present={apAttendCount} total={apTargetCount} />
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                         <div>
                           <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 }}>回答率</div>
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                            <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)' }}>{apResponseRate}</span>
+                            <span style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: 'var(--text)' }}>{apResponseRate}</span>
                             <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>%</span>
                             <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 4 }}>({apRespondedMembers.length}/{apTargetCount})</span>
                           </div>
@@ -855,7 +857,7 @@ export default function EventDetail() {
                         <div>
                           <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 }}>出席率</div>
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                            <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--success)' }}>{apAttendRate}</span>
+                            <span style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: 'var(--success)' }}>{apAttendRate}</span>
                             <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>%</span>
                             <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 4 }}>({apAttendCount}/{apRespondedMembers.length})</span>
                           </div>
@@ -886,16 +888,17 @@ export default function EventDetail() {
                           const resp = att?.response || att?.status || '';
                           return (
                             <div key={m.id} style={{
-                              display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                              display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+                              alignItems: isMobile ? 'flex-start' : 'center',
+                              gap: isMobile ? 6 : 10, padding: isMobile ? '10px 12px' : '10px 14px',
                               borderBottom: idx < apRespondedMembers.length - 1 ? '1px solid var(--line-light)' : 'none',
-                              flexWrap: 'wrap',
                             }}>
                               <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80 }}>{fullName(m)}</span>
                               <select value={resp} onChange={e => {
                                 if (e.target.value === '__cancel__') handleApCancelResponse(m.id);
                                 else handleApProxyResponse(m.id, e.target.value);
                               }} disabled={saving}
-                                style={{ fontSize: 13, padding: '4px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)', background: '#fff', minWidth: 100 }}>
+                                style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)', background: '#fff', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                                 <option value="出席">出席</option>
                                 <option value="欠席">欠席</option>
                                 <option value="__cancel__" style={{ color: '#999' }}>-- 取消 --</option>
@@ -912,13 +915,15 @@ export default function EventDetail() {
                       <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
                         {apNotRespondedMembers.map((m, idx) => (
                           <div key={m.id} style={{
-                            display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                            display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+                            alignItems: isMobile ? 'flex-start' : 'center',
+                            gap: isMobile ? 6 : 10, padding: isMobile ? '10px 12px' : '10px 14px',
                             borderBottom: idx < apNotRespondedMembers.length - 1 ? '1px solid var(--line-light)' : 'none',
-                            background: 'var(--bg)', flexWrap: 'wrap',
+                            background: 'var(--bg)',
                           }}>
                             <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80, color: 'var(--muted)' }}>{fullName(m)}</span>
                             <select value="" onChange={e => e.target.value && handleApProxyResponse(m.id, e.target.value)} disabled={saving}
-                              style={{ fontSize: 13, padding: '4px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)', background: '#fff', color: 'var(--muted)', minWidth: 100 }}>
+                              style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)', background: '#fff', color: 'var(--muted)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                               <option value="">--</option>
                               <option value="出席">出席</option>
                               <option value="欠席">欠席</option>
