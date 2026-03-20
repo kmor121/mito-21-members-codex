@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 import { base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { PageHeader } from '../../components/ui';
+import { Button, PageHeader } from '../../components/ui';
 import { fullName } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -91,6 +92,40 @@ export default function ChangeLogs() {
     ? fullName(memberMap[filterMemberId])
     : '';
 
+  function handleExcelDownload() {
+    const activeMembers = members
+      .filter(m => m.status !== '退会' && m.approval_status === '承認済')
+      .sort((a, b) => (a.member_number || '').localeCompare(b.member_number || ''));
+
+    const data = activeMembers.map(m => ({
+      '会員番号': m.member_number || '',
+      '姓': m.last_name || '',
+      '名': m.first_name || '',
+      '種別': m.member_type || '',
+      '新入会員': m.is_new ? '○' : '',
+      '卒業': m.is_graduate ? '○' : '',
+      '会社名': m.company_name || '',
+      '会社郵便番号': m.company_postal_code || '',
+      '会社住所': m.company_address || '',
+      '会社電話番号': m.company_phone || '',
+      '会社FAX': m.company_fax || '',
+      'メール': m.email || '',
+      '携帯番号': m.mobile_phone || '',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [
+      { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 10 },
+      { wch: 8 }, { wch: 6 }, { wch: 25 }, { wch: 12 },
+      { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 25 }, { wch: 15 },
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '会員名簿');
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    XLSX.writeFile(wb, `会員名簿_${today}.xlsx`);
+  }
+
   if (loading) {
     return (
       <section className="admin-shell">
@@ -105,6 +140,14 @@ export default function ChangeLogs() {
       <PageHeader
         title="変更履歴"
         subtitle={filterMemberName ? `${filterMemberName} の変更履歴` : '全会員の変更履歴'}
+        actions={
+          <Button variant="secondary" onClick={handleExcelDownload}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 2v8M4 7l4 4 4-4M2 13h12"/>
+            </svg>
+            Excel出力
+          </Button>
+        }
       />
 
       {filterMemberId && (
