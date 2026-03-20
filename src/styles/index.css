@@ -2918,9 +2918,8 @@ textarea { resize: vertical; }
     padding: 12px 12px 8px;
     gap: 8px;
   }
-  .page-header h1,
-  .page-header .page-title {
-    font-size: 18px;
+  .page-title {
+    font-size: 18px !important;
   }
 
   /* Card & container padding reduction */

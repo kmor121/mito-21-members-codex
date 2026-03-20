@@ -208,7 +208,7 @@ export default function Events() {
       {isMobile ? (
         <div style={{ padding: '0 0 12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
-            <h1 className="page-title" style={{ margin: 0, fontSize: 17 }}>イベント管理</h1>
+            <h1 className="page-title" style={{ margin: 0, fontSize: 18 }}>イベント管理</h1>
             <button type="button" onClick={() => setShowCreateModal(true)} style={{
               width: 36, height: 36, borderRadius: 'var(--radius-md)', border: 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',

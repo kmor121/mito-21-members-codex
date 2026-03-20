@@ -758,7 +758,7 @@ export default function MeetingDetail() {
       <div className="page-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: isMobile ? 8 : 12 }}>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <h1 className="page-title" style={{ margin: 0, fontSize: isMobile ? 17 : undefined }}>{meeting.title}</h1>
+            <h1 className="page-title" style={{ margin: 0, fontSize: isMobile ? 18 : undefined }}>{meeting.title}</h1>
             <span className="pill" style={{ background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, fontSize: 12 }}>{statusLabel}</span>
           </div>
           <p className="page-description" style={{ margin: "4px 0 0", fontSize: isMobile ? 12 : undefined }}>

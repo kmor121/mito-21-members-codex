@@ -402,7 +402,7 @@ export default function Applications() {
             gap: 8,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
-              <h1 className="page-title" style={{ margin: 0, fontSize: 17, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+              <h1 className="page-title" style={{ margin: 0, fontSize: 18, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
                 入会申込管理{isViewMode ? "（閲覧）" : ""}
               </h1>
               {!loading && statusCounts["申請中"] > 0 && (

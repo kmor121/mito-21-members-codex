@@ -1007,7 +1007,7 @@ export default function DuesManagement() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             gap: 8, marginBottom: 6,
           }}>
-            <h1 className="page-title" style={{ margin: 0, fontSize: 17, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>会費管理</h1>
+            <h1 className="page-title" style={{ margin: 0, fontSize: 18, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>会費管理</h1>
             <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
               <button type="button" onClick={() => setShowFilters(v => !v)} style={{
                 width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
