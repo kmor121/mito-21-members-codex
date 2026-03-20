@@ -3,15 +3,11 @@ import { Link } from 'react-router-dom';
 import { base44 } from '../../api/base44Client';
 import useDataCache from '../../hooks/useDataCache';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { PageHeader } from '../../components/ui';
 
 /* ─── tiny skeleton ─── */
 function Skeleton({ width = '100%', height = 16, radius = 6, style }) {
-  return (
-    <div
-      className="db-skeleton"
-      style={{ width, height, borderRadius: radius, ...style }}
-    />
-  );
+  return <div className="db-skeleton" style={{ width, height, borderRadius: radius, ...style }} />;
 }
 function SkeletonCard({ lines = 3 }) {
   return (
@@ -26,20 +22,15 @@ function SkeletonCard({ lines = 3 }) {
 
 /* ─── progress bar color helper ─── */
 function rateColor(rate) {
-  if (rate >= 80) return 'var(--success)';
-  if (rate >= 50) return 'var(--warning)';
-  return 'var(--error)';
+  if (rate >= 80) return 'var(--color-success)';
+  if (rate >= 50) return 'var(--color-warning)';
+  return 'var(--color-danger)';
 }
 
 /* ─── status dot ─── */
 function Dot({ color }) {
   return (
-    <span
-      style={{
-        display: 'inline-block', width: 8, height: 8,
-        borderRadius: '50%', background: color, marginRight: 6, flexShrink: 0,
-      }}
-    />
+    <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: color, marginRight: 6, flexShrink: 0 }} />
   );
 }
 
@@ -54,7 +45,7 @@ function Section({ title, loading, error, children, linkTo, linkLabel, delay = 0
         )}
       </div>
       <div className="db-card-body">
-        {error ? <p style={{ color: 'var(--error)', fontSize: 13, margin: 0 }}>{error}</p> : children}
+        {error ? <p style={{ color: 'var(--color-danger)', fontSize: 13, margin: 0 }}>{error}</p> : children}
       </div>
     </div>
   );
@@ -69,50 +60,32 @@ function fmtMeetingDate(d) {
   return `${dt.getMonth() + 1}/${dt.getDate()}(${dow})`;
 }
 
-/* ═══════════════════════════════════════════
-   Dashboard
-   ═══════════════════════════════════════════ */
+/* ═══ Dashboard ═══ */
 export default function Dashboard() {
   const isMobile = useIsMobile();
 
-  /* ── Data sources (independent) ── */
-
-  // Members
   const { data: approvedMembers, loading: loadMembers, error: errMembers } = useDataCache(
-    'dash:members:approved',
-    () => base44.entities.Member.filter({ approval_status: '承認済' }),
+    'dash:members:approved', () => base44.entities.Member.filter({ approval_status: '承認済' }),
   );
   const { data: pendingMembers, loading: loadPending, error: errPending } = useDataCache(
-    'dash:members:pending',
-    () => base44.entities.Member.filter({ approval_status: '申請中' }),
+    'dash:members:pending', () => base44.entities.Member.filter({ approval_status: '申請中' }),
   );
-
-  // Fiscal years + Dues
   const { data: fiscalYears, loading: loadFy, error: errFy } = useDataCache(
-    'dash:fy:all',
-    () => base44.entities.FiscalYear.list(),
+    'dash:fy:all', () => base44.entities.FiscalYear.list(),
   );
   const { data: allDues, loading: loadDues, error: errDues } = useDataCache(
-    'dash:dues:all',
-    () => base44.entities.Due.list(),
+    'dash:dues:all', () => base44.entities.Due.list(),
   );
-
-  // Meetings
   const { data: meetings, loading: loadMtg, error: errMtg } = useDataCache(
-    'dash:meetings:all',
-    () => base44.entities.Meeting.list('-meeting_date', 10),
+    'dash:meetings:all', () => base44.entities.Meeting.list('-meeting_date', 10),
   );
-
-  /* ── Derived data ── */
 
   const currentFy = useMemo(() => {
     if (!fiscalYears) return null;
     return fiscalYears.find(fy => fy.is_current === true) || null;
   }, [fiscalYears]);
 
-  const fyLabel = currentFy
-    ? (currentFy.year_label || (currentFy.year ? `${currentFy.year}年度` : ''))
-    : '';
+  const fyLabel = currentFy ? (currentFy.year_label || (currentFy.year ? `${currentFy.year}年度` : '')) : '';
 
   const memberStats = useMemo(() => {
     if (!approvedMembers) return null;
@@ -137,14 +110,9 @@ export default function Dashboard() {
   const nextMeeting = useMemo(() => {
     if (!meetings) return null;
     const today = new Date().toISOString().slice(0, 10);
-    const upcoming = meetings
-      .filter(m => m.meeting_date >= today && (m.status === '公開'))
-      .sort((a, b) => a.meeting_date.localeCompare(b.meeting_date));
+    const upcoming = meetings.filter(m => m.meeting_date >= today && m.status === '公開').sort((a, b) => a.meeting_date.localeCompare(b.meeting_date));
     if (upcoming.length > 0) return { ...upcoming[0], isUpcoming: true };
-    // Fallback: most recent completed
-    const completed = meetings
-      .filter(m => m.status === '完了')
-      .sort((a, b) => (b.meeting_date || '').localeCompare(a.meeting_date || ''));
+    const completed = meetings.filter(m => m.status === '完了').sort((a, b) => (b.meeting_date || '').localeCompare(a.meeting_date || ''));
     if (completed.length > 0) return { ...completed[0], isUpcoming: false };
     return null;
   }, [meetings]);
@@ -152,29 +120,23 @@ export default function Dashboard() {
   const pendingCount = pendingMembers?.length || 0;
   const unpaidCount = duesStats?.unpaid || 0;
 
-  /* ── Render ── */
   return (
     <section className="admin-shell">
-      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-        <div>
-          <h1 className="page-title">ダッシュボード</h1>
-          <p className="page-description">水戸21の会 管理者ダッシュボード</p>
-        </div>
-        {fyLabel && (
-          <span className="db-fy-badge">{fyLabel}</span>
-        )}
-      </div>
+      <PageHeader
+        title="ダッシュボード"
+        subtitle="水戸21の会 管理ダッシュボード"
+        actions={fyLabel && <span className="db-fy-badge">{fyLabel}</span>}
+      />
 
       {/* ═══ Tier 1: KPI Cards ═══ */}
       <div className="db-tier1">
-        {/* 会員概況 */}
         {loadMembers ? <SkeletonCard lines={3} /> : (
           <Section title="会員概況" loading={false} error={errMembers} linkTo="/admin/members" linkLabel="会員一覧" delay={0}>
             {memberStats && (
               <>
                 <div className="db-big-number">{memberStats.total}<span className="db-big-unit">名</span></div>
                 <div className="db-stat-grid">
-                  <div className="db-stat-row"><Dot color="var(--primary)" />正会員<span className="db-stat-val">{memberStats.regular}</span></div>
+                  <div className="db-stat-row"><Dot color="var(--color-accent)" />正会員<span className="db-stat-val">{memberStats.regular}</span></div>
                   <div className="db-stat-row"><Dot color="#8b5cf6" />賛助会員<span className="db-stat-val">{memberStats.supporting}</span></div>
                 </div>
               </>
@@ -182,7 +144,6 @@ export default function Dashboard() {
           </Section>
         )}
 
-        {/* 会費回収状況 */}
         {(loadFy || loadDues) ? <SkeletonCard lines={3} /> : (
           <Section title="会費回収状況" loading={false} error={errFy || errDues} linkTo="/admin/dues-management" linkLabel="会費管理" delay={50}>
             {duesStats && (
@@ -195,21 +156,15 @@ export default function Dashboard() {
                 </div>
                 <p className="db-sub-text">
                   {duesStats.paid} / {duesStats.total} 名が納入済
-                  {duesStats.unpaid > 0 && <span style={{ color: 'var(--error)', fontWeight: 600, marginLeft: 8 }}>未納 {duesStats.unpaid}件</span>}
+                  {duesStats.unpaid > 0 && <span style={{ color: 'var(--color-danger)', fontWeight: 600, marginLeft: 8 }}>未納 {duesStats.unpaid}件</span>}
                 </p>
               </>
             )}
           </Section>
         )}
 
-        {/* 次回幹事会 / 直近の幹事会 */}
         {loadMtg ? <SkeletonCard lines={3} /> : (
-          <Section
-            title={nextMeeting?.isUpcoming ? '次回幹事会' : '直近の幹事会'}
-            loading={false} error={errMtg}
-            linkTo="/admin/meetings" linkLabel="幹事会一覧"
-            delay={100}
-          >
+          <Section title={nextMeeting?.isUpcoming ? '次回幹事会' : '直近の幹事会'} loading={false} error={errMtg} linkTo="/admin/meetings" linkLabel="幹事会一覧" delay={100}>
             {nextMeeting ? (
               <>
                 <div className="db-meeting-title">{nextMeeting.title}</div>
@@ -233,9 +188,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                 )}
-                {!nextMeeting.isUpcoming && (
-                  <span className="pill" style={{ marginTop: 6, fontSize: 11 }}>完了</span>
-                )}
+                {!nextMeeting.isUpcoming && <span className="pill" style={{ marginTop: 6, fontSize: 11 }}>完了</span>}
               </>
             ) : (
               <p className="db-sub-text">予定されている幹事会はありません</p>
@@ -251,10 +204,9 @@ export default function Dashboard() {
         <div className="db-tier2">
           <Section title="要対応" loading={false} error={errPending} delay={150}>
             <div className="db-action-list">
-              {/* 入会申請 */}
-              <Link to="/admin/applications" className="db-action-item" style={pendingCount > 0 ? { background: 'var(--error-light)' } : undefined}>
+              <Link to="/admin/applications" className="db-action-item" style={pendingCount > 0 ? { background: 'var(--color-danger-light)' } : undefined}>
                 <div className="db-action-left">
-                  <Dot color={pendingCount > 0 ? 'var(--error)' : 'var(--success)'} />
+                  <Dot color={pendingCount > 0 ? 'var(--color-danger)' : 'var(--color-success)'} />
                   <span>入会申込</span>
                 </div>
                 {pendingCount > 0 ? (
@@ -263,10 +215,9 @@ export default function Dashboard() {
                   <span className="db-action-badge db-action-badge-ok">未処理なし</span>
                 )}
               </Link>
-              {/* 未納会費 */}
-              <Link to="/admin/dues-management" className="db-action-item" style={unpaidCount > 0 ? { background: 'var(--warning-light)' } : undefined}>
+              <Link to="/admin/dues-management" className="db-action-item" style={unpaidCount > 0 ? { background: 'var(--color-warning-light)' } : undefined}>
                 <div className="db-action-left">
-                  <Dot color={unpaidCount > 0 ? 'var(--warning)' : 'var(--success)'} />
+                  <Dot color={unpaidCount > 0 ? 'var(--color-warning)' : 'var(--color-success)'} />
                   <span>会費未納</span>
                 </div>
                 {unpaidCount > 0 ? (
@@ -305,277 +256,79 @@ export default function Dashboard() {
 
       {/* ═══ Scoped styles ═══ */}
       <style>{`
-        /* ── skeleton pulse ── */
         .db-skeleton {
-          background: linear-gradient(90deg, var(--line-light) 25%, #e8ecf1 50%, var(--line-light) 75%);
-          background-size: 200% 100%;
-          animation: db-shimmer 1.5s infinite;
+          background: linear-gradient(90deg, var(--color-bg-sub) 25%, #e8ecf1 50%, var(--color-bg-sub) 75%);
+          background-size: 200% 100%; animation: db-shimmer 1.5s infinite;
         }
-        @keyframes db-shimmer {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-        .db-skeleton-card {
-          padding: 20px;
-          min-height: 120px;
-        }
+        @keyframes db-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .db-skeleton-card { padding: 20px; min-height: 120px; }
+        .db-fade-in { animation: db-fadein 0.35s ease both; }
+        @keyframes db-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ── fade-in with stagger ── */
-        .db-fade-in {
-          animation: db-fadein 0.35s ease both;
-        }
-        @keyframes db-fadein {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ── FY badge in header ── */
         .db-fy-badge {
-          display: inline-flex;
-          align-items: center;
-          padding: 4px 14px;
-          border-radius: 999px;
-          font-size: 13px;
-          font-weight: 600;
-          background: var(--primary-light);
-          color: var(--primary);
-          border: 1px solid var(--primary-100);
-          white-space: nowrap;
+          display: inline-flex; align-items: center; padding: 4px 14px; border-radius: 999px;
+          font-size: 13px; font-weight: 600; background: var(--color-accent-light);
+          color: var(--color-accent); border: 1px solid var(--color-accent-light); white-space: nowrap;
         }
 
-        /* ── card ── */
-        .db-card {
-          background: var(--panel);
-          border: 1px solid var(--line);
-          border-radius: var(--radius-lg);
-          box-shadow: var(--shadow-sm);
-          overflow: hidden;
-        }
-        .db-card-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 14px 18px 10px;
-          border-bottom: 1px solid var(--line-light);
-        }
-        .db-card-title {
-          font-size: 13px;
-          font-weight: 700;
-          color: var(--text);
-          letter-spacing: 0.02em;
-        }
-        .db-card-body {
-          padding: 14px 18px 18px;
-        }
+        .db-card { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+        .db-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 10px; border-bottom: 1px solid var(--color-border); }
+        .db-card-title { font-size: 13px; font-weight: 700; color: var(--color-text-primary); letter-spacing: 0.02em; }
+        .db-card-body { padding: 14px 18px 18px; }
 
-        /* ── tier layouts ── */
-        .db-tier1 {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
-          margin-bottom: 16px;
-        }
-        .db-tier2 {
-          margin-bottom: 16px;
-        }
-        .db-tier3 {
-          margin-bottom: 8px;
-        }
+        .db-tier1 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+        .db-tier2 { margin-bottom: 16px; }
+        .db-tier3 { margin-bottom: 8px; }
 
-        /* ── big KPI number ── */
-        .db-big-number {
-          font-size: 32px;
-          font-weight: 800;
-          color: var(--text);
-          line-height: 1.1;
-          margin-bottom: 8px;
-        }
-        .db-big-unit {
-          font-size: 14px;
-          font-weight: 600;
-          margin-left: 2px;
-          color: var(--text-secondary);
-        }
+        .db-big-number { font-size: 32px; font-weight: 800; color: var(--color-text-primary); line-height: 1.1; margin-bottom: 8px; }
+        .db-big-unit { font-size: 14px; font-weight: 600; margin-left: 2px; color: var(--color-text-secondary); }
 
-        /* ── stat grid (member breakdown) ── */
-        .db-stat-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .db-stat-row {
-          display: flex;
-          align-items: center;
-          font-size: 13px;
-          color: var(--text-secondary);
-        }
-        .db-stat-val {
-          margin-left: auto;
-          font-weight: 700;
-          color: var(--text);
-          font-size: 14px;
-        }
+        .db-stat-grid { display: flex; flex-direction: column; gap: 4px; }
+        .db-stat-row { display: flex; align-items: center; font-size: 13px; color: var(--color-text-secondary); }
+        .db-stat-val { margin-left: auto; font-weight: 700; color: var(--color-text-primary); font-size: 14px; }
 
-        /* ── progress bar ── */
-        .db-progress-track {
-          width: 100%;
-          height: 8px;
-          background: var(--line-light);
-          border-radius: 4px;
-          overflow: hidden;
-          margin-bottom: 6px;
-        }
-        .db-progress-fill {
-          height: 100%;
-          border-radius: 4px;
-          transition: width 0.6s ease;
-        }
+        .db-progress-track { width: 100%; height: 8px; background: var(--color-bg-sub); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+        .db-progress-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
 
-        /* ── sub text ── */
-        .db-sub-text {
-          font-size: 12px;
-          color: var(--text-secondary);
-          margin: 0;
-        }
+        .db-sub-text { font-size: 12px; color: var(--color-text-secondary); margin: 0; }
 
-        /* ── meeting card ── */
-        .db-meeting-title {
-          font-size: 15px;
-          font-weight: 700;
-          color: var(--text);
-          margin-bottom: 6px;
-        }
-        .db-meeting-meta {
-          display: flex;
-          gap: 12px;
-          font-size: 13px;
-          color: var(--text-secondary);
-          margin-bottom: 2px;
-          flex-wrap: wrap;
-        }
-        .db-meeting-meta-item {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-        }
+        .db-meeting-title { font-size: 15px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 6px; }
+        .db-meeting-meta { display: flex; gap: 12px; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 2px; flex-wrap: wrap; }
+        .db-meeting-meta-item { display: inline-flex; align-items: center; gap: 4px; }
 
-        /* ── action items ── */
-        .db-action-list {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
+        .db-action-list { display: flex; flex-direction: column; gap: 8px; }
         .db-action-item {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 16px;
-          border-radius: var(--radius);
-          border: 1px solid var(--line);
-          text-decoration: none;
-          color: var(--text);
-          font-size: 14px;
-          font-weight: 600;
-          transition: box-shadow var(--transition);
+          display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
+          border-radius: var(--radius-md); border: 1px solid var(--color-border); text-decoration: none;
+          color: var(--color-text-primary); font-size: 14px; font-weight: 600; transition: box-shadow var(--transition-fast);
         }
-        .db-action-item:hover {
-          box-shadow: var(--shadow);
-        }
-        .db-action-left {
-          display: flex;
-          align-items: center;
-        }
-        .db-action-badge {
-          padding: 3px 12px;
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 700;
-        }
-        .db-action-badge-alert {
-          background: var(--error);
-          color: #fff;
-        }
-        .db-action-badge-warn {
-          background: var(--warning);
-          color: #fff;
-        }
-        .db-action-badge-ok {
-          background: var(--line-light);
-          color: var(--text-secondary);
-          font-weight: 500;
-        }
+        .db-action-item:hover { box-shadow: var(--shadow-md); }
+        .db-action-left { display: flex; align-items: center; }
+        .db-action-badge { padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .db-action-badge-alert { background: var(--color-danger); color: #fff; }
+        .db-action-badge-warn { background: var(--color-warning); color: #fff; }
+        .db-action-badge-ok { background: var(--color-bg-sub); color: var(--color-text-secondary); font-weight: 500; }
 
-        /* ── quick action grid ── */
-        .db-quick-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 8px;
-          padding: 14px 18px 18px;
-        }
+        .db-quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 14px 18px 18px; }
         .db-quick-btn {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 14px;
-          border-radius: var(--radius);
-          border: 1px solid var(--line);
-          background: var(--panel);
-          color: var(--text);
-          font-size: 13px;
-          font-weight: 600;
-          text-decoration: none;
-          transition: all var(--transition);
+          display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: var(--radius-md);
+          border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text-primary);
+          font-size: 13px; font-weight: 600; text-decoration: none; transition: all var(--transition-fast);
         }
-        .db-quick-btn:hover {
-          background: var(--primary-light);
-          border-color: var(--primary-100);
-          color: var(--primary);
-        }
-        .db-quick-btn svg {
-          color: var(--text-secondary);
-          flex-shrink: 0;
-        }
-        .db-quick-btn:hover svg {
-          color: var(--primary);
-        }
+        .db-quick-btn:hover { background: var(--color-accent-light); border-color: var(--color-accent-light); color: var(--color-accent); }
+        .db-quick-btn svg { color: var(--color-text-secondary); flex-shrink: 0; }
+        .db-quick-btn:hover svg { color: var(--color-accent); }
 
-        /* ── mobile ── */
         @media (max-width: 768px) {
-          .db-tier1 {
-            grid-template-columns: 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-          }
-          .db-tier2 {
-            margin-bottom: 12px;
-          }
-          .db-quick-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            padding: 12px 14px 14px;
-          }
-          .db-card-header {
-            padding: 12px 14px 8px;
-          }
-          .db-card-body {
-            padding: 12px 14px 14px;
-          }
-          .db-big-number {
-            font-size: 26px;
-          }
-          .db-quick-btn {
-            padding: 8px 10px;
-            font-size: 12px;
-            gap: 6px;
-          }
-          .db-action-item {
-            padding: 10px 12px;
-            font-size: 13px;
-          }
-          .db-fy-badge {
-            font-size: 12px;
-            padding: 3px 10px;
-          }
+          .db-tier1 { grid-template-columns: 1fr; gap: 12px; margin-bottom: 12px; }
+          .db-tier2 { margin-bottom: 12px; }
+          .db-quick-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 12px 14px 14px; }
+          .db-card-header { padding: 12px 14px 8px; }
+          .db-card-body { padding: 12px 14px 14px; }
+          .db-big-number { font-size: 26px; }
+          .db-quick-btn { padding: 8px 10px; font-size: 12px; gap: 6px; }
+          .db-action-item { padding: 10px 12px; font-size: 13px; }
+          .db-fy-badge { font-size: 12px; padding: 3px 10px; }
         }
       `}</style>
     </section>
