@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiRequest, base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { fullName, fullNameKana } from '../../utils/formatName';
+import { Modal, Button } from '../../components/ui';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 function displayValue(v) {
@@ -565,15 +566,10 @@ export default function MemberList() {
               <span style={{ fontSize: "14px" }}>✉</span>
               ユーザー招待
             </button>
-            <button
-              className="btn btn-primary"
-              type="button"
-              onClick={() => navigate("/admin/members/new")}
-              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-            >
+            <Button variant="primary" onClick={() => navigate("/admin/members/new")}>
               <span style={{ fontSize: "16px", lineHeight: 1 }}>+</span>
               新規会員登録
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -627,10 +623,10 @@ export default function MemberList() {
             {/* Reset button */}
             {(memberType !== "すべて" || status !== "すべて" || organizationId || q) && (
               <div style={{ marginTop: 10 }}>
-                <button className="btn btn-secondary" type="button" onClick={handleReset}
-                  style={{ fontSize: 12, padding: '8px 12px', width: '100%', borderRadius: 'var(--radius-md)' }}>
+                <Button variant="secondary" size="sm" onClick={handleReset}
+                  style={{ width: '100%' }}>
                   リセット
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -755,14 +751,9 @@ export default function MemberList() {
                   {members.length}件表示中
                 </span>
                 {(memberType !== "すべて" || status !== "すべて" || organizationId || q) && (
-                  <button
-                    className="btn btn-secondary"
-                    type="button"
-                    onClick={handleReset}
-                    style={{ fontSize: "12px", padding: "4px 12px" }}
-                  >
+                  <Button variant="secondary" size="sm" onClick={handleReset}>
                     リセット
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -968,15 +959,12 @@ export default function MemberList() {
               padding: "16px 20px",
               borderTop: "1px solid var(--color-border)",
             }}>
-              <button
-                type="button"
-                className="btn btn-secondary"
+              <Button variant="secondary" size="sm"
                 disabled={currentPage <= 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                style={{ fontSize: "12px", padding: "6px 12px" }}
               >
                 前へ
-              </button>
+              </Button>
               {getPageNumbers().map((p, idx) =>
                 p === "..." ? (
                   <span key={`dot-${idx}`} style={{ padding: "6px 4px", fontSize: "13px", color: "var(--color-text-secondary)" }}>…</span>
@@ -1001,15 +989,12 @@ export default function MemberList() {
                   </button>
                 )
               )}
-              <button
-                type="button"
-                className="btn btn-secondary"
+              <Button variant="secondary" size="sm"
                 disabled={currentPage >= totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                style={{ fontSize: "12px", padding: "6px 12px" }}
               >
                 次へ
-              </button>
+              </Button>
             </div>
           )}
 
@@ -1060,13 +1045,8 @@ export default function MemberList() {
         }
 
         return (
-          <div className="confirm-overlay" onClick={() => setShowInviteModal(false)}>
-            <div className="modal-dialog" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560 }}>
-              <div className="modal-header">
-                <h3 style={{ fontSize: "1rem" }}>ユーザー招待</h3>
-                <button type="button" className="modal-close" onClick={() => setShowInviteModal(false)}>&times;</button>
-              </div>
-              <div className="modal-body" style={{ padding: "16px 20px" }}>
+          <Modal isOpen={true} onClose={() => setShowInviteModal(false)} title="ユーザー招待" width="560px">
+              <div>
                 <div style={{
                   padding: "10px 14px", borderRadius: 8, marginBottom: 16,
                   background: "#eff6ff", border: "1px solid #bfdbfe", color: "#1e40af",
@@ -1162,8 +1142,7 @@ export default function MemberList() {
                   </>
                 )}
               </div>
-            </div>
-          </div>
+          </Modal>
         );
       })()}
     </section>

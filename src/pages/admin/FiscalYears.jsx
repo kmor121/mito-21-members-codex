@@ -3,6 +3,7 @@ import { apiRequest, base44, invalidateReadCache } from '../../api/base44Client'
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { PageHeader } from '../../components/ui';
 import DatePicker from '../../components/ui/DatePicker';
+import { Modal, Button } from '../../components/ui';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 function displayValue(v) {
@@ -46,30 +47,26 @@ const DEFAULT_FEES = {
 
 /* ── Custom Confirm Dialog ── */
 function FyConfirmDialog({ open, title, icon, children, confirmLabel, confirmDanger, onConfirm, onCancel, saving }) {
-  if (!open) return null;
   return (
-    <div className="confirm-overlay" onClick={onCancel}>
-      <div className="fy-confirm-dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="fy-confirm-header">
-          {icon && <span className="fy-confirm-icon">{icon}</span>}
-          <h3>{title}</h3>
-        </div>
-        <div className="fy-confirm-body">{children}</div>
-        <div className="fy-confirm-footer">
-          <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={saving}>
-            キャンセル
-          </button>
-          <button
-            type="button"
-            className={confirmDanger ? "btn btn-danger" : "btn btn-primary"}
-            onClick={onConfirm}
-            disabled={saving}
-          >
-            {saving ? "処理中..." : confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
+    <Modal
+      isOpen={open}
+      onClose={onCancel}
+      title={<>{icon && <span className="fy-confirm-icon">{icon}</span>}{title}</>}
+      width="440px"
+      footer={<>
+        <Button variant="secondary" onClick={onCancel} disabled={saving}>キャンセル</Button>
+        <Button
+          variant={confirmDanger ? "danger" : "primary"}
+          onClick={onConfirm}
+          disabled={saving}
+          style={confirmDanger ? { background: 'var(--color-danger)', color: '#fff', border: 'none' } : {}}
+        >
+          {saving ? "処理中..." : confirmLabel}
+        </Button>
+      </>}
+    >
+      {children}
+    </Modal>
   );
 }
 
@@ -473,12 +470,12 @@ export default function FiscalYears() {
         <div className="card-body stack">
           <div className="panel-heading compact">
             <h2>年度一覧</h2>
-            <button className="btn btn-primary" type="button" onClick={handleNew}>
+            <Button variant="primary" onClick={handleNew}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginRight: 4 }}>
                 <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
               新規追加
-            </button>
+            </Button>
           </div>
 
           {loading ? (
@@ -487,9 +484,9 @@ export default function FiscalYears() {
             <div className="fy-empty">
               <span className="fy-empty-icon">{"📆"}</span>
               <p>年度データがありません</p>
-              <button className="btn btn-primary" type="button" onClick={handleNew} style={{ marginTop: 8 }}>
+              <Button variant="primary" onClick={handleNew} style={{ marginTop: 8 }}>
                 最初の年度を追加
-              </button>
+              </Button>
             </div>
           ) : (
             isMobile ? (
@@ -679,29 +676,32 @@ export default function FiscalYears() {
             </div>
 
             <div style={{ paddingTop: 8 }}>
-              <button
-                className="btn btn-danger"
-                type="button"
+              <Button
+                variant="danger"
                 disabled={saving}
                 onClick={() => setConfirmTransition(true)}
               >
                 {"🔄"} 年度移行を実行
-              </button>
+              </Button>
             </div>
           </div>
         </section>
       )}
 
       {/* ── Edit/Create Modal ── */}
-      {showModal && (
-        <div className="confirm-overlay" onClick={() => setShowModal(false)}>
-          <div className="fy-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="fy-modal-header">
-              <h3>{selectedId ? `${formYear}年度の編集` : "新しい年度を追加"}</h3>
-              <button type="button" className="modal-close" onClick={() => setShowModal(false)}>&times;</button>
-            </div>
-
-            <form className="fy-modal-body" noValidate onSubmit={handleSave}>
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={selectedId ? `${formYear}年度の編集` : "新しい年度を追加"}
+        width="560px"
+        footer={<>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>キャンセル</Button>
+          <Button variant="primary" type="submit" disabled={saving} onClick={handleSave}>
+            {saving ? "保存中..." : selectedId ? "保存" : "追加"}
+          </Button>
+        </>}
+      >
+            <form className="fy-modal-body" noValidate onSubmit={handleSave} style={{ padding: 0 }}>
               {/* Year input */}
               <div className="fy-modal-section">
                 <div className="fy-field">
@@ -869,19 +869,8 @@ export default function FiscalYears() {
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="fy-modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
-                  キャンセル
-                </button>
-                <button type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? "保存中..." : selectedId ? "保存" : "追加"}
-                </button>
-              </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </section>
   );
 }

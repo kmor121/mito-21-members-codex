@@ -212,13 +212,19 @@ function MemberSearchModal({ open, onClose, selectedMembers, onToggleMember }) {
   const selectedIds = new Set(selectedMembers.map((m) => m.id));
 
   return (
-    <div className="confirm-overlay" onClick={onClose}>
-      <div className="modal-dialog" style={{ maxWidth: 560, maxHeight: "80vh", display: "flex", flexDirection: "column" }} onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>会員を検索して選択</h3>
-          <button type="button" className="modal-close" onClick={onClose}>&times;</button>
-        </div>
-        <div style={{ padding: "12px 20px", borderBottom: "1px solid var(--color-border)" }}>
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title="会員を検索して選択"
+      width="560px"
+      footer={<div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+        <span style={{ fontSize: 13, color: "var(--color-text-secondary)", display: "flex", alignItems: "center" }}>
+          {selectedMembers.length}名 選択中
+        </span>
+        <Button variant="primary" onClick={onClose}>完了</Button>
+      </div>}
+    >
+        <div style={{ padding: "0 0 12px", borderBottom: "1px solid var(--color-border)", marginBottom: 12 }}>
           <div style={{ position: "relative" }}>
             <input
               ref={inputRef}
@@ -237,7 +243,7 @@ function MemberSearchModal({ open, onClose, selectedMembers, onToggleMember }) {
             </span>
           </div>
         </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "0" }}>
+        <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
           {loading ? (
             <div style={{ padding: 40, textAlign: "center" }}><LoadingSpinner /></div>
           ) : filtered.length === 0 ? (
@@ -275,16 +281,7 @@ function MemberSearchModal({ open, onClose, selectedMembers, onToggleMember }) {
             })
           )}
         </div>
-        <div className="modal-footer" style={{ justifyContent: "space-between" }}>
-          <span style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
-            {selectedMembers.length}名 選択中
-          </span>
-          <button className="button" style={{ background: "#4f46e5", color: "#fff" }} onClick={onClose}>
-            完了
-          </button>
-        </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
 

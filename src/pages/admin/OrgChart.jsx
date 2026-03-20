@@ -837,29 +837,21 @@ export default function OrgChart() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0 12px' }}>
           <h1 className="page-title" style={{ margin: 0 }}>組織図管理</h1>
           <div style={{ display: 'flex', gap: 6 }}>
-            <button
-              className="btn btn-secondary"
-              type="button"
-              onClick={() => setShowCopyModal(true)}
-              title="前年度からコピー"
+            <Button variant="secondary" onClick={() => setShowCopyModal(true)}
               style={{ width: 36, height: 36, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="5" y="5" width="9" height="9" rx="1.5"/>
                 <path d="M3 11V3a1.5 1.5 0 011.5-1.5H11"/>
               </svg>
-            </button>
-            <button
-              className="btn btn-primary"
-              type="button"
-              onClick={openNewOrg}
-              title="新規組織追加"
+            </Button>
+            <Button variant="primary" onClick={openNewOrg}
               style={{ width: 36, height: 36, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M8 3v10M3 8h10"/>
               </svg>
-            </button>
+            </Button>
           </div>
         </div>
       ) : (

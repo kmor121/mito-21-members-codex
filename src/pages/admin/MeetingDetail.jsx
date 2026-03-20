@@ -769,14 +769,14 @@ export default function MeetingDetail() {
           )}
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", flexShrink: 0 }}>
-          {status === "下書き" && <button className="btn btn-primary" type="button" disabled={saving} onClick={() => handleStatusChange("公開")} style={isMobile ? { fontSize: 12, padding: "6px 12px" } : {}}>公開にする</button>}
+          {status === "下書き" && <Button variant="primary" size={isMobile ? "sm" : "md"} disabled={saving} onClick={() => handleStatusChange("公開")}>公開にする</Button>}
           {status === "公開" && (
             <>
-              <button className="btn btn-secondary" type="button" disabled={saving} onClick={() => handleStatusChange("下書き")} style={isMobile ? { fontSize: 12, padding: "6px 10px" } : {}}>下書きに戻す</button>
-              <button className="btn btn-primary" type="button" disabled={saving} onClick={() => handleStatusChange("完了")} style={isMobile ? { fontSize: 12, padding: "6px 12px" } : {}}>完了にする</button>
+              <Button variant="secondary" size={isMobile ? "sm" : "md"} disabled={saving} onClick={() => handleStatusChange("下書き")}>下書きに戻す</Button>
+              <Button variant="primary" size={isMobile ? "sm" : "md"} disabled={saving} onClick={() => handleStatusChange("完了")}>完了にする</Button>
             </>
           )}
-          {status === "完了" && <button className="btn btn-secondary" type="button" disabled={saving} onClick={() => handleStatusChange("公開")} style={isMobile ? { fontSize: 12, padding: "6px 10px" } : {}}>公開に戻す</button>}
+          {status === "完了" && <Button variant="secondary" size={isMobile ? "sm" : "md"} disabled={saving} onClick={() => handleStatusChange("公開")}>公開に戻す</Button>}
         </div>
       </div>
 
@@ -790,7 +790,7 @@ export default function MeetingDetail() {
         ))}
         {activeTab === "agenda" && (
           <div style={{ marginLeft: isMobile ? 0 : "auto", display: "flex", gap: 6, width: isMobile ? "100%" : "auto", marginTop: isMobile ? 4 : 0 }}>
-            <button type="button" className="btn btn-secondary mtg-copy-btn" onClick={() => {
+            <Button variant="secondary" onClick={() => {
               const copyCeremony = Array.isArray(meeting.ceremony_items)
                 ? meeting.ceremony_items.map(c => ({
                     order: c.order, title: c.title,
@@ -807,17 +807,19 @@ export default function MeetingDetail() {
                 : null;
               navigate('/admin/meetings', { state: { copyAgenda, copyCeremony, copyFromTitle: meeting.title } });
             }}
-              style={{ fontSize: isMobile ? 11 : 12, padding: isMobile ? "4px 10px" : "5px 14px", flex: isMobile ? 1 : undefined }}
+              size="sm"
+              style={{ flex: isMobile ? 1 : undefined }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
               {isMobile ? "コピー新規" : "コピーして新規作成"}
-            </button>
-            <button type="button" className="btn btn-secondary mtg-copy-btn" onClick={copyAgendaText}
-              style={{ fontSize: isMobile ? 11 : 12, padding: isMobile ? "4px 10px" : "5px 14px", flex: isMobile ? 1 : undefined }}
+            </Button>
+            <Button variant="secondary" onClick={copyAgendaText}
+              size="sm"
+              style={{ flex: isMobile ? 1 : undefined }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
               {copyLabel}
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -902,7 +904,7 @@ export default function MeetingDetail() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <span style={{ fontWeight: 700, fontSize: 14, color: "var(--color-accent)" }}>4. 議事</span>
                 {canEditAgenda && (
-                  <button className="btn btn-secondary" type="button" onClick={addAgendaItem} style={{ fontSize: 12, padding: "4px 12px" }}>+ 議題追加</button>
+                  <Button variant="secondary" size="sm" onClick={addAgendaItem}>+ 議題追加</Button>
                 )}
               </div>
 
@@ -1091,7 +1093,7 @@ export default function MeetingDetail() {
 
             {canEditAgenda && (
               <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
-                <button className="btn btn-primary" type="button" disabled={saving} onClick={handleSave}>{saving ? "保存中..." : "保存"}</button>
+                <Button variant="primary" disabled={saving} onClick={handleSave}>{saving ? "保存中..." : "保存"}</Button>
               </div>
             )}
           </div>
@@ -1185,7 +1187,7 @@ export default function MeetingDetail() {
 
                 {canEditMinutes && (
                   <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
-                    <button className="btn btn-primary" type="button" disabled={saving} onClick={handleSave}>{saving ? "保存中..." : "保存"}</button>
+                    <Button variant="primary" disabled={saving} onClick={handleSave}>{saving ? "保存中..." : "保存"}</Button>
                   </div>
                 )}
               </>
@@ -1203,14 +1205,14 @@ export default function MeetingDetail() {
             </div>
             {canEditAttendance && !apEditing && (
               <div style={{ display: 'flex', gap: 6 }}>
-                <button className="btn btn-secondary" type="button" style={{ fontSize: 12, padding: '4px 10px' }}
+                <Button variant="secondary" size="sm"
                   onClick={() => { setApForm({ location: afterParty.location || '', start_time: afterParty.start_time || '', end_time: afterParty.end_time || '', fee: afterParty.fee || '' }); setApEditing(true); }}>
                   編集
-                </button>
-                <button className="btn btn-danger" type="button" style={{ fontSize: 12, padding: '4px 10px' }} disabled={saving}
+                </Button>
+                <Button variant="danger" size="sm" disabled={saving}
                   onClick={requestDeleteAfterPartyMeeting}>
                   中止
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -1223,8 +1225,8 @@ export default function MeetingDetail() {
               </div>
               <div><label className="mtg-label">参加費</label><input className="mtg-input" type="number" min="0" value={apForm.fee} onChange={e => setApForm(f => ({ ...f, fee: e.target.value }))} /></div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
-                <button className="btn btn-secondary" type="button" onClick={() => setApEditing(false)}>キャンセル</button>
-                <button className="btn btn-primary" type="button" disabled={saving} onClick={saveAfterPartyMeeting}>{saving ? '保存中...' : '保存'}</button>
+                <Button variant="secondary" onClick={() => setApEditing(false)}>キャンセル</Button>
+                <Button variant="primary" disabled={saving} onClick={saveAfterPartyMeeting}>{saving ? '保存中...' : '保存'}</Button>
               </div>
             </div>
           ) : (
@@ -1252,16 +1254,16 @@ export default function MeetingDetail() {
               </div>
               <div><label className="mtg-label">参加費</label><input className="mtg-input" type="number" min="0" placeholder="0 = 無料" value={apForm.fee} onChange={e => setApForm(f => ({ ...f, fee: e.target.value }))} /></div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
-                <button className="btn btn-secondary" type="button" onClick={() => setShowApForm(false)}>キャンセル</button>
-                <button className="btn btn-primary" type="button" disabled={saving} onClick={addAfterPartyMeeting}>{saving ? '追加中...' : '追加'}</button>
+                <Button variant="secondary" onClick={() => setShowApForm(false)}>キャンセル</Button>
+                <Button variant="primary" disabled={saving} onClick={addAfterPartyMeeting}>{saving ? '追加中...' : '追加'}</Button>
               </div>
             </div>
           </div>
         ) : (
           <div style={{ marginBottom: 16 }}>
-            <button className="btn btn-secondary" type="button" onClick={() => { setApForm({ location: '', start_time: meeting.end_time || '21:00', end_time: '23:00', fee: '' }); setShowApForm(true); }}>
+            <Button variant="secondary" onClick={() => { setApForm({ location: '', start_time: meeting.end_time || '21:00', end_time: '23:00', fee: '' }); setShowApForm(true); }}>
               🍻 懇親会を追加
-            </button>
+            </Button>
           </div>
         )
       ) : null}
@@ -1462,17 +1464,17 @@ export default function MeetingDetail() {
               {/* ── Reminder button ── */}
               {canEditAttendance && (
                 <div style={{ marginTop: 16 }}>
-                  <button className="btn btn-secondary" type="button" disabled={saving}
+                  <Button variant="secondary" disabled={saving}
                     onClick={() => showToastMsg('リマインド送信機能は準備中です')}>
                     未回答者にリマインド送信
-                  </button>
+                  </Button>
                 </div>
               )}
 
               {/* Save - only in draft */}
               {canEditAttendance && (
                 <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
-                  <button className="btn btn-primary" type="button" disabled={saving} onClick={handleSave}>{saving ? "保存中..." : "保存"}</button>
+                  <Button variant="primary" disabled={saving} onClick={handleSave}>{saving ? "保存中..." : "保存"}</Button>
                 </div>
               )}
             </div>

@@ -1013,10 +1013,10 @@ export default function DuesManagement() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               </button>
               {computedSummary.unissuedCount > 0 && activeTab !== 'settings' && (
-                <button type="button" className="btn btn-primary" onClick={() => setConfirmBulkIssue(true)} disabled={saving}
-                  style={{ fontSize: 12, padding: '6px 10px', whiteSpace: 'nowrap', height: 36 }}>
+                <Button variant="primary" size="sm" onClick={() => setConfirmBulkIssue(true)} disabled={saving}
+                  style={{ whiteSpace: 'nowrap', height: 36 }}>
                   一括発行
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -1305,13 +1305,13 @@ export default function DuesManagement() {
                 </select>
               </div>
               <div style={{ marginTop: 10 }}>
-                <button className="btn btn-secondary" type="button" onClick={() => setConfirmReminder(true)}
-                  disabled={saving || computedSummary.unpaidCount === 0} style={{ fontSize: 12, padding: '6px 12px', width: '100%' }}>
+                <Button variant="secondary" size="sm" onClick={() => setConfirmReminder(true)}
+                  disabled={saving || computedSummary.unpaidCount === 0} style={{ width: '100%' }}>
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginRight: 4, verticalAlign: 'middle' }}>
                     <path d="M1 3l6 4 6-4M1 3v8h12V3H1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
                   </svg>
                   {"\u672A\u7D0D\u8005\u306B\u30EA\u30DE\u30A4\u30F3\u30C9\u9001\u4FE1"}
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -1415,18 +1415,15 @@ export default function DuesManagement() {
 
                 {/* Actions */}
                 <div style={{ marginLeft: "auto", display: "flex", gap: 6, flexShrink: 0 }}>
-                  <button
-                    className="btn btn-secondary"
-                    type="button"
+                  <Button variant="secondary" size="sm"
                     onClick={() => setConfirmReminder(true)}
                     disabled={saving || computedSummary.unpaidCount === 0}
-                    style={{ fontSize: 12, padding: "6px 12px" }}
                   >
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginRight: 4, verticalAlign: "middle" }}>
                       <path d="M1 3l6 4 6-4M1 3v8h12V3H1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
                     </svg>
                     リマインド
-                  </button>
+                  </Button>
                 </div>
               </div>
               )}
@@ -1618,23 +1615,12 @@ export default function DuesManagement() {
             <span style={{ fontSize: 14, fontWeight: 600, color: "var(--color-accent)" }}>
               {selectedIds.size}件選択中
             </span>
-            <button
-              className="btn btn-primary"
-              type="button"
-              onClick={() => { setBatchDate(todayStr()); setShowBatchModal(true); }}
-              disabled={saving}
-              style={{ fontSize: 13 }}
-            >
+            <Button variant="primary" onClick={() => { setBatchDate(todayStr()); setShowBatchModal(true); }} disabled={saving}>
               一括納入済にする
-            </button>
-            <button
-              className="btn btn-secondary"
-              type="button"
-              onClick={() => setSelectedIds(new Set())}
-              style={{ fontSize: 13 }}
-            >
+            </Button>
+            <Button variant="secondary" onClick={() => setSelectedIds(new Set())}>
               選択解除
-            </button>
+            </Button>
           </div>
         </>
       )}
@@ -1688,18 +1674,15 @@ export default function DuesManagement() {
 
           {/* Actions */}
           <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-            <button
-              className="btn btn-secondary"
-              type="button"
+            <Button variant="secondary" size="sm"
               onClick={() => setConfirmAllReminder(true)}
               disabled={saving || allUnpaidSummary.totalCount === 0}
-              style={{ fontSize: 12, padding: "6px 14px" }}
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginRight: 4, verticalAlign: "middle" }}>
                 <path d="M1 3l6 4 6-4M1 3v8h12V3H1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
               </svg>
               全未納者にリマインドメール送信
-            </button>
+            </Button>
           </div>
 
           {/* Grouped tables */}
@@ -1927,12 +1910,12 @@ export default function DuesManagement() {
             <span style={{ fontSize: 14, fontWeight: 600, color: "var(--color-accent)" }}>
               {selectedIds.size}件選択中
             </span>
-            <button className="btn btn-primary" type="button" onClick={() => { setBatchDate(todayStr()); setShowBatchModal(true); }} disabled={saving} style={{ fontSize: 13 }}>
+            <Button variant="primary" onClick={() => { setBatchDate(todayStr()); setShowBatchModal(true); }} disabled={saving}>
               一括納入済にする
-            </button>
-            <button className="btn btn-secondary" type="button" onClick={() => setSelectedIds(new Set())} style={{ fontSize: 13 }}>
+            </Button>
+            <Button variant="secondary" onClick={() => setSelectedIds(new Set())}>
               選択解除
-            </button>
+            </Button>
           </div>
         </>
       )}
@@ -1944,10 +1927,9 @@ export default function DuesManagement() {
         <>
           {isMobile && (
             <div style={{ marginBottom: 8 }}>
-              <button type="button" className="btn btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }}
-                onClick={() => setActiveTab('current')}>
+              <Button variant="secondary" size="sm" onClick={() => setActiveTab('current')}>
                 {"\u2190 \u623B\u308B"}
-              </button>
+              </Button>
             </div>
           )}
           <section className="card panel-card single-panel">
@@ -1986,14 +1968,11 @@ export default function DuesManagement() {
                     <path d="M8 5v3M8 10h.01" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
                   <span>前年度の設定を参照できます</span>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: 12, padding: "4px 10px", marginLeft: "auto" }}
+                  <Button variant="secondary" size="sm" style={{ marginLeft: "auto" }}
                     onClick={copyPriorSettings}
                   >
                     前年度と同じ金額を使用
-                  </button>
+                  </Button>
                 </div>
               )}
 
@@ -2092,14 +2071,9 @@ export default function DuesManagement() {
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  <button
-                    className="btn btn-primary"
-                    type="submit"
-                    disabled={saving}
-                    style={{ padding: "8px 24px", fontSize: 14 }}
-                  >
+                  <Button variant="primary" type="submit" disabled={saving}>
                     {saving ? "保存中..." : "設定を保存"}
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
