@@ -15,7 +15,7 @@ const EVENT_TYPE_BADGE = {
 
 const STATUS_BADGE = {
   published: { label: "公開中", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
-  closed:    { label: "締切",   color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
+  closed:    { label: "受付終了", color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
   completed: { label: "完了",   color: "#059669", bg: "#ecfdf5", border: "#bbf7d0" },
 };
 

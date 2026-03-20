@@ -18,7 +18,7 @@ const EVENT_TYPE_BADGE = {
 const STATUS_CONF = {
   draft:     { label: "下書き", color: "#64748b", bg: "#f1f5f9", border: "#e2e8f0" },
   published: { label: "公開中", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
-  closed:    { label: "締切",   color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
+  closed:    { label: "受付終了", color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
   completed: { label: "完了",   color: "#059669", bg: "#ecfdf5", border: "#bbf7d0" },
 };
 
@@ -143,7 +143,7 @@ export default function EventDetail() {
   const STATUS_TRANSITIONS = {
     draft:     [{ to: 'published', label: '公開する', msg: '公開すると会員がイベントを閲覧・出欠回答できるようになります。' }],
     published: [
-      { to: 'closed', label: '締め切る', msg: '締め切ると新規の出欠回答を受け付けなくなります。' },
+      { to: 'closed', label: '受付終了にする', msg: '受付終了にすると新規の出欠回答を受け付けなくなります。' },
       { to: 'draft', label: '下書きに戻す', msg: '下書きに戻すと会員には非表示になります。', secondary: true },
     ],
     closed: [
@@ -151,7 +151,7 @@ export default function EventDetail() {
       { to: 'published', label: '公開に戻す', msg: '公開に戻すと出欠回答を再開できます。', secondary: true },
     ],
     completed: [
-      { to: 'closed', label: '締切に戻す', msg: 'ステータスを戻すと編集が再開できます。', secondary: true },
+      { to: 'closed', label: '受付終了に戻す', msg: 'ステータスを戻すと編集が再開できます。', secondary: true },
     ],
   };
 
