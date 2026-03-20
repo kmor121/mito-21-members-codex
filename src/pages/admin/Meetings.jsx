@@ -257,23 +257,6 @@ export default function Meetings() {
               <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
             </button>
           </div>
-          {fiscalYears.length > 0 && (() => {
-            const sortedFYs = [...fiscalYears].sort((a, b) => a.year - b.year);
-            const idx = sortedFYs.findIndex(fy => fy.id === selectedFYId);
-            const canPrev = idx > 0;
-            const canNext = idx < sortedFYs.length - 1;
-            const fy = sortedFYs[idx];
-            const yearLabel = fy ? (fy.year_label || `${fy.year}年度`) : '';
-            return (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <button type="button" disabled={!canPrev} onClick={() => canPrev && setSelectedFYId(sortedFYs[idx - 1].id)}
-                  style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canPrev ? 'var(--color-accent)' : 'var(--color-text-tertiary)', cursor: canPrev ? 'pointer' : 'default' }}>&#9666;</button>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', whiteSpace: 'nowrap' }}>{yearLabel}</span>
-                <button type="button" disabled={!canNext} onClick={() => canNext && setSelectedFYId(sortedFYs[idx + 1].id)}
-                  style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canNext ? 'var(--color-accent)' : 'var(--color-text-tertiary)', cursor: canNext ? 'pointer' : 'default' }}>&#9656;</button>
-              </div>
-            );
-          })()}
         </div>
       ) : (
         <PageHeader
@@ -289,8 +272,8 @@ export default function Meetings() {
       )}
 
       {/* ── FY navigation ── */}
-      {!isMobile && fiscalYears.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
+      {fiscalYears.length > 0 && (
+        <div style={{ marginBottom: isMobile ? 12 : 20, maxWidth: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
         </div>
       )}
