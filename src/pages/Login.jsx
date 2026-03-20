@@ -5,13 +5,13 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 
 const inputStyle = {
   width: "100%", padding: "10px 12px", fontSize: 16,
-  border: "1px solid #d1d5db", borderRadius: 8,
+  border: "1px solid var(--color-border)", borderRadius: 8,
   outline: "none", transition: "border-color 0.2s",
   boxSizing: "border-box",
 };
 
-function focusBorder(e) { e.target.style.borderColor = "#6366f1"; }
-function blurBorder(e) { e.target.style.borderColor = "#d1d5db"; }
+function focusBorder(e) { e.target.style.borderColor = "var(--color-accent)"; }
+function blurBorder(e) { e.target.style.borderColor = "var(--color-border)"; }
 
 export default function Login() {
   const { login } = useAuth();
@@ -173,7 +173,7 @@ export default function Login() {
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{
             width: 48, height: 48, borderRadius: 12,
-            background: "linear-gradient(135deg, #4f46e5, #6366f1)",
+            background: "linear-gradient(135deg, var(--color-accent), var(--color-accent))",
             color: "#fff", fontSize: 22, fontWeight: 700,
             display: "inline-flex", alignItems: "center", justifyContent: "center",
             marginBottom: 12,
@@ -181,7 +181,7 @@ export default function Login() {
           <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1e293b", margin: "0 0 4px" }}>
             MITO21
           </h1>
-          <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>
+          <p style={{ fontSize: 14, color: "var(--color-text-secondary)", margin: 0 }}>
             水戸21の会 会員システム
           </p>
         </div>
@@ -225,19 +225,19 @@ export default function Login() {
                 type="submit" disabled={submitting}
                 style={{
                   width: "100%", padding: "11px 0", fontSize: 15, fontWeight: 600,
-                  color: "#fff", background: submitting ? "#a5b4fc" : "#4f46e5",
+                  color: "#fff", background: submitting ? "#a5b4fc" : "var(--color-accent)",
                   border: "none", borderRadius: 8, cursor: submitting ? "not-allowed" : "pointer",
                   transition: "background 0.2s",
                 }}
-                onMouseEnter={(e) => { if (!submitting) e.target.style.background = "#4338ca"; }}
-                onMouseLeave={(e) => { if (!submitting) e.target.style.background = "#4f46e5"; }}
+                onMouseEnter={(e) => { if (!submitting) e.target.style.background = "var(--color-accent-dark)"; }}
+                onMouseLeave={(e) => { if (!submitting) e.target.style.background = "var(--color-accent)"; }}
               >
                 {submitting ? "ログイン中..." : "ログイン"}
               </button>
             </form>
             <div style={{ textAlign: "center", marginTop: 16 }}>
               <button type="button" onClick={switchToReset} style={{
-                background: "none", border: "none", color: "#6366f1",
+                background: "none", border: "none", color: "var(--color-accent)",
                 fontSize: 13, cursor: "pointer", textDecoration: "underline",
               }}>
                 パスワードを忘れた方
@@ -245,7 +245,7 @@ export default function Login() {
             </div>
             <div style={{ textAlign: "center", marginTop: 10 }}>
               <button type="button" onClick={switchToRegister} style={{
-                background: "none", border: "none", color: "#6366f1",
+                background: "none", border: "none", color: "var(--color-accent)",
                 fontSize: 13, cursor: "pointer", textDecoration: "underline",
               }}>
                 新規登録はこちら
@@ -253,7 +253,7 @@ export default function Login() {
             </div>
             <div style={{ textAlign: "center", marginTop: 10 }}>
               <Link to="/guide" style={{
-                color: "#6366f1", fontSize: 13, textDecoration: "underline",
+                color: "var(--color-accent)", fontSize: 13, textDecoration: "underline",
               }}>
                 はじめての方へ（ご利用ガイド）
               </Link>
@@ -304,19 +304,19 @@ export default function Login() {
                 type="submit" disabled={submitting}
                 style={{
                   width: "100%", padding: "11px 0", fontSize: 15, fontWeight: 600,
-                  color: "#fff", background: submitting ? "#a5b4fc" : "#4f46e5",
+                  color: "#fff", background: submitting ? "#a5b4fc" : "var(--color-accent)",
                   border: "none", borderRadius: 8, cursor: submitting ? "not-allowed" : "pointer",
                   transition: "background 0.2s",
                 }}
-                onMouseEnter={(e) => { if (!submitting) e.target.style.background = "#4338ca"; }}
-                onMouseLeave={(e) => { if (!submitting) e.target.style.background = "#4f46e5"; }}
+                onMouseEnter={(e) => { if (!submitting) e.target.style.background = "var(--color-accent-dark)"; }}
+                onMouseLeave={(e) => { if (!submitting) e.target.style.background = "var(--color-accent)"; }}
               >
                 {submitting ? "登録中..." : "登録"}
               </button>
             </form>
             <div style={{ textAlign: "center", marginTop: 20 }}>
               <button type="button" onClick={switchToLogin} style={{
-                background: "none", border: "none", color: "#6366f1",
+                background: "none", border: "none", color: "var(--color-accent)",
                 fontSize: 13, cursor: "pointer", textDecoration: "underline",
               }}>
                 ログインに戻る
@@ -367,20 +367,20 @@ export default function Login() {
                 type="submit" disabled={submitting || otpCode.length !== 6}
                 style={{
                   width: "100%", padding: "11px 0", fontSize: 15, fontWeight: 600,
-                  color: "#fff", background: (submitting || otpCode.length !== 6) ? "#a5b4fc" : "#4f46e5",
+                  color: "#fff", background: (submitting || otpCode.length !== 6) ? "#a5b4fc" : "var(--color-accent)",
                   border: "none", borderRadius: 8,
                   cursor: (submitting || otpCode.length !== 6) ? "not-allowed" : "pointer",
                   transition: "background 0.2s",
                 }}
-                onMouseEnter={(e) => { if (!submitting && otpCode.length === 6) e.target.style.background = "#4338ca"; }}
-                onMouseLeave={(e) => { if (!submitting && otpCode.length === 6) e.target.style.background = "#4f46e5"; }}
+                onMouseEnter={(e) => { if (!submitting && otpCode.length === 6) e.target.style.background = "var(--color-accent-dark)"; }}
+                onMouseLeave={(e) => { if (!submitting && otpCode.length === 6) e.target.style.background = "var(--color-accent)"; }}
               >
                 {submitting ? "認証中..." : "認証"}
               </button>
             </form>
             <div style={{ textAlign: "center", marginTop: 20 }}>
               <button type="button" onClick={switchToLogin} style={{
-                background: "none", border: "none", color: "#6366f1",
+                background: "none", border: "none", color: "var(--color-accent)",
                 fontSize: 13, cursor: "pointer", textDecoration: "underline",
               }}>
                 ログインに戻る
@@ -401,7 +401,7 @@ export default function Login() {
             </div>
             <div style={{ textAlign: "center" }}>
               <button type="button" onClick={switchToLogin} style={{
-                background: "none", border: "none", color: "#6366f1",
+                background: "none", border: "none", color: "var(--color-accent)",
                 fontSize: 13, cursor: "pointer", textDecoration: "underline",
               }}>
                 ログインに戻る
@@ -431,19 +431,19 @@ export default function Login() {
                 type="submit" disabled={submitting}
                 style={{
                   width: "100%", padding: "11px 0", fontSize: 15, fontWeight: 600,
-                  color: "#fff", background: submitting ? "#a5b4fc" : "#4f46e5",
+                  color: "#fff", background: submitting ? "#a5b4fc" : "var(--color-accent)",
                   border: "none", borderRadius: 8, cursor: submitting ? "not-allowed" : "pointer",
                   transition: "background 0.2s",
                 }}
-                onMouseEnter={(e) => { if (!submitting) e.target.style.background = "#4338ca"; }}
-                onMouseLeave={(e) => { if (!submitting) e.target.style.background = "#4f46e5"; }}
+                onMouseEnter={(e) => { if (!submitting) e.target.style.background = "var(--color-accent-dark)"; }}
+                onMouseLeave={(e) => { if (!submitting) e.target.style.background = "var(--color-accent)"; }}
               >
                 {submitting ? "送信中..." : "リセットメールを送信"}
               </button>
             </form>
             <div style={{ textAlign: "center", marginTop: 20 }}>
               <button type="button" onClick={switchToLogin} style={{
-                background: "none", border: "none", color: "#6366f1",
+                background: "none", border: "none", color: "var(--color-accent)",
                 fontSize: 13, cursor: "pointer", textDecoration: "underline",
               }}>
                 ログインに戻る
@@ -462,12 +462,12 @@ export default function Login() {
             }}>
               パスワードリセットメールを送信しました。メールを確認してください。
             </div>
-            <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, marginBottom: 20 }}>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.6, marginBottom: 20 }}>
               メールが届かない場合は、迷惑メールフォルダを確認するか、再度お試しください。
             </p>
             <div style={{ textAlign: "center" }}>
               <button type="button" onClick={switchToLogin} style={{
-                background: "none", border: "none", color: "#6366f1",
+                background: "none", border: "none", color: "var(--color-accent)",
                 fontSize: 13, cursor: "pointer", textDecoration: "underline",
               }}>
                 ログインに戻る
