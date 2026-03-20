@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 const APPLICATION_DRAFT_KEY = "mito21-application-draft";
@@ -296,8 +296,15 @@ export default function Apply() {
         <section className="detail-card application-section application-section-actions stack-sm">
           {formMessage && <p className="message error" aria-live="polite">{formMessage}</p>}
           <div className="actions application-actions">
-            <button className="button" type="submit">確認画面へ進む</button>
-            <Link className="text-link subtle-link" to="/">トップ</Link>
+            <button type="submit" style={{
+              background: 'var(--color-accent)', color: '#fff', border: 'none',
+              borderRadius: 'var(--radius-md)', padding: '12px 28px',
+              fontSize: 15, fontWeight: 700, cursor: 'pointer',
+              transition: 'background 0.2s',
+            }}
+              onMouseEnter={(e) => e.target.style.background = 'var(--color-accent-dark)'}
+              onMouseLeave={(e) => e.target.style.background = 'var(--color-accent)'}
+            >確認画面へ進む</button>
           </div>
         </section>
       </form>
