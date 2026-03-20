@@ -1,12 +1,48 @@
 import { useMemo } from 'react';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function YearPillNav({ fiscalYears, activeFyId, currentFyId, onChange }) {
+  const isMobile = useIsMobile();
   const sorted = useMemo(() =>
     [...fiscalYears].sort((a, b) => (a.year || 0) - (b.year || 0)),
     [fiscalYears]
   );
   const activeIdx = sorted.findIndex(fy => fy.id === activeFyId);
+  const canPrev = activeIdx > 0;
+  const canNext = activeIdx < sorted.length - 1;
 
+  /* ── Mobile: compact ‹ 2026年度 › ── */
+  if (isMobile) {
+    const activeFy = sorted[activeIdx];
+    const activeYearLabel = activeFy
+      ? (activeFy.year_label || `${activeFy.year}年度`)
+      : '';
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <button type="button" disabled={!canPrev}
+          onClick={() => canPrev && onChange(sorted[activeIdx - 1].id)}
+          style={{
+            background: 'none', border: 'none', padding: '4px', fontSize: 14,
+            color: canPrev ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+            cursor: canPrev ? 'pointer' : 'default',
+          }}
+        >{'\u2039'}</button>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', whiteSpace: 'nowrap' }}>
+          {activeYearLabel}
+        </span>
+        <button type="button" disabled={!canNext}
+          onClick={() => canNext && onChange(sorted[activeIdx + 1].id)}
+          style={{
+            background: 'none', border: 'none', padding: '4px', fontSize: 14,
+            color: canNext ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+            cursor: canNext ? 'pointer' : 'default',
+          }}
+        >{'\u203A'}</button>
+      </div>
+    );
+  }
+
+  /* ── Desktop: segment control pills ── */
   const arrowStyle = (disabled) => ({
     background: 'none',
     border: 'none',
@@ -35,9 +71,9 @@ export default function YearPillNav({ fiscalYears, activeFyId, currentFyId, onCh
     }}>
       <button
         type="button"
-        style={arrowStyle(activeIdx <= 0)}
-        disabled={activeIdx <= 0}
-        onClick={() => activeIdx > 0 && onChange(sorted[activeIdx - 1].id)}
+        style={arrowStyle(!canPrev)}
+        disabled={!canPrev}
+        onClick={() => canPrev && onChange(sorted[activeIdx - 1].id)}
         aria-label="前の年度"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -84,9 +120,9 @@ export default function YearPillNav({ fiscalYears, activeFyId, currentFyId, onCh
 
       <button
         type="button"
-        style={arrowStyle(activeIdx >= sorted.length - 1)}
-        disabled={activeIdx >= sorted.length - 1}
-        onClick={() => activeIdx < sorted.length - 1 && onChange(sorted[activeIdx + 1].id)}
+        style={arrowStyle(!canNext)}
+        disabled={!canNext}
+        onClick={() => canNext && onChange(sorted[activeIdx + 1].id)}
         aria-label="次の年度"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
