@@ -103,15 +103,16 @@ export default function MemberList() {
       const currentFy = fiscalYears.find((fy) => fy.is_current === true);
       const currentFyId = currentFy?.id || "";
 
-      // Build org options
-      const currentOrgs = currentFyId ? orgs.filter((o) => o.fiscal_year_id === currentFyId) : orgs;
-      const opts = currentOrgs.map((o) => ({ id: o.id, name: o.name }));
+      // Build org options from current year's assignments
+      const currentAssignments = currentFyId ? assignments.filter((a) => a.fiscal_year_id === currentFyId) : assignments;
+      const orgIdsInCurrentFy = new Set(currentAssignments.map(a => a.organization_id));
+      const currentOrgs = orgs.filter(o => orgIdsInCurrentFy.has(o.id));
+      const opts = currentOrgs.map((o) => ({ id: o.id, name: o.org_name || o.name || '' }));
       if (opts.length > 0) setOrgOptions(opts);
 
       // Build assignment map: memberId -> [{org_name, role}]
-      const currentAssignments = currentFyId ? assignments.filter((a) => a.fiscal_year_id === currentFyId) : assignments;
       const orgMap = {};
-      for (const o of orgs) orgMap[o.id] = o.name || "";
+      for (const o of orgs) orgMap[o.id] = o.org_name || o.name || "";
       const assignMap = {};
       for (const a of currentAssignments) {
         if (!assignMap[a.member_id]) assignMap[a.member_id] = [];
@@ -510,7 +511,7 @@ export default function MemberList() {
       ) : (
         <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px", flexWrap: "wrap", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <h1 className="page-title" style={{ margin: 0 }}>会員一覧</h1>
+            <h1 className="page-title" style={{ margin: 0, fontSize: 20 }}>会員一覧</h1>
             {!loading && (
               <span style={{
                 display: "inline-flex",
@@ -718,6 +719,7 @@ export default function MemberList() {
                     fontWeight: 600,
                     cursor: "pointer",
                     outline: "none",
+                    height: "30px",
                   }}
                 >
                   <option value="">全て</option>
