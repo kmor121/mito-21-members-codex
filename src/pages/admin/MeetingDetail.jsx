@@ -41,7 +41,7 @@ const QUICK_LINKS = [
 const DEFAULT_SONOTA_ITEM = { order: 99, title: "その他", tag: "", person_id: "", person_label: "", link_url: "", link_label: "", decision: "", decision_status: "未審議" };
 
 const DECISION_STATUS_BADGE = {
-  "未審議": { bg: "#f1f5f9", color: "#64748b" },
+  "未審議": { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" },
   "承認":   { bg: "#ecfdf5", color: "#059669" },
   "否決":   { bg: "#fee2e2", color: "#dc2626" },
   "継続審議": { bg: "#fffbeb", color: "#d97706" },
@@ -81,7 +81,7 @@ function MemberAvatar({ member, size = 32 }) {
     <div style={{
       width: size, height: size, borderRadius: "50%", flexShrink: 0,
       background: "var(--color-bg-sub)", display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.44, fontWeight: 600, color: "#64748b",
+      fontSize: size * 0.44, fontWeight: 600, color: "var(--color-text-secondary)",
     }}>
       {initial}
     </div>
@@ -136,7 +136,7 @@ function SpeakerInput({ value, label, onChange, onLabelChange, members, roleMap,
           {selectedMember ? (
             <MemberAvatar member={selectedMember} size={22} />
           ) : (
-            <span style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--color-bg-sub)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#64748b", flexShrink: 0 }}>外</span>
+            <span style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--color-bg-sub)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "var(--color-text-secondary)", flexShrink: 0 }}>外</span>
           )}
           <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {displayText}
@@ -1347,7 +1347,7 @@ export default function MeetingDetail() {
                             padding: "10px 14px", minHeight: 48,
                             cursor: canEditAttendance ? "pointer" : "default", userSelect: "none",
                             background: isPresent ? "#fff" : "#f9fafb",
-                            borderBottom: idx < boardMembers.length - 1 ? "1px solid var(--line-light, #f1f5f9)" : "none",
+                            borderBottom: idx < boardMembers.length - 1 ? "1px solid var(--line-light, var(--color-bg-sub))" : "none",
                             transition: "background 0.1s",
                             opacity: isPresent ? 1 : 0.55,
                           }}
@@ -1372,7 +1372,7 @@ export default function MeetingDetail() {
                             marginLeft: "auto", flexShrink: 0,
                             fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 10,
                             background: isPresent ? "#ecfdf5" : "var(--color-bg-sub)",
-                            color: isPresent ? "#059669" : "#64748b",
+                            color: isPresent ? "#059669" : "var(--color-text-secondary)",
                           }}>
                             {isPresent ? "出席" : "欠席"}
                           </span>
@@ -1410,7 +1410,7 @@ export default function MeetingDetail() {
                           <div key={oid} style={{
                             display: "flex", alignItems: "center", gap: 12,
                             padding: "10px 14px", minHeight: 48,
-                            borderBottom: idx < observerIds.length - 1 ? "1px solid var(--line-light, #f1f5f9)" : "none",
+                            borderBottom: idx < observerIds.length - 1 ? "1px solid var(--line-light, var(--color-bg-sub))" : "none",
                           }}>
                             <MemberAvatar member={m} />
                             <span style={{ fontWeight: 600, fontSize: 13, whiteSpace: "nowrap", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{fullName(m)}</span>

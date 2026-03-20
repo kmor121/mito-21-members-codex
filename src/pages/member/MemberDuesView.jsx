@@ -8,18 +8,18 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 const DUE_STATUS_BADGE = {
   "納入済": { bg: "#ecfdf5", color: "#065f46", border: "#a7f3d0" },
   "未納":   { bg: "#fef2f2", color: "#991b1b", border: "#fecaca" },
-  "未発行": { bg: "#f1f5f9", color: "#64748b", border: "#e2e8f0" },
+  "未発行": { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)", border: "var(--color-border)" },
 };
 
 const DUE_TYPE_BADGE = {
-  "年会費":       { color: "#4f46e5", bg: "#eef2ff" },
+  "年会費":       { color: "var(--color-accent)", bg: "var(--color-accent-light)" },
   "入会金":       { color: "#b45309", bg: "#fffbeb" },
   "後期入会会費": { color: "#059669", bg: "#ecfdf5" },
-  "前期入会会費": { color: "#4f46e5", bg: "#eef2ff" },
+  "前期入会会費": { color: "var(--color-accent)", bg: "var(--color-accent-light)" },
 };
 
 const MEMBER_TYPE_BADGE = {
-  "正会員":   { color: "#4f46e5", bg: "#eef2ff" },
+  "正会員":   { color: "var(--color-accent)", bg: "var(--color-accent-light)" },
   "賛助会員": { color: "#0891b2", bg: "#ecfeff" },
 };
 
@@ -294,11 +294,11 @@ export default function MemberDuesView() {
           </div>
           <div className="stat-chip">
             <span className="stat-chip-label">未納</span>
-            <span className="stat-chip-value" style={{ color: unpaidCount > 0 ? "#dc2626" : "#64748b" }}>{unpaidCount}</span>
+            <span className="stat-chip-value" style={{ color: unpaidCount > 0 ? "#dc2626" : "var(--color-text-secondary)" }}>{unpaidCount}</span>
           </div>
           <div className="stat-chip">
             <span className="stat-chip-label">未発行</span>
-            <span className="stat-chip-value" style={{ color: "#64748b" }}>{unissuedCount}</span>
+            <span className="stat-chip-value" style={{ color: "var(--color-text-secondary)" }}>{unissuedCount}</span>
           </div>
           <div className="stat-chip">
             <span className="stat-chip-label">納入率</span>
@@ -309,8 +309,8 @@ export default function MemberDuesView() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12, marginBottom: 20 }}>
           <SummaryCard label="対象者数" value={`${filteredList.length}名`} />
           <SummaryCard label="納入済" value={`${paidCount}件`} color="#059669" />
-          <SummaryCard label="未納" value={`${unpaidCount}件`} color={unpaidCount > 0 ? "#dc2626" : "#64748b"} />
-          <SummaryCard label="未発行" value={`${unissuedCount}件`} color="#64748b" />
+          <SummaryCard label="未納" value={`${unpaidCount}件`} color={unpaidCount > 0 ? "#dc2626" : "var(--color-text-secondary)"} />
+          <SummaryCard label="未発行" value={`${unissuedCount}件`} color="var(--color-text-secondary)" />
           <SummaryCard label="納入率" value={paymentRate != null ? `${paymentRate}%` : "-"} />
         </div>
       )}
@@ -324,7 +324,7 @@ export default function MemberDuesView() {
           }}>
             {/* Search */}
             <div style={{ position: "relative", marginBottom: 10 }}>
-              <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "#94a3b8" }} viewBox="0 0 20 20" fill="currentColor">
+              <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "var(--color-text-tertiary)" }} viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
               </svg>
               <input
@@ -393,7 +393,7 @@ export default function MemberDuesView() {
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 16, alignItems: "center" }}>
           {/* Search input */}
           <div style={{ flex: "1 1 200px", position: "relative" }}>
-            <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "#94a3b8" }} viewBox="0 0 20 20" fill="currentColor">
+            <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "var(--color-text-tertiary)" }} viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
             </svg>
             <input
@@ -487,7 +487,7 @@ export default function MemberDuesView() {
                   {/* Avatar */}
                   <div style={{
                     width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-                    background: "linear-gradient(135deg, #e2e8f0, #f1f5f9)",
+                    background: "linear-gradient(135deg, var(--color-border), var(--color-bg-sub))",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 12, fontWeight: 700, color: "#475467",
                   }}>

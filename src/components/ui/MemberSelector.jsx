@@ -82,7 +82,7 @@ export default function MemberSelector({ value, onChange, members = [], disabled
 
   if (disabled && selectedMember) {
     return (
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 10px", background: "#f9fafb", borderRadius: 6, border: "1px solid var(--color-border, #e2e8f0)", fontSize: 13, color: "var(--color-text-primary, #1f2937)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 10px", background: "#f9fafb", borderRadius: 6, border: "1px solid var(--color-border, var(--color-border))", fontSize: 13, color: "var(--color-text-primary, #1f2937)" }}>
         <MemberAvatar member={selectedMember} size={22} />
         <span style={{ fontWeight: 500 }}>{fullName(selectedMember)}</span>
       </div>
@@ -90,7 +90,7 @@ export default function MemberSelector({ value, onChange, members = [], disabled
   }
   if (disabled) {
     return (
-      <div style={{ padding: "5px 10px", background: "#f9fafb", borderRadius: 6, border: "1px solid var(--color-border, #e2e8f0)", fontSize: 13, color: "var(--color-text-secondary, #64748b)" }}>
+      <div style={{ padding: "5px 10px", background: "#f9fafb", borderRadius: 6, border: "1px solid var(--color-border, var(--color-border))", fontSize: 13, color: "var(--color-text-secondary, var(--color-text-secondary))" }}>
         {placeholder}
       </div>
     );
@@ -110,7 +110,7 @@ export default function MemberSelector({ value, onChange, members = [], disabled
             <MemberAvatar member={selectedMember} size={22} />
             <span className="dp-trigger-text" style={{ flex: 1, textAlign: "left" }}>{fullName(selectedMember)}</span>
             <button type="button" onClick={handleClear}
-              style={{ background: "none", border: "none", padding: "2px", cursor: "pointer", color: "var(--color-text-secondary, #64748b)", display: "flex", alignItems: "center" }}
+              style={{ background: "none", border: "none", padding: "2px", cursor: "pointer", color: "var(--color-text-secondary, var(--color-text-secondary))", display: "flex", alignItems: "center" }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -131,8 +131,8 @@ export default function MemberSelector({ value, onChange, members = [], disabled
       {open && (
         <div ref={dropdownRef} className="dp-dropdown" style={{ width: "100%", minWidth: 240, maxHeight: 320, display: "flex", flexDirection: "column", padding: 0 }}>
           {/* Search input */}
-          <div style={{ padding: "8px 10px", borderBottom: "1px solid var(--color-border, #e2e8f0)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f9fafb", borderRadius: 6, padding: "4px 8px", border: "1px solid var(--color-border, #e2e8f0)" }}>
+          <div style={{ padding: "8px 10px", borderBottom: "1px solid var(--color-border, var(--color-border))" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f9fafb", borderRadius: 6, padding: "4px 8px", border: "1px solid var(--color-border, var(--color-border))" }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4 }}>
                 <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
@@ -158,7 +158,7 @@ export default function MemberSelector({ value, onChange, members = [], disabled
           {/* Member list */}
           <div style={{ flex: 1, overflowY: "auto" }}>
             {filtered.length === 0 ? (
-              <p style={{ padding: "16px", textAlign: "center", fontSize: 13, color: "var(--color-text-secondary, #64748b)", margin: 0 }}>
+              <p style={{ padding: "16px", textAlign: "center", fontSize: 13, color: "var(--color-text-secondary, var(--color-text-secondary))", margin: 0 }}>
                 {search ? "該当する会員が見つかりません" : "会員データがありません"}
               </p>
             ) : (
@@ -172,7 +172,7 @@ export default function MemberSelector({ value, onChange, members = [], disabled
                     onClick={() => handleSelect(mid)}
                     style={{
                       display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "8px 12px",
-                      border: "none", borderBottom: "1px solid var(--line-light, #f1f5f9)",
+                      border: "none", borderBottom: "1px solid var(--line-light, var(--color-bg-sub))",
                       background: isSelected ? "#eff6ff" : "transparent",
                       cursor: "pointer", textAlign: "left", fontSize: 13, transition: "background 0.1s",
                     }}
@@ -187,7 +187,7 @@ export default function MemberSelector({ value, onChange, members = [], disabled
                       {(() => {
                         const role = roleMap ? roleMap[mid] : m.company_position;
                         return role ? (
-                          <div style={{ fontSize: 11, color: "var(--color-text-secondary, #64748b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <div style={{ fontSize: 11, color: "var(--color-text-secondary, var(--color-text-secondary))", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {role}
                           </div>
                         ) : null;
@@ -227,7 +227,7 @@ function MemberAvatar({ member, size = 28 }) {
     <div style={{
       width: size, height: size, borderRadius: "50%", flexShrink: 0,
       background: "var(--color-bg-sub)", display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.45, fontWeight: 600, color: "#64748b",
+      fontSize: size * 0.45, fontWeight: 600, color: "var(--color-text-secondary)",
     }}>
       {initial}
     </div>

@@ -671,7 +671,7 @@ export default function MyPage() {
                     }}>
                       <div>
                         <span style={{ fontWeight: 600, fontSize: 14 }}>{d.due_type || "年会費"}</span>
-                        <span style={{ marginLeft: 12, fontSize: 14, color: "#64748b" }}>
+                        <span style={{ marginLeft: 12, fontSize: 14, color: "var(--color-text-secondary)" }}>
                           {d.amount != null ? `¥${Number(d.amount).toLocaleString()}` : "-"}
                         </span>
                       </div>
@@ -718,7 +718,7 @@ export default function MyPage() {
                       display: "flex", justifyContent: "space-between", alignItems: "center",
                       flexWrap: "wrap", gap: 6,
                       padding: "0.6rem 1rem", borderRadius: 8,
-                      background: "#f8fafc", border: "1px solid #e2e8f0",
+                      background: "#f8fafc", border: "1px solid var(--color-border)",
                     }}>
                       <span style={{ fontWeight: 600, fontSize: 14, minWidth: 0 }}>
                         {org?.org_name || "不明な組織"}

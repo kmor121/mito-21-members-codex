@@ -22,7 +22,7 @@ const PAGE_SIZE = 30;
 const MEMBER_TYPE_BADGE = {
   "正会員": { bg: "var(--color-accent-light)", color: "var(--color-accent)" },
   "賛助会員": { bg: "#ecfdf5", color: "#059669" },
-  "OB会員": { bg: "#f1f5f9", color: "#64748b" },
+  "OB会員": { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" },
   "名誉顧問": { bg: "#fffbeb", color: "#d97706" },
 };
 
@@ -326,7 +326,7 @@ export default function MemberList() {
   }
 
   function renderMemberTypeBadge(type) {
-    const style = MEMBER_TYPE_BADGE[type] || { bg: "#f1f5f9", color: "#64748b" };
+    const style = MEMBER_TYPE_BADGE[type] || { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" };
     return (
       <span style={{
         display: "inline-block",
@@ -344,7 +344,7 @@ export default function MemberList() {
   }
 
   function renderStatusBadge(st) {
-    const style = STATUS_BADGE[st] || { bg: "#f1f5f9", color: "#64748b" };
+    const style = STATUS_BADGE[st] || { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" };
     return (
       <span style={{
         display: "inline-block",
@@ -801,7 +801,7 @@ export default function MemberList() {
                         {m.profile_image ? (
                           <img src={m.profile_image} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                         ) : (
-                          <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #e2e8f0, #f1f5f9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#475467", flexShrink: 0 }}>
+                          <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, var(--color-border), var(--color-bg-sub))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#475467", flexShrink: 0 }}>
                             {(fullName(m) || "M").charAt(0)}
                           </div>
                         )}
@@ -877,7 +877,7 @@ export default function MemberList() {
                             {m.profile_image ? (
                               <img src={m.profile_image} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                             ) : (
-                              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #e2e8f0, #f1f5f9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#475467", flexShrink: 0 }}>
+                              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, var(--color-border), var(--color-bg-sub))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#475467", flexShrink: 0 }}>
                                 {(fullName(m) || "M").charAt(0)}
                               </div>
                             )}

@@ -10,7 +10,7 @@ const EVENT_TYPE_BADGE = {
   "総会":   { color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
   "例会":   { color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
   "セミナー": { color: "#059669", bg: "#ecfdf5", border: "#a7f3d0" },
-  "その他": { color: "#64748b", bg: "#f1f5f9", border: "#e2e8f0" },
+  "その他": { color: "var(--color-text-secondary)", bg: "var(--color-bg-sub)", border: "var(--color-border)" },
 };
 
 const STATUS_BADGE = {

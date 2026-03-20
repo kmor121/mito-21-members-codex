@@ -20,11 +20,11 @@ const TAG_BADGE = {
   "討議": { bg: "#fef3c7", color: "#92400e" },
   "報告": { bg: "#ecfdf5", color: "#059669" },
   "議案": { bg: "#eff6ff", color: "#2563eb" },
-  "その他": { bg: "#f1f5f9", color: "#64748b" },
+  "その他": { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" },
 };
 
 const DECISION_STATUS_BADGE = {
-  "未審議":   { bg: "#f1f5f9", color: "#64748b" },
+  "未審議":   { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" },
   "承認":     { bg: "#ecfdf5", color: "#059669" },
   "否決":     { bg: "#fee2e2", color: "#dc2626" },
   "継続審議": { bg: "#fffbeb", color: "#d97706" },

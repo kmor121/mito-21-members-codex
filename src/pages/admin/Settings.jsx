@@ -162,7 +162,7 @@ function RoleBadge({ appRole }) {
   const styles = {
     admin_member: { background: "#fff7ed", color: "#ea580c", border: "1px solid #fed7aa" },
     manager: { background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe" },
-    member: { background: "#f8fafc", color: "#64748b", border: "1px solid #e2e8f0" },
+    member: { background: "#f8fafc", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" },
   };
   const s = styles[appRole] || styles.member;
   const label = APP_ROLE_LABELS[appRole] || appRole || "未設定";
@@ -481,7 +481,7 @@ export default function Settings() {
                               value={currentAppRole}
                               onChange={(e) => handleRoleChangeRequest(memberId, fullName(m) || m.email, e.target.value)}
                               style={{
-                                padding: "6px 10px", borderRadius: 6, border: "1px solid #e2e8f0",
+                                padding: "6px 10px", borderRadius: 6, border: "1px solid var(--color-border)",
                                 fontSize: 13, color: "#334155", background: "#fff", cursor: "pointer",
                                 width: "100%",
                               }}
@@ -500,11 +500,11 @@ export default function Settings() {
                     <table className="data-table" style={{ width: "100%", borderCollapse: "collapse" }}>
                       <thead>
                         <tr>
-                          <th style={{ textAlign: "left", padding: "10px 12px", borderBottom: "2px solid #e2e8f0", fontSize: 13, color: "#64748b", fontWeight: 600 }}>会員名</th>
-                          <th style={{ textAlign: "left", padding: "10px 12px", borderBottom: "2px solid #e2e8f0", fontSize: 13, color: "#64748b", fontWeight: 600 }}>メールアドレス</th>
-                          <th style={{ textAlign: "center", padding: "10px 12px", borderBottom: "2px solid #e2e8f0", fontSize: 13, color: "#64748b", fontWeight: 600 }}>ロール</th>
-                          <th style={{ textAlign: "center", padding: "10px 12px", borderBottom: "2px solid #e2e8f0", fontSize: 13, color: "#64748b", fontWeight: 600 }}>アカウント</th>
-                          <th style={{ textAlign: "center", padding: "10px 12px", borderBottom: "2px solid #e2e8f0", fontSize: 13, color: "#64748b", fontWeight: 600 }}>操作</th>
+                          <th style={{ textAlign: "left", padding: "10px 12px", borderBottom: "2px solid var(--color-border)", fontSize: 13, color: "var(--color-text-secondary)", fontWeight: 600 }}>会員名</th>
+                          <th style={{ textAlign: "left", padding: "10px 12px", borderBottom: "2px solid var(--color-border)", fontSize: 13, color: "var(--color-text-secondary)", fontWeight: 600 }}>メールアドレス</th>
+                          <th style={{ textAlign: "center", padding: "10px 12px", borderBottom: "2px solid var(--color-border)", fontSize: 13, color: "var(--color-text-secondary)", fontWeight: 600 }}>ロール</th>
+                          <th style={{ textAlign: "center", padding: "10px 12px", borderBottom: "2px solid var(--color-border)", fontSize: 13, color: "var(--color-text-secondary)", fontWeight: 600 }}>アカウント</th>
+                          <th style={{ textAlign: "center", padding: "10px 12px", borderBottom: "2px solid var(--color-border)", fontSize: 13, color: "var(--color-text-secondary)", fontWeight: 600 }}>操作</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -512,7 +512,7 @@ export default function Settings() {
                           const memberId = m.id || m._id;
                           const currentAppRole = m.app_role || "member";
                           return (
-                            <tr key={memberId} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                            <tr key={memberId} style={{ borderBottom: "1px solid var(--color-bg-sub)" }}>
                               <td style={{ padding: "10px 12px", fontSize: 14 }}>
                                 <strong>{fullName(m) || "-"}</strong>
                               </td>
@@ -530,7 +530,7 @@ export default function Settings() {
                                   value={currentAppRole}
                                   onChange={(e) => handleRoleChangeRequest(memberId, fullName(m) || m.email, e.target.value)}
                                   style={{
-                                    padding: "4px 8px", borderRadius: 6, border: "1px solid #e2e8f0",
+                                    padding: "4px 8px", borderRadius: 6, border: "1px solid var(--color-border)",
                                     fontSize: 13, color: "#334155", background: "#fff", cursor: "pointer",
                                   }}
                                 >
@@ -573,7 +573,7 @@ export default function Settings() {
                     <div><h2>共通設定</h2></div>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, maxWidth: 480 }}>
-                    <label style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)" }}>
                       送信者名
                       <input
                         type="text"
@@ -581,7 +581,7 @@ export default function Settings() {
                         onChange={(e) => updateField("sender_name", e.target.value)}
                         style={{
                           display: "block", width: "100%", marginTop: 4,
-                          padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: 8,
+                          padding: "8px 12px", border: "1px solid var(--color-border)", borderRadius: 8,
                           fontSize: 14,
                         }}
                       />
@@ -646,20 +646,20 @@ export default function Settings() {
                         style={{
                           display: "inline-flex", alignItems: "center", gap: 4,
                           padding: "3px 10px", margin: "2px 4px 2px 0",
-                          borderRadius: 6, border: "1px solid #e2e8f0",
+                          borderRadius: 6, border: "1px solid var(--color-border)",
                           background: "#f8fafc", fontSize: 12, color: "#475569",
                           cursor: "pointer",
                         }}
                       >
                         <span style={{ fontFamily: "monospace", color: "#2563eb" }}>{`{{${v.var}}}`}</span>
-                        <span style={{ color: "#94a3b8" }}>{v.label}</span>
+                        <span style={{ color: "var(--color-text-tertiary)" }}>{v.label}</span>
                       </button>
                     ))}
                   </div>
 
                   {/* Subject */}
                   <div style={{ marginBottom: 12 }}>
-                    <label style={{ fontSize: 13, fontWeight: 600, color: "#374151", display: "block", marginBottom: 4 }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)", display: "block", marginBottom: 4 }}>
                       件名
                     </label>
                     <input
@@ -668,14 +668,14 @@ export default function Settings() {
                       onChange={(e) => updateField(subjectKey, e.target.value)}
                       style={{
                         width: "100%", padding: "8px 12px",
-                        border: "1px solid #d1d5db", borderRadius: 8, fontSize: 14,
+                        border: "1px solid var(--color-border)", borderRadius: 8, fontSize: 14,
                       }}
                     />
                   </div>
 
                   {/* Body */}
                   <div style={{ marginBottom: 16 }}>
-                    <label style={{ fontSize: 13, fontWeight: 600, color: "#374151", display: "block", marginBottom: 4 }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)", display: "block", marginBottom: 4 }}>
                       本文
                     </label>
                     <textarea
@@ -685,7 +685,7 @@ export default function Settings() {
                       rows={14}
                       style={{
                         width: "100%", padding: "10px 12px",
-                        border: "1px solid #d1d5db", borderRadius: 8, fontSize: 13,
+                        border: "1px solid var(--color-border)", borderRadius: 8, fontSize: 13,
                         fontFamily: "monospace", lineHeight: 1.6, resize: "vertical",
                       }}
                     />
@@ -729,32 +729,32 @@ export default function Settings() {
             maxWidth: 600, width: "100%", zIndex: 1, maxHeight: "80vh", overflow: "auto",
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1e293b" }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text-primary)" }}>
                 プレビュー: {TEMPLATE_TABS.find((t) => t.key === activeTemplate)?.label}
               </h3>
               <button
                 type="button"
                 onClick={() => setShowPreview(false)}
-                style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#94a3b8" }}
+                style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--color-text-tertiary)" }}
               >
                 &times;
               </button>
             </div>
             <div style={{
-              background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: 16,
+              background: "#f8fafc", border: "1px solid var(--color-border)", borderRadius: 8, padding: 16,
             }}>
               <p style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
                 件名: {renderPreview(currentSubject, SAMPLE_DATA)}
               </p>
-              <hr style={{ border: "none", borderTop: "1px solid #e2e8f0", margin: "8px 0" }} />
+              <hr style={{ border: "none", borderTop: "1px solid var(--color-border)", margin: "8px 0" }} />
               <pre style={{
                 fontSize: 13, whiteSpace: "pre-wrap", wordBreak: "break-word",
-                fontFamily: "inherit", lineHeight: 1.7, color: "#1e293b", margin: 0,
+                fontFamily: "inherit", lineHeight: 1.7, color: "var(--color-text-primary)", margin: 0,
               }}>
                 {renderPreview(currentBody, SAMPLE_DATA)}
               </pre>
             </div>
-            <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 12 }}>
+            <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", marginTop: 12 }}>
               ※ サンプルデータによるプレビューです。実際の送信時は各変数が実データに置換されます。
             </p>
           </div>
@@ -775,7 +775,7 @@ export default function Settings() {
             boxShadow: "0 4px 24px rgba(0,0,0,0.12)", padding: "32px 28px",
             maxWidth: 420, width: "100%", zIndex: 1,
           }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1e293b", marginBottom: 12 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 12 }}>
               テンプレートをデフォルトに戻す
             </h3>
             <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.6 }}>
@@ -808,7 +808,7 @@ export default function Settings() {
             boxShadow: "0 4px 24px rgba(0,0,0,0.12)", padding: "32px 28px",
             maxWidth: 420, width: "100%", zIndex: 1,
           }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1e293b", marginBottom: 12 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 12 }}>
               ロール変更の確認
             </h3>
             <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.6 }}>

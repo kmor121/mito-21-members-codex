@@ -37,7 +37,7 @@ function ApplyUrlCopyButton() {
       <p style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>入会申込フォームURL</p>
       <div style={{
         display: "flex", alignItems: "center", gap: 6,
-        background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8,
+        background: "#f8fafc", border: "1px solid var(--color-border)", borderRadius: 8,
         padding: "6px 8px 6px 12px",
       }}>
         <span style={{
@@ -52,7 +52,7 @@ function ApplyUrlCopyButton() {
           style={{
             flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4,
             padding: "4px 10px", borderRadius: 6,
-            border: copied ? "1px solid #a7f3d0" : "1px solid #d1d5db",
+            border: copied ? "1px solid #a7f3d0" : "1px solid var(--color-border)",
             background: copied ? "#ecfdf5" : "#fff",
             color: copied ? "#059669" : "#475569",
             fontSize: 12, fontWeight: 500, cursor: "pointer",
@@ -86,7 +86,7 @@ const ROLE_BADGE = {
   admin:        { label: "Admin",   bg: "#fef2f2", color: "#dc2626", border: "#fecaca" },
   admin_member: { label: "管理者",  bg: "#fff7ed", color: "#ea580c", border: "#fed7aa" },
   manager:      { label: "幹事",    bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe" },
-  member:       { label: "会員",    bg: "#f1f5f9", color: "#64748b", border: "#e2e8f0" },
+  member:       { label: "会員",    bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)", border: "var(--color-border)" },
 };
 
 export default function MemberLayout() {

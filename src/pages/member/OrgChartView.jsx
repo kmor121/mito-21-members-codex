@@ -35,15 +35,15 @@ function roleBadgeStyle(role) {
   const tier = ROLE_TIER[role] || "member";
   switch (tier) {
     case "top":
-      return { background: "#4338ca", color: "#fff", border: "1px solid #4338ca" };
+      return { background: "var(--color-accent-dark)", color: "#fff", border: "1px solid var(--color-accent-dark)" };
     case "sub":
-      return { background: "transparent", color: "#4338ca", border: "1px solid #a5b4fc" };
+      return { background: "transparent", color: "var(--color-accent-dark)", border: "1px solid #a5b4fc" };
     case "exec":
     case "honor":
       return { background: "transparent", color: "#475569", border: "1px solid #cbd5e1" };
     case "member":
     default:
-      return { background: "#f1f5f9", color: "#64748b", border: "1px solid #f1f5f9" };
+      return { background: "var(--color-bg-sub)", color: "var(--color-text-secondary)", border: "1px solid var(--color-bg-sub)" };
   }
 }
 
@@ -53,11 +53,11 @@ const TYPE_ACCENT = {
   "委員会": "#6ee7b7",
   "部会":   "#fbbf24",
   "室":     "#f472b6",
-  "その他": "#94a3b8",
+  "その他": "var(--color-text-tertiary)",
 };
 
 /* Avatar colors - 2 muted tones */
-const AVATAR_COLORS = ["#6366f1", "#64748b"];
+const AVATAR_COLORS = ["var(--color-accent)", "var(--color-text-secondary)"];
 
 function nameHash(name) {
   let h = 0;
@@ -199,10 +199,10 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
                   display: "inline-flex", alignItems: "center", gap: 3,
                   padding: "1px 8px 1px 5px", borderRadius: 10,
                   fontSize: 12, fontWeight: 500, whiteSpace: "nowrap",
-                  color: "#64748b", background: "transparent",
+                  color: "var(--color-text-secondary)", background: "transparent",
                   border: "1px dashed #cbd5e1",
                 }}>
-                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="8" cy="5" r="3"/>
                     <path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
                   </svg>

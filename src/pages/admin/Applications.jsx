@@ -36,7 +36,7 @@ function useDebounce(value, delay) {
 }
 
 function renderStatusBadge(status) {
-  const style = STATUS_BADGE[status] || { bg: "#f1f5f9", color: "#64748b", border: "#e2e8f0" };
+  const style = STATUS_BADGE[status] || { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)", border: "var(--color-border)" };
   return (
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 4,
@@ -57,7 +57,7 @@ function renderStatusBadge(status) {
 
 /* ── Member type selector pills ── */
 const MEMBER_TYPE_OPTIONS = [
-  { value: "正会員", color: "#4f46e5", bg: "#eef2ff" },
+  { value: "正会員", color: "var(--color-accent)", bg: "var(--color-accent-light)" },
   { value: "賛助会員", color: "#059669", bg: "#ecfdf5" },
   { value: "名誉顧問", color: "#d97706", bg: "#fffbeb" },
 ];

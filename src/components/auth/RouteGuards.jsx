@@ -99,19 +99,19 @@ export function LinkedMemberRoute({ children }) {
           }}>
             <span style={{ fontSize: 28 }}>&#9888;</span>
           </div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: "#1e293b", marginBottom: 12 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 12 }}>
             アクセス権限がありません
           </h2>
-          <p style={{ fontSize: 14, color: "#64748b", lineHeight: 1.6, marginBottom: 8 }}>
+          <p style={{ fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.6, marginBottom: 8 }}>
             会員として登録されていないため、ログアウトします。
           </p>
-          <p style={{ fontSize: 14, color: "#64748b", lineHeight: 1.6, marginBottom: 28 }}>
+          <p style={{ fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.6, marginBottom: 28 }}>
             管理者にお問い合わせください。
           </p>
           <button
             onClick={logout}
             style={{
-              padding: "10px 32px", borderRadius: 8, border: "1px solid #e2e8f0",
+              padding: "10px 32px", borderRadius: 8, border: "1px solid var(--color-border)",
               background: "#fff", color: "#334155", fontSize: 14, fontWeight: 600,
               cursor: "pointer",
             }}

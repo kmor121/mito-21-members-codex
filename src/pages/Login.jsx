@@ -178,7 +178,7 @@ export default function Login() {
             display: "inline-flex", alignItems: "center", justifyContent: "center",
             marginBottom: 12,
           }}>M</div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1e293b", margin: "0 0 4px" }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--color-text-primary)", margin: "0 0 4px" }}>
             MITO21
           </h1>
           <p style={{ fontSize: 14, color: "var(--color-text-secondary)", margin: 0 }}>
@@ -202,7 +202,7 @@ export default function Login() {
           <>
             <form onSubmit={handleLogin}>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", marginBottom: 6 }}>
                   メールアドレス
                 </label>
                 <input
@@ -212,7 +212,7 @@ export default function Login() {
                 />
               </div>
               <div style={{ marginBottom: 24 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", marginBottom: 6 }}>
                   パスワード
                 </label>
                 <input
@@ -264,12 +264,12 @@ export default function Login() {
         {/* ── Register form ── */}
         {mode === "register" && (
           <>
-            <p style={{ fontSize: 14, color: "#374151", marginBottom: 20, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 14, color: "var(--color-text-primary)", marginBottom: 20, lineHeight: 1.6 }}>
               会員として登録済みのメールアドレスでアカウントを作成できます。
             </p>
             <form onSubmit={handleRegister}>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", marginBottom: 6 }}>
                   メールアドレス
                 </label>
                 <input
@@ -279,7 +279,7 @@ export default function Login() {
                 />
               </div>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", marginBottom: 6 }}>
                   パスワード（8文字以上）
                 </label>
                 <input
@@ -290,7 +290,7 @@ export default function Login() {
                 />
               </div>
               <div style={{ marginBottom: 24 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", marginBottom: 6 }}>
                   パスワード（確認）
                 </label>
                 <input
@@ -328,12 +328,12 @@ export default function Login() {
         {/* ── OTP Verify ── */}
         {mode === "verify" && (
           <>
-            <p style={{ fontSize: 14, color: "#374151", marginBottom: 20, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 14, color: "var(--color-text-primary)", marginBottom: 20, lineHeight: 1.6 }}>
               <strong>{verifyEmail}</strong> に認証コードを送信しました。メールに記載された6桁のコードを入力してください。
             </p>
             <form onSubmit={handleVerifyOtp}>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", marginBottom: 6 }}>
                   メールアドレス
                 </label>
                 <input
@@ -343,7 +343,7 @@ export default function Login() {
                 />
               </div>
               <div style={{ marginBottom: 24 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", marginBottom: 6 }}>
                   認証コード
                 </label>
                 <input
@@ -413,12 +413,12 @@ export default function Login() {
         {/* ── Password reset form ── */}
         {mode === "reset" && (
           <>
-            <p style={{ fontSize: 14, color: "#374151", marginBottom: 20, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 14, color: "var(--color-text-primary)", marginBottom: 20, lineHeight: 1.6 }}>
               登録済みのメールアドレスを入力してください。パスワードリセット用のメールをお送りします。
             </p>
             <form onSubmit={handleResetRequest}>
               <div style={{ marginBottom: 24 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", marginBottom: 6 }}>
                   メールアドレス
                 </label>
                 <input

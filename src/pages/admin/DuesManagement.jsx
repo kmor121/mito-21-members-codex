@@ -32,14 +32,14 @@ const DEFAULT_SETTINGS = {
 };
 
 const DUE_TYPE_BADGE = {
-  "年会費":       { color: "#4f46e5", bg: "#eef2ff" },
+  "年会費":       { color: "var(--color-accent)", bg: "var(--color-accent-light)" },
   "入会金":       { color: "#b45309", bg: "#fffbeb" },
   "後期入会会費": { color: "#059669", bg: "#ecfdf5" },
-  "前期入会会費": { color: "#4f46e5", bg: "#eef2ff" },
+  "前期入会会費": { color: "var(--color-accent)", bg: "var(--color-accent-light)" },
 };
 
 const MEMBER_TYPE_BADGE = {
-  "正会員":   { color: "#4f46e5", bg: "#eef2ff" },
+  "正会員":   { color: "var(--color-accent)", bg: "var(--color-accent-light)" },
   "賛助会員": { color: "#0891b2", bg: "#ecfeff" },
 };
 
@@ -1470,7 +1470,7 @@ export default function DuesManagement() {
                         )}
                         <div style={{
                           width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                          background: 'linear-gradient(135deg, #e2e8f0, #f1f5f9)',
+                          background: 'linear-gradient(135deg, var(--color-border), var(--color-bg-sub))',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 12, fontWeight: 700, color: '#475467',
                         }}>{initial}</div>
@@ -1768,7 +1768,7 @@ export default function DuesManagement() {
                                 style={{ flexShrink: 0, width: 18, height: 18 }} />
                               <div style={{
                                 width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                                background: 'linear-gradient(135deg, #e2e8f0, #f1f5f9)',
+                                background: 'linear-gradient(135deg, var(--color-border), var(--color-bg-sub))',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 fontSize: 12, fontWeight: 700, color: '#475467',
                               }}>{initial}</div>

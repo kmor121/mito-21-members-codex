@@ -13,7 +13,7 @@ function displayValue(value) {
 }
 
 const MEMBER_TYPE_COLORS = {
-  "正会員":   { bg: "#eef2ff", color: "#4f46e5", border: "#c7d2fe" },
+  "正会員":   { bg: "var(--color-accent-light)", color: "var(--color-accent)", border: "#c7d2fe" },
   "賛助会員": { bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" },
   "OB会員":   { bg: "#fff7ed", color: "#ea580c", border: "#fed7aa" },
   "名誉顧問": { bg: "#fef3c7", color: "#92400e", border: "#fde68a" },

@@ -12,7 +12,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 const MEMBER_TYPE_BADGE = {
   "正会員": { bg: "var(--color-accent-light)", color: "var(--color-accent)" },
   "賛助会員": { bg: "#ecfdf5", color: "#059669" },
-  "OB会員": { bg: "#f1f5f9", color: "#64748b" },
+  "OB会員": { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" },
   "名誉顧問": { bg: "#fffbeb", color: "#d97706" },
 };
 
@@ -65,7 +65,7 @@ function MemberImage({ src, name, size = "detail" }) {
 }
 
 function Badge({ label, styleMap }) {
-  const s = styleMap?.[label] || { bg: "#f1f5f9", color: "#64748b" };
+  const s = styleMap?.[label] || { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" };
   return (
     <span
       className="pill"
@@ -89,7 +89,7 @@ function SectionHeader({ icon, title }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem", paddingBottom: "0.5rem", borderBottom: "1px solid var(--border, #e5e7eb)" }}>
       <span style={{ fontSize: "1.15rem" }}>{icon}</span>
-      <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>{title}</h3>
+      <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 600, color: "var(--text-primary, var(--color-text-primary))" }}>{title}</h3>
     </div>
   );
 }
@@ -99,8 +99,8 @@ function InfoRow({ label, value }) {
   const isEmpty = v === "-";
   return (
     <div style={{ display: "flex", gap: "1rem", padding: "0.4rem 0.5rem", minWidth: 0 }}>
-      <dt style={{ minWidth: "8rem", flexShrink: 0, color: "var(--text-secondary, #64748b)", fontSize: "0.875rem", fontWeight: 500 }}>{label}</dt>
-      <dd style={{ margin: 0, color: isEmpty ? "var(--text-tertiary, #94a3b8)" : "var(--text-primary, #1e293b)", fontSize: "0.875rem", wordBreak: "break-word" }}>{v}</dd>
+      <dt style={{ minWidth: "8rem", flexShrink: 0, color: "var(--text-secondary, var(--color-text-secondary))", fontSize: "0.875rem", fontWeight: 500 }}>{label}</dt>
+      <dd style={{ margin: 0, color: isEmpty ? "var(--text-tertiary, var(--color-text-tertiary))" : "var(--text-primary, var(--color-text-primary))", fontSize: "0.875rem", wordBreak: "break-word" }}>{v}</dd>
     </div>
   );
 }
@@ -526,17 +526,17 @@ export default function MemberDetail() {
             {/* Name + badges */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
-                <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 700, color: "var(--text-primary, #1e293b)" }}>
+                <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 700, color: "var(--text-primary, var(--color-text-primary))" }}>
                   {displayValue(fullName(member))}
                 </h1>
                 {member.member_number && (
-                  <span style={{ fontSize: "0.875rem", color: "var(--text-secondary, #64748b)" }}>
+                  <span style={{ fontSize: "0.875rem", color: "var(--text-secondary, var(--color-text-secondary))" }}>
                     No. {member.member_number}
                   </span>
                 )}
               </div>
               {fullNameKana(member) && (
-                <p style={{ margin: "0 0 0.625rem 0", fontSize: "0.875rem", color: "var(--text-secondary, #64748b)" }}>
+                <p style={{ margin: "0 0 0.625rem 0", fontSize: "0.875rem", color: "var(--text-secondary, var(--color-text-secondary))" }}>
                   {fullNameKana(member)}
                 </p>
               )}
@@ -674,7 +674,7 @@ export default function MemberDetail() {
                     }}>
                       <span>✅</span>
                       <span>Base44ユーザーと紐付け済み</span>
-                      <span style={{ color: "#64748b", fontSize: 12, marginLeft: 8 }}>ID: {member.user_id}</span>
+                      <span style={{ color: "var(--color-text-secondary)", fontSize: 12, marginLeft: 8 }}>ID: {member.user_id}</span>
                     </div>
                     <button
                       type="button"
@@ -698,7 +698,7 @@ export default function MemberDetail() {
                       <span>⚠️</span>
                       <span>Base44ユーザーと未紐付け（ログイン時にメールアドレスで自動紐付けされます）</span>
                     </div>
-                    <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>
+                    <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
                       会員にアプリURLを案内し、新規登録してもらってください。
                     </p>
                   </div>
@@ -713,7 +713,7 @@ export default function MemberDetail() {
               <form className="editor-form" noValidate onSubmit={handleEditSubmit}>
                 <SectionHeader icon="✏️" title="基本情報を編集" />
 
-                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>基本情報</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, var(--color-text-primary))" }}>基本情報</h4>
                 <div className="editor-grid">
                   <div className="field">
                     <label htmlFor="md-last-name">姓 *</label>
@@ -745,7 +745,7 @@ export default function MemberDetail() {
                   </div>
                 </div>
 
-                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>会社情報</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, var(--color-text-primary))" }}>会社情報</h4>
                 <div className="editor-grid">
                   <div className="field">
                     <label htmlFor="md-company-name">会社名</label>
@@ -781,7 +781,7 @@ export default function MemberDetail() {
                   </div>
                 </div>
 
-                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>自宅情報</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, var(--color-text-primary))" }}>自宅情報</h4>
                 <div className="editor-grid">
                   <div className="field">
                     <label htmlFor="md-home-postal-code">自宅郵便番号</label>
@@ -801,7 +801,7 @@ export default function MemberDetail() {
                   </div>
                 </div>
 
-                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>その他</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, var(--color-text-primary))" }}>その他</h4>
                 <div className="editor-grid">
                   <div className="field field-span-2">
                     <label htmlFor="md-hobbies">趣味・信条</label>
@@ -809,7 +809,7 @@ export default function MemberDetail() {
                   </div>
                 </div>
 
-                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>管理情報</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, var(--color-text-primary))" }}>管理情報</h4>
                 <div className="editor-grid">
                   <div className="field">
                     <label htmlFor="md-member-number">会員番号</label>
@@ -873,7 +873,7 @@ export default function MemberDetail() {
           <div className="card-body" style={{ padding: "1.25rem" }}>
             <SectionHeader icon="🏛️" title="組織履歴" />
             {orgYears.length === 0 ? (
-              <p style={{ color: "var(--text-tertiary, #94a3b8)", fontSize: "0.875rem" }}>組織履歴はありません。</p>
+              <p style={{ color: "var(--text-tertiary, var(--color-text-tertiary))", fontSize: "0.875rem" }}>組織履歴はありません。</p>
             ) : (
               <div style={{ position: "relative", paddingLeft: "1.5rem" }}>
                 {/* Vertical timeline line */}
@@ -901,7 +901,7 @@ export default function MemberDetail() {
                       transform: "translateX(0.075rem)",
                     }} />
                     <div>
-                      <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary, #1e293b)" }}>
+                      <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary, var(--color-text-primary))" }}>
                         {year}
                       </h4>
                       {orgByYear[year].map((item, idx) => (
@@ -912,8 +912,8 @@ export default function MemberDetail() {
                           padding: "0.35rem 0",
                           fontSize: "0.875rem",
                         }}>
-                          <span style={{ color: "var(--text-primary, #1e293b)", fontWeight: 500 }}>{item.org_name || "-"}</span>
-                          <span style={{ color: "var(--text-secondary, #64748b)" }}>{item.role || "-"}</span>
+                          <span style={{ color: "var(--text-primary, var(--color-text-primary))", fontWeight: 500 }}>{item.org_name || "-"}</span>
+                          <span style={{ color: "var(--text-secondary, var(--color-text-secondary))" }}>{item.role || "-"}</span>
                         </div>
                       ))}
                     </div>
@@ -931,7 +931,7 @@ export default function MemberDetail() {
           <div className="card-body" style={{ padding: "1.25rem" }}>
             <SectionHeader icon="💰" title="会費履歴" />
             {duesHistory.length === 0 ? (
-              <p style={{ color: "var(--text-tertiary, #94a3b8)", fontSize: "0.875rem" }}>会費履歴はありません。</p>
+              <p style={{ color: "var(--text-tertiary, var(--color-text-tertiary))", fontSize: "0.875rem" }}>会費履歴はありません。</p>
             ) : (
               <div className="table-wrap">
                 <table className="data-table">
@@ -1027,7 +1027,7 @@ export default function MemberDetail() {
           <div className="card-body" style={{ padding: "1.25rem" }}>
             <SectionHeader icon="📋" title="変更履歴" />
             {changeLogs.length === 0 ? (
-              <p style={{ color: "var(--text-tertiary, #94a3b8)", fontSize: "0.875rem" }}>変更履歴はありません。</p>
+              <p style={{ color: "var(--text-tertiary, var(--color-text-tertiary))", fontSize: "0.875rem" }}>変更履歴はありません。</p>
             ) : (
               <div className="table-wrap">
                 <table className="data-table">
@@ -1055,7 +1055,7 @@ export default function MemberDetail() {
                           <td style={{ whiteSpace: "nowrap" }}>{dateStr}</td>
                           <td>{changedBy}</td>
                           <td>{fieldLabel}</td>
-                          <td style={{ color: "var(--text-secondary, #64748b)" }}>{displayValue(log.old_value)}</td>
+                          <td style={{ color: "var(--text-secondary, var(--color-text-secondary))" }}>{displayValue(log.old_value)}</td>
                           <td style={{ fontWeight: 500 }}>{displayValue(log.new_value)}</td>
                         </tr>
                       );
@@ -1077,7 +1077,7 @@ export default function MemberDetail() {
             style={{
               background: "none",
               border: "none",
-              color: "var(--text-tertiary, #94a3b8)",
+              color: "var(--text-tertiary, var(--color-text-tertiary))",
               fontSize: "0.8rem",
               cursor: "pointer",
               padding: "0.25rem 0",
@@ -1085,7 +1085,7 @@ export default function MemberDetail() {
               transition: "color 0.15s",
             }}
             onMouseEnter={(e) => { e.currentTarget.style.color = "var(--error, #dc2626)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-tertiary, #94a3b8)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-tertiary, var(--color-text-tertiary))"; }}
           >
             会員を削除
           </button>

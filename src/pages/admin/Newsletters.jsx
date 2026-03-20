@@ -14,12 +14,12 @@ function statusLabel(s) {
 
 function statusColor(s) {
   return {
-    draft: { bg: "#f1f5f9", text: "#64748b", border: "#e2e8f0", bar: "#94a3b8" },
+    draft: { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)", border: "var(--color-border)", bar: "var(--color-text-tertiary)" },
     scheduled: { bg: "#fffbeb", text: "#92400e", border: "#fde68a", bar: "#d97706" },
     sent: { bg: "#ecfdf5", text: "#065f46", border: "#a7f3d0", bar: "#059669" },
     failed: { bg: "#fef2f2", text: "#991b1b", border: "#fecaca", bar: "#dc2626" },
-    cancelled: { bg: "#f1f5f9", text: "#64748b", border: "#e2e8f0", bar: "#94a3b8" },
-  }[s] || { bg: "#f1f5f9", text: "#64748b", border: "#e2e8f0", bar: "#94a3b8" };
+    cancelled: { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)", border: "var(--color-border)", bar: "var(--color-text-tertiary)" },
+  }[s] || { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)", border: "var(--color-border)", bar: "var(--color-text-tertiary)" };
 }
 
 function channelLabel(c) {

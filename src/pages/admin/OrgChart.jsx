@@ -11,11 +11,11 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 function todayStr() { return new Date().toISOString().slice(0, 10); }
 
 const TYPE_COLORS = {
-  "幹事会": { bg: "#eef2ff", text: "#4f46e5", border: "#c7d2fe" },
+  "幹事会": { bg: "var(--color-accent-light)", text: "var(--color-accent)", border: "#c7d2fe" },
   "委員会": { bg: "#ecfdf5", text: "#059669", border: "#a7f3d0" },
   "部会":   { bg: "#fffbeb", text: "#d97706", border: "#fde68a" },
   "室":     { bg: "#fdf2f8", text: "#db2777", border: "#fbcfe8" },
-  "その他": { bg: "#f1f5f9", text: "#64748b", border: "#cbd5e1" },
+  "その他": { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)", border: "#cbd5e1" },
 };
 
 /*
@@ -62,15 +62,15 @@ function roleBadgeStyle(role) {
   const tier = ROLE_TIER[role] || "member";
   switch (tier) {
     case "top":
-      return { background: "#4338ca", color: "#fff", border: "1px solid #4338ca" };
+      return { background: "var(--color-accent-dark)", color: "#fff", border: "1px solid var(--color-accent-dark)" };
     case "sub":
-      return { background: "transparent", color: "#4338ca", border: "1px solid #a5b4fc" };
+      return { background: "transparent", color: "var(--color-accent-dark)", border: "1px solid #a5b4fc" };
     case "exec":
     case "honor":
       return { background: "transparent", color: "#475569", border: "1px solid #cbd5e1" };
     case "member":
     default:
-      return { background: "#f1f5f9", color: "#64748b", border: "1px solid #f1f5f9" };
+      return { background: "var(--color-bg-sub)", color: "var(--color-text-secondary)", border: "1px solid var(--color-bg-sub)" };
   }
 }
 
@@ -87,8 +87,8 @@ function nameHash(name) {
 }
 
 const AVATAR_GRADIENTS = [
-  "#6366f1",
-  "#64748b",
+  "var(--color-accent)",
+  "var(--color-text-secondary)",
 ];
 
 function MemberAvatar({ name, src, size = 24 }) {
@@ -261,7 +261,7 @@ function OrgTreeNode({
             <span style={{
               padding: "1px 7px", borderRadius: 4,
               fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", lineHeight: "16px",
-              color: "#94a3b8", border: "1px solid #e2e8f0", background: "transparent",
+              color: "var(--color-text-tertiary)", border: "1px solid var(--color-border)", background: "transparent",
             }}>{org.org_type || "その他"}</span>
             {org.supervisor_id && memberMap?.[org.supervisor_id] && (() => {
               const svRole = supervisorRoleMap?.[org.supervisor_id];
@@ -271,10 +271,10 @@ function OrgTreeNode({
                   display: "inline-flex", alignItems: "center", gap: 3,
                   padding: "1px 8px 1px 5px", borderRadius: 10,
                   fontSize: 12, fontWeight: 500, whiteSpace: "nowrap",
-                  color: "#64748b", background: "transparent",
+                  color: "var(--color-text-secondary)", background: "transparent",
                   border: "1px dashed #cbd5e1",
                 }}>
-                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="8" cy="5" r="3"/>
                     <path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
                   </svg>

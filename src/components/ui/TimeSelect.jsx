@@ -94,8 +94,8 @@ export default function TimeSelect({ value, onChange, disabled, placeholder = "æ
                 <button key={qt.label} type="button" onClick={() => handleQuick(qt)}
                   style={{
                     padding: "4px 10px", fontSize: 12, borderRadius: "var(--radius-sm, 6px)",
-                    border: "1px solid var(--line, #e2e8f0)", cursor: "pointer",
-                    background: isActive ? "#4f46e5" : "#fff",
+                    border: "1px solid var(--line, var(--color-border))", cursor: "pointer",
+                    background: isActive ? "var(--color-accent)" : "#fff",
                     color: isActive ? "#fff" : "var(--text, #1f2937)",
                     fontWeight: isActive ? 600 : 400,
                   }}
@@ -109,15 +109,15 @@ export default function TimeSelect({ value, onChange, disabled, placeholder = "æ
             <select
               value={parsed?.h ?? 19}
               onChange={(e) => { setTime(Number(e.target.value), parsed?.m ?? 0); }}
-              style={{ padding: "6px 10px", borderRadius: "var(--radius-sm, 6px)", border: "1px solid var(--line, #e2e8f0)", fontSize: 14, flex: 1 }}
+              style={{ padding: "6px 10px", borderRadius: "var(--radius-sm, 6px)", border: "1px solid var(--line, var(--color-border))", fontSize: 14, flex: 1 }}
             >
               {HOURS.map((h) => <option key={h} value={h}>{pad2(h)}æ™‚</option>)}
             </select>
-            <span style={{ color: "var(--text-secondary, #64748b)" }}>:</span>
+            <span style={{ color: "var(--text-secondary, var(--color-text-secondary))" }}>:</span>
             <select
               value={parsed?.m ?? 0}
               onChange={(e) => { setTime(parsed?.h ?? 19, Number(e.target.value)); }}
-              style={{ padding: "6px 10px", borderRadius: "var(--radius-sm, 6px)", border: "1px solid var(--line, #e2e8f0)", fontSize: 14, flex: 1 }}
+              style={{ padding: "6px 10px", borderRadius: "var(--radius-sm, 6px)", border: "1px solid var(--line, var(--color-border))", fontSize: 14, flex: 1 }}
             >
               {MINUTES.map((m) => <option key={m} value={m}>{pad2(m)}åˆ†</option>)}
             </select>
@@ -127,7 +127,7 @@ export default function TimeSelect({ value, onChange, disabled, placeholder = "æ
           <div style={{ marginTop: 8, display: "flex", justifyContent: "flex-end" }}>
             {value && (
               <button type="button" onClick={() => { onChange(""); setOpen(false); }}
-                style={{ background: "none", border: "none", fontSize: 12, color: "var(--text-secondary, #64748b)", cursor: "pointer" }}>
+                style={{ background: "none", border: "none", fontSize: 12, color: "var(--text-secondary, var(--color-text-secondary))", cursor: "pointer" }}>
                 ã‚¯ãƒªã‚¢
               </button>
             )}

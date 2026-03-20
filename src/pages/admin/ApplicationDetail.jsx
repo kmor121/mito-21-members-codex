@@ -74,7 +74,7 @@ const STATUS_BADGE = {
 };
 
 function StatusBadge({ status, large }) {
-  const s = STATUS_BADGE[status] || { bg: "#f1f5f9", color: "#64748b" };
+  const s = STATUS_BADGE[status] || { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" };
   return (
     <span style={{
       display: "inline-block", padding: large ? "5px 14px" : "3px 10px",
@@ -126,7 +126,7 @@ function InfoGrid({ items, singleColumn }) {
 
 /* ── Member type pill selector ── */
 const MEMBER_TYPE_OPTIONS = [
-  { value: "正会員", color: "#4f46e5", bg: "#eef2ff" },
+  { value: "正会員", color: "var(--color-accent)", bg: "var(--color-accent-light)" },
   { value: "賛助会員", color: "#059669", bg: "#ecfdf5" },
   { value: "名誉顧問", color: "#d97706", bg: "#fffbeb" },
 ];

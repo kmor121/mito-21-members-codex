@@ -10,7 +10,7 @@ const DOC_TYPE_BADGE = {
   "団体理念": { color: "#7c3aed", bg: "#f5f3ff", icon: "💡" },
   "会則・規約": { color: "#d97706", bg: "#fffbeb", icon: "📜" },
   "年間スケジュール": { color: "#059669", bg: "#ecfdf5", icon: "📅" },
-  "運用マニュアル": { color: "#4f46e5", bg: "#eef2ff", icon: "📖" },
+  "運用マニュアル": { color: "var(--color-accent)", bg: "var(--color-accent-light)", icon: "📖" },
 };
 
 function getTypeBadge(type) {
@@ -310,7 +310,7 @@ export default function Documents() {
                       height: 28,
                       borderRadius: '50%',
                       flexShrink: 0,
-                      background: badge.bg || 'linear-gradient(135deg, #e2e8f0, #f1f5f9)',
+                      background: badge.bg || 'linear-gradient(135deg, var(--color-border), var(--color-bg-sub))',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',

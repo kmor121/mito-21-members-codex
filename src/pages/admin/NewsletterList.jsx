@@ -106,7 +106,7 @@ function DeleteConfirmModal({ label, onConfirm, onCancel }) {
         onClick={e => e.stopPropagation()}
       >
         <div style={{ padding: "28px 28px 0" }}>
-          <h3 style={{ margin: "0 0 8px", fontSize: 17, fontWeight: 700, color: "var(--text, #1e293b)" }}>
+          <h3 style={{ margin: "0 0 8px", fontSize: 17, fontWeight: 700, color: "var(--text, var(--color-text-primary))" }}>
             {label}を削除しますか？
           </h3>
           <p style={{ margin: 0, fontSize: 14, color: "#dc2626", fontWeight: 500 }}>
@@ -121,8 +121,8 @@ function DeleteConfirmModal({ label, onConfirm, onCancel }) {
             onClick={onCancel}
             style={{
               padding: "9px 20px", borderRadius: 8,
-              border: "1px solid var(--line, #e2e8f0)",
-              background: "var(--card-bg, #fff)", color: "var(--text, #1e293b)",
+              border: "1px solid var(--line, var(--color-border))",
+              background: "var(--card-bg, #fff)", color: "var(--text, var(--color-text-primary))",
               fontSize: 14, fontWeight: 600, cursor: "pointer",
             }}
           >
@@ -151,11 +151,11 @@ function statusLabel(s) {
 
 function statusColor(s) {
   return {
-    draft: { bg: "#f1f5f9", text: "#64748b" },
+    draft: { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)" },
     scheduled: { bg: "#fffbeb", text: "#92400e" },
     sent: { bg: "#ecfdf5", text: "#065f46" },
     failed: { bg: "#fef2f2", text: "#991b1b" },
-  }[s] || { bg: "#f1f5f9", text: "#64748b" };
+  }[s] || { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)" };
 }
 
 function channelLabel(c) {
@@ -311,10 +311,10 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
         {/* Header */}
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "20px 24px", borderBottom: "1px solid var(--line, #e2e8f0)",
+          padding: "20px 24px", borderBottom: "1px solid var(--line, var(--color-border))",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--text, #1e293b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--text, var(--color-text-primary))", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {newsletter.title || "(無題)"}
             </h3>
             <span style={{
@@ -327,7 +327,7 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
           </div>
           <button
             onClick={onClose}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary, #94a3b8)", padding: 4 }}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary, var(--color-text-tertiary))", padding: 4 }}
           >
             <XIcon />
           </button>
@@ -342,14 +342,14 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
           }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 24px" }}>
               <div>
-                <div style={{ fontSize: 12, color: "var(--text-secondary, #94a3b8)", marginBottom: 4 }}>送信日時</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text, #1e293b)" }}>
+                <div style={{ fontSize: 12, color: "var(--text-secondary, var(--color-text-tertiary))", marginBottom: 4 }}>送信日時</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text, var(--color-text-primary))" }}>
                   {formatDateFull(newsletter.last_sent_at || newsletter.scheduled_at)}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "var(--text-secondary, #94a3b8)", marginBottom: 4 }}>チャネル</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text, #1e293b)", display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ fontSize: 12, color: "var(--text-secondary, var(--color-text-tertiary))", marginBottom: 4 }}>チャネル</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text, var(--color-text-primary))", display: "flex", alignItems: "center", gap: 6 }}>
                   {newsletter.channel === "line" || newsletter.channel === "email+line"
                     ? <LineIcon />
                     : <MailIcon />}
@@ -357,14 +357,14 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "var(--text-secondary, #94a3b8)", marginBottom: 4 }}>配信対象</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text, #1e293b)" }}>
+                <div style={{ fontSize: 12, color: "var(--text-secondary, var(--color-text-tertiary))", marginBottom: 4 }}>配信対象</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text, var(--color-text-primary))" }}>
                   {audienceDetailLabel(newsletter)}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "var(--text-secondary, #94a3b8)", marginBottom: 4 }}>対象人数</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text, #1e293b)" }}>
+                <div style={{ fontSize: 12, color: "var(--text-secondary, var(--color-text-tertiary))", marginBottom: 4 }}>対象人数</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text, var(--color-text-primary))" }}>
                   {newsletter.sent_count ? `${newsletter.sent_count}名` : "-"}
                 </div>
               </div>
@@ -378,11 +378,11 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
 
           {/* Body Preview */}
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary, #64748b)", marginBottom: 8 }}>本文プレビュー</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary, var(--color-text-secondary))", marginBottom: 8 }}>本文プレビュー</div>
             <div style={{
-              border: "1px solid var(--line, #e2e8f0)", borderRadius: 10,
+              border: "1px solid var(--line, var(--color-border))", borderRadius: 10,
               padding: 16, maxHeight: 300, overflowY: "auto",
-              fontSize: 14, lineHeight: 1.7, color: "var(--text, #1e293b)",
+              fontSize: 14, lineHeight: 1.7, color: "var(--text, var(--color-text-primary))",
               background: "var(--card-bg, #fff)",
             }}>
               {newsletter.body_html ? (
@@ -396,7 +396,7 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
           {/* Attachments */}
           {attachments.length > 0 && (
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary, #64748b)", marginBottom: 8 }}>添付ファイル</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary, var(--color-text-secondary))", marginBottom: 8 }}>添付ファイル</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {attachments.map((att, i) => (
                   <div key={i} style={{
@@ -406,7 +406,7 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
                   }}>
                     <ClipIcon />
                     <span style={{ fontWeight: 500 }}>{att.filename}</span>
-                    {att.size && <span style={{ color: "var(--text-secondary, #94a3b8)" }}>{formatFileSize(att.size)}</span>}
+                    {att.size && <span style={{ color: "var(--text-secondary, var(--color-text-tertiary))" }}>{formatFileSize(att.size)}</span>}
                   </div>
                 ))}
               </div>
@@ -425,7 +425,7 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
                       style={{
                         display: "flex", alignItems: "center", gap: 6,
                         background: "none", border: "none", cursor: "pointer",
-                        fontSize: 13, fontWeight: 600, color: "var(--primary, #4f46e5)", padding: 0,
+                        fontSize: 13, fontWeight: 600, color: "var(--primary, var(--color-accent))", padding: 0,
                       }}
                     >
                       <ChevronIcon open={showRecipients} />
@@ -436,7 +436,7 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
                       maxHeight: showRecipients ? 300 : 0,
                       transition: "max-height 0.3s ease",
                     }}>
-                      <div style={{ paddingTop: 8, fontSize: 13, color: "var(--text, #1e293b)" }}>
+                      <div style={{ paddingTop: 8, fontSize: 13, color: "var(--text, var(--color-text-primary))" }}>
                         {fj.member_ids.map((id, i) => (
                           <span key={i} style={{
                             display: "inline-block", padding: "3px 10px", margin: "0 4px 4px 0",
@@ -458,15 +458,15 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
         {/* Footer */}
         <div style={{
           display: "flex", justifyContent: "flex-end", gap: 10,
-          padding: "16px 24px", borderTop: "1px solid var(--line, #e2e8f0)",
+          padding: "16px 24px", borderTop: "1px solid var(--line, var(--color-border))",
           background: "var(--bg, #f8fafc)", borderRadius: "0 0 16px 16px",
         }}>
           <button
             onClick={() => onResend(newsletter)}
             style={{
               padding: "9px 20px", borderRadius: 8,
-              border: "1px solid var(--primary, #4f46e5)",
-              background: "var(--card-bg, #fff)", color: "var(--primary, #4f46e5)",
+              border: "1px solid var(--primary, var(--color-accent))",
+              background: "var(--card-bg, #fff)", color: "var(--primary, var(--color-accent))",
               fontSize: 14, fontWeight: 600, cursor: "pointer",
             }}
           >
@@ -476,7 +476,7 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
             onClick={onClose}
             style={{
               padding: "9px 20px", borderRadius: 8, border: "none",
-              background: "var(--primary, #4f46e5)", color: "#fff",
+              background: "var(--primary, var(--color-accent))", color: "#fff",
               fontSize: 14, fontWeight: 600, cursor: "pointer",
             }}
           >
@@ -694,14 +694,14 @@ export default function NewsletterList() {
     return (
       <div className="admin-shell" style={{ animation: "nlFade 0.15s ease" }}>
         <PageHeader title="配信管理" />
-        <div className="card panel-card single-panel" style={{ padding: 32, textAlign: "center", color: "var(--text-secondary, #64748b)" }}>
+        <div className="card panel-card single-panel" style={{ padding: 32, textAlign: "center", color: "var(--text-secondary, var(--color-text-secondary))" }}>
           <p>{error}</p>
           <button
             onClick={loadData}
             style={{
               marginTop: 12,
               padding: "8px 20px",
-              background: "var(--primary, #4f46e5)",
+              background: "var(--primary, var(--color-accent))",
               color: "#fff",
               border: "none",
               borderRadius: 6,
@@ -785,41 +785,41 @@ export default function NewsletterList() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>
             <div style={{
               background: "var(--card-bg, #fff)", borderRadius: 12, padding: "20px 24px",
-              border: "1px solid var(--line, #e2e8f0)",
+              border: "1px solid var(--line, var(--color-border))",
               boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
             }}>
-              <div style={{ fontSize: 12, color: "var(--text-secondary, #94a3b8)", marginBottom: 6 }}>今月の送信数</div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: "var(--text, #1e293b)" }}>
+              <div style={{ fontSize: 12, color: "var(--text-secondary, var(--color-text-tertiary))", marginBottom: 6 }}>今月の送信数</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: "var(--text, var(--color-text-primary))" }}>
                 {historySummary.thisMonthSendCount}<span style={{ fontSize: 14, fontWeight: 500, marginLeft: 4 }}>件</span>
               </div>
             </div>
             <div style={{
               background: "var(--card-bg, #fff)", borderRadius: 12, padding: "20px 24px",
-              border: "1px solid var(--line, #e2e8f0)",
+              border: "1px solid var(--line, var(--color-border))",
               boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
             }}>
-              <div style={{ fontSize: 12, color: "var(--text-secondary, #94a3b8)", marginBottom: 6 }}>今月の配信総数</div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: "var(--text, #1e293b)" }}>
+              <div style={{ fontSize: 12, color: "var(--text-secondary, var(--color-text-tertiary))", marginBottom: 6 }}>今月の配信総数</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: "var(--text, var(--color-text-primary))" }}>
                 {historySummary.thisMonthRecipients}<span style={{ fontSize: 14, fontWeight: 500, marginLeft: 4 }}>通</span>
               </div>
             </div>
             <div style={{
               background: "var(--card-bg, #fff)", borderRadius: 12, padding: "20px 24px",
-              border: "1px solid var(--line, #e2e8f0)",
+              border: "1px solid var(--line, var(--color-border))",
               boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
             }}>
-              <div style={{ fontSize: 12, color: "var(--text-secondary, #94a3b8)", marginBottom: 6 }}>直近の送信</div>
+              <div style={{ fontSize: 12, color: "var(--text-secondary, var(--color-text-tertiary))", marginBottom: 6 }}>直近の送信</div>
               {historySummary.latest ? (
                 <>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text, #1e293b)", marginBottom: 2 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text, var(--color-text-primary))", marginBottom: 2 }}>
                     {formatDate(historySummary.latest.last_sent_at || historySummary.latest.scheduled_at)}
                   </div>
-                  <div style={{ fontSize: 13, color: "var(--text-secondary, #64748b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <div style={{ fontSize: 13, color: "var(--text-secondary, var(--color-text-secondary))", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {historySummary.latest.title || "(無題)"}
                   </div>
                 </>
               ) : (
-                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-secondary, #94a3b8)" }}>-</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-secondary, var(--color-text-tertiary))" }}>-</div>
               )}
             </div>
           </div>
@@ -830,7 +830,7 @@ export default function NewsletterList() {
             <div style={{ position: "relative", flex: "1 1 240px", minWidth: 200 }}>
               <span style={{
                 position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)",
-                color: "var(--text-secondary, #94a3b8)", display: "flex", alignItems: "center",
+                color: "var(--text-secondary, var(--color-text-tertiary))", display: "flex", alignItems: "center",
               }}>
                 <SearchIcon />
               </span>
@@ -841,9 +841,9 @@ export default function NewsletterList() {
                 onChange={e => setSearchQuery(e.target.value)}
                 style={{
                   width: "100%", padding: "10px 12px 10px 38px",
-                  border: "1px solid var(--line, #e2e8f0)", borderRadius: 8,
+                  border: "1px solid var(--line, var(--color-border))", borderRadius: 8,
                   fontSize: 14, outline: "none", background: "var(--bg, #fff)",
-                  color: "var(--text, #1e293b)", boxSizing: "border-box",
+                  color: "var(--text, var(--color-text-primary))", boxSizing: "border-box",
                 }}
               />
             </div>
@@ -858,7 +858,7 @@ export default function NewsletterList() {
                     padding: "6px 14px", border: "none", borderRadius: 6,
                     fontSize: 13, fontWeight: 500, cursor: "pointer",
                     background: historyPeriod === pf.key ? "var(--card-bg, #fff)" : "transparent",
-                    color: historyPeriod === pf.key ? "var(--text, #1e293b)" : "var(--text-secondary, #64748b)",
+                    color: historyPeriod === pf.key ? "var(--text, var(--color-text-primary))" : "var(--text-secondary, var(--color-text-secondary))",
                     boxShadow: historyPeriod === pf.key ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
                     transition: "all 0.15s ease",
                   }}
@@ -873,9 +873,9 @@ export default function NewsletterList() {
               value={historyChannel}
               onChange={e => setHistoryChannel(e.target.value)}
               style={{
-                padding: "8px 14px", border: "1px solid var(--line, #e2e8f0)",
+                padding: "8px 14px", border: "1px solid var(--line, var(--color-border))",
                 borderRadius: 8, fontSize: 13, outline: "none",
-                background: "var(--card-bg, #fff)", color: "var(--text, #1e293b)",
+                background: "var(--card-bg, #fff)", color: "var(--text, var(--color-text-primary))",
                 cursor: "pointer",
               }}
             >
@@ -891,7 +891,7 @@ export default function NewsletterList() {
             {historyItems.length === 0 ? (
               <div style={{
                 padding: "64px 24px", textAlign: "center",
-                color: "var(--text-secondary, #94a3b8)",
+                color: "var(--text-secondary, var(--color-text-tertiary))",
               }}>
                 <div style={{ marginBottom: 12, opacity: 0.5, display: "flex", justifyContent: "center" }}>
                   <HistoryIcon />
@@ -928,7 +928,7 @@ export default function NewsletterList() {
                           <td style={{ whiteSpace: "nowrap", fontSize: 13 }}>
                             {formatDateFull(sentDate)}
                           </td>
-                          <td style={{ fontWeight: 600, color: "var(--primary, #4f46e5)" }}>
+                          <td style={{ fontWeight: 600, color: "var(--primary, var(--color-accent))" }}>
                             {nl.title || "(無題)"}
                           </td>
                           <td>
@@ -979,7 +979,7 @@ export default function NewsletterList() {
                           </td>
                           <td style={{ textAlign: "center" }}>
                             {attachments.length > 0 && (
-                              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--text-secondary, #64748b)" }}>
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--text-secondary, var(--color-text-secondary))" }}>
                                 <ClipIcon />
                                 <span style={{ fontSize: 12, fontWeight: 600 }}>{attachments.length}</span>
                               </span>
@@ -1000,7 +1000,7 @@ export default function NewsletterList() {
           <div style={{ position: "relative", marginBottom: 16 }}>
             <span style={{
               position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)",
-              color: "var(--text-secondary, #94a3b8)", display: "flex", alignItems: "center",
+              color: "var(--text-secondary, var(--color-text-tertiary))", display: "flex", alignItems: "center",
             }}>
               <SearchIcon />
             </span>
@@ -1011,9 +1011,9 @@ export default function NewsletterList() {
               onChange={e => setSearchQuery(e.target.value)}
               style={{
                 width: "100%", padding: "10px 12px 10px 38px",
-                border: "1px solid var(--line, #e2e8f0)", borderRadius: 8,
+                border: "1px solid var(--line, var(--color-border))", borderRadius: 8,
                 fontSize: 14, outline: "none", background: "var(--bg, #fff)",
-                color: "var(--text, #1e293b)", boxSizing: "border-box",
+                color: "var(--text, var(--color-text-primary))", boxSizing: "border-box",
               }}
             />
           </div>
@@ -1024,7 +1024,7 @@ export default function NewsletterList() {
               /* Empty State */
               <div style={{
                 padding: "64px 24px", textAlign: "center",
-                color: "var(--text-secondary, #94a3b8)",
+                color: "var(--text-secondary, var(--color-text-tertiary))",
               }}>
                 <div style={{ marginBottom: 12, opacity: 0.5, display: "flex", justifyContent: "center" }}>
                   <MailIcon />
@@ -1036,7 +1036,7 @@ export default function NewsletterList() {
                   onClick={() => navigate('/admin/newsletters/new')}
                   style={{
                     display: "inline-flex", alignItems: "center", gap: 6,
-                    padding: "8px 18px", background: "#4f46e5", color: "#fff",
+                    padding: "8px 18px", background: "var(--color-accent)", color: "#fff",
                     border: "none", borderRadius: 6, fontWeight: 600, fontSize: 14, cursor: "pointer",
                   }}
                 >
@@ -1094,11 +1094,11 @@ export default function NewsletterList() {
                               style={{
                                 display: "inline-flex", alignItems: "center", justifyContent: "center",
                                 width: 30, height: 30, borderRadius: 6,
-                                border: "none", background: "transparent", color: "#94a3b8",
+                                border: "none", background: "transparent", color: "var(--color-text-tertiary)",
                                 cursor: "pointer", transition: "all 0.15s",
                               }}
                               onMouseEnter={e => { e.currentTarget.style.background = "#fef2f2"; e.currentTarget.style.color = "#dc2626"; }}
-                              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#94a3b8"; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--color-text-tertiary)"; }}
                             >
                               <TrashIcon />
                             </button>
@@ -1161,11 +1161,11 @@ export default function NewsletterList() {
                                 style={{
                                   display: "inline-flex", alignItems: "center", justifyContent: "center",
                                   width: 30, height: 30, borderRadius: 6,
-                                  border: "none", background: "transparent", color: "#94a3b8",
+                                  border: "none", background: "transparent", color: "var(--color-text-tertiary)",
                                   cursor: "pointer", transition: "all 0.15s",
                                 }}
                                 onMouseEnter={e => { e.currentTarget.style.background = "#fef2f2"; e.currentTarget.style.color = "#dc2626"; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#94a3b8"; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--color-text-tertiary)"; }}
                               >
                                 <TrashIcon />
                               </button>
