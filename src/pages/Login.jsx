@@ -4,14 +4,33 @@ import { auth, FUNCTION_BASE } from "../api/base44Client";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 
 const inputStyle = {
-  width: "100%", padding: "10px 12px", fontSize: 16,
-  border: "1px solid var(--color-border)", borderRadius: 8,
-  outline: "none", transition: "border-color 0.2s",
+  width: "100%", padding: "12px 14px", fontSize: 16,
+  border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
+  outline: "none", transition: "border-color 0.2s, box-shadow 0.2s",
   boxSizing: "border-box",
 };
 
-function focusBorder(e) { e.target.style.borderColor = "var(--color-accent)"; }
-function blurBorder(e) { e.target.style.borderColor = "var(--color-border)"; }
+function focusBorder(e) {
+  e.target.style.borderColor = "var(--color-accent)";
+  e.target.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.12)";
+}
+function blurBorder(e) {
+  e.target.style.borderColor = "var(--color-border)";
+  e.target.style.boxShadow = "none";
+}
+
+const btnStyle = (disabled) => ({
+  width: "100%", padding: "12px 0", fontSize: 15, fontWeight: 700,
+  color: "#fff", background: disabled ? "#a5b4fc" : "var(--color-accent)",
+  border: "none", borderRadius: "var(--radius-md)",
+  cursor: disabled ? "not-allowed" : "pointer",
+  transition: "background 0.2s",
+});
+
+const linkBtnStyle = {
+  background: "none", border: "none", color: "var(--color-accent)",
+  fontSize: 13, cursor: "pointer", textDecoration: "none",
+};
 
 export default function Login() {
   const { login } = useAuth();
@@ -160,25 +179,26 @@ export default function Login() {
   return (
     <div style={{
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-      background: "linear-gradient(135deg, #f0f4ff 0%, #e8ecf4 100%)",
+      background: "var(--color-bg-sub)",
       padding: 16,
     }}>
       <div style={{
-        width: "100%", maxWidth: 400, background: "#fff",
-        borderRadius: 12, boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-        padding: "clamp(24px, 5vw, 40px) clamp(16px, 4vw, 32px)",
+        width: "100%", maxWidth: 420, background: "#fff",
+        borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+        padding: "40px 36px",
         touchAction: "manipulation",
       }}>
         {/* Brand */}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{
-            width: 48, height: 48, borderRadius: 12,
-            background: "linear-gradient(135deg, var(--color-accent), var(--color-accent))",
-            color: "#fff", fontSize: 22, fontWeight: 700,
+            width: 56, height: 56, borderRadius: 14,
+            background: "var(--color-accent)",
+            color: "#fff", fontSize: 24, fontWeight: 800,
             display: "inline-flex", alignItems: "center", justifyContent: "center",
             marginBottom: 12,
           }}>M</div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--color-text-primary)", margin: "0 0 4px" }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--color-text-primary)", margin: "0 0 6px" }}>
             MITO21
           </h1>
           <p style={{ fontSize: 14, color: "var(--color-text-secondary)", margin: 0 }}>
@@ -189,8 +209,9 @@ export default function Login() {
         {/* Error */}
         {error && (
           <div style={{
-            padding: "10px 14px", borderRadius: 8, marginBottom: 20,
-            background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626",
+            padding: "10px 14px", borderRadius: "var(--radius-md)", marginBottom: 20,
+            background: "var(--color-danger-light, #fef2f2)", border: "1px solid var(--color-danger, #dc2626)",
+            color: "var(--color-danger, #dc2626)",
             fontSize: 13, lineHeight: 1.5,
           }}>
             {error}
@@ -223,12 +244,7 @@ export default function Login() {
               </div>
               <button
                 type="submit" disabled={submitting}
-                style={{
-                  width: "100%", padding: "11px 0", fontSize: 15, fontWeight: 600,
-                  color: "#fff", background: submitting ? "#a5b4fc" : "var(--color-accent)",
-                  border: "none", borderRadius: 8, cursor: submitting ? "not-allowed" : "pointer",
-                  transition: "background 0.2s",
-                }}
+                style={btnStyle(submitting)}
                 onMouseEnter={(e) => { if (!submitting) e.target.style.background = "var(--color-accent-dark)"; }}
                 onMouseLeave={(e) => { if (!submitting) e.target.style.background = "var(--color-accent)"; }}
               >
@@ -236,25 +252,26 @@ export default function Login() {
               </button>
             </form>
             <div style={{ textAlign: "center", marginTop: 16 }}>
-              <button type="button" onClick={switchToReset} style={{
-                background: "none", border: "none", color: "var(--color-accent)",
-                fontSize: 13, cursor: "pointer", textDecoration: "underline",
-              }}>
+              <button type="button" onClick={switchToReset} style={linkBtnStyle}
+                onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+              >
                 パスワードを忘れた方
               </button>
             </div>
-            <div style={{ textAlign: "center", marginTop: 10 }}>
-              <button type="button" onClick={switchToRegister} style={{
-                background: "none", border: "none", color: "var(--color-accent)",
-                fontSize: 13, cursor: "pointer", textDecoration: "underline",
-              }}>
+            <div style={{ textAlign: "center", marginTop: 14 }}>
+              <button type="button" onClick={switchToRegister} style={linkBtnStyle}
+                onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+              >
                 新規登録はこちら
               </button>
             </div>
-            <div style={{ textAlign: "center", marginTop: 10 }}>
-              <Link to="/guide" style={{
-                color: "var(--color-accent)", fontSize: 13, textDecoration: "underline",
-              }}>
+            <div style={{ textAlign: "center", marginTop: 14 }}>
+              <Link to="/guide" style={{ color: "var(--color-accent)", fontSize: 13, textDecoration: "none" }}
+                onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+              >
                 はじめての方へ（ご利用ガイド）
               </Link>
             </div>
@@ -302,12 +319,7 @@ export default function Login() {
               </div>
               <button
                 type="submit" disabled={submitting}
-                style={{
-                  width: "100%", padding: "11px 0", fontSize: 15, fontWeight: 600,
-                  color: "#fff", background: submitting ? "#a5b4fc" : "var(--color-accent)",
-                  border: "none", borderRadius: 8, cursor: submitting ? "not-allowed" : "pointer",
-                  transition: "background 0.2s",
-                }}
+                style={btnStyle(submitting)}
                 onMouseEnter={(e) => { if (!submitting) e.target.style.background = "var(--color-accent-dark)"; }}
                 onMouseLeave={(e) => { if (!submitting) e.target.style.background = "var(--color-accent)"; }}
               >
@@ -315,10 +327,10 @@ export default function Login() {
               </button>
             </form>
             <div style={{ textAlign: "center", marginTop: 20 }}>
-              <button type="button" onClick={switchToLogin} style={{
-                background: "none", border: "none", color: "var(--color-accent)",
-                fontSize: 13, cursor: "pointer", textDecoration: "underline",
-              }}>
+              <button type="button" onClick={switchToLogin} style={linkBtnStyle}
+                onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+              >
                 ログインに戻る
               </button>
             </div>
@@ -359,19 +371,13 @@ export default function Login() {
                   }}
                   onFocus={focusBorder} onBlur={blurBorder}
                 />
-                <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 8 }}>
+                <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", marginTop: 8 }}>
                   コードの有効期限は10分です
                 </p>
               </div>
               <button
                 type="submit" disabled={submitting || otpCode.length !== 6}
-                style={{
-                  width: "100%", padding: "11px 0", fontSize: 15, fontWeight: 600,
-                  color: "#fff", background: (submitting || otpCode.length !== 6) ? "#a5b4fc" : "var(--color-accent)",
-                  border: "none", borderRadius: 8,
-                  cursor: (submitting || otpCode.length !== 6) ? "not-allowed" : "pointer",
-                  transition: "background 0.2s",
-                }}
+                style={btnStyle(submitting || otpCode.length !== 6)}
                 onMouseEnter={(e) => { if (!submitting && otpCode.length === 6) e.target.style.background = "var(--color-accent-dark)"; }}
                 onMouseLeave={(e) => { if (!submitting && otpCode.length === 6) e.target.style.background = "var(--color-accent)"; }}
               >
@@ -379,10 +385,10 @@ export default function Login() {
               </button>
             </form>
             <div style={{ textAlign: "center", marginTop: 20 }}>
-              <button type="button" onClick={switchToLogin} style={{
-                background: "none", border: "none", color: "var(--color-accent)",
-                fontSize: 13, cursor: "pointer", textDecoration: "underline",
-              }}>
+              <button type="button" onClick={switchToLogin} style={linkBtnStyle}
+                onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+              >
                 ログインに戻る
               </button>
             </div>
@@ -393,17 +399,18 @@ export default function Login() {
         {mode === "verifyDone" && (
           <>
             <div style={{
-              padding: "14px 16px", borderRadius: 8, marginBottom: 20,
-              background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#15803d",
+              padding: "14px 16px", borderRadius: "var(--radius-md)", marginBottom: 20,
+              background: "var(--color-success-light, #ecfdf5)", border: "1px solid var(--color-success, #059669)",
+              color: "var(--color-success, #059669)",
               fontSize: 13, lineHeight: 1.6,
             }}>
               認証が完了しました。ログインしてください。
             </div>
             <div style={{ textAlign: "center" }}>
-              <button type="button" onClick={switchToLogin} style={{
-                background: "none", border: "none", color: "var(--color-accent)",
-                fontSize: 13, cursor: "pointer", textDecoration: "underline",
-              }}>
+              <button type="button" onClick={switchToLogin} style={linkBtnStyle}
+                onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+              >
                 ログインに戻る
               </button>
             </div>
@@ -429,12 +436,7 @@ export default function Login() {
               </div>
               <button
                 type="submit" disabled={submitting}
-                style={{
-                  width: "100%", padding: "11px 0", fontSize: 15, fontWeight: 600,
-                  color: "#fff", background: submitting ? "#a5b4fc" : "var(--color-accent)",
-                  border: "none", borderRadius: 8, cursor: submitting ? "not-allowed" : "pointer",
-                  transition: "background 0.2s",
-                }}
+                style={btnStyle(submitting)}
                 onMouseEnter={(e) => { if (!submitting) e.target.style.background = "var(--color-accent-dark)"; }}
                 onMouseLeave={(e) => { if (!submitting) e.target.style.background = "var(--color-accent)"; }}
               >
@@ -442,10 +444,10 @@ export default function Login() {
               </button>
             </form>
             <div style={{ textAlign: "center", marginTop: 20 }}>
-              <button type="button" onClick={switchToLogin} style={{
-                background: "none", border: "none", color: "var(--color-accent)",
-                fontSize: 13, cursor: "pointer", textDecoration: "underline",
-              }}>
+              <button type="button" onClick={switchToLogin} style={linkBtnStyle}
+                onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+              >
                 ログインに戻る
               </button>
             </div>
@@ -456,8 +458,9 @@ export default function Login() {
         {mode === "resetSent" && (
           <>
             <div style={{
-              padding: "14px 16px", borderRadius: 8, marginBottom: 20,
-              background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#15803d",
+              padding: "14px 16px", borderRadius: "var(--radius-md)", marginBottom: 20,
+              background: "var(--color-success-light, #ecfdf5)", border: "1px solid var(--color-success, #059669)",
+              color: "var(--color-success, #059669)",
               fontSize: 13, lineHeight: 1.6,
             }}>
               パスワードリセットメールを送信しました。メールを確認してください。
@@ -466,10 +469,10 @@ export default function Login() {
               メールが届かない場合は、迷惑メールフォルダを確認するか、再度お試しください。
             </p>
             <div style={{ textAlign: "center" }}>
-              <button type="button" onClick={switchToLogin} style={{
-                background: "none", border: "none", color: "var(--color-accent)",
-                fontSize: 13, cursor: "pointer", textDecoration: "underline",
-              }}>
+              <button type="button" onClick={switchToLogin} style={linkBtnStyle}
+                onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+              >
                 ログインに戻る
               </button>
             </div>
