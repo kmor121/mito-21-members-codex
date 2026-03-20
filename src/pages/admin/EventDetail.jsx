@@ -67,6 +67,8 @@ export default function EventDetail() {
   const [confirmModal, setConfirmModal] = useState(null);
   const [childAfterParty, setChildAfterParty] = useState(null);
   const [childApAtts, setChildApAtts] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
+  const [orgAssignments, setOrgAssignments] = useState([]);
   const [showApForm, setShowApForm] = useState(false);
   const [apEditing, setApEditing] = useState(false);
   const [apForm, setApForm] = useState({ location: '', start_time: '20:00', end_time: '22:00', fee: '' });
@@ -77,14 +79,18 @@ export default function EventDetail() {
 
   const loadData = useCallback(async () => {
     try {
-      const [evt, attList, memberList] = await Promise.all([
+      const [evt, attList, memberList, orgList, oaList] = await Promise.all([
         base44.entities.Event.get(eventId),
         base44.entities.Attendance.filter({ event_id: eventId }).catch(() => []),
         base44.entities.Member.filter({ approval_status: '承認済', status: '活動中' }).catch(() => []),
+        base44.entities.Organization.list().catch(() => []),
+        base44.entities.OrgAssignment.list().catch(() => []),
       ]);
       setEvent(evt);
       setAttendances(attList || []);
       setMembers(memberList || []);
+      setOrganizations(orgList || []);
+      setOrgAssignments(oaList || []);
       // Load child after-party
       const apEvts = await base44.entities.Event.filter({ parent_event_id: eventId, is_after_party: true }).catch(() => []);
       const ap = (apEvts || [])[0] || null;
@@ -138,6 +144,53 @@ export default function EventDetail() {
   }, [attendances, responseOptions]);
 
   const attendCount = responseSummary["出席"] || 0;
+
+  const rates = useMemo(() => {
+    const totalTarget = targetMembers.length;
+    const responded = respondedMembers.length;
+    const attend = responseSummary["出席"] || 0;
+    return {
+      responseRate: totalTarget > 0 ? Math.round((responded / totalTarget) * 100) : 0,
+      attendRate: responded > 0 ? Math.round((attend / responded) * 100) : 0,
+      totalTarget, responded, attend,
+    };
+  }, [targetMembers, respondedMembers, responseSummary]);
+
+  const orgBreakdown = useMemo(() => {
+    if (!organizations.length || !orgAssignments.length) return [];
+    const fyId = event?.fiscal_year_id;
+    const relevantOAs = fyId ? orgAssignments.filter(oa => oa.fiscal_year_id === fyId) : orgAssignments;
+    const memberOrgMap = {};
+    relevantOAs.forEach(oa => {
+      if (!memberOrgMap[oa.member_id]) memberOrgMap[oa.member_id] = [];
+      memberOrgMap[oa.member_id].push(oa.organization_id);
+    });
+    const orgMap = {};
+    organizations.forEach(o => { orgMap[o.id] = o; });
+    const orgStats = {};
+    targetMembers.forEach(m => {
+      const orgIds = memberOrgMap[m.id] || ['__none__'];
+      const att = attendanceMap[m.id];
+      orgIds.forEach(orgId => {
+        if (!orgStats[orgId]) orgStats[orgId] = { target: 0, responded: 0, attend: 0, absent: 0 };
+        orgStats[orgId].target++;
+        if (att) {
+          orgStats[orgId].responded++;
+          const resp = att.response || att.status;
+          if (resp === '出席') orgStats[orgId].attend++;
+          if (resp === '欠席') orgStats[orgId].absent++;
+        }
+      });
+    });
+    return Object.entries(orgStats)
+      .map(([orgId, stats]) => ({
+        orgId,
+        orgName: orgId === '__none__' ? '未所属' : (orgMap[orgId]?.org_name || '不明'),
+        ...stats,
+        responseRate: stats.target > 0 ? Math.round((stats.responded / stats.target) * 100) : 0,
+      }))
+      .sort((a, b) => b.target - a.target);
+  }, [event, organizations, orgAssignments, targetMembers, attendanceMap]);
 
   /* ── Status change ── */
   const STATUS_TRANSITIONS = {
@@ -557,28 +610,48 @@ export default function EventDetail() {
       {activeTab === 'attendance' && (
         <section className="card panel-card">
           <div className="card-body stack">
-            {/* Summary */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', marginBottom: 16 }}>
-              <AttendanceRing present={attendCount} total={targetMembers.length} />
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {responseOptions.map(opt => {
-                  const count = responseSummary[opt] || 0;
-                  const isAttend = opt === '出席';
-                  const isAbsent = opt === '欠席';
-                  return (
-                    <div key={opt} style={{
-                      padding: '6px 14px', borderRadius: 'var(--radius)', border: '1px solid var(--line)',
-                      background: isAttend ? 'var(--success-light)' : isAbsent ? 'var(--error-light)' : 'var(--bg)',
-                      fontSize: 13,
-                    }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>{opt}</span>
-                      <span style={{ marginLeft: 8, fontWeight: 700, color: isAttend ? 'var(--success)' : isAbsent ? 'var(--error)' : 'var(--text)' }}>{count}</span>
+            {/* Summary with rates */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', marginBottom: 20 }}>
+              <AttendanceRing present={rates.attend} total={rates.totalTarget} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 }}>回答率</div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                      <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)' }}>{rates.responseRate}</span>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>%</span>
+                      <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 4 }}>({rates.responded}/{rates.totalTarget})</span>
                     </div>
-                  );
-                })}
-                <div style={{ padding: '6px 14px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', background: 'var(--bg)', fontSize: 13 }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>未回答</span>
-                  <span style={{ marginLeft: 8, fontWeight: 700, color: 'var(--muted)' }}>{notRespondedMembers.length}</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 }}>出席率</div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                      <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--success)' }}>{rates.attendRate}</span>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>%</span>
+                      <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 4 }}>({rates.attend}/{rates.responded})</span>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {responseOptions.map(opt => {
+                    const count = responseSummary[opt] || 0;
+                    const isAttend = opt === '出席';
+                    const isAbsent = opt === '欠席';
+                    return (
+                      <div key={opt} style={{
+                        padding: '4px 12px', borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+                        background: isAttend ? 'var(--success-light)' : isAbsent ? 'var(--error-light)' : 'var(--bg)',
+                        fontSize: 13,
+                      }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>{opt}</span>
+                        <span style={{ marginLeft: 6, fontWeight: 700, color: isAttend ? 'var(--success)' : isAbsent ? 'var(--error)' : 'var(--text)' }}>{count}</span>
+                      </div>
+                    );
+                  })}
+                  <div style={{ padding: '4px 12px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', background: 'var(--bg)', fontSize: 13 }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>未回答</span>
+                    <span style={{ marginLeft: 6, fontWeight: 700, color: 'var(--muted)' }}>{notRespondedMembers.length}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -599,6 +672,42 @@ export default function EventDetail() {
                 ) : (
                   <p style={{ fontSize: 13, color: 'var(--success)', fontWeight: 600 }}>全員回答済みです</p>
                 )}
+              </div>
+            )}
+
+            {/* Organization breakdown */}
+            {orgBreakdown.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, color: 'var(--text)' }}>所属別内訳</h3>
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                  <div style={{ minWidth: 400, border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+                    <div style={{
+                      display: 'grid', gridTemplateColumns: '1fr 70px 70px 70px 70px',
+                      padding: '8px 14px', background: 'var(--line-light)',
+                      fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)',
+                      borderBottom: '1px solid var(--line)',
+                    }}>
+                      <span>所属</span>
+                      <span style={{ textAlign: 'center' }}>対象</span>
+                      <span style={{ textAlign: 'center' }}>回答率</span>
+                      <span style={{ textAlign: 'center' }}>出席</span>
+                      <span style={{ textAlign: 'center' }}>欠席</span>
+                    </div>
+                    {orgBreakdown.map((row, idx) => (
+                      <div key={row.orgId} style={{
+                        display: 'grid', gridTemplateColumns: '1fr 70px 70px 70px 70px',
+                        padding: '10px 14px', fontSize: 13,
+                        borderBottom: idx < orgBreakdown.length - 1 ? '1px solid var(--line)' : 'none',
+                      }}>
+                        <span style={{ fontWeight: 500, color: 'var(--text)' }}>{row.orgName}</span>
+                        <span style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{row.target}</span>
+                        <span style={{ textAlign: 'center', fontWeight: 600, color: row.responseRate === 100 ? 'var(--success)' : 'var(--text)' }}>{row.responseRate}%</span>
+                        <span style={{ textAlign: 'center', fontWeight: 600, color: 'var(--success)' }}>{row.attend}</span>
+                        <span style={{ textAlign: 'center', fontWeight: 600, color: row.absent > 0 ? 'var(--error)' : 'var(--text-secondary)' }}>{row.absent}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
