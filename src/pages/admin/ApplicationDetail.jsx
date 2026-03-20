@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { apiRequest, base44, invalidateReadCache } from '../../api/base44Client';
 import DatePicker from '../../components/ui/DatePicker';
+import { Button, Modal } from '../../components/ui';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { fullName, fullNameKana, nameInitial } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -352,121 +353,100 @@ export default function ApplicationDetail() {
       )}
 
       {/* ══ Approve Modal ══ */}
-      {showApproveModal && (
-        <div className="confirm-overlay" onClick={() => setShowApproveModal(false)}>
-          <div
-            className="modal-dialog"
-            onClick={e => e.stopPropagation()}
-            style={{ maxWidth: 500, borderRadius: "var(--radius-xl)", overflow: "visible", animation: "fadeIn 0.15s ease" }}
-          >
-            <div className="modal-header" style={{ padding: "20px 24px" }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>入会を承認</h3>
-              <span style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>{fullName(detail)}</span>
-            </div>
-            <div className="modal-body" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20, overflow: "visible" }}>
-              {/* Member type pills */}
-              <div>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>会員種別</label>
-                <MemberTypePills value={memberType} onChange={setMemberType} />
-              </div>
-              {/* Member number */}
-              <div>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>会員番号</label>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input
-                    type="text"
-                    value={memberNumber}
-                    onChange={(e) => setMemberNumber(e.target.value)}
-                    style={{ flex: 1 }}
-                    placeholder="自動採番済み"
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    style={{ fontSize: 12, padding: "6px 14px", whiteSpace: "nowrap" }}
-                    onClick={async () => {
-                      try {
-                        const res = await apiRequest("generate-member-number");
-                        setMemberNumber(res.suggested_number || res.member_number || memberNumber);
-                      } catch {}
-                    }}
-                  >
-                    自動採番
-                  </button>
-                </div>
-              </div>
-              {/* Join date */}
-              <div style={{ overflow: "visible" }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>入会日</label>
-                <DatePicker value={joinDate} onChange={setJoinDate} />
-              </div>
-            </div>
-            <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "16px 24px" }}>
-              <button className="btn btn-secondary" onClick={() => setShowApproveModal(false)}>キャンセル</button>
-              <button
-                className="btn btn-primary"
-                style={{ background: "var(--color-accent)", display: "flex", alignItems: "center", gap: 6 }}
-                onClick={confirmApprove}
-                disabled={approveSubmitting}
+      <Modal
+        isOpen={showApproveModal}
+        onClose={() => setShowApproveModal(false)}
+        title="入会を承認"
+        width="500px"
+        footer={<>
+          <Button variant="secondary" onClick={() => setShowApproveModal(false)}>キャンセル</Button>
+          <Button variant="primary" onClick={confirmApprove} disabled={approveSubmitting}>
+            {approveSubmitting ? (
+              <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> 承認中...</>
+            ) : "承認する"}
+          </Button>
+        </>}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>{detail ? fullName(detail) : ""}</p>
+          {/* Member type pills */}
+          <div>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>会員種別</label>
+            <MemberTypePills value={memberType} onChange={setMemberType} />
+          </div>
+          {/* Member number */}
+          <div>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>会員番号</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                type="text"
+                value={memberNumber}
+                onChange={(e) => setMemberNumber(e.target.value)}
+                style={{ flex: 1 }}
+                placeholder="自動採番済み"
+              />
+              <Button
+                variant="primary"
+                size="sm"
+                style={{ whiteSpace: "nowrap" }}
+                onClick={async () => {
+                  try {
+                    const res = await apiRequest("generate-member-number");
+                    setMemberNumber(res.suggested_number || res.member_number || memberNumber);
+                  } catch {}
+                }}
               >
-                {approveSubmitting ? (
-                  <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> 承認中...</>
-                ) : "承認する"}
-              </button>
+                自動採番
+              </Button>
             </div>
           </div>
+          {/* Join date */}
+          <div style={{ overflow: "visible" }}>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>入会日</label>
+            <DatePicker value={joinDate} onChange={setJoinDate} />
+          </div>
         </div>
-      )}
+      </Modal>
 
       {/* ══ Reject Modal ══ */}
-      {showRejectModal && (
-        <div className="confirm-overlay" onClick={() => setShowRejectModal(false)}>
-          <div
-            className="modal-dialog"
-            onClick={e => e.stopPropagation()}
-            style={{ maxWidth: 500, borderRadius: "var(--radius-xl)", animation: "fadeIn 0.15s ease" }}
+      <Modal
+        isOpen={showRejectModal}
+        onClose={() => setShowRejectModal(false)}
+        title="入会申込を却下"
+        width="500px"
+        footer={<>
+          <Button variant="secondary" onClick={() => setShowRejectModal(false)}>キャンセル</Button>
+          <Button
+            variant="danger"
+            onClick={confirmReject}
+            disabled={rejectSubmitting || !rejectionReason.trim()}
+            style={{ background: "var(--color-danger)", color: "#fff", border: "none" }}
           >
-            <div className="modal-header" style={{ padding: "20px 24px" }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--color-danger)" }}>入会申込を却下</h3>
-              <span style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>{fullName(detail)}</span>
-            </div>
-            <div className="modal-body" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
-              <div>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
-                  却下理由 <span style={{ color: "var(--color-danger)" }}>*</span>
-                </label>
-                <textarea
-                  rows={4}
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="却下理由を入力してください（申込者に通知されます）"
-                  style={{ width: "100%", fontFamily: "inherit", resize: "vertical" }}
-                />
-                <div style={{ textAlign: "right", fontSize: 12, color: "var(--color-text-tertiary)", marginTop: 4 }}>
-                  {rejectionReason.length} 文字
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "16px 24px" }}>
-              <button className="btn btn-secondary" onClick={() => setShowRejectModal(false)}>キャンセル</button>
-              <button
-                className="btn"
-                style={{
-                  background: "var(--color-danger)", color: "#fff", border: "none",
-                  opacity: rejectSubmitting ? 0.6 : 1,
-                  display: "flex", alignItems: "center", gap: 6,
-                }}
-                onClick={confirmReject}
-                disabled={rejectSubmitting || !rejectionReason.trim()}
-              >
-                {rejectSubmitting ? (
-                  <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2, borderTopColor: "#fff", borderColor: "rgba(255,255,255,0.3)" }} /> 却下中...</>
-                ) : "却下する"}
-              </button>
+            {rejectSubmitting ? (
+              <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2, borderTopColor: "#fff", borderColor: "rgba(255,255,255,0.3)" }} /> 却下中...</>
+            ) : "却下する"}
+          </Button>
+        </>}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>{detail ? fullName(detail) : ""}</p>
+          <div>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
+              却下理由 <span style={{ color: "var(--color-danger)" }}>*</span>
+            </label>
+            <textarea
+              rows={4}
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="却下理由を入力してください（申込者に通知されます）"
+              style={{ width: "100%", fontFamily: "inherit", resize: "vertical" }}
+            />
+            <div style={{ textAlign: "right", fontSize: 12, color: "var(--color-text-tertiary)", marginTop: 4 }}>
+              {rejectionReason.length} 文字
             </div>
           </div>
         </div>
-      )}
+      </Modal>
 
       {/* ══ Back link ══ */}
       <a
@@ -625,8 +605,8 @@ export default function ApplicationDetail() {
                 style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--color-border)", borderRadius: "var(--radius)", fontSize: 14, boxSizing: "border-box" }} />
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-              <button className="btn btn-secondary" type="button" onClick={() => setRefEditing(false)}>キャンセル</button>
-              <button className="btn btn-primary" type="button" disabled={refSaving} onClick={saveReferrers}>{refSaving ? '保存中...' : '保存'}</button>
+              <Button variant="secondary" onClick={() => setRefEditing(false)}>キャンセル</Button>
+              <Button variant="primary" disabled={refSaving} onClick={saveReferrers}>{refSaving ? '保存中...' : '保存'}</Button>
             </div>
           </div>
         ) : (
@@ -660,10 +640,10 @@ export default function ApplicationDetail() {
               </div>
             )}
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <button className="btn btn-secondary" type="button" style={{ fontSize: 12 }}
+              <Button variant="secondary" size="sm"
                 onClick={() => { setRefForm({ referrer_1: detail.referrer_1 || '', referrer_2: detail.referrer_2 || '' }); setRefEditing(true); }}>
                 紹介者を編集
-              </button>
+              </Button>
             </div>
           </div>
         )}

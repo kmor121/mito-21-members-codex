@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { apiRequest, base44, invalidateReadCache } from "../../api/base44Client";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
+import { Button, PageHeader, Modal } from '../../components/ui';
 import { fullName, fullNameKana } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -592,7 +593,7 @@ export default function OrgChart() {
   }
 
   async function handleSaveOrg(e) {
-    e.preventDefault();
+    if (e?.preventDefault) e.preventDefault();
     if (!orgForm.org_name.trim()) return;
     setSaving(true);
     try {
@@ -668,7 +669,7 @@ export default function OrgChart() {
   }
 
   async function handleSaveAssignment(e) {
-    e.preventDefault();
+    if (e?.preventDefault) e.preventDefault();
     if (!assignOrg || !assignForm.member_id) return;
     if (!assignForm.role || !assignForm.role.trim()) {
       setAssignRoleError(true);
@@ -862,37 +863,30 @@ export default function OrgChart() {
           </div>
         </div>
       ) : (
-        <div className="page-header" style={{ marginBottom: 0 }}>
-          <h1 className="page-title" style={{ margin: 0 }}>組織図管理</h1>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button
-              className="btn btn-secondary"
-              type="button"
+        <PageHeader
+          title="組織図管理"
+          actions={<>
+            <Button
+              variant="secondary"
               onClick={() => setShowCopyModal(true)}
-              style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="5" y="5" width="9" height="9" rx="1.5"/>
                 <path d="M3 11V3a1.5 1.5 0 011.5-1.5H11"/>
               </svg>
               前年度からコピー
-            </button>
-            <button
-              className="btn"
-              type="button"
+            </Button>
+            <Button
+              variant="primary"
               onClick={openNewOrg}
-              style={{
-                background: "var(--color-accent)", color: "#fff", border: "none",
-                display: "flex", alignItems: "center", gap: 6, fontSize: 13,
-              }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M8 3v10M3 8h10"/>
               </svg>
               新規組織追加
-            </button>
-          </div>
-        </div>
+            </Button>
+          </>}
+        />
       )}
 
       {/* ── Year navigator ── */}
@@ -1067,18 +1061,16 @@ export default function OrgChart() {
               新規組織を追加
             </button>
             {prevYear && (
-              <button
-                className="btn btn-secondary"
-                type="button"
+              <Button
+                variant="secondary"
                 onClick={() => setShowCopyModal(true)}
-                style={{ display: "flex", alignItems: "center", gap: 6 }}
               >
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="5" y="5" width="9" height="9" rx="1.5"/>
                   <path d="M3 11V3a1.5 1.5 0 011.5-1.5H11"/>
                 </svg>
                 前年度からコピー
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -1181,15 +1173,29 @@ export default function OrgChart() {
       )}
 
       {/* ═══ Org Edit Modal ═══ */}
-      {showOrgModal && (
-        <div className="confirm-overlay" onClick={() => setShowOrgModal(false)}
-          style={{ animation: "modalFadeIn 0.2s ease" }}>
-          <div className="modal-dialog" style={{ maxWidth: 600, animation: "modalSlideIn 0.25s ease" }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{orgForm.id ? "組織を編集" : "新規組織作成"}</h3>
-              <button type="button" className="modal-close" onClick={() => setShowOrgModal(false)}>&times;</button>
-            </div>
-            <form onSubmit={handleSaveOrg}>
+      <Modal
+        isOpen={showOrgModal}
+        onClose={() => setShowOrgModal(false)}
+        title={orgForm.id ? "組織を編集" : "新規組織作成"}
+        width="600px"
+        footer={<div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+          <div>
+            {orgForm.id && (
+              <Button variant="danger" onClick={() => { setShowOrgModal(false); handleDeleteOrgClick(orgForm); }} disabled={saving}>
+                この組織を削除
+              </Button>
+            )}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <Button variant="secondary" onClick={() => setShowOrgModal(false)}>キャンセル</Button>
+            <Button variant="primary" type="submit" disabled={saving || !orgForm.org_name.trim()} onClick={handleSaveOrg}>
+              {saving ? "保存中..." : "保存"}
+            </Button>
+          </div>
+        </div>}
+      >
+        {showOrgModal && (
+            <div>
               <div className="modal-body" style={{ padding: 24 }}>
                 {/* Name */}
                 <div style={{ marginBottom: 20 }}>
@@ -1329,48 +1335,40 @@ export default function OrgChart() {
                   </select>
                 </div>
               </div>
-              <div className="modal-footer" style={{ justifyContent: "space-between" }}>
-                <div>
-                  {orgForm.id && (
-                    <button type="button" onClick={() => { setShowOrgModal(false); handleDeleteOrgClick(orgForm); }}
-                      style={{
-                        background: "none", border: "1px solid var(--color-danger)", color: "var(--color-danger)",
-                        borderRadius: "var(--radius)", padding: "8px 16px", cursor: "pointer", fontSize: 13,
-                        transition: "all var(--transition-fast)",
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.background = "#fef2f2"; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = "none"; }}
-                      disabled={saving}
-                    >この組織を削除</button>
-                  )}
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowOrgModal(false)}>キャンセル</button>
-                  <button type="submit" className="btn" disabled={saving || !orgForm.org_name.trim()}
-                    style={{ background: "var(--color-accent)", color: "#fff", border: "none" }}
-                  >{saving ? "保存中..." : "保存"}</button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
+        )}
+      </Modal>
 
       {/* ═══ Assignment Modal ═══ */}
-      {showAssignModal && assignOrg && (
-        <div className="confirm-overlay" onClick={() => setShowAssignModal(false)}
-          style={{ animation: "modalFadeIn 0.2s ease" }}>
-          <div className="modal-dialog" style={{ maxWidth: 520, animation: "modalSlideIn 0.25s ease" }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header" style={{
-              borderLeft: `4px solid ${TYPE_COLORS[assignOrg.org_type]?.text || "var(--color-text-tertiary)"}`,
-            }}>
-              <h3 style={{ fontSize: "1rem" }}>
-                {assignForm.id ? "配属を編集" : `${assignOrg.org_name || "組織"}にメンバーを追加`}
-              </h3>
-              <button type="button" className="modal-close" onClick={() => setShowAssignModal(false)}>&times;</button>
-            </div>
-            <form onSubmit={handleSaveAssignment}>
-              <div className="modal-body" style={{ padding: 24 }}>
+      <Modal
+        isOpen={!!(showAssignModal && assignOrg)}
+        onClose={() => setShowAssignModal(false)}
+        title={assignForm.id ? "配属を編集" : `${assignOrg?.org_name || "組織"}にメンバーを追加`}
+        width="520px"
+        footer={<div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+          <div>
+            {assignForm.id && (
+              <Button variant="danger" onClick={() => {
+                setShowAssignModal(false);
+                setConfirmRemoveAssignment({
+                  org: assignOrg,
+                  assignment: { id: assignForm.id, member_name: fullName(memberOptions.find(m => m.id === assignForm.member_id)) || "" },
+                });
+              }} disabled={saving}>
+                配属解除
+              </Button>
+            )}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <Button variant="secondary" onClick={() => setShowAssignModal(false)}>キャンセル</Button>
+            <Button variant="primary" onClick={handleSaveAssignment} disabled={saving || !assignForm.member_id}>
+              {saving ? "保存中..." : assignForm.id ? "更新" : "追加"}
+            </Button>
+          </div>
+        </div>}
+      >
+        {showAssignModal && assignOrg && (
+              <div>
                 {/* Member selection */}
                 <div style={{ marginBottom: 20 }}>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--color-text-primary)", letterSpacing: "0.02em" }}>
@@ -1464,50 +1462,20 @@ export default function OrgChart() {
                   </div>
                 </div>
               </div>
-              <div className="modal-footer" style={{ justifyContent: "space-between" }}>
-                <div>
-                  {assignForm.id && (
-                    <button type="button"
-                      onClick={() => {
-                        setShowAssignModal(false);
-                        setConfirmRemoveAssignment({
-                          org: assignOrg,
-                          assignment: { id: assignForm.id, member_name: fullName(memberOptions.find(m => m.id === assignForm.member_id)) || "" },
-                        });
-                      }}
-                      style={{
-                        background: "none", border: "1px solid var(--color-danger)", color: "var(--color-danger)",
-                        borderRadius: "var(--radius)", padding: "8px 16px", cursor: "pointer", fontSize: 13,
-                        transition: "all var(--transition-fast)",
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = "#fef2f2"}
-                      onMouseLeave={e => e.currentTarget.style.background = "none"}
-                      disabled={saving}
-                    >配属解除</button>
-                  )}
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowAssignModal(false)}>キャンセル</button>
-                  <button type="submit" className="btn" disabled={saving || !assignForm.member_id}
-                    style={{ background: "var(--color-accent)", color: "#fff", border: "none" }}
-                  >{saving ? "保存中..." : assignForm.id ? "更新" : "追加"}</button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* ═══ Copy Modal ═══ */}
-      {showCopyModal && (
-        <div className="confirm-overlay" onClick={() => setShowCopyModal(false)}
-          style={{ animation: "modalFadeIn 0.2s ease" }}>
-          <div className="modal-dialog" style={{ maxWidth: 480, animation: "modalSlideIn 0.25s ease" }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header" style={{ borderBottom: "none" }}>
-              <h3 style={{ fontSize: "1rem" }}>前年度の組織構成をコピー</h3>
-              <button type="button" className="modal-close" onClick={() => setShowCopyModal(false)}>&times;</button>
-            </div>
-            <div className="modal-body" style={{ padding: 24 }}>
+      <Modal
+        isOpen={showCopyModal}
+        onClose={() => setShowCopyModal(false)}
+        title="前年度の組織構成をコピー"
+        width="480px"
+        footer={!copying ? <>
+          <Button variant="secondary" onClick={() => setShowCopyModal(false)}>キャンセル</Button>
+          <Button variant="primary" onClick={executeCopy} disabled={copying}>コピーする</Button>
+        </> : null}
+      >
               {copying ? (
                 <div style={{
                   display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
@@ -1589,21 +1557,7 @@ export default function OrgChart() {
                   )}
                 </>
               )}
-            </div>
-            {!copying && (
-              <div className="modal-footer" style={{ justifyContent: "flex-end", gap: 8 }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowCopyModal(false)}>キャンセル</button>
-                <button
-                  type="button" className="btn"
-                  onClick={executeCopy}
-                  disabled={copying}
-                  style={{ background: "var(--color-accent)", color: "#fff", border: "none" }}
-                >コピーする</button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      </Modal>
 
       {/* ═══ Confirm Dialogs ═══ */}
       <ConfirmDialog

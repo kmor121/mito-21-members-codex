@@ -4,6 +4,7 @@ import { apiRequest, base44, invalidateReadCache } from "../../api/base44Client"
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import DatePicker from "../../components/ui/DatePicker";
+import { Button, PageHeader, Modal } from '../../components/ui';
 import { fullName } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import YearPillNav from '../../components/ui/YearPillNav';
@@ -223,21 +224,31 @@ function PayerSuggest({ memberId, allDues, value, onChange }) {
 
 /* ── Reconciliation Modal (消込モーダル) ── */
 function ReconcileModal({ target, allDues, toggleDate, setToggleDate, togglePayerName, setTogglePayerName, toggleNotes, setToggleNotes, saving, onConfirm, onClose }) {
-  if (!target) return null;
-  const isPaid = target.status === "納入済";
+  const isPaid = target?.status === "納入済";
 
   return (
-    <div className="confirm-overlay" onClick={onClose}>
-      <div
-        className="modal-dialog"
-        style={{ maxWidth: 480, overflow: "visible" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="modal-header" style={{ background: isPaid ? "#fef2f2" : "#ecfdf5", borderBottom: "none" }}>
-          <h3 style={{ fontSize: "1rem" }}>{isPaid ? "納入済を取り消す" : "消込処理"}</h3>
-          <button type="button" className="modal-close" onClick={onClose}>&times;</button>
-        </div>
-        <div className="modal-body" style={{ padding: "24px", overflow: "visible" }}>
+    <Modal
+      isOpen={!!target}
+      onClose={onClose}
+      title={isPaid ? "納入済を取り消す" : "消込処理"}
+      width="480px"
+      footer={<>
+        <Button variant="secondary" onClick={onClose}>キャンセル</Button>
+        <Button
+          variant={isPaid ? "danger" : "primary"}
+          onClick={onConfirm}
+          disabled={saving}
+          style={{
+            background: isPaid ? "#dc2626" : "#059669",
+            color: "#fff", border: "none",
+          }}
+        >
+          {saving ? "処理中..." : isPaid ? "未納に戻す" : "納入済にする"}
+        </Button>
+      </>}
+    >
+      {target && (
+        <div>
           {/* Member info */}
           <div style={{
             padding: 16, borderRadius: "var(--radius)", background: "var(--bg)",
@@ -297,51 +308,32 @@ function ReconcileModal({ target, allDues, toggleDate, setToggleDate, togglePaye
             </div>
           )}
         </div>
-        <div className="modal-footer" style={{ justifyContent: "flex-end", gap: 8 }}>
-          <button className="btn btn-secondary" type="button" onClick={onClose}>キャンセル</button>
-          <button
-            className="btn"
-            type="button"
-            onClick={onConfirm}
-            disabled={saving}
-            style={{
-              background: isPaid ? "#dc2626" : "#059669",
-              color: "#fff", border: "none",
-              opacity: saving ? 0.6 : 1,
-            }}
-          >
-            {saving ? "処理中..." : isPaid ? "未納に戻す" : "納入済にする"}
-          </button>
-        </div>
-      </div>
-    </div>
+      )}
+    </Modal>
   );
 }
 
 /* ── Member History Modal ── */
 function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, currentFyId, onClose }) {
-  if (!open || !memberId) return null;
-  const memberDues = allDues
+  const memberDues = (open && memberId) ? allDues
     .filter((d) => d.member_id === memberId)
     .sort((a, b) => {
       const ya = fyMap[a.fiscal_year_id]?.year || 0;
       const yb = fyMap[b.fiscal_year_id]?.year || 0;
       return yb - ya;
-    });
+    }) : [];
 
   const totalUnpaid = memberDues.filter(d => d.status !== "納入済").length;
 
   return (
-    <div className="confirm-overlay" onClick={onClose}>
-      <div className="modal-dialog" style={{ maxWidth: 680 }} onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div>
-            <h3 style={{ margin: 0 }}>{memberName}</h3>
-            <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>全年度の会費履歴</span>
-          </div>
-          <button type="button" className="modal-close" onClick={onClose}>&times;</button>
-        </div>
-        <div className="modal-body" style={{ maxHeight: "60vh", overflowY: "auto", padding: "16px 24px" }}>
+    <Modal
+      isOpen={open && !!memberId}
+      onClose={onClose}
+      title={memberName || ""}
+      width="680px"
+      footer={<Button variant="secondary" onClick={onClose}>閉じる</Button>}
+    >
+      <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 16px" }}>全年度の会費履歴</p>
           {totalUnpaid > 0 && (
             <div style={{
               padding: "10px 16px", borderRadius: "var(--radius)",
@@ -412,12 +404,7 @@ function MemberHistoryModal({ open, memberName, memberId, allDues, fyMap, curren
             </table>
             </div>
           )}
-        </div>
-        <div className="modal-footer" style={{ justifyContent: "flex-end" }}>
-          <button className="btn btn-secondary" type="button" onClick={onClose}>閉じる</button>
-        </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -1051,34 +1038,28 @@ export default function DuesManagement() {
           })()}
         </div>
       ) : (
-        <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 0 }}>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-              <h1 className="page-title" style={{ margin: 0 }}>会費管理</h1>
-              {selectedFiscalYear && (
+        <PageHeader
+          title={<>会費管理{selectedFiscalYear && (
                 <span style={{
                   padding: "4px 12px", borderRadius: 999,
                   background: "var(--color-accent-light)", color: "var(--color-accent)",
                   fontSize: 12, fontWeight: 700,
+                  marginLeft: 10,
                 }}>
                   {selectedFiscalYear.year_label || `${selectedFiscalYear.year}年度`}
                 </span>
-              )}
-            </div>
-            <p className="page-description" style={{ margin: "4px 0 0" }}>年度別の会費管理・消込・未納確認</p>
-          </div>
-          {computedSummary.unissuedCount > 0 && (
-            <button
-              className="btn btn-primary"
-              type="button"
+              )}</>}
+          subtitle="年度別の会費管理・消込・未納確認"
+          actions={computedSummary.unissuedCount > 0 ? (
+            <Button
+              variant="primary"
               onClick={() => setConfirmBulkIssue(true)}
               disabled={saving}
-              style={{ fontSize: 13, whiteSpace: "nowrap" }}
             >
               会費一括発行
-            </button>
-          )}
-        </div>
+            </Button>
+          ) : null}
+        />
       )}
 
       {/* Toast */}
@@ -1100,43 +1081,37 @@ export default function DuesManagement() {
       />
 
       {/* Batch reconcile modal (date input for batch operations) */}
-      {showBatchModal && (
-        <div className="confirm-overlay" onClick={() => setShowBatchModal(false)}>
-          <div className="modal-dialog" style={{ maxWidth: 400, overflow: "visible" }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header" style={{ background: "#ecfdf5", borderBottom: "none" }}>
-              <h3 style={{ fontSize: "1rem" }}>一括消込</h3>
-              <button type="button" className="modal-close" onClick={() => setShowBatchModal(false)}>&times;</button>
-            </div>
-            <div className="modal-body" style={{ padding: 24, overflow: "visible" }}>
-              <div style={{
-                padding: 16, borderRadius: "var(--radius)", background: "var(--bg)",
-                marginBottom: 20, textAlign: "center",
-              }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: "var(--color-accent)" }}>{selectedIds.size}件</div>
-                <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginTop: 4 }}>を納入済にします</div>
-              </div>
-              <div style={{ position: "relative", zIndex: 10 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)", marginBottom: 4 }}>
-                  入金日（全件共通）
-                </label>
-                <DatePicker id="batch-date" value={batchDate} onChange={setBatchDate} />
-              </div>
-            </div>
-            <div className="modal-footer" style={{ justifyContent: "flex-end", gap: 8 }}>
-              <button className="btn btn-secondary" type="button" onClick={() => setShowBatchModal(false)}>キャンセル</button>
-              <button
-                className="btn"
-                type="button"
-                onClick={executeBatchPaid}
-                disabled={saving}
-                style={{ background: "#059669", color: "#fff", border: "none" }}
-              >
-                {saving ? "処理中..." : "一括納入済にする"}
-              </button>
-            </div>
-          </div>
+      <Modal
+        isOpen={showBatchModal}
+        onClose={() => setShowBatchModal(false)}
+        title="一括消込"
+        width="400px"
+        footer={<>
+          <Button variant="secondary" onClick={() => setShowBatchModal(false)}>キャンセル</Button>
+          <Button
+            variant="primary"
+            onClick={executeBatchPaid}
+            disabled={saving}
+            style={{ background: "#059669", color: "#fff", border: "none" }}
+          >
+            {saving ? "処理中..." : "一括納入済にする"}
+          </Button>
+        </>}
+      >
+        <div style={{
+          padding: 16, borderRadius: "var(--radius)", background: "var(--bg)",
+          marginBottom: 20, textAlign: "center",
+        }}>
+          <div style={{ fontSize: 28, fontWeight: 700, color: "var(--color-accent)" }}>{selectedIds.size}件</div>
+          <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginTop: 4 }}>を納入済にします</div>
         </div>
-      )}
+        <div style={{ position: "relative", zIndex: 10 }}>
+          <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)", marginBottom: 4 }}>
+            入金日（全件共通）
+          </label>
+          <DatePicker id="batch-date" value={batchDate} onChange={setBatchDate} />
+        </div>
+      </Modal>
 
       {/* Member history modal */}
       <MemberHistoryModal

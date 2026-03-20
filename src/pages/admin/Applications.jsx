@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { base44, apiRequest } from '../../api/base44Client';
 import { SkeletonCard } from '../../components/ui/Skeleton';
 import DatePicker from '../../components/ui/DatePicker';
+import { Button, PageHeader, Modal } from '../../components/ui';
 import { fullName, fullNameKana } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -241,17 +242,22 @@ export default function Applications() {
       )}
 
       {/* ══ Approve Modal ══ */}
-      {approveTarget && (
-        <div className="confirm-overlay" onClick={() => setApproveTarget(null)}>
-          <div
-            className="modal-dialog"
-            onClick={e => e.stopPropagation()}
-            style={{ maxWidth: 480, borderRadius: "var(--radius-xl)", overflow: "visible", animation: "fadeIn 0.15s ease" }}
-          >
-            <div className="modal-header" style={{ padding: "20px 24px" }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>入会申込を承認しますか？</h3>
-            </div>
-            <div className="modal-body" style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 20, overflow: "visible" }}>
+      <Modal
+        isOpen={!!approveTarget}
+        onClose={() => setApproveTarget(null)}
+        title="入会申込を承認しますか？"
+        width="480px"
+        footer={<>
+          <Button variant="secondary" onClick={() => setApproveTarget(null)}>キャンセル</Button>
+          <Button variant="primary" onClick={confirmApprove} disabled={approveSubmitting}>
+            {approveSubmitting ? (
+              <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> 承認中...</>
+            ) : "承認する"}
+          </Button>
+        </>}
+      >
+        {approveTarget && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {/* Applicant summary */}
               <div style={{
                 padding: "12px 16px", borderRadius: "var(--radius)",
@@ -284,10 +290,10 @@ export default function Applications() {
                     style={{ flex: 1 }}
                     placeholder="自動採番済み"
                   />
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    style={{ fontSize: 12, padding: "6px 14px", whiteSpace: "nowrap" }}
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    style={{ whiteSpace: "nowrap" }}
                     onClick={async () => {
                       try {
                         const res = await apiRequest("generate-member-number");
@@ -296,7 +302,7 @@ export default function Applications() {
                     }}
                   >
                     自動採番
-                  </button>
+                  </Button>
                 </div>
               </div>
               {/* Join date */}
@@ -314,36 +320,32 @@ export default function Applications() {
                   {approveError}
                 </div>
               )}
-            </div>
-            <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "16px 24px" }}>
-              <button className="btn btn-secondary" onClick={() => setApproveTarget(null)}>キャンセル</button>
-              <button
-                className="btn btn-primary"
-                style={{ display: "flex", alignItems: "center", gap: 6 }}
-                onClick={confirmApprove}
-                disabled={approveSubmitting}
-              >
-                {approveSubmitting ? (
-                  <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> 承認中...</>
-                ) : "承認する"}
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* ══ Reject Modal ══ */}
-      {rejectTarget && (
-        <div className="confirm-overlay" onClick={() => setRejectTarget(null)}>
-          <div
-            className="modal-dialog"
-            onClick={e => e.stopPropagation()}
-            style={{ maxWidth: 480, borderRadius: "var(--radius-xl)", animation: "fadeIn 0.15s ease" }}
+      <Modal
+        isOpen={!!rejectTarget}
+        onClose={() => setRejectTarget(null)}
+        title="入会申込を却下しますか？"
+        width="480px"
+        footer={<>
+          <Button variant="secondary" onClick={() => setRejectTarget(null)}>キャンセル</Button>
+          <Button
+            variant="danger"
+            onClick={confirmReject}
+            disabled={rejectSubmitting}
+            style={{ background: "var(--color-danger)", color: "#fff", border: "none" }}
           >
-            <div className="modal-header" style={{ padding: "20px 24px" }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--color-danger)" }}>入会申込を却下しますか？</h3>
-            </div>
-            <div className="modal-body" style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+            {rejectSubmitting ? (
+              <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2, borderTopColor: "#fff", borderColor: "rgba(255,255,255,0.3)" }} /> 却下中...</>
+            ) : "却下する"}
+          </Button>
+        </>}
+      >
+        {rejectTarget && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div style={{
                 padding: "12px 16px", borderRadius: "var(--radius)",
                 background: "var(--color-border)", border: "1px solid var(--color-border)",
@@ -367,27 +369,9 @@ export default function Applications() {
                   {rejectionReason.length} 文字
                 </div>
               </div>
-            </div>
-            <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "16px 24px" }}>
-              <button className="btn btn-secondary" onClick={() => setRejectTarget(null)}>キャンセル</button>
-              <button
-                className="btn"
-                style={{
-                  background: "var(--color-danger)", color: "#fff", border: "none",
-                  opacity: rejectSubmitting ? 0.6 : 1,
-                  display: "flex", alignItems: "center", gap: 6,
-                }}
-                onClick={confirmReject}
-                disabled={rejectSubmitting}
-              >
-                {rejectSubmitting ? (
-                  <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2, borderTopColor: "#fff", borderColor: "rgba(255,255,255,0.3)" }} /> 却下中...</>
-                ) : "却下する"}
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* Page Header */}
       {isViewMode && (
@@ -427,10 +411,8 @@ export default function Applications() {
           </div>
         </div>
       ) : (
-        <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-            <h1 className="page-title" style={{ margin: 0 }}>入会申込管理{isViewMode ? "（閲覧モード）" : ""}</h1>
-            {!loading && statusCounts["申請中"] > 0 && (
+        <PageHeader
+          title={<>{`入会申込管理${isViewMode ? "（閲覧モード）" : ""}`}{!loading && statusCounts["申請中"] > 0 && (
               <span style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -440,12 +422,12 @@ export default function Applications() {
                 color: "#dc2626",
                 fontSize: "13px",
                 fontWeight: 700,
+                marginLeft: 12,
               }}>
                 {statusCounts["申請中"]}件 未処理
               </span>
-            )}
-          </div>
-        </div>
+            )}</>}
+        />
       )}
 
       {/* Search + Filters */}

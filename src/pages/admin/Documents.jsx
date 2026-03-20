@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest, base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { Button, PageHeader, Modal } from '../../components/ui';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 const DOC_TYPE_BADGE = {
@@ -33,22 +34,22 @@ function ToggleSwitch({ checked, onChange, disabled }) {
 
 /* ── Confirm Dialog ── */
 function DocConfirmDialog({ open, title, children, confirmLabel, onConfirm, onCancel, danger }) {
-  if (!open) return null;
   return (
-    <div className="confirm-overlay" onClick={onCancel}>
-      <div className="fy-confirm-dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="fy-confirm-header">
-          <h3>{title}</h3>
-        </div>
-        <div className="fy-confirm-body">{children}</div>
-        <div className="fy-confirm-footer">
-          <button type="button" className="btn btn-secondary" onClick={onCancel}>キャンセル</button>
-          <button type="button" className="btn btn-primary" onClick={onConfirm}
-            style={danger ? { background: "var(--color-danger)", borderColor: "var(--color-danger)" } : {}}
-          >{confirmLabel}</button>
-        </div>
-      </div>
-    </div>
+    <Modal
+      isOpen={open}
+      onClose={onCancel}
+      title={title}
+      footer={<>
+        <Button variant="secondary" onClick={onCancel}>キャンセル</Button>
+        <Button
+          variant={danger ? "danger" : "primary"}
+          onClick={onConfirm}
+          style={danger ? { background: "var(--color-danger)", color: "#fff", border: "none" } : {}}
+        >{confirmLabel}</Button>
+      </>}
+    >
+      {children}
+    </Modal>
   );
 }
 
@@ -187,9 +188,9 @@ export default function Documents() {
       {isMobile ? (
         <div className="page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px' }}>
           <h1 className="page-title" style={{ margin: 0, fontSize: 18 }}>資料管理</h1>
-          <button
-            className="btn btn-primary"
-            type="button"
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => navigate("/admin/documents/new")}
             style={{ padding: '6px 10px', minWidth: 0, lineHeight: 1 }}
             aria-label="新規作成"
@@ -197,13 +198,10 @@ export default function Documents() {
             <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
               <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
-          </button>
+          </Button>
         </div>
       ) : (
-        <div className="page-header">
-          <h1 className="page-title">資料管理</h1>
-          <p className="page-description">団体資料の管理・並び替え・公開設定</p>
-        </div>
+        <PageHeader title="資料管理" subtitle="団体資料の管理・並び替え・公開設定" />
       )}
 
       {/* Toast */}
@@ -250,10 +248,10 @@ export default function Documents() {
           <span className="doc-sort-banner-icon">{"\u26A0\uFE0F"}</span>
           <span className="doc-sort-banner-text">未保存の変更があります</span>
           <div className="doc-sort-banner-actions">
-            <button className="btn btn-primary" type="button" onClick={handleSaveSortOrder} disabled={saving}>
+            <Button variant="primary" onClick={handleSaveSortOrder} disabled={saving}>
               {saving ? "保存中..." : "並び順を保存"}
-            </button>
-            <button className="btn btn-secondary" type="button" onClick={handleCancelSort}>元に戻す</button>
+            </Button>
+            <Button variant="secondary" onClick={handleCancelSort}>元に戻す</Button>
           </div>
         </div>
       )}
@@ -263,12 +261,12 @@ export default function Documents() {
           {!isMobile && (
             <div className="panel-heading compact">
               <h2>資料一覧</h2>
-              <button className="btn btn-primary" type="button" onClick={() => navigate("/admin/documents/new")}>
+              <Button variant="primary" onClick={() => navigate("/admin/documents/new")}>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginRight: 4 }}>
                   <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
                 新規作成
-              </button>
+              </Button>
             </div>
           )}
 
@@ -284,9 +282,9 @@ export default function Documents() {
               </div>
               <h3>まだ資料がありません</h3>
               <p className="muted">新規作成ボタンから最初の資料を追加しましょう</p>
-              <button className="btn btn-primary" type="button" onClick={() => navigate("/admin/documents/new")} style={{ marginTop: 12 }}>
+              <Button variant="primary" onClick={() => navigate("/admin/documents/new")} style={{ marginTop: 12 }}>
                 新規作成
-              </button>
+              </Button>
             </div>
           ) : isMobile ? (
             /* ── Mobile card list ── */

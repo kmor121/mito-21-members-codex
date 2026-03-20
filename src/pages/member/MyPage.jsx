@@ -576,7 +576,7 @@ export default function MyPage() {
       {/* Greeting header */}
       <div className="page-header" style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <h1 className="page-title" style={{ fontSize: isMobile ? 17 : undefined }}>{getGreeting()}、{greetingName(member) || "会員さん"}</h1>
+          <h1 className="page-title" style={{ fontSize: isMobile ? 18 : undefined }}>{getGreeting()}、{greetingName(member) || "会員さん"}</h1>
           <p className="page-description">マイページ</p>
         </div>
         <button className="button" type="button" onClick={handleStartEdit} style={isMobile ? { fontSize: 12, padding: "6px 12px" } : {}}>
