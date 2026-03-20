@@ -131,7 +131,16 @@ export default function ApplyConfirm() {
       <section className="detail-card application-section application-section-actions stack-sm">
         {errorMsg && <p className="message error" aria-live="polite">{errorMsg}</p>}
         <div className="actions application-actions">
-          <button className="button" type="button" disabled={submitting} onClick={handleSubmit}>
+          <button type="button" disabled={submitting} onClick={handleSubmit}
+            style={{
+              background: submitting ? '#a5b4fc' : 'var(--color-accent)', color: '#fff', border: 'none',
+              borderRadius: 'var(--radius-md)', padding: '12px 28px',
+              fontSize: 15, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer',
+              transition: 'background 0.2s',
+            }}
+            onMouseEnter={(e) => { if (!submitting) e.target.style.background = 'var(--color-accent-dark)'; }}
+            onMouseLeave={(e) => { if (!submitting) e.target.style.background = 'var(--color-accent)'; }}
+          >
             {submitting ? "送信中..." : "この内容で送信する"}
           </button>
           <Link className="text-link subtle-link" to="/apply">入力画面</Link>
