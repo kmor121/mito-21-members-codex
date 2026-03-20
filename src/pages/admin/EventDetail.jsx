@@ -778,6 +778,110 @@ export default function EventDetail() {
                 </div>
               </div>
             )}
+
+            {/* ── After party attendance ── */}
+            {childAfterParty && (() => {
+              const apAtts = childApAtts || [];
+              const apAttMap = {};
+              apAtts.forEach(a => { apAttMap[a.member_id] = a; });
+              const apAttendCount = apAtts.filter(a => (a.response || a.status) === '出席').length;
+              const apAbsentCount = apAtts.filter(a => (a.response || a.status) === '欠席').length;
+              const apRespondedMembers = targetMembers.filter(m => apAttMap[m.id]);
+              const apNotRespondedMembers = targetMembers.filter(m => !apAttMap[m.id]);
+              const apTargetCount = targetMembers.length;
+              const apResponseRate = apTargetCount > 0 ? Math.round((apRespondedMembers.length / apTargetCount) * 100) : 0;
+              const apAttendRate = apRespondedMembers.length > 0 ? Math.round((apAttendCount / apRespondedMembers.length) * 100) : 0;
+
+              return (
+                <div style={{ marginTop: 24, paddingTop: 20, borderTop: '2px solid var(--line)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 18 }}>🍻</span>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: '#92400e', margin: 0 }}>懇親会の出欠</h3>
+                    <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                      {childAfterParty.location && `📍 ${childAfterParty.location}`}
+                      {childAfterParty.start_time && ` 🕐 ${childAfterParty.start_time}${childAfterParty.end_time ? `〜${childAfterParty.end_time}` : ''}`}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', marginBottom: 20 }}>
+                    <AttendanceRing present={apAttendCount} total={apTargetCount} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                        <div>
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 }}>回答率</div>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                            <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)' }}>{apResponseRate}</span>
+                            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>%</span>
+                            <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 4 }}>({apRespondedMembers.length}/{apTargetCount})</span>
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 }}>出席率</div>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                            <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--success)' }}>{apAttendRate}</span>
+                            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>%</span>
+                            <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 4 }}>({apAttendCount}/{apRespondedMembers.length})</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <div style={{ padding: '4px 12px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', background: 'var(--success-light)', fontSize: 13 }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>出席</span>
+                          <span style={{ marginLeft: 6, fontWeight: 700, color: 'var(--success)' }}>{apAttendCount}</span>
+                        </div>
+                        <div style={{ padding: '4px 12px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', background: 'var(--error-light)', fontSize: 13 }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>欠席</span>
+                          <span style={{ marginLeft: 6, fontWeight: 700, color: 'var(--error)' }}>{apAbsentCount}</span>
+                        </div>
+                        <div style={{ padding: '4px 12px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', background: 'var(--bg)', fontSize: 13 }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>未回答</span>
+                          <span style={{ marginLeft: 6, fontWeight: 700, color: 'var(--muted)' }}>{apNotRespondedMembers.length}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {apRespondedMembers.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, color: 'var(--text)' }}>回答済み（{apRespondedMembers.length}名）</h4>
+                      <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+                        {apRespondedMembers.map((m, idx) => {
+                          const att = apAttMap[m.id];
+                          const resp = att?.response || att?.status || '';
+                          return (
+                            <div key={m.id} style={{
+                              display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                              borderBottom: idx < apRespondedMembers.length - 1 ? '1px solid var(--line-light)' : 'none',
+                            }}>
+                              <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80 }}>{fullName(m)}</span>
+                              <span style={{
+                                padding: '2px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600,
+                                background: resp === '出席' ? 'var(--success-light)' : 'var(--error-light)',
+                                color: resp === '出席' ? 'var(--success)' : 'var(--error)',
+                              }}>{resp}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {apNotRespondedMembers.length > 0 && (
+                    <div>
+                      <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, color: 'var(--muted)' }}>未回答（{apNotRespondedMembers.length}名）</h4>
+                      <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+                        {apNotRespondedMembers.map((m, idx) => (
+                          <div key={m.id} style={{
+                            display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                            borderBottom: idx < apNotRespondedMembers.length - 1 ? '1px solid var(--line-light)' : 'none',
+                            background: 'var(--bg)',
+                          }}>
+                            <span style={{ fontWeight: 500, fontSize: 13, color: 'var(--muted)' }}>{fullName(m)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </section>
       )}
