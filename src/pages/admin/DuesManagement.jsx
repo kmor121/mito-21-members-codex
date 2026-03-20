@@ -492,8 +492,6 @@ export default function DuesManagement() {
 
   // Confirm dialogs
   const [confirmBatch, setConfirmBatch] = useState(false);
-  const [confirmReminder, setConfirmReminder] = useState(false);
-  const [confirmAllReminder, setConfirmAllReminder] = useState(false);
   const [confirmBulkIssue, setConfirmBulkIssue] = useState(false);
   // confirmRevert removed — unified in ReconcileModal
 
@@ -826,43 +824,6 @@ export default function DuesManagement() {
     }
   }
 
-  async function executeSendReminder() {
-    setConfirmReminder(false);
-    setSaving(true);
-    try {
-      await apiRequest("send-due-reminder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fiscal_year_id: activeFiscalYearId }),
-      });
-      showToast("リマインドメールを送信しました");
-    } catch (err) {
-      showToast(err.message || "送信に失敗しました", "error");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function executeSendAllReminder() {
-    setConfirmAllReminder(false);
-    setSaving(true);
-    try {
-      const fyIds = [...new Set(allUnpaid.map((d) => d.fiscal_year_id))];
-      for (const fyId of fyIds) {
-        await apiRequest("send-due-reminder", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fiscal_year_id: fyId }),
-        });
-      }
-      showToast(`全年度の未納者にリマインドメールを送信しました (${fyIds.length}年度分)`);
-    } catch (err) {
-      showToast(err.message || "送信に失敗しました", "error");
-    } finally {
-      setSaving(false);
-    }
-  }
-
   async function handleSaveSettings(e) {
     e.preventDefault();
     setSaving(true);
@@ -1125,22 +1086,6 @@ export default function DuesManagement() {
       />
 
       <ConfirmDialog
-        open={confirmReminder}
-        title="リマインド送信確認"
-        message={`未納者 ${computedSummary.unpaidCount || 0}名にリマインドメールを送信しますか？`}
-        confirmLabel="送信する"
-        onConfirm={executeSendReminder}
-        onCancel={() => setConfirmReminder(false)}
-      />
-      <ConfirmDialog
-        open={confirmAllReminder}
-        title="全年度リマインド送信確認"
-        message={`全年度の未納者 ${allUnpaidSummary.totalCount}件（${unpaidByYear.length}年度分）にリマインドメールを送信しますか？`}
-        confirmLabel="全年度分を送信"
-        onConfirm={executeSendAllReminder}
-        onCancel={() => setConfirmAllReminder(false)}
-      />
-      <ConfirmDialog
         open={confirmBulkIssue}
         title="会費一括発行"
         message={`会費データがない正会員・賛助会員 ${computedSummary.unissuedCount}名に当年度の会費を一括発行しますか？\n※ 既に発行済みの会員はスキップされます`}
@@ -1304,15 +1249,6 @@ export default function DuesManagement() {
                   {fyOrgs.map(o => (<option key={o.id} value={o.id}>{o.org_name}</option>))}
                 </select>
               </div>
-              <div style={{ marginTop: 10 }}>
-                <Button variant="secondary" size="sm" onClick={() => setConfirmReminder(true)}
-                  disabled={saving || computedSummary.unpaidCount === 0} style={{ width: '100%' }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginRight: 4, verticalAlign: 'middle' }}>
-                    <path d="M1 3l6 4 6-4M1 3v8h12V3H1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
-                  </svg>
-                  {"\u672A\u7D0D\u8005\u306B\u30EA\u30DE\u30A4\u30F3\u30C9\u9001\u4FE1"}
-                </Button>
-              </div>
             </div>
           )}
 
@@ -1413,18 +1349,6 @@ export default function DuesManagement() {
                   </div>
                 )}
 
-                {/* Actions */}
-                <div style={{ marginLeft: "auto", display: "flex", gap: 6, flexShrink: 0 }}>
-                  <Button variant="secondary" size="sm"
-                    onClick={() => setConfirmReminder(true)}
-                    disabled={saving || computedSummary.unpaidCount === 0}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginRight: 4, verticalAlign: "middle" }}>
-                      <path d="M1 3l6 4 6-4M1 3v8h12V3H1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-                    </svg>
-                    リマインド
-                  </Button>
-                </div>
               </div>
               )}
 
@@ -1672,18 +1596,6 @@ export default function DuesManagement() {
             </div>
           )}
 
-          {/* Actions */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-            <Button variant="secondary" size="sm"
-              onClick={() => setConfirmAllReminder(true)}
-              disabled={saving || allUnpaidSummary.totalCount === 0}
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginRight: 4, verticalAlign: "middle" }}>
-                <path d="M1 3l6 4 6-4M1 3v8h12V3H1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-              </svg>
-              全未納者にリマインドメール送信
-            </Button>
-          </div>
 
           {/* Grouped tables */}
           {loading ? (
