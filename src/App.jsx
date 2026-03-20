@@ -39,7 +39,6 @@ const Meetings = lazy(() => import('./pages/admin/Meetings'));
 const MeetingDetail = lazy(() => import('./pages/admin/MeetingDetail'));
 const Events = lazy(() => import('./pages/admin/Events'));
 const EventDetail = lazy(() => import('./pages/admin/EventDetail'));
-const SeedCleanAttendance = lazy(() => import('./pages/admin/SeedCleanAttendance'));
 
 // Member pages
 const Directory = lazy(() => import('./pages/member/Directory'));
@@ -123,7 +122,6 @@ export default function App() {
               <Route path="/admin/meetings/:meetingId" element={<MeetingDetail />} />
               <Route path="/admin/events" element={<Events />} />
               <Route path="/admin/events/:eventId" element={<EventDetail />} />
-              <Route path="/admin/clean-attendance" element={<SeedCleanAttendance />} />
             </Route>
 
             {/* Member routes - requires authentication + member linkage */}
