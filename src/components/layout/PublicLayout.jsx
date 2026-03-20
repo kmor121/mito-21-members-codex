@@ -1,4 +1,6 @@
 import { Outlet, Link } from 'react-router-dom';
+import { Suspense } from 'react';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 export default function PublicLayout() {
   return (
@@ -15,7 +17,9 @@ export default function PublicLayout() {
         </div>
       </header>
       <main className="public-content">
-        <Outlet />
+        <Suspense fallback={<LoadingSpinner />}>
+          <Outlet />
+        </Suspense>
       </main>
     </div>
   );

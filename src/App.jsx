@@ -75,18 +75,17 @@ export default function App() {
       <AuthProvider>
         <ToastContainer toasts={toasts} />
         <ErrorBoundary>
-        <Suspense fallback={<PageFallback />}>
           <Routes>
             {/* Root redirect */}
             <Route path="/" element={<RootRedirect />} />
 
             {/* Login */}
             <Route path="/signin" element={
-              <PublicOnlyRoute><Login /></PublicOnlyRoute>
+              <Suspense fallback={<PageFallback />}><PublicOnlyRoute><Login /></PublicOnlyRoute></Suspense>
             } />
 
             {/* Public routes - no auth required (standalone, no layout) */}
-            <Route path="/guide" element={<RegistrationGuide />} />
+            <Route path="/guide" element={<Suspense fallback={<PageFallback />}><RegistrationGuide /></Suspense>} />
 
             {/* Public routes - no auth required */}
             <Route element={<PublicLayout />}>
@@ -142,7 +141,6 @@ export default function App() {
             {/* Catch-all */}
             <Route path="*" element={<RootRedirect />} />
           </Routes>
-        </Suspense>
         </ErrorBoundary>
       </AuthProvider>
     </BrowserRouter>

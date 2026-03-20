@@ -1,4 +1,6 @@
 import { NavLink, Outlet, Link } from 'react-router-dom';
+import { Suspense } from 'react';
+import LoadingSpinner from '../common/LoadingSpinner';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { base44 } from '../../api/base44Client';
@@ -272,7 +274,9 @@ export default function MemberLayout() {
           </div>
         </header>
         <main className="workspace-content">
-          <Outlet />
+          <Suspense fallback={<LoadingSpinner />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
       <MobileBottomNav />
