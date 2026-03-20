@@ -710,7 +710,7 @@ export default function MemberList() {
                   value={organizationId}
                   onChange={(e) => setOrganizationId(e.target.value)}
                   style={{
-                    padding: "4px 10px",
+                    padding: "4px 24px 4px 10px",
                     borderRadius: "999px",
                     border: organizationId ? "2px solid var(--color-accent)" : "1px solid var(--color-border)",
                     background: organizationId ? "var(--color-accent-light)" : "#fff",
