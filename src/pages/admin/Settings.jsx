@@ -25,7 +25,6 @@ const TEMPLATE_TABS = [
   { key: "admin_notification", label: "管理者通知" },
   { key: "approval", label: "承認通知" },
   { key: "rejection", label: "却下通知" },
-  { key: "due_reminder", label: "会費リマインダー" },
 ];
 
 const TEMPLATE_VARIABLES = {
@@ -44,12 +43,6 @@ const TEMPLATE_VARIABLES = {
   ],
   rejection: [
     { var: "applicant_name", label: "申込者名" },
-  ],
-  due_reminder: [
-    { var: "member_name", label: "会員名" },
-    { var: "fiscal_year", label: "年度" },
-    { var: "due_type", label: "会費種別" },
-    { var: "amount", label: "金額" },
   ],
 };
 
@@ -128,24 +121,6 @@ https://mito21-members-codex-da487265.base44.app/admin/applications
 水戸21の会 事務局
 ──────────────────`,
 
-  template_due_reminder_subject: "【水戸21の会】{{fiscal_year}}年度 会費納入のお願い",
-  template_due_reminder_body: `{{member_name}} 様
-
-平素より水戸21の会の活動にご協力いただき、誠にありがとうございます。
-
-{{fiscal_year}}年度の{{due_type}}について、まだご入金の確認が取れておりません。
-お手数ではございますが、下記の内容をご確認の上、お早めにお手続きくださいますようお願いいたします。
-
-■ お支払い内容
-会費種別: {{due_type}}
-金額: {{amount}}円
-
-お振込みがお済みの場合は、行き違いとなりますことをお詫び申し上げます。
-ご不明な点がございましたら、事務局までお気軽にお問い合わせください。
-
-──────────────────
-水戸21の会 事務局
-──────────────────`,
 };
 
 /* ──────────── helpers ──────────── */
