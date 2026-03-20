@@ -734,7 +734,7 @@ export default function EventDetail() {
                   <div style={{ minWidth: isMobile ? 0 : 400, border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
                     <div style={{
                       display: 'grid', gridTemplateColumns: isMobile ? '1fr 36px 46px 32px 32px' : '1fr 70px 70px 70px 70px',
-                      padding: isMobile ? '8px 10px' : '8px 14px', background: 'var(--color-border)',
+                      padding: isMobile ? '8px 10px' : '8px 14px', background: 'var(--color-bg-sub)',
                       fontSize: isMobile ? 11 : 12, fontWeight: 600, color: 'var(--color-text-secondary)',
                       borderBottom: '1px solid var(--color-border)',
                     }}>

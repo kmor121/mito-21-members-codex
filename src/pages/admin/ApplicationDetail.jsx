@@ -108,7 +108,7 @@ function InfoGrid({ items, singleColumn }) {
       {items.map((item, i) => item && (
         <div key={i} style={{
           padding: "10px 12px", borderRadius: "var(--radius)",
-          background: "var(--color-border)", border: "1px solid var(--color-border)",
+          background: "var(--color-bg-sub)", border: "1px solid var(--color-border)",
           gridColumn: item.span2 ? "span 2" : undefined,
         }}>
           <dt style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 4 }}>

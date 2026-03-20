@@ -1328,7 +1328,7 @@ export default function NewsletterEdit() {
               }}>
                 <span>LINE</span>
                 <span style={{
-                  fontSize: 12, fontWeight: 700, background: "var(--color-border)",
+                  fontSize: 12, fontWeight: 700, background: "var(--color-bg-sub)",
                   color: "var(--color-text-secondary)", padding: "2px 6px", borderRadius: 99,
                 }}>
                   準備中
@@ -1716,7 +1716,7 @@ export default function NewsletterEdit() {
                   {attachLinks.map((link, idx) => (
                     <div key={idx} style={{
                       padding: "10px 12px", borderRadius: "var(--radius-md)",
-                      background: "var(--color-border)", border: "1px solid var(--color-border)",
+                      background: "var(--color-bg-sub)", border: "1px solid var(--color-border)",
                       position: "relative",
                     }}>
                       <button

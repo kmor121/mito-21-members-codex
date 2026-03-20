@@ -492,7 +492,7 @@ textarea { resize: vertical; }
 .members-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-lg); background: #fff; }
 .members-table { width: 100%; border-collapse: collapse; min-width: 820px; }
 .members-table th, .members-table td { padding: 10px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; font-size: 13px; }
-.members-table th { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary); background: var(--line-light); position: sticky; top: 0; }
+.members-table th { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-secondary); background: var(--color-bg-sub); position: sticky; top: 0; }
 .members-table tbody tr { transition: background var(--transition); }
 .members-table tbody tr:nth-child(even) { background: #fafbfc; }
 .members-table tbody tr:hover { background: var(--primary-light); }
@@ -502,7 +502,7 @@ textarea { resize: vertical; }
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-lg); background: #fff; }
 .data-table { width: 100%; border-collapse: collapse; min-width: 700px; }
 .data-table th, .data-table td { padding: 10px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; font-size: 13px; }
-.data-table th { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary); background: var(--line-light); position: sticky; top: 0; }
+.data-table th { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-secondary); background: var(--color-bg-sub); position: sticky; top: 0; }
 .data-table tbody tr { transition: background var(--transition); }
 .data-table tbody tr:nth-child(even) { background: #fafbfc; }
 .data-table tbody tr:hover { background: var(--primary-light); }

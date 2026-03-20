@@ -261,7 +261,7 @@ export default function Applications() {
               {/* Applicant summary */}
               <div style={{
                 padding: "12px 16px", borderRadius: "var(--radius-md)",
-                background: "var(--color-border)", border: "1px solid var(--color-border)",
+                background: "var(--color-bg-sub)", border: "1px solid var(--color-border)",
                 display: "grid", gap: 4,
               }}>
                 <div style={{ fontSize: 13 }}>
@@ -348,7 +348,7 @@ export default function Applications() {
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div style={{
                 padding: "12px 16px", borderRadius: "var(--radius-md)",
-                background: "var(--color-border)", border: "1px solid var(--color-border)",
+                background: "var(--color-bg-sub)", border: "1px solid var(--color-border)",
                 fontSize: 13,
               }}>
                 <span style={{ color: "var(--color-text-secondary)", marginRight: 8 }}>申込者:</span>
