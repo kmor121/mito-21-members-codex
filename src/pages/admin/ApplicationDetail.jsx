@@ -521,7 +521,7 @@ export default function ApplicationDetail() {
             ) : (
               <div style={{
                 width: 80, height: 80, borderRadius: "50%",
-                background: "linear-gradient(135deg, var(--color-accent-light), var(--primary-50))",
+                background: "linear-gradient(135deg, var(--color-accent-light), var(--color-accent-light))",
                 border: "2px solid var(--color-border)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 28, fontWeight: 700, color: "var(--color-accent)",

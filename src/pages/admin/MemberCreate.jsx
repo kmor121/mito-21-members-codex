@@ -180,7 +180,7 @@ function ProgressIndicator({ currentSection }) {
               </div>
               <span style={{
                 fontSize: 12, fontWeight: isCurrent ? 700 : 500,
-                color: isCurrent ? 'var(--color-accent)' : isPast ? 'var(--success-text)' : 'var(--color-text-tertiary)',
+                color: isCurrent ? 'var(--color-accent)' : isPast ? 'var(--color-success)' : 'var(--color-text-tertiary)',
                 whiteSpace: 'nowrap',
               }}>
                 {step}
