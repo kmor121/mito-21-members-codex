@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '../../api/base44Client';
 import { Search, X, ChevronRight, Phone, Mail } from 'lucide-react';
 import { MemberListSkeleton } from '../../components/ui/Skeleton';
+import { PageHeader } from '../../components/ui';
 import { fullName, fullNameKana, nameInitial } from '../../utils/formatName';
 
 function displayValue(value) {
@@ -277,10 +278,7 @@ export default function Directory() {
 
   return (
     <section className="admin-shell">
-      <div className="page-header">
-        <h1 className="page-title">会員名簿</h1>
-        <p className="page-description">承認済・活動中の会員名簿を閲覧</p>
-      </div>
+      <PageHeader title="会員名簿" subtitle="承認済・活動中の会員名簿を閲覧" />
 
       {/* Mobile search */}
       {isMobile ? (

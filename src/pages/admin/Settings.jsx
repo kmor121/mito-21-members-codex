@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { PageHeader } from '../../components/ui';
 import { fullName } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -355,10 +356,7 @@ export default function Settings() {
 
   return (
     <section className="admin-shell">
-      <div className="page-header">
-        <h1 className="page-title">設定</h1>
-        {!isMobile && <p className="page-description">管理者設定</p>}
-      </div>
+      <PageHeader title="設定" subtitle={!isMobile ? "管理者設定" : undefined} />
 
       {/* Main tabs */}
       <div style={{ display: "flex", gap: 4, marginBottom: 24, overflowX: isMobile ? "auto" : undefined, WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" }}>

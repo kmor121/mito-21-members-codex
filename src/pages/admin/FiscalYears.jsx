@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiRequest, base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { PageHeader } from '../../components/ui';
 import DatePicker from '../../components/ui/DatePicker';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -401,10 +402,7 @@ export default function FiscalYears() {
 
   return (
     <section className="admin-shell">
-      <div className="page-header">
-        <h1 className="page-title">年度管理</h1>
-        {!isMobile && <p className="page-description">年度の登録・管理と年度移行処理</p>}
-      </div>
+      <PageHeader title="年度管理" subtitle={!isMobile ? "年度の登録・管理と年度移行処理" : undefined} />
 
       {/* Toast */}
       <FyToast

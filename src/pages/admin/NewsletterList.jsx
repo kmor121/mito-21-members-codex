@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { PageHeader } from '../../components/ui';
 
 /* ── Inline SVG Icons ── */
 function MailIcon() {
@@ -652,9 +653,7 @@ export default function NewsletterList() {
   if (loading) {
     return (
       <div className="admin-shell" style={{ animation: "nlFade 0.15s ease" }}>
-        <div className="page-header">
-          <h1 className="page-title">配信管理</h1>
-        </div>
+        <PageHeader title="配信管理" />
         {/* Skeleton loading area */}
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
           {TABS.map(t => (
@@ -694,9 +693,7 @@ export default function NewsletterList() {
   if (error) {
     return (
       <div className="admin-shell" style={{ animation: "nlFade 0.15s ease" }}>
-        <div className="page-header">
-          <h1 className="page-title">配信管理</h1>
-        </div>
+        <PageHeader title="配信管理" />
         <div className="card panel-card single-panel" style={{ padding: 32, textAlign: "center", color: "var(--text-secondary, #64748b)" }}>
           <p>{error}</p>
           <button

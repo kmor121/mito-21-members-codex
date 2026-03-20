@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { base44 } from '../../api/base44Client';
 import { ChevronDown, FileText } from 'lucide-react';
 import { SkeletonCard } from '../../components/ui/Skeleton';
+import { PageHeader } from '../../components/ui';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 function displayValue(value) {
@@ -118,10 +119,7 @@ export default function Manual() {
   if (loading) {
     return (
       <section className="admin-shell">
-        <div className="page-header">
-          <h1 className="page-title">運用マニュアル</h1>
-          <p className="page-description">公開中の運用マニュアルを確認</p>
-        </div>
+        <PageHeader title="運用マニュアル" subtitle="公開中の運用マニュアルを確認" />
         <div style={{ display: "grid", gap: 16 }}>
           <SkeletonCard height={100} />
           <SkeletonCard height={100} />
@@ -134,10 +132,7 @@ export default function Manual() {
   if (error) {
     return (
       <section className="admin-shell">
-        <div className="page-header">
-          <h1 className="page-title">運用マニュアル</h1>
-          <p className="page-description">公開中の運用マニュアルを確認</p>
-        </div>
+        <PageHeader title="運用マニュアル" subtitle="公開中の運用マニュアルを確認" />
         <section className="card panel-card single-panel">
           <div className="card-body stack">
             <p className="message error">{error}</p>
@@ -149,10 +144,7 @@ export default function Manual() {
 
   return (
     <section className="admin-shell">
-      <div className="page-header">
-        <h1 className="page-title">運用マニュアル</h1>
-        <p className="page-description">公開中の運用マニュアルを確認</p>
-      </div>
+      <PageHeader title="運用マニュアル" subtitle="公開中の運用マニュアルを確認" />
       <section className="card panel-card single-panel">
         <div className="card-body stack">
           {manuals.length ? (

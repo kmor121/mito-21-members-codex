@@ -4,6 +4,7 @@ import { base44, invalidateReadCache } from '../../api/base44Client';
 import { useAuth } from '../../contexts/AuthContext';
 import { fullName } from '../../utils/formatName';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { PageHeader } from '../../components/ui';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 const STATUS_BADGE = {
@@ -440,10 +441,7 @@ export default function MeetingsView() {
   if (loading) {
     return (
       <section className="admin-shell">
-        <div className="page-header">
-          <h1 className="page-title">幹事会</h1>
-          <p className="page-description">幹事会の次第・議事録を確認</p>
-        </div>
+        <PageHeader title="幹事会" subtitle="幹事会の次第・議事録を確認" />
         <LoadingSpinner />
       </section>
     );
@@ -452,10 +450,7 @@ export default function MeetingsView() {
   return (
     <section className="admin-shell">
       {/* ── Header ── */}
-      <div className="page-header">
-        <h1 className="page-title">幹事会</h1>
-        <p className="page-description">幹事会の次第・議事録を確認</p>
-      </div>
+      <PageHeader title="幹事会" subtitle="幹事会の次第・議事録を確認" />
 
       {/* ── FY navigation ── */}
       <div style={styles.fyNav}>

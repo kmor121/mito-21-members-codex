@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { PageHeader } from '../../components/ui';
 
 function displayValue(value) {
   if (value === null || value === undefined || value === "") return "-";
@@ -139,10 +140,7 @@ export default function BasicInfo() {
   if (loading) {
     return (
       <section className="admin-shell">
-        <div className="page-header">
-          <h1 className="page-title">基本情報</h1>
-          <p className="page-description">年度ごとの事業計画・理念・会則・年間スケジュール</p>
-        </div>
+        <PageHeader title="基本情報" subtitle="年度ごとの事業計画・理念・会則・年間スケジュール" />
         <section className="card panel-card single-panel">
           <div className="card-body">
             <LoadingSpinner />
@@ -155,10 +153,7 @@ export default function BasicInfo() {
   if (error) {
     return (
       <section className="admin-shell">
-        <div className="page-header">
-          <h1 className="page-title">基本情報</h1>
-          <p className="page-description">年度ごとの事業計画・理念・会則・年間スケジュール</p>
-        </div>
+        <PageHeader title="基本情報" subtitle="年度ごとの事業計画・理念・会則・年間スケジュール" />
         <section className="card panel-card single-panel">
           <div className="card-body stack">
             <p className="message error">{error}</p>
@@ -176,10 +171,7 @@ export default function BasicInfo() {
 
   return (
     <section className="admin-shell">
-      <div className="page-header">
-        <h1 className="page-title">基本情報</h1>
-        <p className="page-description">年度ごとの事業計画・理念・会則・年間スケジュール</p>
-      </div>
+      <PageHeader title="基本情報" subtitle="年度ごとの事業計画・理念・会則・年間スケジュール" />
       <section className="card panel-card single-panel">
         <div className="card-body stack">
           <div className="panel-heading">

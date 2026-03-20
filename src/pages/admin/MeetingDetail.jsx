@@ -6,6 +6,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import DatePicker from '../../components/ui/DatePicker';
 import TimeSelect from '../../components/ui/TimeSelect';
 import MemberSelector from '../../components/ui/MemberSelector';
+import { Modal, Button } from '../../components/ui';
 import { fullName, nameInitial } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -731,25 +732,18 @@ export default function MeetingDetail() {
       {toast && <div className="nl2-toast"><span className="nl2-toast-icon">{"\u2713"}</span><span>{toast}</span></div>}
 
       {/* Confirm Modal */}
-      {confirmModal && (
-        <div className="confirm-overlay" onClick={() => setConfirmModal(null)}>
-          <div className="modal-dialog" style={{ maxWidth: "min(440px, calc(100vw - 32px))" }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--color-border)" }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>{confirmModal.title}</h3>
-            </div>
-            <div style={{ padding: "20px 24px" }}>
-              {confirmModal.message}
-            </div>
-            <div style={{ padding: "12px 24px 16px", display: "flex", justifyContent: "flex-end", gap: 10 }}>
-              <button className="btn btn-secondary" type="button" onClick={() => setConfirmModal(null)}>キャンセル</button>
-              <button className="btn btn-primary" type="button" disabled={saving} onClick={confirmModal.onConfirm}
-                style={confirmModal.danger ? { background: "var(--color-danger)", borderColor: "var(--color-danger)" } : {}}>
-                {saving ? "処理中..." : confirmModal.confirmLabel}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal isOpen={!!confirmModal} onClose={() => setConfirmModal(null)} title={confirmModal?.title || ''} width="440px"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setConfirmModal(null)}>キャンセル</Button>
+            <Button variant={confirmModal?.danger ? 'danger' : 'primary'} onClick={confirmModal?.onConfirm} disabled={saving}>
+              {saving ? '処理中...' : confirmModal?.confirmLabel}
+            </Button>
+          </>
+        }
+      >
+        {confirmModal?.message}
+      </Modal>
 
       <div style={{ marginBottom: 8 }}>
         <Link to="/admin/meetings" className="text-link" style={{ fontSize: 13 }}>&larr; 幹事会一覧に戻る</Link>

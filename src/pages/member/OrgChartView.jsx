@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { base44 } from "../../api/base44Client";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { PageHeader } from '../../components/ui';
 import { fullName, nameInitial } from "../../utils/formatName";
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -430,9 +431,7 @@ export default function OrgChartView() {
   if (loading) {
     return (
       <section className="admin-shell">
-        <div className="page-header">
-          <h1 className="page-title" style={{ display: "flex", alignItems: "center", gap: 10 }}>組織図</h1>
-        </div>
+        <PageHeader title="組織図" />
         <div style={{ display: "grid", gap: 12 }}>
           <SkeletonCard delay={0} />
           <SkeletonCard delay={80} />
@@ -449,7 +448,7 @@ export default function OrgChartView() {
   if (error) {
     return (
       <section className="admin-shell">
-        <div className="page-header"><h1 className="page-title">組織図</h1></div>
+        <PageHeader title="組織図" />
         <section className="card panel-card single-panel">
           <div className="card-body"><p className="message error">{error}</p></div>
         </section>
@@ -460,9 +459,7 @@ export default function OrgChartView() {
   return (
     <section className="admin-shell">
       {/* ── Page header ── */}
-      <div className="page-header" style={{ marginBottom: 0 }}>
-        <h1 className="page-title" style={{ margin: 0 }}>組織図</h1>
-      </div>
+      <PageHeader title="組織図" />
 
       {/* ── Year navigator ── */}
       <div style={{
