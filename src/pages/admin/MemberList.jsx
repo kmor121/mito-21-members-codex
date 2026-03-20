@@ -12,8 +12,8 @@ function displayValue(v) {
 }
 
 const MEMBER_TYPES = ["正会員", "賛助会員", "OB会員", "名誉顧問"];
-const MEMBER_TYPE_FILTERS = ["全て", "正会員", "賛助会員", "OB会員", "名誉顧問", "新入会員"];
-const STATUS_FILTERS = ["全て", "活動中", "休会", "退会"];
+const MEMBER_TYPE_FILTERS = ["すべて", "正会員", "賛助会員", "OB会員", "名誉顧問", "新入会員"];
+const STATUS_FILTERS = ["すべて", "活動中", "休会", "退会"];
 const STATUSES = ["活動中", "休会", "退会"];
 const EDITABLE_FIELDS = ["company_name", "member_type", "status", "email", "mobile_phone"];
 const PAGE_SIZE = 30;
@@ -52,8 +52,8 @@ export default function MemberList() {
 
   // Filter state
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState("全て");
-  const [memberType, setMemberType] = useState("全て");
+  const [status, setStatus] = useState("すべて");
+  const [memberType, setMemberType] = useState("すべて");
   const [organizationId, setOrganizationId] = useState("");
 
   // Pagination
@@ -157,8 +157,8 @@ export default function MemberList() {
   function getCurrentFilters() {
     return {
       q: q.trim(),
-      status: status === "全て" ? "" : status,
-      member_type: memberType === "全て" ? "" : (memberType === "新入会員" ? "" : memberType),
+      status: status === "すべて" ? "" : status,
+      member_type: memberType === "すべて" ? "" : (memberType === "新入会員" ? "" : memberType),
       organization_id: organizationId,
       is_new: memberType === "新入会員" ? true : undefined,
     };
@@ -191,8 +191,8 @@ export default function MemberList() {
 
   function handleReset() {
     setQ("");
-    setStatus("全て");
-    setMemberType("全て");
+    setStatus("すべて");
+    setMemberType("すべて");
     setOrganizationId("");
     setCurrentPage(1);
     loadMembers({});
@@ -625,7 +625,7 @@ export default function MemberList() {
               </select>
             </div>
             {/* Reset button */}
-            {(memberType !== "全て" || status !== "全て" || organizationId || q) && (
+            {(memberType !== "すべて" || status !== "すべて" || organizationId || q) && (
               <div style={{ marginTop: 10 }}>
                 <button className="btn btn-secondary" type="button" onClick={handleReset}
                   style={{ fontSize: 12, padding: '6px 12px', width: '100%' }}>
@@ -716,7 +716,7 @@ export default function MemberList() {
                     fontSize: "12px", fontWeight: 600, cursor: "pointer", outline: "none",
                     display: "inline-flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap", transition: "all 0.15s",
                   }}>
-                  {organizationId ? (orgOptions.find(o => o.id === organizationId)?.name || '選択中') : '全て'}
+                  {organizationId ? (orgOptions.find(o => o.id === organizationId)?.name || '選択中') : 'すべて'}
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: showOrgDropdown ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
                     <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -733,7 +733,7 @@ export default function MemberList() {
                         style={{ width: "100%", padding: "7px 14px", border: "none", background: !organizationId ? "var(--color-accent-light)" : "transparent", color: !organizationId ? "var(--color-accent)" : "var(--color-text-primary)", fontSize: "12px", fontWeight: !organizationId ? 700 : 500, textAlign: "left", cursor: "pointer", transition: "background 0.1s" }}
                         onMouseEnter={e => { if (organizationId) e.currentTarget.style.background = "var(--color-bg-sub)"; }}
                         onMouseLeave={e => { if (organizationId) e.currentTarget.style.background = "transparent"; }}
-                      >全て</button>
+                      >すべて</button>
                       {orgOptions.map(opt => (
                         <button key={opt.id} type="button" onClick={() => { setOrganizationId(opt.id); setShowOrgDropdown(false); }}
                           style={{ width: "100%", padding: "7px 14px", border: "none", background: organizationId === opt.id ? "var(--color-accent-light)" : "transparent", color: organizationId === opt.id ? "var(--color-accent)" : "var(--color-text-primary)", fontSize: "12px", fontWeight: organizationId === opt.id ? 700 : 500, textAlign: "left", cursor: "pointer", transition: "background 0.1s" }}
@@ -754,7 +754,7 @@ export default function MemberList() {
                 }}>
                   {members.length}件表示中
                 </span>
-                {(memberType !== "全て" || status !== "全て" || organizationId || q) && (
+                {(memberType !== "すべて" || status !== "すべて" || organizationId || q) && (
                   <button
                     className="btn btn-secondary"
                     type="button"
