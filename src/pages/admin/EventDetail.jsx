@@ -328,6 +328,44 @@ export default function EventDetail() {
     setSaving(false);
   }
 
+  /* ── After-party proxy response ── */
+  async function handleApProxyResponse(memberId, response) {
+    if (!childAfterParty) return;
+    setSaving(true);
+    try {
+      const apAtt = childApAtts.find(a => a.member_id === memberId);
+      if (apAtt) {
+        await base44.entities.Attendance.update(apAtt.id, {
+          response, status: response, responded_at: new Date().toISOString(),
+        });
+      } else {
+        await base44.entities.Attendance.create({
+          event_id: childAfterParty.id, member_id: memberId,
+          response, status: response, responded_at: new Date().toISOString(),
+        });
+      }
+      invalidateReadCache('Attendance');
+      showToast('懇親会の出欠を更新しました');
+      await loadData();
+    } catch (err) { showToast(err.message || '更新に失敗しました', 'error'); }
+    setSaving(false);
+  }
+
+  async function handleApCancelResponse(memberId) {
+    if (!childAfterParty) return;
+    setSaving(true);
+    try {
+      const apAtt = childApAtts.find(a => a.member_id === memberId);
+      if (apAtt) {
+        await base44.entities.Attendance.delete(apAtt.id);
+        invalidateReadCache('Attendance');
+        showToast('懇親会の回答を取り消しました');
+        await loadData();
+      }
+    } catch (err) { showToast(err.message || '取消に失敗しました', 'error'); }
+    setSaving(false);
+  }
+
   /* ── After-party CRUD ── */
   async function addAfterParty() {
     setSaving(true);
@@ -850,13 +888,18 @@ export default function EventDetail() {
                             <div key={m.id} style={{
                               display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
                               borderBottom: idx < apRespondedMembers.length - 1 ? '1px solid var(--line-light)' : 'none',
+                              flexWrap: 'wrap',
                             }}>
                               <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80 }}>{fullName(m)}</span>
-                              <span style={{
-                                padding: '2px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600,
-                                background: resp === '出席' ? 'var(--success-light)' : 'var(--error-light)',
-                                color: resp === '出席' ? 'var(--success)' : 'var(--error)',
-                              }}>{resp}</span>
+                              <select value={resp} onChange={e => {
+                                if (e.target.value === '__cancel__') handleApCancelResponse(m.id);
+                                else handleApProxyResponse(m.id, e.target.value);
+                              }} disabled={saving}
+                                style={{ fontSize: 13, padding: '4px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)', background: '#fff', minWidth: 100 }}>
+                                <option value="出席">出席</option>
+                                <option value="欠席">欠席</option>
+                                <option value="__cancel__" style={{ color: '#999' }}>-- 取消 --</option>
+                              </select>
                             </div>
                           );
                         })}
@@ -871,9 +914,15 @@ export default function EventDetail() {
                           <div key={m.id} style={{
                             display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
                             borderBottom: idx < apNotRespondedMembers.length - 1 ? '1px solid var(--line-light)' : 'none',
-                            background: 'var(--bg)',
+                            background: 'var(--bg)', flexWrap: 'wrap',
                           }}>
-                            <span style={{ fontWeight: 500, fontSize: 13, color: 'var(--muted)' }}>{fullName(m)}</span>
+                            <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80, color: 'var(--muted)' }}>{fullName(m)}</span>
+                            <select value="" onChange={e => e.target.value && handleApProxyResponse(m.id, e.target.value)} disabled={saving}
+                              style={{ fontSize: 13, padding: '4px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)', background: '#fff', color: 'var(--muted)', minWidth: 100 }}>
+                              <option value="">--</option>
+                              <option value="出席">出席</option>
+                              <option value="欠席">欠席</option>
+                            </select>
                           </div>
                         ))}
                       </div>
