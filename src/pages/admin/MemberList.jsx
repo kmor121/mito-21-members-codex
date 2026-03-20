@@ -721,6 +721,8 @@ export default function MemberList() {
                     outline: "none",
                     lineHeight: 1,
                     appearance: "auto",
+                    width: "auto",
+                    minWidth: 0,
                   }}
                 >
                   <option value="">全て</option>
