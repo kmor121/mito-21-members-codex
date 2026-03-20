@@ -7,17 +7,45 @@ export default function YearPillNav({ fiscalYears, activeFyId, currentFyId, onCh
   );
   const activeIdx = sorted.findIndex(fy => fy.id === activeFyId);
 
+  const arrowStyle = (disabled) => ({
+    background: 'none',
+    border: 'none',
+    padding: '4px 6px',
+    fontSize: 14,
+    color: disabled ? 'var(--color-text-tertiary)' : 'var(--color-text-secondary)',
+    cursor: disabled ? 'default' : 'pointer',
+    borderRadius: 'var(--radius-sm)',
+    transition: 'all var(--transition-fast)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 28,
+    height: 28,
+  });
+
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+    <div style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 2,
+      background: 'var(--color-bg-sub)',
+      borderRadius: 'var(--radius-full)',
+      padding: '3px 4px',
+      border: '1px solid var(--color-border)',
+    }}>
       <button
         type="button"
-        className="btn btn-secondary"
-        style={{ padding: "4px 8px", minWidth: 32, fontSize: 16, lineHeight: 1 }}
+        style={arrowStyle(activeIdx <= 0)}
         disabled={activeIdx <= 0}
         onClick={() => activeIdx > 0 && onChange(sorted[activeIdx - 1].id)}
         aria-label="前の年度"
-      >&larr;</button>
-      <div style={{ display: "flex", gap: 4 }}>
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M8.5 3.5L5 7l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      <div style={{ display: 'flex', gap: 2 }}>
         {sorted.map(fy => {
           const label = fy.year ? `${fy.year}` : fy.year_label;
           const isActive = fy.id === activeFyId;
@@ -28,37 +56,43 @@ export default function YearPillNav({ fiscalYears, activeFyId, currentFyId, onCh
               type="button"
               onClick={() => onChange(fy.id)}
               style={{
-                padding: "6px 14px",
-                borderRadius: 999,
-                border: isActive ? "2px solid var(--primary)" : "1px solid var(--line)",
-                background: isActive ? "var(--primary)" : "#fff",
-                color: isActive ? "#fff" : "var(--text-secondary)",
-                fontSize: 13, fontWeight: isActive ? 700 : 500,
-                cursor: "pointer",
-                transition: "all 0.15s",
-                position: "relative",
+                padding: '5px 14px',
+                borderRadius: 'var(--radius-full)',
+                border: 'none',
+                background: isActive ? 'var(--color-accent)' : 'transparent',
+                color: isActive ? '#fff' : 'var(--color-text-secondary)',
+                fontSize: 13,
+                fontWeight: isActive ? 600 : 500,
+                cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
+                position: 'relative',
+                lineHeight: 1.4,
               }}
             >
               {label}
               {isCurrent && !isActive && (
                 <span style={{
-                  position: "absolute", top: -3, right: -3,
-                  width: 8, height: 8, borderRadius: "50%",
-                  background: "var(--primary)", border: "2px solid #fff",
+                  position: 'absolute', top: -1, right: -1,
+                  width: 7, height: 7, borderRadius: '50%',
+                  background: 'var(--color-accent)', border: '2px solid var(--color-bg-sub)',
                 }} />
               )}
             </button>
           );
         })}
       </div>
+
       <button
         type="button"
-        className="btn btn-secondary"
-        style={{ padding: "4px 8px", minWidth: 32, fontSize: 16, lineHeight: 1 }}
+        style={arrowStyle(activeIdx >= sorted.length - 1)}
         disabled={activeIdx >= sorted.length - 1}
         onClick={() => activeIdx < sorted.length - 1 && onChange(sorted[activeIdx + 1].id)}
         aria-label="次の年度"
-      >&rarr;</button>
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M5.5 3.5L9 7l-3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
     </div>
   );
 }
