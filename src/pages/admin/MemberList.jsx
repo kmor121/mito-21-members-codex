@@ -715,7 +715,7 @@ export default function MemberList() {
                     border: organizationId ? "2px solid var(--color-accent)" : "1px solid var(--color-border)",
                     background: organizationId ? "var(--color-accent-light)" : "#fff",
                     color: organizationId ? "var(--color-accent)" : "var(--color-text-secondary)",
-                    fontSize: "11px",
+                    fontSize: "12px",
                     fontWeight: 500,
                     cursor: "pointer",
                     outline: "none",
