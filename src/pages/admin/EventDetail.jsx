@@ -314,6 +314,20 @@ export default function EventDetail() {
     setSaving(false);
   }
 
+  async function handleCancelResponse(memberId) {
+    setSaving(true);
+    try {
+      const existing = attendanceMap[memberId];
+      if (existing) {
+        await base44.entities.Attendance.delete(existing.id);
+        invalidateReadCache('Attendance');
+        showToast('回答を取り消しました');
+        await loadData();
+      }
+    } catch (err) { showToast(err.message || '取消に失敗しました', 'error'); }
+    setSaving(false);
+  }
+
   /* ── After-party CRUD ── */
   async function addAfterParty() {
     setSaving(true);
@@ -726,9 +740,13 @@ export default function EventDetail() {
                         flexWrap: 'wrap',
                       }}>
                         <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80 }}>{fullName(m)}</span>
-                        <select value={resp} onChange={e => handleProxyResponse(m.id, e.target.value)} disabled={saving}
+                        <select value={resp} onChange={e => {
+                          if (e.target.value === '__cancel__') handleCancelResponse(m.id);
+                          else handleProxyResponse(m.id, e.target.value);
+                        }} disabled={saving}
                           style={{ fontSize: 13, padding: '4px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)', background: '#fff', minWidth: 100 }}>
                           {responseOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                          <option value="__cancel__" style={{ color: '#999' }}>-- 取消 --</option>
                         </select>
                         {att?.comment && <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{att.comment}</span>}
                       </div>
