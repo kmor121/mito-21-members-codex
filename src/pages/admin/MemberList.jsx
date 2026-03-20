@@ -19,7 +19,7 @@ const EDITABLE_FIELDS = ["company_name", "member_type", "status", "email", "mobi
 const PAGE_SIZE = 30;
 
 const MEMBER_TYPE_BADGE = {
-  "正会員": { bg: "var(--primary-light)", color: "var(--primary)" },
+  "正会員": { bg: "var(--color-accent-light)", color: "var(--color-accent)" },
   "賛助会員": { bg: "#ecfdf5", color: "#059669" },
   "OB会員": { bg: "#f1f5f9", color: "#64748b" },
   "名誉顧問": { bg: "#fffbeb", color: "#d97706" },
@@ -430,7 +430,7 @@ export default function MemberList() {
           }}
           onClick={() => handleCellClick(member.id, field)}
         >
-          <span style={{ fontSize: "13px", color: getCellValue(member, field) ? "var(--text)" : "var(--text-secondary)" }}>
+          <span style={{ fontSize: "13px", color: getCellValue(member, field) ? "var(--color-text-primary)" : "var(--color-text-secondary)" }}>
             {getCellValue(member, field) || "-"}
           </span>
         </td>
@@ -481,7 +481,7 @@ export default function MemberList() {
               <span style={{
                 display: 'inline-flex', alignItems: 'center',
                 padding: '3px 10px', borderRadius: '999px',
-                background: 'var(--primary-light)', color: 'var(--primary)',
+                background: 'var(--color-accent-light)', color: 'var(--color-accent)',
                 fontSize: '13px', fontWeight: 700,
               }}>
                 {members.length}名
@@ -490,17 +490,17 @@ export default function MemberList() {
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             <button type="button" onClick={() => setShowFilters(v => !v)} style={{
-              width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+              width: 36, height: 36, borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: showFilters ? 'var(--primary-light)' : '#fff', cursor: 'pointer',
-              color: showFilters ? 'var(--primary)' : 'var(--text-secondary)',
+              background: showFilters ? 'var(--color-accent-light)' : '#fff', cursor: 'pointer',
+              color: showFilters ? 'var(--color-accent)' : 'var(--color-text-secondary)',
             }}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </button>
             <button type="button" onClick={() => navigate("/admin/members/new")} style={{
-              width: 36, height: 36, borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+              width: 36, height: 36, borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'var(--primary)', cursor: 'pointer', color: '#fff',
+              background: 'var(--color-accent)', cursor: 'pointer', color: '#fff',
               fontSize: 20, fontWeight: 700,
             }}>
               +
@@ -517,8 +517,8 @@ export default function MemberList() {
                 alignItems: "center",
                 padding: "3px 10px",
                 borderRadius: "999px",
-                background: "var(--primary-light)",
-                color: "var(--primary)",
+                background: "var(--color-accent-light)",
+                color: "var(--color-accent)",
                 fontSize: "13px",
                 fontWeight: 700,
               }}>
@@ -529,7 +529,7 @@ export default function MemberList() {
           <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
             {/* Edit mode toggle */}
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontSize: "13px", fontWeight: 600, color: editMode ? "var(--primary)" : "var(--text-secondary)" }}>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: editMode ? "var(--color-accent)" : "var(--color-text-secondary)" }}>
                 編集モード
               </span>
               <button
@@ -557,7 +557,7 @@ export default function MemberList() {
               }}
               style={{
                 display: "inline-flex", alignItems: "center", gap: "6px",
-                background: "none", border: "1px solid var(--line)", color: "var(--text)",
+                background: "none", border: "1px solid var(--color-border)", color: "var(--color-text-primary)",
               }}
             >
               <span style={{ fontSize: "14px" }}>✉</span>
@@ -582,12 +582,12 @@ export default function MemberList() {
         showFilters && (
           <div style={{
             padding: '12px 16px', marginBottom: 8,
-            borderRadius: 'var(--radius)', border: '1px solid var(--line)',
-            background: 'var(--bg)',
+            borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
+            background: 'var(--color-bg-sub)',
           }}>
             {/* Search input */}
             <div style={{ position: 'relative', marginBottom: 10 }}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-secondary)' }}>
                 <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
               <input
@@ -595,19 +595,19 @@ export default function MemberList() {
                 placeholder="氏名・フリガナ・会員番号・会社名で検索"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', fontSize: 13 }}
+                style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13 }}
               />
             </div>
             {/* Member type pills */}
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', alignSelf: 'center', marginRight: 2 }}>種別</span>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)', alignSelf: 'center', marginRight: 2 }}>種別</span>
               {MEMBER_TYPE_FILTERS.map((t) => (
                 <button key={t} type="button" className={`nl2-pill-tab${memberType === t ? ' active' : ''}`} onClick={() => setMemberType(t)}>{t}</button>
               ))}
             </div>
             {/* Status pills */}
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', alignSelf: 'center', marginRight: 2 }}>状態</span>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)', alignSelf: 'center', marginRight: 2 }}>状態</span>
               {STATUS_FILTERS.map((s) => (
                 <button key={s} type="button" className={`nl2-pill-tab${status === s ? ' active' : ''}`} onClick={() => setStatus(s)}>{s}</button>
               ))}
@@ -615,7 +615,7 @@ export default function MemberList() {
             {/* Organization select */}
             <div style={{ display: 'flex', gap: 8 }}>
               <select value={organizationId} onChange={(e) => setOrganizationId(e.target.value)}
-                style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', fontSize: 13 }}>
+                style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13 }}>
                 <option value="">全所属</option>
                 {orgOptions.map((opt) => (
                   <option key={opt.id} value={opt.id}>{opt.name}</option>
@@ -644,7 +644,7 @@ export default function MemberList() {
                 left: "14px",
                 top: "50%",
                 transform: "translateY(-50%)",
-                color: "var(--text-secondary)",
+                color: "var(--color-text-secondary)",
                 fontSize: "16px",
                 pointerEvents: "none",
               }}>
@@ -658,8 +658,8 @@ export default function MemberList() {
                 style={{
                   width: "100%",
                   padding: "12px 14px 12px 42px",
-                  border: "1px solid var(--line)",
-                  borderRadius: "var(--radius)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "var(--radius-md)",
                   fontSize: "14px",
                   background: "#fff",
                   transition: "border-color 0.15s, box-shadow 0.15s",
@@ -670,7 +670,7 @@ export default function MemberList() {
             {/* Filter pills row: Member Type */}
             <div style={{ marginBottom: "10px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", marginRight: "4px" }}>種別</span>
+                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--color-text-secondary)", marginRight: "4px" }}>種別</span>
                 {MEMBER_TYPE_FILTERS.map((t) => (
                   <button
                     key={t}
@@ -687,7 +687,7 @@ export default function MemberList() {
             {/* Filter pills row: Status */}
             <div style={{ marginBottom: "10px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", marginRight: "4px" }}>状態</span>
+                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--color-text-secondary)", marginRight: "4px" }}>状態</span>
                 {STATUS_FILTERS.map((s) => (
                   <button
                     key={s}
@@ -704,16 +704,16 @@ export default function MemberList() {
             {/* Filter row: Organization dropdown + count */}
             <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>所属</span>
+                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>所属</span>
                 <select
                   value={organizationId}
                   onChange={(e) => setOrganizationId(e.target.value)}
                   style={{
                     padding: "5px 12px",
                     borderRadius: "999px",
-                    border: organizationId ? "1px solid var(--primary)" : "1px solid var(--line)",
-                    background: organizationId ? "var(--primary)" : "#fff",
-                    color: organizationId ? "#fff" : "var(--text-secondary)",
+                    border: organizationId ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
+                    background: organizationId ? "var(--color-accent)" : "#fff",
+                    color: organizationId ? "#fff" : "var(--color-text-secondary)",
                     fontSize: "12px",
                     fontWeight: 600,
                     cursor: "pointer",
@@ -731,7 +731,7 @@ export default function MemberList() {
                 <span style={{
                   fontSize: "13px",
                   fontWeight: 600,
-                  color: "var(--text-secondary)",
+                  color: "var(--color-text-secondary)",
                 }}>
                   {members.length}件表示中
                 </span>
@@ -755,7 +755,7 @@ export default function MemberList() {
       {error && (
         <div style={{
           padding: "12px 16px",
-          borderRadius: "var(--radius)",
+          borderRadius: "var(--radius-md)",
           background: "#fee2e2",
           color: "#991b1b",
           fontSize: "13px",
@@ -772,7 +772,7 @@ export default function MemberList() {
       ) : members.length === 0 && !error ? (
         <div className="card panel-card single-panel">
           <div className="card-body" style={{ padding: "60px 20px", textAlign: "center" }}>
-            <p style={{ fontSize: "15px", color: "var(--text-secondary)", margin: 0 }}>該当する会員はいません。</p>
+            <p style={{ fontSize: "15px", color: "var(--color-text-secondary)", margin: 0 }}>該当する会員はいません。</p>
           </div>
         </div>
       ) : (
@@ -853,13 +853,13 @@ export default function MemberList() {
                         }}
                         onClick={editMode ? undefined : () => navigate(`/admin/members/${m.id}`)}
                         onMouseEnter={(e) => {
-                          if (!editMode) e.currentTarget.style.background = "var(--primary-light)";
+                          if (!editMode) e.currentTarget.style.background = "var(--color-accent-light)";
                         }}
                         onMouseLeave={(e) => {
                           if (!editMode) e.currentTarget.style.background = "";
                         }}
                       >
-                        <td style={{ fontVariantNumeric: "tabular-nums", fontSize: "13px", color: "var(--text-secondary)" }}>
+                        <td style={{ fontVariantNumeric: "tabular-nums", fontSize: "13px", color: "var(--color-text-secondary)" }}>
                           {displayValue(m.member_number)}
                         </td>
                         <td>
@@ -907,7 +907,7 @@ export default function MemberList() {
                             )}
                           </div>
                           {fullNameKana(m) && (
-                            <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
+                            <div style={{ fontSize: "12px", color: "var(--color-text-secondary)", marginTop: "2px" }}>
                               {fullNameKana(m)}
                             </div>
                           )}
@@ -928,7 +928,7 @@ export default function MemberList() {
                             <td>{renderMemberTypeBadge(m.member_type)}</td>
                             <td>{renderStatusBadge(m.status)}</td>
                             <td style={{ fontSize: "13px" }}>{orgText || "-"}</td>
-                            <td style={{ fontSize: "13px", color: "var(--text-secondary)" }}>{displayValue(m.email)}</td>
+                            <td style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>{displayValue(m.email)}</td>
                           </>
                         )}
                       </tr>
@@ -947,7 +947,7 @@ export default function MemberList() {
               justifyContent: "center",
               gap: "4px",
               padding: "16px 20px",
-              borderTop: "1px solid var(--line)",
+              borderTop: "1px solid var(--color-border)",
             }}>
               <button
                 type="button"
@@ -960,7 +960,7 @@ export default function MemberList() {
               </button>
               {getPageNumbers().map((p, idx) =>
                 p === "..." ? (
-                  <span key={`dot-${idx}`} style={{ padding: "6px 4px", fontSize: "13px", color: "var(--text-secondary)" }}>…</span>
+                  <span key={`dot-${idx}`} style={{ padding: "6px 4px", fontSize: "13px", color: "var(--color-text-secondary)" }}>…</span>
                 ) : (
                   <button
                     key={p}
@@ -968,10 +968,10 @@ export default function MemberList() {
                     onClick={() => setCurrentPage(p)}
                     style={{
                       padding: "6px 12px",
-                      borderRadius: "var(--radius)",
+                      borderRadius: "var(--radius-md)",
                       border: "1px solid transparent",
-                      background: currentPage === p ? "var(--primary)" : "transparent",
-                      color: currentPage === p ? "#fff" : "var(--text)",
+                      background: currentPage === p ? "var(--color-accent)" : "transparent",
+                      color: currentPage === p ? "#fff" : "var(--color-text-primary)",
                       fontSize: "13px",
                       fontWeight: currentPage === p ? 700 : 500,
                       cursor: "pointer",
@@ -999,7 +999,7 @@ export default function MemberList() {
             textAlign: "center",
             padding: "0 20px 16px",
             fontSize: "12px",
-            color: "var(--text-secondary)",
+            color: "var(--color-text-secondary)",
           }}>
             {(currentPage - 1) * PAGE_SIZE + 1} - {Math.min(currentPage * PAGE_SIZE, members.length)} / {members.length}件
           </div>
@@ -1074,21 +1074,21 @@ export default function MemberList() {
                       </div>
                     )}
                     <button className="btn" type="button" onClick={() => setShowInviteModal(false)}
-                      style={{ width: "100%", background: "var(--primary)", color: "#fff", border: "none" }}>
+                      style={{ width: "100%", background: "var(--color-accent)", color: "#fff", border: "none" }}>
                       閉じる
                     </button>
                   </div>
                 ) : (
                   <>
                     {unlinkedMembers.length === 0 ? (
-                      <p style={{ textAlign: "center", color: "var(--text-secondary)", padding: "24px 0", fontSize: 14 }}>
+                      <p style={{ textAlign: "center", color: "var(--color-text-secondary)", padding: "24px 0", fontSize: 14 }}>
                         未紐付けの会員はいません
                       </p>
                     ) : (
                       <>
                         <div style={{
                           display: "flex", alignItems: "center", gap: 8, padding: "8px 0",
-                          borderBottom: "1px solid var(--line)", marginBottom: 8,
+                          borderBottom: "1px solid var(--color-border)", marginBottom: 8,
                         }}>
                           <input type="checkbox" checked={allChecked}
                             onChange={(e) => {
@@ -1100,7 +1100,7 @@ export default function MemberList() {
                             }}
                           />
                           <span style={{ fontSize: 13, fontWeight: 600 }}>全選択</span>
-                          <span style={{ fontSize: 12, color: "var(--text-secondary)", marginLeft: "auto" }}>
+                          <span style={{ fontSize: 12, color: "var(--color-text-secondary)", marginLeft: "auto" }}>
                             {inviteChecked.size}件選択中
                           </span>
                         </div>
@@ -1110,7 +1110,7 @@ export default function MemberList() {
                             return (
                               <label key={m.id} style={{
                                 display: "flex", alignItems: "center", gap: 10, padding: "8px 4px",
-                                borderBottom: "1px solid var(--line-light)", cursor: hasEmail ? "pointer" : "default",
+                                borderBottom: "1px solid var(--color-border)", cursor: hasEmail ? "pointer" : "default",
                                 opacity: hasEmail ? 1 : 0.4,
                               }}>
                                 <input type="checkbox" disabled={!hasEmail}
@@ -1122,7 +1122,7 @@ export default function MemberList() {
                                   }}
                                 />
                                 <span style={{ fontSize: 13, fontWeight: 500, minWidth: 80 }}>{fullName(m)}</span>
-                                <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+                                <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
                                   {m.email || "メールアドレスなし"}
                                 </span>
                               </label>
@@ -1133,7 +1133,7 @@ export default function MemberList() {
                           onClick={handleBulkInvite}
                           style={{
                             width: "100%", marginTop: 16,
-                            background: inviting ? "#a5b4fc" : "var(--primary)",
+                            background: inviting ? "#a5b4fc" : "var(--color-accent)",
                             color: "#fff", border: "none",
                           }}>
                           {inviting ? "送信中..." : `選択した${inviteChecked.size}件を招待`}
