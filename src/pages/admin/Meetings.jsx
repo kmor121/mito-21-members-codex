@@ -529,9 +529,9 @@ export default function Meetings() {
       <style>{`
         .mtg-label { display: block; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 6px; }
         .mtg-input {
-          width: 100%; box-sizing: border-box; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);
+          width: 100%; box-sizing: border-box; height: 38px; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);
           border: 1px solid var(--color-border); background: var(--color-bg); font-size: 0.875rem; color: var(--color-text-primary);
-          line-height: 1.5; min-height: 38px;
+          font-family: inherit; line-height: 1.5;
           outline: none; transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
         .mtg-input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
