@@ -233,6 +233,11 @@ export default function MeetingDetail() {
   const [refDataLoaded, setRefDataLoaded] = useState(false);
   const refDataRef = useRef(null);
 
+  // Inline application review
+  const [pendingApplicants, setPendingApplicants] = useState([]);
+  const [applicantDecisions, setApplicantDecisions] = useState({});
+  const [reviewConfirmed, setReviewConfirmed] = useState(false);
+
   const showToastMsg = (msg) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
   const memberMap = useMemo(() => {
@@ -316,6 +321,16 @@ export default function MeetingDetail() {
   }, []);
 
   useEffect(() => { loadMeeting(); loadRefData(); }, [loadMeeting, loadRefData]);
+
+  // Load pending applicants for inline review
+  useEffect(() => {
+    if (!meeting) return;
+    const hasAppLink = (meeting.agenda_items || []).some(a => (a.link_url || "").includes("applications"));
+    if (!hasAppLink) return;
+    base44.entities.Member.filter({ approval_status: "申請中" }).then(list => {
+      setPendingApplicants(list || []);
+    }).catch(() => {});
+  }, [meeting]);
 
   // Compute board members for attendance
   useEffect(() => {
@@ -526,29 +541,7 @@ export default function MeetingDetail() {
             } catch { /* ignore */ }
           }
 
-          // Applications summary
-          if (url.includes("applications")) {
-            try {
-              const appMembers = await base44.entities.Member.filter(
-                { approval_status: { "$in": ["申請中", "承認済", "却下"] } }
-              ).catch(() => []);
-              const getName = (m) => [m.last_name, m.first_name].filter(Boolean).join(' ') || '(名前なし)';
-              const approved = (appMembers || []).filter(m => m.approval_status === "承認済");
-              const rejected = (appMembers || []).filter(m => m.approval_status === "却下");
-              const pending = (appMembers || []).filter(m => m.approval_status === "申請中");
-
-              const lines = [`【入会申込状況（${today}時点）】`];
-              if (approved.length > 0) lines.push(`承認済: ${approved.map(getName).join('、')}（${approved.length}名）`);
-              if (rejected.length > 0) lines.push(`却下: ${rejected.map(getName).join('、')}（${rejected.length}名）`);
-              if (pending.length > 0) lines.push(`承認待ち: ${pending.map(getName).join('、')}（${pending.length}名）`);
-              if (approved.length === 0 && rejected.length === 0 && pending.length === 0) lines.push('申込なし');
-
-              const summary = lines.join('\n');
-              const existing = (item.decision || "").trim();
-              updatedItems[i] = { ...item, decision: existing ? `${existing}\n\n${summary}` : summary };
-              needsUpdate = true;
-            } catch { /* ignore */ }
-          }
+          // Applications: skipped here (handled by inline review UI)
         }
 
         if (needsUpdate) {
@@ -580,6 +573,67 @@ export default function MeetingDetail() {
       showToastMsg(`ステータスを「${STATUS_LABEL[newStatus] || newStatus}」に変更しました`);
       await loadMeeting();
     } catch (err) { showToastMsg(err.message || "更新に失敗しました"); }
+    setSaving(false);
+  }
+
+  // Inline application review: confirm handler
+  async function handleConfirmApplicationReview(agendaIdx) {
+    setConfirmModal(null);
+    setSaving(true);
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const todayDisplay = new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/\//g, "/");
+      const getName = (m) => [m.last_name, m.first_name].filter(Boolean).join(" ") || "(名前なし)";
+
+      const approved = [], rejected = [], held = [];
+      for (const [mid, dec] of Object.entries(applicantDecisions)) {
+        const m = pendingApplicants.find(a => (a.id || a._id) === mid);
+        if (!m) continue;
+        if (dec === "承認") approved.push(m);
+        else if (dec === "却下") rejected.push(m);
+        else if (dec === "保留") held.push(m);
+      }
+
+      // Execute approvals/rejections
+      for (const m of approved) {
+        await base44.entities.Member.update(m.id || m._id, { approval_status: "承認済", join_date: today });
+      }
+      for (const m of rejected) {
+        await base44.entities.Member.update(m.id || m._id, { approval_status: "却下" });
+      }
+      invalidateReadCache("Member");
+
+      // Build decision text
+      const lines = [`【入会審議結果（${todayDisplay}）】`];
+      if (approved.length > 0) lines.push(`承認: ${approved.map(getName).join("、")}（${approved.length}名）`);
+      if (rejected.length > 0) lines.push(`却下: ${rejected.map(getName).join("、")}（${rejected.length}名）`);
+      if (held.length > 0) lines.push(`保留: ${held.map(getName).join("、")}（${held.length}名）`);
+      const summary = lines.join("\n");
+
+      // Update agenda item decision
+      const updatedItems = [...agendaItems];
+      const existing = (updatedItems[agendaIdx].decision || "").trim();
+      updatedItems[agendaIdx] = {
+        ...updatedItems[agendaIdx],
+        decision: existing ? `${existing}\n\n${summary}` : summary,
+      };
+      setAgendaItems(updatedItems);
+
+      // Save meeting with updated agenda
+      const payload = buildPayload();
+      let items = [...updatedItems];
+      const sonotaIdx = items.findIndex((a) => a.title === "その他");
+      if (sonotaIdx === -1) items.push({ ...DEFAULT_SONOTA_ITEM });
+      else if (sonotaIdx !== items.length - 1) { const [s] = items.splice(sonotaIdx, 1); items.push(s); }
+      payload.agenda_items = items.map((item, i) => ({ ...item, order: i + 1 }));
+      await base44.entities.Meeting.update(meetingId, payload);
+      invalidateReadCache("Meeting");
+
+      setReviewConfirmed(true);
+      setPendingApplicants([]);
+      showToastMsg("審議結果を確定しました");
+      await loadMeeting();
+    } catch (err) { showToastMsg(err.message || "審議結果の確定に失敗しました"); }
     setSaving(false);
   }
 
@@ -1167,6 +1221,68 @@ export default function MeetingDetail() {
                             )
                           )}
                         </div>
+
+                        {/* Inline application review */}
+                        {(item.link_url || "").includes("applications") && (status === "下書き" || status === "公開") && (
+                          <div style={{ marginLeft: isMobile ? 24 : 30, marginTop: 12, padding: 14, background: "var(--color-bg-sub)", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)" }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)", marginBottom: 10 }}>入会審議</div>
+                            {pendingApplicants.length === 0 ? (
+                              <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>現在申請中の入会申込はありません</p>
+                            ) : (
+                              <>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+                                  {pendingApplicants.map(app => {
+                                    const appId = app.id || app._id;
+                                    const name = [app.last_name, app.first_name].filter(Boolean).join(" ") || "(名前なし)";
+                                    const dec = applicantDecisions[appId] || "";
+                                    const disabled = reviewConfirmed || saving;
+                                    return (
+                                      <div key={appId} style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 8 : 12, padding: "8px 12px", background: "#fff", borderRadius: 6, border: "1px solid var(--color-border)", flexDirection: isMobile ? "column" : "row" }}>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)" }}>{name}</div>
+                                          <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
+                                            {app.company_name && <span>{app.company_name} · </span>}
+                                            {app.created_date && <span>申込: {app.created_date.slice(0, 10).replace(/-/g, "/")}</span>}
+                                          </div>
+                                        </div>
+                                        <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                                          {[{ k: "承認", bg: "#ecfdf5", color: "#059669", activeBg: "#059669" }, { k: "却下", bg: "#fef2f2", color: "#dc2626", activeBg: "#dc2626" }, { k: "保留", bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)", activeBg: "#6b7280" }].map(opt => {
+                                            const active = dec === opt.k;
+                                            return (
+                                              <button key={opt.k} type="button" disabled={disabled}
+                                                onClick={() => setApplicantDecisions(prev => ({ ...prev, [appId]: active ? "" : opt.k }))}
+                                                style={{
+                                                  padding: "4px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: disabled ? "default" : "pointer",
+                                                  background: active ? opt.activeBg : "transparent",
+                                                  color: active ? "#fff" : opt.color,
+                                                  border: active ? "none" : `1px solid ${opt.color === "var(--color-text-secondary)" ? "var(--color-border)" : opt.color}`,
+                                                  opacity: disabled ? 0.5 : 1, transition: "all 0.15s",
+                                                }}
+                                              >{opt.k}</button>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                {!reviewConfirmed && Object.values(applicantDecisions).some(v => v) && (
+                                  <Button variant="primary" size="sm" disabled={saving}
+                                    onClick={() => setConfirmModal({
+                                      title: "入会審議を確定しますか？",
+                                      message: "承認されたメンバーは即座に会員として登録されます。却下されたメンバーの申込は却下されます。",
+                                      confirmLabel: "確定する",
+                                      onConfirm: () => handleConfirmApplicationReview(idx),
+                                    })}
+                                  >審議結果を確定</Button>
+                                )}
+                                {reviewConfirmed && (
+                                  <p style={{ fontSize: 12, color: "var(--color-success)", fontWeight: 600, margin: 0 }}>審議結果を確定済み</p>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        )}
 
                         {/* Move/delete */}
                         {canEditAgenda && (
