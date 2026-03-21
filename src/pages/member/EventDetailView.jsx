@@ -158,7 +158,8 @@ export default function EventDetailView() {
 
   const tb = TYPE_BADGE[event.event_type] || TYPE_BADGE["その他"];
   const sb = STATUS_BADGE[event.status] || STATUS_BADGE.published;
-  const closed = isAttendanceClosed(event);
+  const isCompleted = event.status === 'completed';
+  const closed = isCompleted || isAttendanceClosed(event);
   const responseOptions = Array.isArray(event.response_options) && event.response_options.length >= 2
     ? event.response_options : ['出席', '欠席'];
 
@@ -232,7 +233,7 @@ export default function EventDetailView() {
 
           {closed && (
             <div style={{ padding: '10px 14px', background: 'var(--color-bg-sub)', borderRadius: 'var(--radius-md)', fontSize: 13, color: 'var(--color-text-tertiary)', marginBottom: 12 }}>
-              出欠の受付は終了しました
+              {isCompleted ? 'このイベントは終了しました' : '出欠の受付は終了しました'}
             </div>
           )}
 

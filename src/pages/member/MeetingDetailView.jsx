@@ -136,7 +136,8 @@ export default function MeetingDetailView() {
   }
 
   const sb = STATUS_BADGE[meeting.status] || STATUS_BADGE["公開"];
-  const closed = isAttendanceClosed(meeting);
+  const isCompleted = meeting.status === '完了';
+  const closed = isCompleted || isAttendanceClosed(meeting);
   const attendList = attendances.filter(a => (a.response || a.status) === '出席');
   const absentList = attendances.filter(a => (a.response || a.status) === '欠席');
   const respondedCount = attendances.length;
@@ -275,7 +276,9 @@ export default function MeetingDetailView() {
         <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 16px' }}>あなたの回答</h2>
           {closed && (
-            <div style={{ padding: '10px 14px', background: 'var(--color-bg-sub)', borderRadius: 'var(--radius-md)', fontSize: 13, color: 'var(--color-text-tertiary)', marginBottom: 12 }}>出欠の受付は終了しました</div>
+            <div style={{ padding: '10px 14px', background: 'var(--color-bg-sub)', borderRadius: 'var(--radius-md)', fontSize: 13, color: 'var(--color-text-tertiary)', marginBottom: 12 }}>
+              {isCompleted ? 'この幹事会は終了しました' : '出欠の受付は終了しました'}
+            </div>
           )}
           {myResponse && (
             <div style={{ marginBottom: 12 }}>

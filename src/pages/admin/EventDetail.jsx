@@ -110,6 +110,7 @@ export default function EventDetail() {
   useEffect(() => { loadData(); }, [loadData]);
 
   const status = event?.status || 'draft';
+  const canEditAttendance = status !== 'completed';
   const sc = STATUS_CONF[status] || STATUS_CONF.draft;
   const tb = EVENT_TYPE_BADGE[event?.event_type] || EVENT_TYPE_BADGE["その他"];
   const responseOptions = useMemo(() => {
@@ -853,7 +854,7 @@ export default function EventDetail() {
                         <select value={resp} onChange={e => {
                           if (e.target.value === '__cancel__') handleCancelResponse(m.id);
                           else handleProxyResponse(m.id, e.target.value);
-                        }} disabled={saving}
+                        }} disabled={saving || !canEditAttendance}
                           style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                           {responseOptions.map(o => <option key={o} value={o}>{o}</option>)}
                           <option value="__cancel__" style={{ color: '#999' }}>-- 取消 --</option>
@@ -880,7 +881,7 @@ export default function EventDetail() {
                       background: 'var(--color-bg-sub)',
                     }}>
                       <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80, color: 'var(--color-text-tertiary)' }}>{fullName(m)}</span>
-                      <select value="" onChange={e => e.target.value && handleProxyResponse(m.id, e.target.value)} disabled={saving}
+                      <select value="" onChange={e => e.target.value && handleProxyResponse(m.id, e.target.value)} disabled={saving || !canEditAttendance}
                         style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', color: 'var(--color-text-tertiary)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                         <option value="">--</option>
                         {responseOptions.map(o => <option key={o} value={o}>{o}</option>)}
@@ -969,7 +970,7 @@ export default function EventDetail() {
                               <select value={resp} onChange={e => {
                                 if (e.target.value === '__cancel__') handleApCancelResponse(m.id);
                                 else handleApProxyResponse(m.id, e.target.value);
-                              }} disabled={saving}
+                              }} disabled={saving || !canEditAttendance}
                                 style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                                 <option value="出席">出席</option>
                                 <option value="欠席">欠席</option>
@@ -994,7 +995,7 @@ export default function EventDetail() {
                             background: 'var(--color-bg-sub)',
                           }}>
                             <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80, color: 'var(--color-text-tertiary)' }}>{fullName(m)}</span>
-                            <select value="" onChange={e => e.target.value && handleApProxyResponse(m.id, e.target.value)} disabled={saving}
+                            <select value="" onChange={e => e.target.value && handleApProxyResponse(m.id, e.target.value)} disabled={saving || !canEditAttendance}
                               style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', color: 'var(--color-text-tertiary)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                               <option value="">--</option>
                               <option value="出席">出席</option>
