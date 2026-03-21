@@ -360,54 +360,76 @@ export default function Meetings() {
       )}
 
       {/* ── create modal ── */}
-      <Modal isOpen={showCreateModal} onClose={closeCreateModal} title="新しい幹事会を作成" width="480px"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeCreateModal}>キャンセル</Button>
-            <Button variant="primary" onClick={handleCreate} disabled={saving || !form.title.trim() || !form.meeting_date}>
-              {saving ? '作成中...' : '作成'}
-            </Button>
-          </>
-        }
-      >
+      <Modal isOpen={showCreateModal} onClose={closeCreateModal} title="新しい幹事会を作成" width="480px">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* 会議名 */}
           <div>
-            <label className="mtg-label">会議名 <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-            <input type="text" className="mtg-input" value={form.title}
-              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="例: 第3回幹事会" />
-          </div>
-          <div className="mtg-form-2col">
-            <div>
-              <label className="mtg-label">開催日 <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-              <DatePicker value={form.meeting_date} onChange={(v) => {
-                setForm((p) => ({ ...p, meeting_date: v }));
-                if (!deadlineManuallySet && v) {
-                  const d = new Date(v); d.setDate(d.getDate() - 3);
-                  setForm((p) => ({ ...p, meeting_date: v, attendance_deadline: d.toISOString().split('T')[0] }));
-                }
-              }} placeholder="日付を選択" />
-            </div>
-            <div>
-              <label className="mtg-label">場所</label>
-              <input type="text" className="mtg-input" value={form.location}
-                onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))} placeholder="例: よつ葉" />
-            </div>
-          </div>
-          <div className="mtg-form-2col">
-            <div><label className="mtg-label">開始時刻</label><TimeSelect value={form.start_time} onChange={(v) => setForm((p) => ({ ...p, start_time: v }))} /></div>
-            <div><label className="mtg-label">終了時刻</label><TimeSelect value={form.end_time} onChange={(v) => setForm((p) => ({ ...p, end_time: v }))} /></div>
-          </div>
-          <div>
-            <label className="mtg-label">出欠期限</label>
-            <DatePicker value={form.attendance_deadline} onChange={(v) => {
-              setForm((p) => ({ ...p, attendance_deadline: v }));
-              setDeadlineManuallySet(true);
-            }} placeholder="期限日を選択（任意）" />
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
+              会議名 <span style={{ color: 'var(--color-danger)' }}>*</span>
+            </label>
+            <input type="text" value={form.title}
+              onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="例: 第6回幹事会"
+              style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
+            />
           </div>
 
-          {/* agenda copy */}
+          {/* 開催日 + 場所 */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
+                開催日 <span style={{ color: 'var(--color-danger)' }}>*</span>
+              </label>
+              <input type="date" value={form.meeting_date}
+                onChange={e => {
+                  const v = e.target.value;
+                  setForm(f => {
+                    const next = { ...f, meeting_date: v };
+                    if (v && !deadlineManuallySet) {
+                      const d = new Date(v); d.setDate(d.getDate() - 3);
+                      next.attendance_deadline = d.toISOString().split('T')[0];
+                    }
+                    return next;
+                  });
+                }}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>場所</label>
+              <input type="text" value={form.location}
+                onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="例: よつ葉"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+          </div>
+
+          {/* 開始時刻 + 終了時刻 */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>開始時刻</label>
+              <TimeSelect value={form.start_time} onChange={v => setForm(f => ({ ...f, start_time: v }))} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>終了時刻</label>
+              <TimeSelect value={form.end_time} onChange={v => setForm(f => ({ ...f, end_time: v }))} />
+            </div>
+          </div>
+
+          {/* 出欠期限 */}
           <div>
-            <label className="mtg-label">次第のコピー</label>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>出欠期限（任意）</label>
+            <input type="date" value={form.attendance_deadline}
+              onChange={e => { setForm(f => ({ ...f, attendance_deadline: e.target.value })); setDeadlineManuallySet(true); }}
+              style={{ width: '100%', maxWidth: 220, padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
+            />
+            {form.meeting_date && form.attendance_deadline && !deadlineManuallySet && (
+              <p style={{ fontSize: 12, color: 'var(--color-text-tertiary)', margin: '4px 0 0' }}>※ 開催日の3日前が自動設定されています</p>
+            )}
+          </div>
+
+          {/* 次第コピー */}
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>次第のコピー</label>
             {!copiedFromTitle ? (
               <>
                 <button type="button" className="mtg-copy-source-btn" onClick={() => setShowCopySelector(!showCopySelector)}>
@@ -453,26 +475,37 @@ export default function Meetings() {
             )}
           </div>
 
-          {/* after-party toggle */}
-          <div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>
-              <input type="checkbox" checked={hasAfterParty} onChange={e => setHasAfterParty(e.target.checked)}
-                style={{ width: 16, height: 16, accentColor: 'var(--color-accent)' }} />
-              懇親会あり
-            </label>
-            {hasAfterParty && (
-              <div style={{ marginTop: 10, padding: 14, background: 'var(--color-bg-sub)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8 }}>懇親会情報</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <div><label className="mtg-label">場所</label><input type="text" className="mtg-input" value={apForm.location} onChange={e => setApForm(p => ({ ...p, location: e.target.value }))} placeholder="例: 居酒屋XX" /></div>
-                  <div className="mtg-form-2col">
-                    <div><label className="mtg-label">開始時刻</label><TimeSelect value={apForm.start_time} onChange={v => setApForm(p => ({ ...p, start_time: v }))} /></div>
-                    <div><label className="mtg-label">終了時刻</label><TimeSelect value={apForm.end_time} onChange={v => setApForm(p => ({ ...p, end_time: v }))} /></div>
-                  </div>
-                  <div><label className="mtg-label">参加費</label><input type="number" className="mtg-input" min="0" placeholder="0 = 無料" value={apForm.fee} onChange={e => setApForm(p => ({ ...p, fee: e.target.value }))} /></div>
-                </div>
+          {/* 懇親会 */}
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '4px 0' }}>
+            <input type="checkbox" checked={hasAfterParty} onChange={e => setHasAfterParty(e.target.checked)}
+              style={{ width: 16, height: 16, accentColor: 'var(--color-accent)' }} />
+            <span style={{ fontSize: 14, fontWeight: 500 }}>懇親会あり</span>
+          </label>
+          {hasAfterParty && (
+            <div style={{ padding: 16, background: 'var(--color-bg-sub)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>場所</label>
+                <input type="text" value={apForm.location} onChange={e => setApForm(p => ({ ...p, location: e.target.value }))} placeholder="例: 居酒屋XX"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
               </div>
-            )}
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+                <div><label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>開始時刻</label><TimeSelect value={apForm.start_time} onChange={v => setApForm(p => ({ ...p, start_time: v }))} /></div>
+                <div><label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>終了時刻</label><TimeSelect value={apForm.end_time} onChange={v => setApForm(p => ({ ...p, end_time: v }))} /></div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>参加費</label>
+                <input type="number" min="0" placeholder="0 = 無料" value={apForm.fee} onChange={e => setApForm(p => ({ ...p, fee: e.target.value }))}
+                  style={{ width: '100%', maxWidth: 160, padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+            </div>
+          )}
+
+          {/* ボタン */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, paddingTop: 8 }}>
+            <Button variant="ghost" onClick={closeCreateModal} disabled={saving}>キャンセル</Button>
+            <Button variant="primary" onClick={handleCreate} disabled={saving || !form.title.trim() || !form.meeting_date}>
+              {saving ? '作成中...' : '作成'}
+            </Button>
           </div>
         </div>
       </Modal>
