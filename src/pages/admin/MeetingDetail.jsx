@@ -637,6 +637,44 @@ export default function MeetingDetail() {
     setSaving(false);
   }
 
+  // After-party attendance map
+  const apAttRecordMap = useMemo(() => {
+    const m = {};
+    afterPartyAtts.forEach(a => { m[a.member_id] = a; });
+    return m;
+  }, [afterPartyAtts]);
+
+  async function handleProxyApResponse(memberId, response) {
+    if (!afterParty) return;
+    setSaving(true);
+    try {
+      const existing = apAttRecordMap[memberId];
+      if (existing) {
+        await base44.entities.Attendance.update(existing.id, { response, status: response, responded_at: new Date().toISOString() });
+      } else {
+        await base44.entities.Attendance.create({ event_id: afterParty.id, member_id: memberId, response, status: response, responded_at: new Date().toISOString() });
+      }
+      invalidateReadCache('Attendance');
+      showToastMsg('懇親会の出欠を更新しました');
+      await loadMeeting();
+    } catch (err) { showToastMsg(err.message || '更新に失敗しました', 'error'); }
+    setSaving(false);
+  }
+
+  async function handleCancelApResponse(memberId) {
+    setSaving(true);
+    try {
+      const existing = apAttRecordMap[memberId];
+      if (existing) {
+        await base44.entities.Attendance.delete(existing.id);
+        invalidateReadCache('Attendance');
+        showToastMsg('懇親会の回答を取り消しました');
+        await loadMeeting();
+      }
+    } catch (err) { showToastMsg(err.message || '取消に失敗しました', 'error'); }
+    setSaving(false);
+  }
+
   // Observer
   function addObserver(memberId) {
     if (!memberId || observerIds.includes(memberId)) return;
@@ -1537,6 +1575,85 @@ export default function MeetingDetail() {
                         <Button variant="primary" disabled={saving} onClick={handleSave}>{saving ? "保存中..." : "オブザーバーを保存"}</Button>
                       </div>
                     ) : null;
+                  })()}
+
+                  {/* ── After Party Attendance ── */}
+                  {afterParty && (() => {
+                    const apRespondedMembers = boardMembers.filter(m => apAttRecordMap[m.id || m._id]);
+                    const apNotRespondedMembers = boardMembers.filter(m => !apAttRecordMap[m.id || m._id]);
+                    const apResponseOptions = ['出席', '欠席'];
+                    const apAttend = afterPartyAtts.filter(a => (a.response || a.status) === '出席').length;
+                    const apTotal = boardMembers.length;
+                    const apResponseRate = apTotal > 0 ? Math.round((apRespondedMembers.length / apTotal) * 100) : 0;
+
+                    return (
+                      <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--color-border)' }}>
+                        <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 12px' }}>🍻 懇親会出欠</h3>
+                        <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 12 }}>
+                          回答率: <strong style={{ color: 'var(--color-text-primary)' }}>{apResponseRate}%</strong> ({apRespondedMembers.length}/{apTotal})
+                          <span style={{ margin: '0 8px' }}>|</span>
+                          参加: <strong style={{ color: 'var(--color-success)' }}>{apAttend}</strong>
+                        </div>
+
+                        {apRespondedMembers.length > 0 && (
+                          <div style={{ marginBottom: 16 }}>
+                            <h4 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: 'var(--color-text-primary)' }}>回答済み（{apRespondedMembers.length}名）</h4>
+                            <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                              {apRespondedMembers.map((m, idx) => {
+                                const mid = m.id || m._id;
+                                const att = apAttRecordMap[mid];
+                                const resp = att?.response || att?.status || '';
+                                return (
+                                  <div key={mid} style={{
+                                    display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+                                    alignItems: isMobile ? 'flex-start' : 'center',
+                                    gap: isMobile ? 6 : 10, padding: isMobile ? '10px 12px' : '10px 14px',
+                                    borderBottom: idx < apRespondedMembers.length - 1 ? '1px solid var(--color-border)' : 'none',
+                                  }}>
+                                    <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80 }}>{fullName(m)}</span>
+                                    <select value={resp} onChange={e => {
+                                      if (e.target.value === '__cancel__') handleCancelApResponse(mid);
+                                      else handleProxyApResponse(mid, e.target.value);
+                                    }} disabled={saving || !canEditAttendance}
+                                      style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
+                                      {apResponseOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                                      <option value="__cancel__">-- 取消 --</option>
+                                    </select>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {apNotRespondedMembers.length > 0 && (
+                          <div>
+                            <h4 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: 'var(--color-text-tertiary)' }}>未回答（{apNotRespondedMembers.length}名）</h4>
+                            <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                              {apNotRespondedMembers.map((m, idx) => {
+                                const mid = m.id || m._id;
+                                return (
+                                  <div key={mid} style={{
+                                    display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+                                    alignItems: isMobile ? 'flex-start' : 'center',
+                                    gap: isMobile ? 6 : 10, padding: isMobile ? '10px 12px' : '10px 14px',
+                                    borderBottom: idx < apNotRespondedMembers.length - 1 ? '1px solid var(--color-border)' : 'none',
+                                    background: 'var(--color-bg-sub)',
+                                  }}>
+                                    <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80, color: 'var(--color-text-tertiary)' }}>{fullName(m)}</span>
+                                    <select value="" onChange={e => e.target.value && handleProxyApResponse(mid, e.target.value)} disabled={saving || !canEditAttendance}
+                                      style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', color: 'var(--color-text-tertiary)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
+                                      <option value="">--</option>
+                                      {apResponseOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                                    </select>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
                   })()}
                 </>
               )}
