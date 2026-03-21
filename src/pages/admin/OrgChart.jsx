@@ -1113,13 +1113,13 @@ export default function OrgChart() {
                     onChange={e => setOrgForm(p => ({ ...p, org_name: e.target.value }))}
                     placeholder="例: 総務委員会"
                     style={{
-                      width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
+                      width: "100%", height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit",
                       border: "1px solid var(--color-border)", fontSize: 15, fontWeight: 500,
                       transition: "border-color var(--transition-fast)",
                       outline: "none",
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
-                    onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
+                    onFocus={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.12)"; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
                     autoFocus
                   />
                 </div>
@@ -1161,12 +1161,12 @@ export default function OrgChart() {
                     value={orgForm.parent_id}
                     onChange={e => setOrgForm(p => ({ ...p, parent_id: e.target.value }))}
                     style={{
-                      width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
-                      border: "1px solid var(--color-border)", fontSize: 14,
-                      transition: "border-color var(--transition-fast)", outline: "none",
+                      width: "100%", height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)",
+                      border: "1px solid var(--color-border)", fontSize: "0.875rem", fontFamily: "inherit",
+                      background: "var(--color-bg)", transition: "border-color var(--transition-fast), box-shadow var(--transition-fast)", outline: "none",
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
-                    onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
+                    onFocus={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.12)"; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
                   >
                     <option value="">なし（ルート）</option>
                     {orgHierarchyOptions.map(o => (
@@ -1184,12 +1184,12 @@ export default function OrgChart() {
                     type="number" value={orgForm.sort_order}
                     onChange={e => setOrgForm(p => ({ ...p, sort_order: e.target.value }))}
                     style={{
-                      width: 100, padding: "10px 14px", borderRadius: "var(--radius)",
+                      width: 100, height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit",
                       border: "1px solid var(--color-border)", fontSize: 14,
                       transition: "border-color var(--transition-fast)", outline: "none",
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
-                    onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
+                    onFocus={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.12)"; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
                   />
                 </div>
 
@@ -1225,12 +1225,12 @@ export default function OrgChart() {
                     value={orgForm.supervisor_id}
                     onChange={e => setOrgForm(p => ({ ...p, supervisor_id: e.target.value }))}
                     style={{
-                      width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
-                      border: "1px solid var(--color-border)", fontSize: 14,
-                      transition: "border-color var(--transition-fast)", outline: "none",
+                      width: "100%", height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)",
+                      border: "1px solid var(--color-border)", fontSize: "0.875rem", fontFamily: "inherit",
+                      background: "var(--color-bg)", transition: "border-color var(--transition-fast), box-shadow var(--transition-fast)", outline: "none",
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
-                    onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
+                    onFocus={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.12)"; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
                   >
                     <option value="">なし</option>
                     {filteredSupervisors.map(m => (
@@ -1307,13 +1307,13 @@ export default function OrgChart() {
                     onChange={e => setAssignForm(p => ({ ...p, member_id: e.target.value }))}
                     disabled={!!assignForm.id}
                     style={{
-                      width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
+                      width: "100%", height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit",
                       border: "1px solid var(--color-border)", fontSize: 14,
-                      background: assignForm.id ? "var(--color-border)" : "#fff",
+                      background: assignForm.id ? "var(--color-bg-sub)" : "var(--color-bg)",
                       transition: "border-color var(--transition-fast)", outline: "none",
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
-                    onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
+                    onFocus={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.12)"; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
                   >
                     <option value="">-- 会員を選択 --</option>
                     {filteredMembers.map(m => {
@@ -1340,7 +1340,7 @@ export default function OrgChart() {
                     onChange={e => { setAssignForm(p => ({ ...p, role: e.target.value })); if (e.target.value.trim()) setAssignRoleError(false); }}
                     placeholder="例: 委員長、副委員長、幹事、委員"
                     style={{
-                      width: "100%", padding: "10px 14px", borderRadius: "var(--radius)",
+                      width: "100%", height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit",
                       border: `1px solid ${assignRoleError ? "var(--color-danger)" : "var(--color-border)"}`, fontSize: 14, marginBottom: 8,
                       transition: "border-color var(--transition-fast)", outline: "none",
                     }}
@@ -1451,7 +1451,7 @@ export default function OrgChart() {
 
                   {organizations.length > 0 && (
                     <div style={{
-                      marginTop: 16, padding: "10px 14px", borderRadius: "var(--radius)",
+                      marginTop: 16, height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit",
                       background: "#fffbeb", border: "1px solid #fde68a", fontSize: 13,
                       display: "flex", alignItems: "center", gap: 8,
                     }}>

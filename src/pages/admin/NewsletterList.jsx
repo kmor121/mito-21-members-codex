@@ -255,7 +255,7 @@ function useDebounce(value, delay) {
 
 /* ── Tab Definitions ── */
 const TABS = [
-  { key: "all", label: "全て" },
+  { key: "all", label: "すべて" },
   { key: "draft", label: "下書き" },
   { key: "scheduled", label: "予約中" },
   { key: "history", label: "送信履歴" },
@@ -873,13 +873,14 @@ export default function NewsletterList() {
               value={historyChannel}
               onChange={e => setHistoryChannel(e.target.value)}
               style={{
-                padding: "8px 14px", border: "1px solid var(--line, var(--color-border))",
-                borderRadius: 8, fontSize: 13, outline: "none",
-                background: "#fff", color: "var(--color-text-primary)",
-                cursor: "pointer",
+                height: 38, padding: "0.5rem 0.75rem", border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-sm)", fontSize: "0.875rem", fontFamily: "inherit",
+                background: "var(--color-bg)", color: "var(--color-text-primary)",
+                cursor: "pointer", outline: "none",
+                transition: "border-color var(--transition-fast), box-shadow var(--transition-fast)",
               }}
             >
-              <option value="all">全チャネル</option>
+              <option value="all">すべて</option>
               <option value="email">メール</option>
               <option value="line">LINE</option>
               <option value="email+line">メール+LINE</option>
