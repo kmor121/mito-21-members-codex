@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { base44, invalidateReadCache } from '../../api/base44Client';
 import { useAuth } from '../../contexts/AuthContext';
@@ -12,6 +12,21 @@ const STATUS_BADGE = {
   "下書き": { label: "下書き", bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" },
   "公開":   { label: "公開", bg: "#eff6ff", color: "#2563eb" },
   "完了":   { label: "完了", bg: "#ecfdf5", color: "#059669" },
+};
+
+const TAG_BADGE = {
+  "審議": { bg: "var(--color-accent-light)", color: "var(--color-accent)" },
+  "協議": { bg: "var(--color-warning-light)", color: "var(--color-warning)" },
+  "討議": { bg: "#fef3c7", color: "#92400e" },
+  "報告": { bg: "var(--color-success-light)", color: "var(--color-success)" },
+  "議案": { bg: "var(--color-accent-light)", color: "var(--color-accent)" },
+};
+
+const DECISION_BADGE = {
+  "承認":   { bg: "#ecfdf5", color: "#059669" },
+  "了承":   { bg: "#ecfdf5", color: "#059669" },
+  "否決":   { bg: "#fee2e2", color: "#dc2626" },
+  "継続審議": { bg: "#fffbeb", color: "#d97706" },
 };
 
 function formatDate(dateStr, startTime, endTime) {
@@ -39,10 +54,11 @@ export default function MeetingDetailView() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
   const [memberMap, setMemberMap] = useState({});
+  const [memberOrgLabel, setMemberOrgLabel] = useState({});
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 3000); }
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       const [m, atts, allMembers] = await Promise.all([
         base44.entities.Meeting.get(meetingId),
@@ -56,6 +72,34 @@ export default function MeetingDetailView() {
       (allMembers || []).forEach(mb => { mm[mb.id] = mb; });
       setMemberMap(mm);
 
+      // Load org data for role labels
+      if (m?.fiscal_year_id) {
+        const [orgs, assigns] = await Promise.all([
+          base44.entities.Organization.list().catch(() => []),
+          base44.entities.OrgAssignment.list().catch(() => []),
+        ]);
+        const orgById = {};
+        (orgs || []).forEach(o => { orgById[o.id] = o; });
+        const orgTypePriority = { "幹事会": 0, "委員会": 1, "部会": 2, "室": 3, "その他": 4 };
+        const orgLabelMap = {};
+        (assigns || []).forEach(a => {
+          if (a.fiscal_year_id !== m.fiscal_year_id || !mm[a.member_id]) return;
+          if (a.role) {
+            const org = orgById[a.organization_id];
+            const orgType = org?.org_type || "その他";
+            const prio = orgTypePriority[orgType] ?? 4;
+            const existing = orgLabelMap[a.member_id];
+            if (!existing || prio < existing.priority) {
+              const orgName = orgType === "幹事会" ? "" : (org?.org_name || "");
+              orgLabelMap[a.member_id] = { label: orgName ? `${orgName} ${a.role}` : a.role, priority: prio };
+            }
+          }
+        });
+        const labels = {};
+        Object.entries(orgLabelMap).forEach(([mid, v]) => { labels[mid] = v.label; });
+        setMemberOrgLabel(labels);
+      }
+
       const aps = await base44.entities.Event.filter({ parent_meeting_id: meetingId, is_after_party: true }).catch(() => []);
       const ap = aps?.[0] || null;
       setAfterParty(ap);
@@ -65,9 +109,9 @@ export default function MeetingDetailView() {
       }
     } catch { /* ignore */ }
     finally { setLoading(false); }
-  }
+  }, [meetingId]);
 
-  useEffect(() => { loadData(); }, [meetingId]);
+  useEffect(() => { loadData(); }, [loadData]);
 
   const attMap = useMemo(() => {
     const m = {};
@@ -84,6 +128,16 @@ export default function MeetingDetailView() {
   const myAtt = attMap[currentMemberId];
   const myResponse = myAtt?.response || '';
   const myApResponse = apAttMap[currentMemberId]?.response || '';
+
+  // Resolve person display: "組織名 役職 氏名" or "手入力ラベル"
+  const getPersonDisplay = useCallback((personId, personLabel) => {
+    if (personId && memberMap[personId]) {
+      const name = fullName(memberMap[personId]);
+      const orgLabel = memberOrgLabel[personId];
+      return orgLabel ? `${orgLabel} ${name}` : name;
+    }
+    return personLabel || '';
+  }, [memberMap, memberOrgLabel]);
 
   async function handleResponse(targetId, response, isMeetingAtt = true) {
     if (saving) return;
@@ -141,9 +195,14 @@ export default function MeetingDetailView() {
   const attendList = attendances.filter(a => (a.response || a.status) === '出席');
   const absentList = attendances.filter(a => (a.response || a.status) === '欠席');
   const respondedCount = attendances.length;
-  const ceremony = Array.isArray(meeting.ceremony_items) ? meeting.ceremony_items : [];
-  const agenda = Array.isArray(meeting.agenda_items) ? meeting.agenda_items : [];
-  const moderator = meeting.moderator_id && memberMap[meeting.moderator_id] ? fullName(memberMap[meeting.moderator_id]) : '';
+
+  const ceremonyAll = Array.isArray(meeting.ceremony_items) ? [...meeting.ceremony_items].sort((a, b) => (a.order || 0) - (b.order || 0)) : [];
+  const ceremonyBefore = ceremonyAll.filter(c => c.order <= 3);
+  const ceremonyAfter = ceremonyAll.filter(c => c.order >= 5);
+  const agendaItems = Array.isArray(meeting.agenda_items) ? [...meeting.agenda_items].sort((a, b) => (a.order || 0) - (b.order || 0)) : [];
+  const moderator = meeting.moderator_id && memberMap[meeting.moderator_id] ? getPersonDisplay(meeting.moderator_id, '') : '';
+
+  const hasAgenda = ceremonyAll.length > 0 || agendaItems.length > 0;
 
   return (
     <section className="admin-shell">
@@ -176,58 +235,246 @@ export default function MeetingDetailView() {
       </div>
 
       {/* ── Agenda (次第) ── */}
-      {(ceremony.length > 0 || agenda.length > 0) && (
+      {hasAgenda && (
         <div className="card panel-card" style={{ marginBottom: 20 }}>
           <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 16px' }}>次第</h2>
-            {ceremony.length > 0 && (
-              <div style={{ marginBottom: agenda.length > 0 ? 20 : 0 }}>
-                {ceremony.map((c, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 8, padding: '6px 0', borderBottom: i < ceremony.length - 1 ? '1px solid var(--color-border)' : 'none', fontSize: 14 }}>
-                    <span style={{ color: 'var(--color-text-tertiary)', minWidth: 24, textAlign: 'right' }}>{c.order || i + 1}.</span>
-                    <span style={{ fontWeight: 500, color: 'var(--color-text-primary)' }}>{c.title}</span>
-                    {(c.person_id || c.person_label) && (
-                      <span style={{ color: 'var(--color-text-secondary)', marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: 13 }}>
-                        {c.person_id && memberMap[c.person_id] ? fullName(memberMap[c.person_id]) : c.person_label}
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 20px' }}>次第</h2>
+
+            {/* ━━ 式次第 ━━ */}
+            {ceremonyAll.length > 0 && (
+              <>
+                <div style={{
+                  fontSize: 13, fontWeight: 700, color: 'var(--color-text-tertiary)',
+                  padding: '0 0 8px', borderBottom: '2px solid var(--color-border)',
+                  marginBottom: 4, letterSpacing: '0.05em',
+                }}>
+                  式次第
+                </div>
+
+                {/* Ceremony before (1-3) */}
+                {ceremonyBefore.map((c, i) => {
+                  const person1 = getPersonDisplay(c.person_id, c.person_label);
+                  return (
+                    <div key={`cb-${i}`} style={{
+                      display: 'flex', alignItems: 'flex-start', gap: isMobile ? 8 : 12,
+                      padding: '12px 16px',
+                      borderBottom: '1px solid var(--color-border)',
+                    }}>
+                      <span style={{
+                        fontSize: 14, fontWeight: 600, color: 'var(--color-text-tertiary)',
+                        minWidth: 28, textAlign: 'right', flexShrink: 0,
+                      }}>
+                        {c.order || i + 1}.
                       </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            {agenda.length > 0 && (
-              <div>
-                <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8, paddingBottom: 4, borderBottom: '1px solid var(--color-border)' }}>議事</h3>
-                {agenda.map((a, i) => (
-                  <div key={i} style={{ padding: '8px 0', borderBottom: i < agenda.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                      {a.tag && <span style={{ padding: '1px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500, background: 'var(--color-accent-light)', color: 'var(--color-accent)' }}>{a.tag}</span>}
-                      <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text-primary)', flex: 1 }}>{a.title}</span>
-                      {(a.person_id || a.person_label) && (
-                        <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
-                          {a.person_id && memberMap[a.person_id] ? fullName(memberMap[a.person_id]) : a.person_label}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                          {c.title}
+                        </span>
+                      </div>
+                      {person1 && (
+                        <span style={{
+                          fontSize: 13, color: 'var(--color-text-secondary)',
+                          whiteSpace: isMobile ? 'normal' : 'nowrap', textAlign: 'right',
+                          flexShrink: isMobile ? 1 : 0,
+                        }}>
+                          {person1}
                         </span>
                       )}
                     </div>
-                    {a.link_url && (
-                      <a href={a.link_url} target="_blank" rel="noopener noreferrer" className="text-link" style={{ fontSize: 12, marginTop: 4, display: 'inline-block' }}>{a.link_label || '資料を見る'} →</a>
-                    )}
-                    {meeting.status === '完了' && a.decision && (
-                      <div style={{ marginTop: 6, padding: '6px 10px', background: 'var(--color-bg-sub)', borderRadius: 'var(--radius-sm)', fontSize: 13 }}>
-                        {a.decision_status && <span style={{ fontWeight: 600, color: 'var(--color-accent)', marginRight: 8 }}>{a.decision_status}</span>}
-                        <span style={{ color: 'var(--color-text-primary)' }}>{a.decision}</span>
-                      </div>
-                    )}
+                  );
+                })}
+
+                {/* 4. 議事 — inline header row */}
+                {agendaItems.length > 0 && (
+                  <div style={{
+                    padding: '12px 16px',
+                    borderBottom: '1px solid var(--color-border)',
+                    display: 'flex', alignItems: 'center', gap: 12,
+                  }}>
+                    <span style={{
+                      fontSize: 14, fontWeight: 600, color: 'var(--color-text-tertiary)',
+                      minWidth: 28, textAlign: 'right', flexShrink: 0,
+                    }}>
+                      4.
+                    </span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-accent)' }}>
+                      議事
+                    </span>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>
+                      （{agendaItems.length}件）
+                    </span>
                   </div>
-                ))}
-              </div>
+                )}
+
+                {/* Ceremony after (5-6) */}
+                {ceremonyAfter.map((c, i) => {
+                  const person1 = getPersonDisplay(c.person_id, c.person_label);
+                  const person2 = c.title === '監事講評' ? getPersonDisplay(c.person_id_2, c.person_label_2) : '';
+                  return (
+                    <div key={`ca-${i}`} style={{
+                      display: 'flex', alignItems: 'flex-start', gap: isMobile ? 8 : 12,
+                      padding: '12px 16px',
+                      borderBottom: i < ceremonyAfter.length - 1 ? '1px solid var(--color-border)' : 'none',
+                    }}>
+                      <span style={{
+                        fontSize: 14, fontWeight: 600, color: 'var(--color-text-tertiary)',
+                        minWidth: 28, textAlign: 'right', flexShrink: 0,
+                      }}>
+                        {c.order}.
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                          {c.title}
+                        </span>
+                      </div>
+                      <div style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2,
+                        flexShrink: isMobile ? 1 : 0,
+                      }}>
+                        {person1 && (
+                          <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', whiteSpace: isMobile ? 'normal' : 'nowrap', textAlign: 'right' }}>
+                            {person1}
+                          </span>
+                        )}
+                        {person2 && (
+                          <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', whiteSpace: isMobile ? 'normal' : 'nowrap', textAlign: 'right' }}>
+                            {person2}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+
+            {/* ━━ 議事 ━━ */}
+            {agendaItems.length > 0 && (
+              <>
+                <div style={{
+                  fontSize: 13, fontWeight: 700, color: 'var(--color-text-tertiary)',
+                  padding: '20px 0 8px', borderBottom: '2px solid var(--color-border)',
+                  marginBottom: 12, letterSpacing: '0.05em',
+                }}>
+                  議事
+                </div>
+
+                {agendaItems.map((item, idx) => {
+                  const tagBadge = item.tag ? (TAG_BADGE[item.tag] || { bg: 'var(--color-bg-sub)', color: 'var(--color-text-secondary)' }) : null;
+                  const person = getPersonDisplay(item.person_id, item.person_label);
+                  const decBadge = item.decision_status ? (DECISION_BADGE[item.decision_status] || { bg: 'var(--color-bg-sub)', color: 'var(--color-text-secondary)' }) : null;
+
+                  return (
+                    <div key={idx} style={{
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-lg)',
+                      padding: isMobile ? '14px 14px' : '16px 20px',
+                      marginBottom: 12,
+                      background: '#fff',
+                    }}>
+                      {/* Header: tag + title + person */}
+                      <div style={{
+                        display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
+                        gap: 8, marginBottom: 8,
+                        flexWrap: isMobile ? 'wrap' : 'nowrap',
+                      }}>
+                        {tagBadge && (
+                          <span style={{
+                            padding: '2px 10px', borderRadius: 'var(--radius-sm)',
+                            fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap',
+                            background: tagBadge.bg, color: tagBadge.color,
+                          }}>
+                            {item.tag}
+                          </span>
+                        )}
+                        <span style={{
+                          fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)',
+                          flex: 1, minWidth: 0,
+                        }}>
+                          {item.title}
+                        </span>
+                        {person && !isMobile && (
+                          <span style={{
+                            fontSize: 13, color: 'var(--color-text-secondary)',
+                            whiteSpace: 'nowrap', flexShrink: 0,
+                          }}>
+                            {person}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Person on mobile (below title) */}
+                      {person && isMobile && (
+                        <div style={{
+                          fontSize: 13, color: 'var(--color-text-secondary)',
+                          marginBottom: 8, paddingLeft: 4,
+                        }}>
+                          {person}
+                        </div>
+                      )}
+
+                      {/* Link */}
+                      {item.link_url && (
+                        <div style={{ marginBottom: 8, paddingLeft: 4 }}>
+                          {item.link_url.startsWith('/') ? (
+                            <Link to={item.link_url} style={{
+                              fontSize: 13, color: 'var(--color-accent)', textDecoration: 'none',
+                              display: 'inline-flex', alignItems: 'center', gap: 4,
+                            }}>
+                              {item.link_label || '資料を見る'} →
+                            </Link>
+                          ) : (
+                            <a href={item.link_url} target="_blank" rel="noopener noreferrer" style={{
+                              fontSize: 13, color: 'var(--color-accent)', textDecoration: 'none',
+                              display: 'inline-flex', alignItems: 'center', gap: 4,
+                            }}>
+                              {item.link_label || '資料を見る'} →
+                            </a>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Decision result (completed meetings only) */}
+                      {isCompleted && item.decision_status && item.decision_status !== '未審議' && (
+                        <div style={{
+                          marginTop: 12, paddingTop: 12,
+                          borderTop: '1px solid var(--color-border)',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: item.decision ? 8 : 0 }}>
+                            <span style={{
+                              padding: '2px 10px', borderRadius: 'var(--radius-sm)',
+                              fontSize: 12, fontWeight: 600,
+                              background: decBadge?.bg || 'var(--color-bg-sub)',
+                              color: decBadge?.color || 'var(--color-text-secondary)',
+                            }}>
+                              {item.decision_status}
+                            </span>
+                          </div>
+                          {item.decision && (
+                            <div style={{
+                              fontSize: 13, color: 'var(--color-text-primary)',
+                              lineHeight: 1.6,
+                              padding: '8px 12px',
+                              background: 'var(--color-bg-sub)',
+                              borderRadius: 'var(--radius-md)',
+                              whiteSpace: 'pre-wrap',
+                            }}>
+                              {item.decision}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </>
             )}
           </div>
         </div>
       )}
 
       {/* ── Minutes (議事録) ── */}
-      {meeting.status === '完了' && meeting.minutes_content && (
+      {isCompleted && meeting.minutes_content && (
         <div className="card panel-card" style={{ marginBottom: 20 }}>
           <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
             <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>議事録</h2>
@@ -240,7 +487,7 @@ export default function MeetingDetailView() {
       {afterParty && (
         <div className="card panel-card" style={{ marginBottom: 20 }}>
           <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>🍻 懇親会</h2>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>懇親会</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
               {afterParty.location && <span>📍 {afterParty.location}</span>}
               {afterParty.start_time && <span>🕐 {afterParty.start_time}{afterParty.end_time ? `〜${afterParty.end_time}` : ''}</span>}
@@ -347,7 +594,7 @@ export default function MeetingDetailView() {
         return (
           <div className="card panel-card" style={{ marginBottom: 20 }}>
             <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>🍻 懇親会出欠</h2>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>懇親会出欠</h2>
               <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
                 回答率: <strong style={{ color: 'var(--color-text-primary)' }}>{members.length > 0 ? Math.round((apAtts.length / members.length) * 100) : 0}%</strong> ({apAtts.length}/{members.length})
               </div>
