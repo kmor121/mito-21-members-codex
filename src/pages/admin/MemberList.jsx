@@ -610,7 +610,7 @@ export default function MemberList() {
                       position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 100,
                       background: '#fff', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
                       boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
-                      minWidth: 180, maxHeight: 240, overflowY: 'auto',
+                      minWidth: 240, maxHeight: 240, overflowY: 'auto',
                       animation: 'yearDropIn 0.12s ease',
                     }}>
                       <button type="button" onClick={() => { setOrganizationId(''); setShowOrgDropdown(false); }}
@@ -742,7 +742,7 @@ export default function MemberList() {
                       position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100,
                       background: "#fff", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
                       boxShadow: "0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
-                      minWidth: 180, maxHeight: 240, overflowY: "auto",
+                      minWidth: 240, maxHeight: 240, overflowY: "auto",
                       animation: "yearDropIn 0.12s ease",
                     }}>
                       <button type="button" onClick={() => { setOrganizationId(''); setShowOrgDropdown(false); }}
