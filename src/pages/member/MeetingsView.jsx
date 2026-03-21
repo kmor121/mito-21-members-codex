@@ -525,7 +525,6 @@ export default function MeetingsView() {
               <div key={m.id} style={cardStyle}
                 onMouseEnter={() => setHoveredId(m.id)}
                 onMouseLeave={() => setHoveredId(null)}
-                onClick={() => setExpandedId(isExpanded ? null : m.id)}
               >
                 {/* ── Card header ── */}
                 <div style={styles.cardHeader}>
@@ -568,334 +567,44 @@ export default function MeetingsView() {
                     </div>
                   </div>
 
-                  {/* Chevron */}
-                  <div style={styles.chevronWrap(isExpanded)}>
-                    <ChevronDown />
-                  </div>
                 </div>
 
-                {/* ── Expanded content ── */}
-                {isExpanded && (
-                  <div style={styles.expandedBody} onClick={(e) => e.stopPropagation()}>
-                    {/* Copy button + Moderator */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-                      {m.moderator_id ? (
-                        <p style={{ ...styles.moderatorLine, margin: 0 }}>
-                          司会: {getMemberName(m.moderator_id)}
-                        </p>
-                      ) : <span />}
-                      <button type="button" onClick={() => copyAgendaText(m)}
-                        style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 5,
-                          padding: '5px 12px', borderRadius: 8, border: '1px solid #E8E6DF',
-                          background: '#fff', fontSize: 12, fontWeight: 500, cursor: 'pointer',
-                          color: copiedMeetingId === m.id ? '#1D9E75' : '#5F5E5A',
-                          transition: 'all 0.15s', flexShrink: 0,
-                        }}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-                        {copiedMeetingId === m.id ? "コピー済" : "次第コピー"}
-                      </button>
-                    </div>
-
-                    {/* Ceremony before (1-3) */}
-                    {ceremonyBefore.map((c, idx) => (
-                      <div key={c.order} style={styles.ceremonyRow(idx)}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                          <div style={styles.numberBadge}>{c.order}</div>
-                          <span style={styles.ceremonyTitle}>{c.title}</span>
-                        </div>
-                        {(c.person_id || c.person_label) && (
-                          <span style={styles.ceremonyPerson}>
-                            {c.person_id ? (
-                              <>
-                                {getOrgLabel(c.person_id, m.fiscal_year_id) && (
-                                  <span style={{ fontSize: 12, color: '#888780', marginRight: 6 }}>{getOrgLabel(c.person_id, m.fiscal_year_id)}</span>
-                                )}
-                                <span style={{ fontWeight: 500 }}>{getMemberName(c.person_id)}</span>
-                              </>
-                            ) : (
-                              <span style={{ fontWeight: 500 }}>{c.person_label}</span>
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-
-                    {/* Agenda section */}
-                    <div style={styles.agendaSection}>
-                      <div style={styles.agendaSectionTitle}>
-                        <div style={styles.numberBadge}>4</div>
-                        議事
-                      </div>
-                      {agendaItems.length === 0 ? (
-                        <p style={{ color: '#5F5E5A', fontSize: 13, margin: 0 }}>議題なし</p>
-                      ) : (
-                        agendaItems.map((item, idx) => {
-                          const tagBadge = item.tag ? (TAG_BADGE[item.tag] || TAG_BADGE["その他"]) : null;
-                          const decBadge = DECISION_STATUS_BADGE[item.decision_status] || DECISION_STATUS_BADGE["未審議"];
-                          const personName = getMemberName(item.person_id);
-                          const personOrgLabel = getOrgLabel(item.person_id, m.fiscal_year_id);
-                          const hasMemberSpeaker = !!personName;
-                          const hasFreeSpeaker = !item.person_id && !!item.person_label;
+                {/* ── Attendance buttons (inline, no expand) ── */}
+                {(() => {
+                  const myAtt = myMeetingAttMap[m.id];
+                  const myResp = myAtt?.response || '';
+                  const canResp = m.status === '公開' && !isAttendanceClosed(m);
+                  const isSav = savingResponse === m.id;
+                  return (
+                    <div style={{ borderTop: '1px solid var(--color-border)', padding: '12px 16px' }} onClick={e => e.stopPropagation()}>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        {['出席', '欠席'].map(opt => {
+                          const isSelected = myResp === opt;
+                          const isAttend = opt === '出席';
                           return (
-                            <div key={idx} style={styles.agendaItem}>
-                              <div style={styles.agendaTitleRow}>
-                                <span style={styles.agendaNum}>{idx + 1}）</span>
-                                <span style={styles.agendaTitle}>
-                                  {item.title}
-                                  {item.tag && tagBadge && (
-                                    <span style={styles.agendaTag(tagBadge)}>{item.tag}</span>
-                                  )}
-                                </span>
-                                {hasMemberSpeaker && (
-                                  <span style={styles.agendaPerson}>
-                                    {personOrgLabel && <span style={{ fontSize: 12, color: '#888780', marginRight: 6 }}>{personOrgLabel}</span>}
-                                    <span style={{ fontWeight: 500 }}>{personName}</span>
-                                  </span>
-                                )}
-                                {hasFreeSpeaker && (
-                                  <span style={styles.agendaPerson}>
-                                    <span style={{ fontWeight: 500 }}>{item.person_label}</span>
-                                  </span>
-                                )}
-                              </div>
-                              {item.link_url && (
-                                <p style={{ margin: '4px 0 0 32px', fontSize: 12 }}>
-                                  {item.link_url.startsWith("/") ? (
-                                    <Link to={item.link_url} style={{ color: '#534AB7' }}>
-                                      {item.link_label || "リンクを見る"}
-                                    </Link>
-                                  ) : (
-                                    <a href={item.link_url} target="_blank" rel="noopener noreferrer" style={{ color: '#534AB7' }}>
-                                      {item.link_label || "資料を見る"}
-                                    </a>
-                                  )}
-                                </p>
-                              )}
-                              {isCompleted && item.decision_status && item.decision_status !== "未審議" && (
-                                <div style={{ margin: '8px 0 0 32px', display: 'flex', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                                  <span style={{
-                                    display: 'inline-block', padding: '2px 10px', borderRadius: 8, fontSize: 12, fontWeight: 500,
-                                    background: decBadge.bg, color: decBadge.color,
-                                  }}>{item.decision_status}</span>
-                                  {item.decision && <span style={{ fontSize: 12, color: '#2C2C2A' }}>{item.decision}</span>}
-                                </div>
-                              )}
-                            </div>
+                            <button key={opt} type="button" disabled={!canResp || isSav}
+                              onClick={() => canResp && handleMeetingResponse(m.id, opt)}
+                              style={{
+                                padding: isMobile ? '8px 14px' : '7px 16px', borderRadius: 'var(--radius)',
+                                fontSize: 13, fontWeight: 600, cursor: (!canResp || isSav) ? 'default' : 'pointer',
+                                transition: 'all 0.15s', minHeight: 36,
+                                background: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : 'transparent',
+                                color: isSelected ? '#fff' : 'var(--color-text-secondary)',
+                                border: isSelected ? `2px solid ${isAttend ? 'var(--color-success)' : 'var(--color-danger)'}` : '1px solid var(--color-border)',
+                                opacity: (!canResp || isSav) && !isSelected ? 0.5 : 1,
+                              }}>{isSelected && '✓ '}{opt}</button>
                           );
-                        })
-                      )}
+                        })}
+                      </div>
                     </div>
-
-                    {/* Ceremony after (5-6) */}
-                    {ceremonyAfter.map((c, idx) => {
-                      const renderSpeaker = (pid, plabel) => {
-                        if (pid) {
-                          const ol = getOrgLabel(pid, m.fiscal_year_id);
-                          return <span>{ol && <span style={{ fontSize: 12, color: '#888780', marginRight: 6 }}>{ol}</span>}<span style={{ fontWeight: 500 }}>{getMemberName(pid)}</span></span>;
-                        }
-                        if (plabel) return <span style={{ fontWeight: 500 }}>{plabel}</span>;
-                        return null;
-                      };
-                      const s1 = renderSpeaker(c.person_id, c.person_label);
-                      const s2 = renderSpeaker(c.person_id_2, c.person_label_2);
-                      return (
-                        <div key={c.order} style={styles.ceremonyRow(ceremonyBefore.length + idx)}>
-                          <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <div style={styles.numberBadge}>{c.order}</div>
-                            <span style={styles.ceremonyTitle}>{c.title}</span>
-                          </div>
-                          {(s1 || s2) && (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-                              {s1 && <span style={styles.ceremonyPerson}>{s1}</span>}
-                              {s2 && <span style={styles.ceremonyPerson}>{s2}</span>}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-
-                    {/* ── Attendance Section ── */}
-                    {(() => {
-                      const myAtt = myMeetingAttMap[m.id];
-                      const myResponse = myAtt?.response || '';
-                      const canRespond = m.status === '公開' && !isAttendanceClosed(m);
-                      const isSaving = savingResponse === m.id;
-
-                      // Build unified attendance map: Attendance records + old attendee_ids
-                      const mAtts = meetingAttsCache[m.id] || [];
-                      const unifiedMap = {};
-                      mAtts.forEach(a => { unifiedMap[a.member_id] = a.response || a.status; });
-                      const oldAIds = Array.isArray(m.attendee_ids) ? m.attendee_ids : [];
-                      oldAIds.forEach(id => { if (!unifiedMap[id]) unifiedMap[id] = '出席'; });
-                      const oldObs = Array.isArray(m.observer_ids) ? m.observer_ids : [];
-                      oldObs.forEach(id => { if (!unifiedMap[id]) unifiedMap[id] = '出席'; });
-                      const attendCount = Object.values(unifiedMap).filter(v => v === '出席').length;
-                      const absentCount = Object.values(unifiedMap).filter(v => v === '欠席').length;
-                      const totalResponded = Object.keys(unifiedMap).length;
-                      const isAttExpanded = expandedAttId === m.id;
-
-                      return (
-                        <div style={styles.attendanceBox}>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: '#5F5E5A', marginBottom: 10 }}>出欠</div>
-
-                          {/* Attendance closed notice */}
-                          {m.status === '公開' && isAttendanceClosed(m) && (
-                            <div style={{
-                              padding: '8px 12px', background: 'var(--color-bg-sub)',
-                              borderRadius: 'var(--radius-md)', fontSize: 13,
-                              color: 'var(--color-text-tertiary)', marginBottom: 8,
-                            }}>
-                              出欠の受付は終了しました
-                            </div>
-                          )}
-
-                          {/* Response buttons (only for 公開 & not closed) */}
-                          {canRespond && (
-                            <div style={{ marginBottom: 10 }}>
-                              <div style={{ fontSize: 12, color: '#5F5E5A', marginBottom: 6 }}>あなたの回答:</div>
-                              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                {['出席', '欠席'].map(opt => {
-                                  const isSelected = myResponse === opt;
-                                  const isAttend = opt === '出席';
-                                  return (
-                                    <button key={opt} type="button" disabled={isSaving}
-                                      onClick={(e) => { e.stopPropagation(); handleMeetingResponse(m.id, opt); }}
-                                      style={{
-                                        padding: isMobile ? '8px 16px' : '7px 18px',
-                                        borderRadius: 8, fontSize: 13, fontWeight: 600,
-                                        cursor: isSaving ? 'default' : 'pointer',
-                                        transition: 'all 0.15s', minHeight: 36,
-                                        background: isSelected ? (isAttend ? 'var(--color-success-light)' : 'var(--color-danger-light)') : 'transparent',
-                                        color: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : '#5F5E5A',
-                                        border: isSelected ? `2px solid ${isAttend ? 'var(--color-success)' : 'var(--color-danger)'}` : '1px solid #E8E6DF',
-                                        opacity: isSaving ? 0.5 : 1,
-                                      }}>
-                                      {isSelected && '✓ '}{opt}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Show result for completed */}
-                          {isCompleted && myResponse && (
-                            <p style={{ fontSize: 13, color: 'var(--color-success)', fontWeight: 600, margin: '0 0 10px' }}>
-                              ✓ あなたの回答: {myResponse}
-                            </p>
-                          )}
-
-                          {/* Toggle for response details */}
-                          {totalResponded > 0 && (
-                            <div>
-                              <button type="button" onClick={(e) => { e.stopPropagation(); const next = isAttExpanded ? null : m.id; setExpandedAttId(next); if (next) loadMeetingAtts(m.id); }}
-                                style={{ background: 'none', border: 'none', color: '#534AB7', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
-                                {isAttExpanded ? '▾ 回答状況を閉じる' : `▸ 回答状況を見る（出席 ${attendCount} / 欠席 ${absentCount}）`}
-                              </button>
-                              {isAttExpanded && (
-                                <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                                  {Object.entries(unifiedMap).map(([mid, resp]) => {
-                                    const name = getMemberName(mid);
-                                    if (!name) return null;
-                                    const isA = resp === '出席';
-                                    return (
-                                      <span key={mid} style={{
-                                        display: 'inline-flex', alignItems: 'center', gap: 4,
-                                        padding: '3px 10px', borderRadius: 999, fontSize: 12,
-                                        background: isA ? '#ecfdf5' : '#fef2f2',
-                                        color: isA ? '#059669' : '#dc2626',
-                                        border: `1px solid ${isA ? '#bbf7d0' : '#fecaca'}`,
-                                      }}>
-                                        {name} <span style={{ fontWeight: 600 }}>{resp}</span>
-                                      </span>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })()}
-
-                    {/* ── After Party Section ── */}
-                    {(() => {
-                      const ap = afterPartyMap[m.id];
-                      if (!ap) return null;
-                      const apMyAtt = myEventAttMap[ap.id];
-                      const apMyResponse = apMyAtt?.response || '';
-                      const apCanRespond = m.status === '公開';
-                      const apIsSaving = savingResponse === ap.id;
-                      return (
-                        <div style={{ marginTop: 16, padding: 16, borderRadius: 10, background: '#FFFBEB', border: '1px solid #FDE68A' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                            <span style={{ fontSize: 16 }}>🍻</span>
-                            <span style={{ fontSize: 14, fontWeight: 700, color: '#92400e' }}>懇親会</span>
-                          </div>
-                          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#78350f', marginBottom: 10 }}>
-                            {ap.start_time && <span>🕐 {ap.start_time}{ap.end_time ? `〜${ap.end_time}` : ''}</span>}
-                            {ap.location && <span>📍 {ap.location}</span>}
-                            {ap.fee > 0 && <span>¥{Number(ap.fee).toLocaleString()}</span>}
-                          </div>
-                          {apCanRespond && (
-                            <div style={{ marginBottom: 6 }}>
-                              <div style={{ fontSize: 12, color: '#78350f', marginBottom: 6 }}>懇親会の出欠:</div>
-                              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                {['出席', '欠席'].map(opt => {
-                                  const isSelected = apMyResponse === opt;
-                                  const isAttend = opt === '出席';
-                                  return (
-                                    <button key={opt} type="button" disabled={apIsSaving}
-                                      onClick={(e) => { e.stopPropagation(); handleAfterPartyResponse(ap.id, opt); }}
-                                      style={{
-                                        padding: isMobile ? '8px 16px' : '7px 18px',
-                                        borderRadius: 8, fontSize: 13, fontWeight: 600,
-                                        cursor: apIsSaving ? 'default' : 'pointer',
-                                        transition: 'all 0.15s', minHeight: 36,
-                                        background: isSelected ? (isAttend ? 'var(--color-success-light)' : 'var(--color-danger-light)') : 'transparent',
-                                        color: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : '#78350f',
-                                        border: isSelected ? `2px solid ${isAttend ? 'var(--color-success)' : 'var(--color-danger)'}` : '1px solid #FDE68A',
-                                        opacity: apIsSaving ? 0.5 : 1,
-                                      }}>
-                                      {isSelected && '✓ '}{opt}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-                          {isCompleted && apMyResponse && (
-                            <p style={{ fontSize: 13, color: 'var(--color-success)', fontWeight: 600, margin: '4px 0 0' }}>
-                              ✓ 懇親会: {apMyResponse}
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })()}
-
-                    {/* Minutes content (rich text) */}
-                    {isCompleted && m.minutes_content && (
-                      <div style={styles.minutesBox}>
-                        <span style={styles.minutesLabel}>議事録本文</span>
-                        <div className="tiptap-content-view" dangerouslySetInnerHTML={{ __html: m.minutes_content }} />
-                      </div>
-                    )}
-
-                    {/* Minutes note */}
-                    {isCompleted && m.minutes_note && (
-                      <div style={styles.noteBox}>
-                        <span style={styles.noteLabel}>補足メモ:</span>
-                        <p style={styles.noteText}>{m.minutes_note}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             );
           })}
         </div>
       )}
+
 
       {/* ── Responsive styles ── */}
       <style>{`

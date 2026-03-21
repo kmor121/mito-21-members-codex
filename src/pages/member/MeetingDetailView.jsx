@@ -169,7 +169,7 @@ export default function MeetingDetailView() {
                 <span>{meeting.location}</span>
               </div>
             )}
-            {moderator && <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ fontSize: 16 }}>🎤</span><span>司会: {moderator}</span></div>}
+            {moderator && <div style={{ fontSize: 14, color: 'var(--color-text-secondary)' }}>司会: {moderator}</div>}
           </div>
         </div>
       </div>
