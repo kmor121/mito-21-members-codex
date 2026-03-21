@@ -111,6 +111,7 @@ export default function MyPage() {
   const fileInputRef = useRef(null);
 
   // Load member from AuthContext
+  useEffect(() => { base44.appLogs.logUserInApp('M3-マイページ'); }, []);
   useEffect(() => {
     if (authLoading) return;
 

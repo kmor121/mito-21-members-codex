@@ -142,6 +142,7 @@ export default function Applications() {
     }
   }, []);
 
+  useEffect(() => { base44.appLogs.logUserInApp('A4-入会申込管理'); }, []);
   useEffect(() => {
     loadPending();
   }, [loadPending]);

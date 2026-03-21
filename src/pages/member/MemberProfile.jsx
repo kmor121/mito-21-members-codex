@@ -53,6 +53,7 @@ export default function MemberProfile() {
   const [organizations, setOrganizations] = useState([]);
   const [fiscalYears, setFiscalYears] = useState([]);
 
+  useEffect(() => { base44.appLogs.logUserInApp('M2-会員詳細'); }, []);
   useEffect(() => {
     if (!memberId) return;
 

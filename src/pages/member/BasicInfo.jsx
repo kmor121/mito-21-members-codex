@@ -77,6 +77,7 @@ export default function BasicInfo() {
   const [sections, setSections] = useState([]);
   const [activeTab, setActiveTab] = useState("");
 
+  useEffect(() => { base44.appLogs.logUserInApp('M4-基本情報'); }, []);
   useEffect(() => {
     setLoading(true);
     setError("");

@@ -121,6 +121,7 @@ export default function Directory() {
     }
   }, []);
 
+  useEffect(() => { base44.appLogs.logUserInApp('M1-会員名簿'); }, []);
   useEffect(() => { loadMembers(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Apply filters client-side

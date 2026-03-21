@@ -267,6 +267,7 @@ export default function MeetingsView() {
     setLoading(false);
   }, [selectedFYId]);
 
+  useEffect(() => { base44.appLogs.logUserInApp('M7-幹事会'); }, []);
   useEffect(() => { loadData(); }, [loadData]);
 
   const memberMap = useMemo(() => {

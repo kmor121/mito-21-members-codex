@@ -501,6 +501,7 @@ export default function OrgChart() {
   const [unsavedOrder, setUnsavedOrder] = useState(false);
 
   /* ── Toast ── */
+  useEffect(() => { base44.appLogs.logUserInApp('A6-組織図管理'); }, []);
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 3000);

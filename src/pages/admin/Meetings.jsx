@@ -78,6 +78,7 @@ export default function Meetings() {
   const [showCopySelector, setShowCopySelector] = useState(false);
   const copySelectorRef = useRef(null);
 
+  useEffect(() => { base44.appLogs.logUserInApp('A11-幹事会管理'); }, []);
   useEffect(() => {
     if (!showCopySelector) return;
     const handler = (e) => {

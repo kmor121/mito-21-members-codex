@@ -63,6 +63,7 @@ export default function ChangeLogs() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => { base44.appLogs.logUserInApp('A13-変更履歴'); }, []);
   useEffect(() => {
     (async () => {
       try {

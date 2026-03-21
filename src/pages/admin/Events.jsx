@@ -60,6 +60,7 @@ export default function Events() {
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
   const typeDropdownRef = useRef(null);
 
+  useEffect(() => { base44.appLogs.logUserInApp('A12-イベント管理'); }, []);
   useEffect(() => {
     if (!typeDropdownOpen) return;
     const handler = (e) => {

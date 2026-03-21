@@ -72,6 +72,7 @@ export default function EventsView() {
     setLoading(false);
   }, [currentMemberId]);
 
+  useEffect(() => { base44.appLogs.logUserInApp('M8-イベント出欠'); }, []);
   useEffect(() => { loadData(); }, [loadData]);
 
   const myAttMap = useMemo(() => {

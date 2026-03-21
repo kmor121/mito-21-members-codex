@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '../../api/base44Client';
 import useDataCache from '../../hooks/useDataCache';
@@ -63,6 +63,7 @@ function fmtMeetingDate(d) {
 /* ═══ Dashboard ═══ */
 export default function Dashboard() {
   const isMobile = useIsMobile();
+  useEffect(() => { base44.appLogs.logUserInApp('A1-ダッシュボード'); }, []);
 
   const { data: approvedMembers, loading: loadMembers, error: errMembers } = useDataCache(
     'dash:members:approved', () => base44.entities.Member.filter({ approval_status: '承認済' }),
