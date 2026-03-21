@@ -293,23 +293,14 @@ export default function MeetingDetailView() {
               <AttendanceDeadlineBadge deadline={meeting.attendance_deadline} closed={closed} />
             </div>
             <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.9 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 15 }}>📅</span>
-                <span style={{ fontWeight: 500, color: 'var(--color-text-primary)' }}>
-                  {formatDate(meeting.meeting_date, meeting.start_time, meeting.end_time)}
-                </span>
+              <div style={{ fontWeight: 500, color: 'var(--color-text-primary)' }}>
+                {formatDate(meeting.meeting_date, meeting.start_time, meeting.end_time)}
               </div>
               {meeting.location && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 15 }}>📍</span>
-                  <span>{meeting.location}</span>
-                </div>
+                <div>場所: {meeting.location}</div>
               )}
               {moderator && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 15, opacity: 0.7 }}>🎤</span>
-                  <span>司会: {moderator}</span>
-                </div>
+                <div>司会: {moderator}</div>
               )}
             </div>
           </div>
@@ -511,14 +502,14 @@ export default function MeetingDetailView() {
                               fontSize: 13, color: 'var(--color-accent)', textDecoration: 'none',
                               fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6,
                             }}>
-                              📄 {item.link_label || '資料を見る'} →
+                              {item.link_label || '資料を見る'} →
                             </Link>
                           ) : (
                             <a href={item.link_url} target="_blank" rel="noopener noreferrer" style={{
                               fontSize: 13, color: 'var(--color-accent)', textDecoration: 'none',
                               fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6,
                             }}>
-                              📄 {item.link_label || '資料を見る'} →
+                              {item.link_label || '資料を見る'} →
                             </a>
                           )}
                         </div>
@@ -775,16 +766,16 @@ export default function MeetingDetailView() {
             fontSize: 18, fontWeight: 700, margin: '0 0 12px',
             color: '#78350F',
           }}>
-            🍻 懇親会
+            懇親会
           </h2>
           <div style={{ fontSize: 14, color: '#92400E', lineHeight: 1.9, marginBottom: 16 }}>
             {afterParty.location && (
-              <div>📍 {afterParty.location}</div>
+              <div>場所: {afterParty.location}</div>
             )}
             {afterParty.start_time && (
-              <div>🕐 {afterParty.start_time}{afterParty.end_time ? `〜${afterParty.end_time}` : ''}</div>
+              <div>時間: {afterParty.start_time}{afterParty.end_time ? `〜${afterParty.end_time}` : ''}</div>
             )}
-            <div>💰 {afterParty.fee > 0 ? `¥${Number(afterParty.fee).toLocaleString()}` : '無料'}</div>
+            <div>会費: {afterParty.fee > 0 ? `¥${Number(afterParty.fee).toLocaleString()}` : '無料'}</div>
           </div>
 
           {/* AP response buttons */}
