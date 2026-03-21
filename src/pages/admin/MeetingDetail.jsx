@@ -1301,7 +1301,7 @@ export default function MeetingDetail() {
         const responded = respondedMembers.length;
         const attend = responseSummary["出席"] || 0;
         const responseRate = totalTarget > 0 ? Math.round((responded / totalTarget) * 100) : 0;
-        const attendRate = responded > 0 ? Math.round((attend / responded) * 100) : 0;
+        const attendRate = totalTarget > 0 ? Math.round((attend / totalTarget) * 100) : 0;
 
         return (
           <section className="card panel-card">
@@ -1326,7 +1326,7 @@ export default function MeetingDetail() {
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
                     <span style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: 'var(--color-success)' }}>{attendRate}</span>
                     <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>%</span>
-                    <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginLeft: 4 }}>({attend}/{responded})</span>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginLeft: 4 }}>({attend}/{totalTarget})</span>
                   </div>
                 </div>
               </div>
@@ -1495,6 +1495,46 @@ export default function MeetingDetail() {
                           );
                         })}
                       </div>
+                    </div>
+                  )}
+                  {/* Observer section */}
+                  <div style={{ marginTop: 20 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, paddingBottom: 4, borderBottom: "1px solid var(--color-border)", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)" }}>オブザーバー</span>
+                      {canEditAttendance && (
+                        <div style={{ width: isMobile ? "100%" : 220, marginTop: isMobile ? 4 : 0 }}>
+                          <MemberSelector value="" onChange={(mid) => { if (mid) addObserver(mid); }}
+                            members={observerCandidates} roleMap={memberRoleMap} placeholder="+ オブザーバーを追加..." />
+                        </div>
+                      )}
+                    </div>
+                    {observerIds.length === 0 ? (
+                      <p style={{ fontSize: 12, color: "var(--color-text-secondary)", textAlign: "center", padding: "12px 0" }}>オブザーバーはいません</p>
+                    ) : (
+                      <div style={{ border: "1px solid var(--color-border)", borderRadius: 8, overflow: "hidden" }}>
+                        {observerIds.map((oid, idx) => {
+                          const m = memberMap[oid];
+                          if (!m) return null;
+                          return (
+                            <div key={oid} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", borderBottom: idx < observerIds.length - 1 ? "1px solid var(--color-bg-sub)" : "none" }}>
+                              <MemberAvatar member={m} size={28} />
+                              <span style={{ fontSize: 13, fontWeight: 500, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fullName(m)}</span>
+                              {memberRoleMap[oid] && <span style={{ fontSize: 12, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>{memberRoleMap[oid]}</span>}
+                              {canEditAttendance && (
+                                <button type="button" onClick={() => removeObserver(oid)}
+                                  style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--color-danger)", fontSize: 16, padding: "0 4px", flexShrink: 0 }}>&times;</button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Save button */}
+                  {canEditAttendance && (
+                    <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
+                      <Button variant="primary" disabled={saving} onClick={handleSave}>{saving ? "保存中..." : "保存"}</Button>
                     </div>
                   )}
                 </>
