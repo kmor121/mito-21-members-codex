@@ -36,7 +36,6 @@ const TAG_BADGE = {
 const QUICK_LINKS = [
   { label: "入会管理", url: "/member/applications", linkLabel: "入会管理を見る" },
   { label: "会費管理", url: "/member/dues-overview", linkLabel: "会費管理を見る" },
-  { label: "組織図", url: "/organization", linkLabel: "組織図を見る" },
 ];
 
 const DEFAULT_SONOTA_ITEM = { order: 99, title: "その他", tag: "", person_id: "", person_label: "", link_url: "", link_label: "", decision: "", decision_status: "未審議" };
@@ -1139,7 +1138,7 @@ export default function MeetingDetail() {
                           <span style={{ fontWeight: 700, fontSize: 13, color: "var(--color-text-secondary)", minWidth: isMobile ? 24 : 30 }}>{idx + 1}）</span>
                           {canEditAgenda ? (
                             <input type="text" value={item.title} onChange={(e) => updateAgendaItem(idx, "title", e.target.value)}
-                              placeholder="議題名" style={{ flex: 1, fontSize: 13 }} />
+                              placeholder="議題名" style={{ flex: 1, fontSize: 13, height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", fontFamily: "inherit", lineHeight: 1.5, boxSizing: "border-box" }} />
                           ) : (
                             <span style={{ fontWeight: 600, fontSize: 13, flex: 1 }}>{item.title}</span>
                           )}
@@ -1152,7 +1151,7 @@ export default function MeetingDetail() {
                               <span style={{ fontSize: 12, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>種別:</span>
                               {canEditAgenda ? (
                                 <select value={item.tag || ""} onChange={(e) => updateAgendaItem(idx, "tag", e.target.value)}
-                                  style={{ width: 110, fontSize: 12, padding: "3px 6px", borderRadius: 6, border: "1px solid var(--color-border)" }}>
+                                  style={{ width: 110, fontSize: 13, height: 32, padding: "4px 8px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", fontFamily: "inherit", background: "var(--color-bg)" }}>
                                   <option value="">未設定</option>
                                   {AGENDA_TAGS.map((t) => <option key={t} value={t}>{t}</option>)}
                                 </select>
@@ -1183,12 +1182,12 @@ export default function MeetingDetail() {
                           {/* Link */}
                           {canEditAgenda ? (
                             item.link_url ? (
-                              <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                                 <span style={{ fontSize: 12, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>リンク:</span>
                                 <input type="text" value={item.link_url} onChange={(e) => updateAgendaItem(idx, "link_url", e.target.value)}
-                                  placeholder="/admin/... or https://..." style={{ flex: 1, minWidth: 180, fontSize: 12 }} />
+                                  placeholder="/member/... or https://..." style={{ flex: 1, minWidth: 160, fontSize: 13, height: 32, padding: "4px 8px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", fontFamily: "inherit", boxSizing: "border-box" }} />
                                 <input type="text" value={item.link_label || ""} onChange={(e) => updateAgendaItem(idx, "link_label", e.target.value)}
-                                  placeholder="表示テキスト" style={{ width: 120, fontSize: 12 }} />
+                                  placeholder="表示テキスト" style={{ width: 120, fontSize: 13, height: 32, padding: "4px 8px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", fontFamily: "inherit", boxSizing: "border-box" }} />
                                 <button type="button" onClick={() => { updateAgendaItem(idx, "link_url", ""); updateAgendaItem(idx, "link_label", ""); }}
                                   style={{ background: "none", border: "none", cursor: "pointer", color: "#dc2626", fontSize: 14, padding: "0 4px" }}>&times;</button>
                               </div>
@@ -1201,7 +1200,7 @@ export default function MeetingDetail() {
                                 <span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>|</span>
                                 {QUICK_LINKS.map((ql) => (
                                   <button key={ql.url} type="button" onClick={() => { updateAgendaItem(idx, "link_url", ql.url); updateAgendaItem(idx, "link_label", ql.linkLabel); }}
-                                    style={{ background: "none", border: "1px solid var(--color-border)", borderRadius: 4, cursor: "pointer", color: "var(--color-text-secondary)", fontSize: 11, padding: "1px 8px" }}>
+                                    style={{ background: "none", border: "1px solid var(--color-border)", borderRadius: 4, cursor: "pointer", color: "var(--color-text-secondary)", fontSize: 11, padding: "2px 10px", whiteSpace: "nowrap" }}>
                                     {ql.label}
                                   </button>
                                 ))}
