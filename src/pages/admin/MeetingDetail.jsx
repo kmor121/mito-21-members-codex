@@ -862,7 +862,7 @@ export default function MeetingDetail() {
                 <div className="field" style={{ flex: 1, minWidth: 180 }}>
                   <label>出欠期限</label>
                   <DatePicker value={attendanceDeadline} onChange={setAttendanceDeadline}
-                    disabled={!canEditAgenda || (status === "公開" && meeting?.attendance_closed)} />
+                    disabled={status === "完了"} />
                 </div>
                 <div className="field" style={{ flex: 1, minWidth: 180 }}>
                   <label>司会者</label>
