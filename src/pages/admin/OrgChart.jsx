@@ -1161,7 +1161,7 @@ export default function OrgChart() {
                     value={orgForm.parent_id}
                     onChange={e => setOrgForm(p => ({ ...p, parent_id: e.target.value }))}
                     style={{
-                      width: "100%", height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)",
+                      width: "100%", minHeight: 38, padding: "8px 12px", borderRadius: "var(--radius-sm)",
                       border: "1px solid var(--color-border)", fontSize: "0.875rem", fontFamily: "inherit",
                       background: "var(--color-bg)", transition: "border-color var(--transition-fast), box-shadow var(--transition-fast)", outline: "none",
                     }}
@@ -1225,7 +1225,7 @@ export default function OrgChart() {
                     value={orgForm.supervisor_id}
                     onChange={e => setOrgForm(p => ({ ...p, supervisor_id: e.target.value }))}
                     style={{
-                      width: "100%", height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)",
+                      width: "100%", minHeight: 38, padding: "8px 12px", borderRadius: "var(--radius-sm)",
                       border: "1px solid var(--color-border)", fontSize: "0.875rem", fontFamily: "inherit",
                       background: "var(--color-bg)", transition: "border-color var(--transition-fast), box-shadow var(--transition-fast)", outline: "none",
                     }}
@@ -1307,8 +1307,8 @@ export default function OrgChart() {
                     onChange={e => setAssignForm(p => ({ ...p, member_id: e.target.value }))}
                     disabled={!!assignForm.id}
                     style={{
-                      width: "100%", height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit",
-                      border: "1px solid var(--color-border)", fontSize: 14,
+                      width: "100%", minHeight: 38, padding: "8px 12px", borderRadius: "var(--radius-sm)", fontFamily: "inherit",
+                      border: "1px solid var(--color-border)", fontSize: "0.875rem",
                       background: assignForm.id ? "var(--color-bg-sub)" : "var(--color-bg)",
                       transition: "border-color var(--transition-fast)", outline: "none",
                     }}
