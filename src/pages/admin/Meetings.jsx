@@ -379,20 +379,16 @@ export default function Meetings() {
               <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
                 開催日 <span style={{ color: 'var(--color-danger)' }}>*</span>
               </label>
-              <input type="date" value={form.meeting_date}
-                onChange={e => {
-                  const v = e.target.value;
-                  setForm(f => {
-                    const next = { ...f, meeting_date: v };
-                    if (v && !deadlineManuallySet) {
-                      const d = new Date(v); d.setDate(d.getDate() - 3);
-                      next.attendance_deadline = d.toISOString().split('T')[0];
-                    }
-                    return next;
-                  });
-                }}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
-              />
+              <DatePicker value={form.meeting_date} onChange={v => {
+                setForm(f => {
+                  const next = { ...f, meeting_date: v };
+                  if (v && !deadlineManuallySet) {
+                    const d = new Date(v); d.setDate(d.getDate() - 3);
+                    next.attendance_deadline = d.toISOString().split('T')[0];
+                  }
+                  return next;
+                });
+              }} placeholder="日付を選択" />
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>場所</label>
@@ -418,10 +414,10 @@ export default function Meetings() {
           {/* 出欠期限 */}
           <div>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>出欠期限（任意）</label>
-            <input type="date" value={form.attendance_deadline}
-              onChange={e => { setForm(f => ({ ...f, attendance_deadline: e.target.value })); setDeadlineManuallySet(true); }}
-              style={{ width: '100%', maxWidth: 220, padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
-            />
+            <DatePicker value={form.attendance_deadline} onChange={v => {
+              setForm(f => ({ ...f, attendance_deadline: v }));
+              setDeadlineManuallySet(true);
+            }} placeholder="期限日を選択（任意）" />
             {form.meeting_date && form.attendance_deadline && !deadlineManuallySet && (
               <p style={{ fontSize: 12, color: 'var(--color-text-tertiary)', margin: '4px 0 0' }}>※ 開催日の3日前が自動設定されています</p>
             )}

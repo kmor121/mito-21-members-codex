@@ -2252,9 +2252,7 @@ textarea { resize: vertical; }
 .dp-trigger--open .dp-icon { color: var(--color-accent); }
 
 .dp-dropdown {
-  position: absolute;
-  left: 0;
-  z-index: 1000;
+  z-index: 10000;
   width: 300px;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
