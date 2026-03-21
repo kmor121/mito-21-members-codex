@@ -334,6 +334,7 @@ export default function Meetings() {
                       <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text-primary)' }}>{m.title}</span>
                       <span style={{ fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: badge.bg, color: badge.color, whiteSpace: 'nowrap' }}>{STATUS_LABEL[m.status] || m.status}</span>
                       {isNext && <span style={{ fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: 'var(--color-accent-light)', color: 'var(--color-accent)', whiteSpace: 'nowrap' }}>次回</span>}
+                      {m.attendance_closed && <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: 'var(--color-bg-sub)', color: 'var(--color-text-tertiary)', whiteSpace: 'nowrap' }}>出欠終了</span>}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 6, flexWrap: 'wrap', color: 'var(--color-text-secondary)' }}>
                       {m.location && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13 }}><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.75a3.5 3.5 0 0 0-3.5 3.5C3.5 8.75 7 12.25 7 12.25s3.5-3.5 3.5-7A3.5 3.5 0 0 0 7 1.75Zm0 4.75a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z"/></svg>{m.location}</span>}

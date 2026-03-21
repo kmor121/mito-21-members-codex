@@ -91,6 +91,10 @@
     "created_by": {
       "type": "string",
       "description": "作成者のMember ID"
+    },
+    "attendance_closed": {
+      "type": "boolean",
+      "description": "出欠受付を終了したかどうか"
     }
   },
   "required": ["title", "meeting_date", "fiscal_year_id", "status"],

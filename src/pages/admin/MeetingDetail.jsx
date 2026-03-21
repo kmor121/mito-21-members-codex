@@ -1296,6 +1296,44 @@ export default function MeetingDetail() {
                 </div>
               </div>
 
+              {/* Attendance closed toggle (公開 status only) */}
+              {status === "公開" && (
+                <div style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "10px 14px", marginBottom: 12,
+                  background: meeting.attendance_closed ? "var(--color-warning-light, #fffbeb)" : "var(--color-bg-sub)",
+                  borderRadius: "var(--radius-md)",
+                  border: meeting.attendance_closed ? "1px solid var(--color-warning, #fde68a)" : "1px solid var(--color-border)",
+                }}>
+                  <span style={{ fontSize: 13, color: meeting.attendance_closed ? "var(--color-warning, #92400e)" : "var(--color-text-secondary)" }}>
+                    {meeting.attendance_closed ? "出欠の受付は終了しています" : "出欠を受付中です"}
+                  </span>
+                  {meeting.attendance_closed ? (
+                    <Button variant="ghost" size="sm" disabled={saving} onClick={async () => {
+                      setSaving(true);
+                      try {
+                        await base44.entities.Meeting.update(meetingId, { attendance_closed: false });
+                        setMeeting(prev => ({ ...prev, attendance_closed: false }));
+                        showToastMsg("出欠の受付を再開しました");
+                      } catch { showToastMsg("更新に失敗しました"); }
+                      finally { setSaving(false); }
+                    }}>受付を再開</Button>
+                  ) : (
+                    <Button variant="secondary" size="sm" disabled={saving} onClick={() => setConfirmModal({
+                      title: "出欠の受付を終了しますか？",
+                      message: "会員は出欠の回答・変更ができなくなります。",
+                      confirmLabel: "受付終了",
+                      onConfirm: async () => {
+                        await base44.entities.Meeting.update(meetingId, { attendance_closed: true });
+                        setMeeting(prev => ({ ...prev, attendance_closed: true }));
+                        showToastMsg("出欠の受付を終了しました");
+                        setConfirmModal(null);
+                      },
+                    })}>受付終了</Button>
+                  )}
+                </div>
+              )}
+
               {/* Read-only notice */}
               {!canEditAttendance && (
                 <div style={{ marginBottom: 12, padding: "8px 12px", background: "#fffbeb", borderRadius: 6, border: "1px solid #fde68a", fontSize: 13, color: "#92400e" }}>

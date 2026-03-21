@@ -716,7 +716,7 @@ export default function MeetingsView() {
                     {(() => {
                       const myAtt = myMeetingAttMap[m.id];
                       const myResponse = myAtt?.response || '';
-                      const canRespond = m.status === '公開';
+                      const canRespond = m.status === '公開' && !m.attendance_closed;
                       const isSaving = savingResponse === m.id;
 
                       // Build unified attendance map: Attendance records + old attendee_ids
@@ -736,7 +736,18 @@ export default function MeetingsView() {
                         <div style={styles.attendanceBox}>
                           <div style={{ fontSize: 13, fontWeight: 700, color: '#5F5E5A', marginBottom: 10 }}>出欠</div>
 
-                          {/* Response buttons (only for 公開) */}
+                          {/* Attendance closed notice */}
+                          {m.status === '公開' && m.attendance_closed && (
+                            <div style={{
+                              padding: '8px 12px', background: 'var(--color-bg-sub)',
+                              borderRadius: 'var(--radius-md)', fontSize: 13,
+                              color: 'var(--color-text-tertiary)', marginBottom: 8,
+                            }}>
+                              出欠の受付は終了しました
+                            </div>
+                          )}
+
+                          {/* Response buttons (only for 公開 & not closed) */}
                           {canRespond && (
                             <div style={{ marginBottom: 10 }}>
                               <div style={{ fontSize: 12, color: '#5F5E5A', marginBottom: 6 }}>あなたの回答:</div>
