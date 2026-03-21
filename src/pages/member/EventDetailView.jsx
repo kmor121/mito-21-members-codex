@@ -173,108 +173,98 @@ export default function EventDetailView() {
 
       <Link to="/events" className="text-link" style={{ fontSize: 13, marginBottom: 12, display: 'inline-block' }}>← イベント一覧に戻る</Link>
 
-      {/* ── Header Card ── */}
-      <div className="card panel-card" style={{ marginBottom: 20 }}>
-        <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
-          <h1 style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>
-            {event.title}
-          </h1>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-            <span style={{ padding: '2px 10px', borderRadius: 6, fontSize: 12, fontWeight: 500, background: tb.bg, color: tb.color, border: `1px solid ${tb.border}` }}>{event.event_type}</span>
-            <span style={{ padding: '2px 10px', borderRadius: 6, fontSize: 12, fontWeight: 500, background: sb.bg, color: sb.color }}>{sb.label}</span>
-            <AttendanceDeadlineBadge deadline={getDeadline(event)} closed={closed} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, color: 'var(--color-text-secondary)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3"/></svg>
-              <span style={{ fontWeight: 500, color: 'var(--color-text-primary)' }}>{formatEventDate(event.event_date, event.start_time, event.end_time)}</span>
+      {/* ── Header Card (with attendance buttons) ── */}
+      <div style={{
+        background: '#fff', borderRadius: 16, border: '1px solid var(--color-border)',
+        padding: isMobile ? 20 : '28px 32px', marginBottom: 24,
+      }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+          gap: 16, flexWrap: 'wrap',
+        }}>
+          {/* Left: event info */}
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <h1 style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 10px' }}>
+              {event.title}
+            </h1>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+              <span style={{ padding: '2px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600, background: tb.bg, color: tb.color, border: `1px solid ${tb.border}` }}>{event.event_type}</span>
+              <span style={{ padding: '2px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600, background: sb.bg, color: sb.color }}>{sb.label}</span>
+              <AttendanceDeadlineBadge deadline={getDeadline(event)} closed={closed} />
             </div>
-            {event.location && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a4 4 0 0 0-4 4c0 3.5 4 8 4 8s4-4.5 4-8a4 4 0 0 0-4-4Zm0 5.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></svg>
-                <span>{event.location}</span>
+            <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.9 }}>
+              <div style={{ fontWeight: 500, color: 'var(--color-text-primary)' }}>
+                {formatEventDate(event.event_date, event.start_time, event.end_time)}
               </div>
-            )}
-            {event.fee > 0 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 16 }}>💰</span>
-                <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>¥{Number(event.fee).toLocaleString()}</span>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 16 }}>💰</span>
-                <span>無料</span>
-              </div>
-            )}
-            {event.capacity > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 16 }}>👥</span>
-                <span>定員 {event.capacity}名</span>
-              </div>
-            )}
+              {event.location && <div>場所: {event.location}</div>}
+              <div>参加費: {event.fee > 0 ? `¥${Number(event.fee).toLocaleString()}` : '無料'}</div>
+              {event.capacity > 0 && <div>定員: {event.capacity}名</div>}
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* ── Description ── */}
-      {event.description && (
-        <div className="card panel-card" style={{ marginBottom: 20 }}>
-          <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>詳細</h2>
-            <div className="tiptap-content-view" style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--color-text-secondary)' }} dangerouslySetInnerHTML={{ __html: event.description }} />
-          </div>
-        </div>
-      )}
-
-      {/* ── My Response ── */}
-      <div className="card panel-card" style={{ marginBottom: 20 }}>
-        <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 16px' }}>あなたの回答</h2>
-
-          {closed && (
-            <div style={{ padding: '10px 14px', background: 'var(--color-bg-sub)', borderRadius: 'var(--radius-md)', fontSize: 13, color: 'var(--color-text-tertiary)', marginBottom: 12 }}>
-              {isCompleted ? 'このイベントは終了しました' : '出欠の受付は終了しました'}
+          {/* Right: attendance buttons (compact) */}
+          {!isCompleted && (
+            <div style={{ flexShrink: 0, textAlign: isMobile ? 'left' : 'right' }}>
+              {myResponse && (
+                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
+                  あなたの回答
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 6 }}>
+                {responseOptions.map(opt => {
+                  const sel = myResponse === opt;
+                  const isAttend = opt === '出席';
+                  const isAbsent = opt === '欠席';
+                  return (
+                    <button key={opt} type="button"
+                      disabled={closed || saving}
+                      onClick={() => handleResponse(eventId, opt)}
+                      style={{
+                        padding: '6px 16px', borderRadius: 8,
+                        fontSize: 13, fontWeight: 600,
+                        cursor: (closed || saving) ? 'default' : 'pointer',
+                        border: sel ? 'none' : '1px solid var(--color-border)',
+                        background: sel ? (isAttend ? 'var(--color-success)' : isAbsent ? 'var(--color-danger)' : 'var(--color-accent)') : '#fff',
+                        color: sel ? '#fff' : 'var(--color-text-secondary)',
+                        transition: 'all 0.15s',
+                        opacity: (closed || saving) && !sel ? 0.5 : 1,
+                      }}
+                    >
+                      {sel ? '✓ ' : ''}{opt}
+                    </button>
+                  );
+                })}
+              </div>
+              {closed && !isCompleted && (
+                <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginTop: 6 }}>受付終了</div>
+              )}
             </div>
           )}
-
-          {myResponse && (
-            <div style={{ marginBottom: 12 }}>
+          {isCompleted && myResponse && (
+            <div style={{ flexShrink: 0 }}>
               <span style={{
-                display: 'inline-block', padding: '6px 20px', borderRadius: 99, fontSize: 14, fontWeight: 700,
-                background: myResponse === '出席' ? 'var(--color-success)' : myResponse === '欠席' ? 'var(--color-danger)' : 'var(--color-bg-sub)',
-                color: (myResponse === '出席' || myResponse === '欠席') ? '#fff' : 'var(--color-text-primary)',
+                display: 'inline-block',
+                padding: '5px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                background: myResponse === '出席' ? 'var(--color-success)' : myResponse === '欠席' ? 'var(--color-danger)' : 'var(--color-accent)',
+                color: '#fff',
               }}>
                 {myResponse}
               </span>
             </div>
           )}
-
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {responseOptions.map(opt => {
-              const isSelected = myResponse === opt;
-              const isAttend = opt === '出席';
-              const isAbsent = opt === '欠席';
-              return (
-                <button key={opt} type="button"
-                  disabled={closed || saving}
-                  onClick={() => handleResponse(eventId, opt)}
-                  style={{
-                    padding: isMobile ? '10px 20px' : '10px 24px',
-                    borderRadius: 8, fontSize: 14, fontWeight: 600,
-                    cursor: (closed || saving) ? 'default' : 'pointer',
-                    transition: 'all 0.15s', minHeight: 44,
-                    background: isSelected ? (isAttend ? 'var(--color-success)' : isAbsent ? 'var(--color-danger)' : 'var(--color-accent)') : '#fff',
-                    color: isSelected ? '#fff' : 'var(--color-text-secondary)',
-                    border: isSelected ? 'none' : '1px solid var(--color-border)',
-                    opacity: (closed || saving) ? 0.5 : 1,
-                  }}>
-                  {isSelected && '✓ '}{opt}
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
+
+      {/* ── Description ── */}
+      {event.description && (
+        <div style={{
+          background: '#fff', borderRadius: 16, border: '1px solid var(--color-border)',
+          padding: isMobile ? 20 : '28px 32px', marginBottom: 24,
+        }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>詳細</h2>
+          <div className="tiptap-content-view" style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--color-text-secondary)' }} dangerouslySetInnerHTML={{ __html: event.description }} />
+        </div>
+      )}
 
       {/* ── After Party ── */}
       {afterParty && (
