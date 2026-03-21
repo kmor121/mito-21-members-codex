@@ -1,5 +1,0 @@
-2026/03/09-22:03:52.742 3d84 Creating DB C:\dev\mito-21-members-codex\.codex-temp\edge-verify-member-data-2\Default\EdgeCoupons/coupons_data.db since it was missing.
-2026/03/09-22:03:52.760 3d84 Reusing MANIFEST C:\dev\mito-21-members-codex\.codex-temp\edge-verify-member-data-2\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
-2026/03/09-22:03:52.878 294c Level-0 table #5: started
-2026/03/09-22:03:52.883 294c Level-0 table #5: 681597 bytes OK
-2026/03/09-22:03:52.885 294c Delete type=0 #3
