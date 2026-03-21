@@ -49,6 +49,7 @@ const BasicInfo = lazy(() => import('./pages/member/BasicInfo'));
 const OrgChartView = lazy(() => import('./pages/member/OrgChartView'));
 const Manual = lazy(() => import('./pages/member/Manual'));
 const MeetingsView = lazy(() => import('./pages/member/MeetingsView'));
+const MeetingDetailView = lazy(() => import('./pages/member/MeetingDetailView'));
 const MemberApplicationsView = lazy(() => import('./pages/member/MemberApplicationsView'));
 const MemberDuesView = lazy(() => import('./pages/member/MemberDuesView'));
 const EventsView = lazy(() => import('./pages/member/EventsView'));
@@ -136,6 +137,7 @@ export default function App() {
               <Route path="/organization" element={<OrgChartView />} />
               <Route path="/manual" element={<Manual />} />
               <Route path="/meetings" element={<MeetingsView />} />
+              <Route path="/meetings/:meetingId" element={<MeetingDetailView />} />
               <Route path="/member/applications" element={<MemberApplicationsView />} />
               <Route path="/member/dues-overview" element={<MemberDuesView />} />
               <Route path="/events" element={<EventsView />} />

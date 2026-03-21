@@ -541,7 +541,7 @@ export default function MeetingsView() {
                   {/* Center */}
                   <div style={styles.cardCenter}>
                     <div style={styles.cardTitleRow}>
-                      <span style={styles.cardTitle}>{m.title}</span>
+                      <Link to={`/meetings/${m.id}`} style={{ ...styles.cardTitle, textDecoration: 'none' }}>{m.title}</Link>
                       <span style={styles.statusPill(badge)}>{STATUS_LABEL[m.status] || m.status}</span>
                       {isNext && <span style={styles.nextBadge}>次回</span>}
                       <AttendanceDeadlineBadge deadline={m.attendance_deadline} closed={isAttendanceClosed(m)} />
