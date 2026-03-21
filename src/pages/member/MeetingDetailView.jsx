@@ -550,7 +550,6 @@ export default function MeetingDetailView() {
                           </div>
                         );
                       })()}
-                      )}
 
                       {/* Decision details (completed only) */}
                       {hasDecision && item.decision && (
