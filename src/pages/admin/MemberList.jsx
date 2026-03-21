@@ -72,12 +72,6 @@ export default function MemberList() {
   const [toast, setToast] = useState(null);
   const toastTimerRef = useRef(null);
 
-  // Invite modal
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteChecked, setInviteChecked] = useState(new Set());
-  const [inviting, setInviting] = useState(false);
-  const [inviteResult, setInviteResult] = useState(null);
-
   // Mobile filter toggle
   const [showFilters, setShowFilters] = useState(false);
 
@@ -549,23 +543,6 @@ export default function MemberList() {
               </button>
             </div>
 
-            <button
-              className="btn"
-              type="button"
-              onClick={() => {
-                const unlinked = members.filter(m => !m.user_id && m.email);
-                setInviteChecked(new Set(unlinked.map(m => m.id)));
-                setInviteResult(null);
-                setShowInviteModal(true);
-              }}
-              style={{
-                display: "inline-flex", alignItems: "center", gap: "6px",
-                background: "none", border: "1px solid var(--color-border)", color: "var(--color-text-primary)",
-              }}
-            >
-              <span style={{ fontSize: "14px" }}>✉</span>
-              ユーザー招待
-            </button>
             <Button variant="primary" onClick={() => navigate("/admin/members/new")}>
               <span style={{ fontSize: "16px", lineHeight: 1 }}>+</span>
               新規会員登録
@@ -1018,133 +995,6 @@ export default function MemberList() {
         </div>
       )}
 
-      {/* ── Invite Modal ── */}
-      {showInviteModal && (() => {
-        const unlinkedMembers = members.filter(m => !m.user_id);
-        const allCheckable = unlinkedMembers.filter(m => m.email);
-        const allChecked = allCheckable.length > 0 && allCheckable.every(m => inviteChecked.has(m.id));
-
-        async function handleBulkInvite() {
-          const selectedEmails = unlinkedMembers
-            .filter(m => inviteChecked.has(m.id) && m.email)
-            .map(m => m.email);
-          if (selectedEmails.length === 0) return;
-          setInviting(true);
-          try {
-            const res = await apiRequest("bulk-invite-app-users", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ emails: selectedEmails }),
-            });
-            setInviteResult(res);
-          } catch (err) {
-            setInviteResult({ success: [], failed: selectedEmails.map(e => ({ email: e, reason: err.message })) });
-          } finally {
-            setInviting(false);
-          }
-        }
-
-        return (
-          <Modal isOpen={true} onClose={() => setShowInviteModal(false)} title="ユーザー招待" width="560px">
-              <div>
-                <div style={{
-                  padding: "10px 14px", borderRadius: 8, marginBottom: 16,
-                  background: "#eff6ff", border: "1px solid #bfdbfe", color: "#1e40af",
-                  fontSize: 12, lineHeight: 1.7,
-                }}>
-                  選択した会員にBase44からの招待メール（英語）が送信されます。<br />
-                  会員がメール内のリンクからパスワードを設定すると、次回ログイン時に自動的にアカウントが紐付けられます。
-                </div>
-
-                {inviteResult ? (
-                  <div>
-                    <div style={{
-                      padding: "12px 14px", borderRadius: 8, marginBottom: 12,
-                      background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#15803d", fontSize: 13,
-                    }}>
-                      送信完了: {inviteResult.success?.length || 0}件成功
-                      {inviteResult.failed?.length > 0 && `、${inviteResult.failed.length}件失敗`}
-                    </div>
-                    {inviteResult.failed?.length > 0 && (
-                      <div style={{ fontSize: 12, color: "#dc2626", marginBottom: 12 }}>
-                        {inviteResult.failed.map((f, i) => (
-                          <div key={i}>{f.email}: {f.reason}</div>
-                        ))}
-                      </div>
-                    )}
-                    <button className="btn" type="button" onClick={() => setShowInviteModal(false)}
-                      style={{ width: "100%", background: "var(--color-accent)", color: "#fff", border: "none" }}>
-                      閉じる
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    {unlinkedMembers.length === 0 ? (
-                      <p style={{ textAlign: "center", color: "var(--color-text-secondary)", padding: "24px 0", fontSize: 14 }}>
-                        未紐付けの会員はいません
-                      </p>
-                    ) : (
-                      <>
-                        <div style={{
-                          display: "flex", alignItems: "center", gap: 8, padding: "8px 0",
-                          borderBottom: "1px solid var(--color-border)", marginBottom: 8,
-                        }}>
-                          <input type="checkbox" checked={allChecked}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setInviteChecked(new Set(allCheckable.map(m => m.id)));
-                              } else {
-                                setInviteChecked(new Set());
-                              }
-                            }}
-                          />
-                          <span style={{ fontSize: 13, fontWeight: 600 }}>全選択</span>
-                          <span style={{ fontSize: 12, color: "var(--color-text-secondary)", marginLeft: "auto" }}>
-                            {inviteChecked.size}件選択中
-                          </span>
-                        </div>
-                        <div style={{ maxHeight: 320, overflowY: "auto" }}>
-                          {unlinkedMembers.map(m => {
-                            const hasEmail = !!m.email;
-                            return (
-                              <label key={m.id} style={{
-                                display: "flex", alignItems: "center", gap: 10, padding: "8px 4px",
-                                borderBottom: "1px solid var(--color-border)", cursor: hasEmail ? "pointer" : "default",
-                                opacity: hasEmail ? 1 : 0.4,
-                              }}>
-                                <input type="checkbox" disabled={!hasEmail}
-                                  checked={inviteChecked.has(m.id)}
-                                  onChange={(e) => {
-                                    const next = new Set(inviteChecked);
-                                    e.target.checked ? next.add(m.id) : next.delete(m.id);
-                                    setInviteChecked(next);
-                                  }}
-                                />
-                                <span style={{ fontSize: 13, fontWeight: 500, minWidth: 80 }}>{fullName(m)}</span>
-                                <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
-                                  {m.email || "メールアドレスなし"}
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                        <button className="btn" type="button" disabled={inviting || inviteChecked.size === 0}
-                          onClick={handleBulkInvite}
-                          style={{
-                            width: "100%", marginTop: 16,
-                            background: inviting ? "#a5b4fc" : "var(--color-accent)",
-                            color: "#fff", border: "none",
-                          }}>
-                          {inviting ? "送信中..." : `選択した${inviteChecked.size}件を招待`}
-                        </button>
-                      </>
-                    )}
-                  </>
-                )}
-              </div>
-          </Modal>
-        );
-      })()}
     </section>
   );
 }
