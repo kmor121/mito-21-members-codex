@@ -685,10 +685,6 @@ export default function MeetingDetail() {
   function removeApObserver(memberId) {
     setApObserverIds(prev => prev.filter(id => id !== memberId));
   }
-  const apObserverCandidates = allMembers.filter(m => {
-    const mid = m.id || m._id;
-    return !boardMemberIds.has(mid) && !apObserverIds.includes(mid);
-  });
   async function saveApObservers() {
     if (!afterParty) return;
     setSaving(true);
@@ -801,6 +797,10 @@ export default function MeetingDetail() {
   const observerCandidates = allMembers.filter((m) => {
     const mid = m.id || m._id;
     return !boardMemberIds.has(mid) && !observerIds.includes(mid);
+  });
+  const apObserverCandidates = allMembers.filter(m => {
+    const mid = m.id || m._id;
+    return !boardMemberIds.has(mid) && !apObserverIds.includes(mid);
   });
 
   const tabs = [
