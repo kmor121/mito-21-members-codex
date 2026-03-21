@@ -1232,7 +1232,7 @@ export default function MeetingDetail() {
 
                 {/* Rich text minutes */}
                 <div style={{ marginTop: agendaItems.length > 0 ? 24 : 0 }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 12px", color: "var(--color-text-primary)" }}>議事録本文</h3>
+                  <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 12px", color: "var(--color-text-primary)" }}>議事録補足</h3>
                   {canEditMinutes ? (
                     <Suspense fallback={
                       <div style={{ height: 300, display: "flex", alignItems: "center", justifyContent: "center" }}>
