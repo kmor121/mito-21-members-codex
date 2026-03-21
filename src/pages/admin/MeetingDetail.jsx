@@ -236,6 +236,8 @@ export default function MeetingDetail() {
   const [pendingApplicants, setPendingApplicants] = useState([]);
   const [applicantDecisions, setApplicantDecisions] = useState({});
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
+  const [openTagIdx, setOpenTagIdx] = useState(null);
+  const tagDropdownRef = useRef(null);
 
   const showToastMsg = (msg) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -320,6 +322,16 @@ export default function MeetingDetail() {
   }, []);
 
   useEffect(() => { loadMeeting(); loadRefData(); }, [loadMeeting, loadRefData]);
+
+  // Outside-click for tag dropdown
+  useEffect(() => {
+    if (openTagIdx === null) return;
+    const handler = (e) => {
+      if (tagDropdownRef.current && !tagDropdownRef.current.contains(e.target)) setOpenTagIdx(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [openTagIdx]);
 
   // Load pending applicants for inline review
   useEffect(() => {
@@ -1150,11 +1162,32 @@ export default function MeetingDetail() {
                             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                               <span style={{ fontSize: 12, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>種別:</span>
                               {canEditAgenda ? (
-                                <select value={item.tag || ""} onChange={(e) => updateAgendaItem(idx, "tag", e.target.value)}
-                                  style={{ width: 110, fontSize: 13, height: 32, padding: "4px 8px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", fontFamily: "inherit", background: "var(--color-bg)" }}>
-                                  <option value="">未設定</option>
-                                  {AGENDA_TAGS.map((t) => <option key={t} value={t}>{t}</option>)}
-                                </select>
+                                <div ref={openTagIdx === idx ? tagDropdownRef : undefined} style={{ position: "relative" }}>
+                                  <button type="button" onClick={() => setOpenTagIdx(openTagIdx === idx ? null : idx)}
+                                    className={`dp-trigger${openTagIdx === idx ? ' dp-trigger--open' : ''}`}
+                                    style={{ height: 32, padding: "4px 10px", fontSize: 13, minWidth: 100 }}>
+                                    <span className="dp-trigger-text">{item.tag || "未設定"}</span>
+                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: "var(--color-text-tertiary)", transition: "transform 0.15s", transform: openTagIdx === idx ? "rotate(180deg)" : "none" }}>
+                                      <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                                    </svg>
+                                  </button>
+                                  {openTagIdx === idx && (
+                                    <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", boxShadow: "0 4px 16px rgba(0,0,0,0.08)", minWidth: 120, animation: "yearDropIn 0.12s ease" }}>
+                                      {[{ v: "", l: "未設定" }, ...AGENDA_TAGS.map(t => ({ v: t, l: t }))].map(o => {
+                                        const act = (item.tag || "") === o.v;
+                                        return (
+                                          <button key={o.v} type="button" onClick={() => { updateAgendaItem(idx, "tag", o.v); setOpenTagIdx(null); }}
+                                            style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", border: "none", background: act ? "var(--color-accent-light)" : "transparent", color: act ? "var(--color-accent)" : "var(--color-text-primary)", fontSize: 13, fontWeight: act ? 600 : 400, textAlign: "left", cursor: "pointer", transition: "background 0.1s" }}
+                                            onMouseEnter={e => { if (!act) e.currentTarget.style.background = "var(--color-bg-sub)"; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = act ? "var(--color-accent-light)" : "transparent"; }}>
+                                            <span style={{ flex: 1 }}>{o.l}</span>
+                                            {act ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span style={{ width: 14 }} />}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
                               ) : (
                                 tagBadge ? <span className="pill" style={{ background: tagBadge.bg, color: tagBadge.color, fontSize: 12 }}>{item.tag}</span> : <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>-</span>
                               )}
@@ -1187,7 +1220,7 @@ export default function MeetingDetail() {
                                 <input type="text" value={item.link_url} onChange={(e) => updateAgendaItem(idx, "link_url", e.target.value)}
                                   placeholder="/member/... or https://..." style={{ flex: 1, minWidth: 160, fontSize: 13, height: 32, padding: "4px 8px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", fontFamily: "inherit", boxSizing: "border-box" }} />
                                 <input type="text" value={item.link_label || ""} onChange={(e) => updateAgendaItem(idx, "link_label", e.target.value)}
-                                  placeholder="表示テキスト" style={{ width: 120, fontSize: 13, height: 32, padding: "4px 8px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", fontFamily: "inherit", boxSizing: "border-box" }} />
+                                  placeholder="表示テキスト" style={{ width: 160, fontSize: 13, height: 32, padding: "4px 8px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", fontFamily: "inherit", boxSizing: "border-box" }} />
                                 <button type="button" onClick={() => { updateAgendaItem(idx, "link_url", ""); updateAgendaItem(idx, "link_label", ""); }}
                                   style={{ background: "none", border: "none", cursor: "pointer", color: "#dc2626", fontSize: 14, padding: "0 4px" }}>&times;</button>
                               </div>
