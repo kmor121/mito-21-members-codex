@@ -712,27 +712,12 @@ export default function MemberCreate() {
           </div>
         </section>
 
-        {/* ======== Sticky Action Bar ======== */}
+        {/* ======== Action Bar ======== */}
         <div style={{
-          background: '#fff',
-          borderTop: '1px solid var(--color-border)',
-          padding: '16px 0 0',
-          display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+          display: 'flex', justifyContent: 'flex-end', alignItems: 'center',
+          gap: 12, padding: '24px 0 40px',
         }}>
-          {Object.keys(errors).length > 0 && (
-            <span style={{
-              fontSize: 13, color: 'var(--color-danger)',
-              display: 'flex', alignItems: 'center', gap: 4, marginRight: 'auto',
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              {Object.keys(errors).length}件の入力エラーがあります
-            </span>
-          )}
-          <Button variant="ghost" onClick={() => navigate("/admin/members")}>
+          <Button variant="ghost" onClick={() => navigate("/admin/members")} disabled={saving}>
             キャンセル
           </Button>
           <Button variant="primary" type="submit" disabled={saving}>
