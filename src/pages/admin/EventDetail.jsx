@@ -707,6 +707,40 @@ export default function EventDetail() {
               </div>
             </div>
 
+            {/* 出欠期限 */}
+            {event.status !== 'completed' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '8px 0', marginBottom: 12 }}>
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>出欠期限:</span>
+                {event.rsvp_deadline ? (
+                  <>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                      {(() => { const d = new Date(event.rsvp_deadline); const dow = ['日','月','火','水','木','金','土'][d.getDay()]; return `${d.getMonth()+1}/${d.getDate()}（${dow}）`; })()}
+                    </span>
+                    <div style={{ maxWidth: 160 }}>
+                      <DatePicker value={event.rsvp_deadline} onChange={(v) => {
+                        base44.entities.Event.update(eventId, { rsvp_deadline: v || '' })
+                          .then(() => { setEvent(prev => ({ ...prev, rsvp_deadline: v || '' })); showToast('出欠期限を更新しました'); })
+                          .catch(() => showToast('更新に失敗しました', 'error'));
+                      }} placeholder="変更" />
+                    </div>
+                    <button type="button" onClick={() => {
+                      base44.entities.Event.update(eventId, { rsvp_deadline: '' })
+                        .then(() => { setEvent(prev => ({ ...prev, rsvp_deadline: '' })); showToast('出欠期限を解除しました'); })
+                        .catch(() => showToast('更新に失敗しました', 'error'));
+                    }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-tertiary)', textDecoration: 'underline', padding: '4px' }}>解除</button>
+                  </>
+                ) : (
+                  <div style={{ maxWidth: 200 }}>
+                    <DatePicker value="" onChange={(v) => {
+                      base44.entities.Event.update(eventId, { rsvp_deadline: v || '' })
+                        .then(() => { setEvent(prev => ({ ...prev, rsvp_deadline: v || '' })); showToast('出欠期限を設定しました'); })
+                        .catch(() => showToast('更新に失敗しました', 'error'));
+                    }} placeholder="期限日を選択" />
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Remind button */}
             {event.status !== 'completed' && (
               <div style={{ marginBottom: 16 }}>
