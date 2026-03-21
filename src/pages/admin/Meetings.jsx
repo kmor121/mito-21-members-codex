@@ -361,7 +361,7 @@ export default function Meetings() {
 
       {/* ── create modal ── */}
       <Modal isOpen={showCreateModal} onClose={closeCreateModal} title="新しい幹事会を作成" width="480px">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* 会議名 */}
           <div>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
@@ -424,7 +424,7 @@ export default function Meetings() {
           </div>
 
           {/* 次第コピー */}
-          <div>
+          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 16, marginTop: -4 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>次第のコピー</label>
             {!copiedFromTitle ? (
               <>
@@ -497,7 +497,7 @@ export default function Meetings() {
           )}
 
           {/* ボタン */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, paddingTop: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, borderTop: '1px solid var(--color-border)', marginTop: -4, paddingTop: 16, paddingBottom: 8 }}>
             <Button variant="ghost" onClick={closeCreateModal} disabled={saving}>キャンセル</Button>
             <Button variant="primary" onClick={handleCreate} disabled={saving || !form.title.trim() || !form.meeting_date}>
               {saving ? '作成中...' : '作成'}
