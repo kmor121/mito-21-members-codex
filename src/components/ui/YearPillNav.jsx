@@ -101,11 +101,10 @@ export default function YearPillNav({ fiscalYears, activeFyId, currentFyId, onCh
                 onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'var(--color-bg-sub)'; }}
                 onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = isActive ? 'var(--color-accent-light)' : 'transparent'; }}
               >
+                <span style={{ flex: 1 }}>{fyLabel}</span>
                 {isCurrent && (
                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-success)', flexShrink: 0 }} />
                 )}
-                {!isCurrent && <span style={{ width: 6, flexShrink: 0 }} />}
-                <span style={{ flex: 1 }}>{fyLabel}</span>
                 {isActive && (
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
