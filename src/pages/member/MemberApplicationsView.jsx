@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '../../api/base44Client';
 import { fullName, fullNameKana } from '../../utils/formatName';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -20,6 +20,7 @@ const STATUS_TABS = [
 
 export default function MemberApplicationsView() {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("申請中");
@@ -61,7 +62,7 @@ export default function MemberApplicationsView() {
   return (
     <section className="admin-shell">
       <div style={{ marginBottom: 8 }}>
-        <Link to="/meetings" className="text-link" style={{ fontSize: 13 }}>&larr; 幹事会に戻る</Link>
+        <button type="button" className="text-link" onClick={() => { if (window.history.length > 1) navigate(-1); else navigate('/meetings'); }} style={{ fontSize: 13, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>&larr; 戻る</button>
       </div>
 
       <div className="page-header">

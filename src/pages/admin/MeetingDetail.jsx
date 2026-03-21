@@ -529,10 +529,21 @@ export default function MeetingDetail() {
           // Applications summary
           if (url.includes("applications")) {
             try {
-              const apps = await base44.entities.Application.filter({ status: "pending" }).catch(() => []);
-              const pendingCount = (apps || []).length;
-              const summary = `【入会申込状況（${today}時点）】\n承認待ち: ${pendingCount}件`;
+              const appMembers = await base44.entities.Member.filter(
+                { approval_status: { "$in": ["申請中", "承認済", "却下"] } }
+              ).catch(() => []);
+              const getName = (m) => [m.last_name, m.first_name].filter(Boolean).join(' ') || '(名前なし)';
+              const approved = (appMembers || []).filter(m => m.approval_status === "承認済");
+              const rejected = (appMembers || []).filter(m => m.approval_status === "却下");
+              const pending = (appMembers || []).filter(m => m.approval_status === "申請中");
 
+              const lines = [`【入会申込状況（${today}時点）】`];
+              if (approved.length > 0) lines.push(`承認済: ${approved.map(getName).join('、')}（${approved.length}名）`);
+              if (rejected.length > 0) lines.push(`却下: ${rejected.map(getName).join('、')}（${rejected.length}名）`);
+              if (pending.length > 0) lines.push(`承認待ち: ${pending.map(getName).join('、')}（${pending.length}名）`);
+              if (approved.length === 0 && rejected.length === 0 && pending.length === 0) lines.push('申込なし');
+
+              const summary = lines.join('\n');
               const existing = (item.decision || "").trim();
               updatedItems[i] = { ...item, decision: existing ? `${existing}\n\n${summary}` : summary };
               needsUpdate = true;
