@@ -1010,60 +1010,19 @@ export default function NewsletterEdit() {
       )}
 
       {/* ── Delete Confirm Modal ── */}
-      {showDeleteConfirm && (
-        <div
-          style={{
-            position: "fixed", inset: 0, zIndex: 1000,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            animation: "nlFade 0.2s ease",
-          }}
-          onClick={() => setShowDeleteConfirm(false)}
-        >
-          <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.5)" }} />
-          <div
-            style={{
-              position: "relative", zIndex: 1, width: "100%", maxWidth: 420,
-              background: "#fff", borderRadius: 16,
-              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div style={{ padding: "28px 28px 0" }}>
-              <h3 style={{ margin: "0 0 8px", fontSize: 17, fontWeight: 700 }}>
-                {isTemplate ? "このテンプレート" : "この下書き"}を削除しますか？
-              </h3>
-              <p style={{ margin: 0, fontSize: 14, color: "#dc2626", fontWeight: 500 }}>
-                削除すると元に戻せません。
-              </p>
-            </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "20px 28px 24px" }}>
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                style={{
-                  padding: "9px 20px", borderRadius: 8,
-                  border: "1px solid var(--color-border, var(--color-border))",
-                  background: "#fff", color: "var(--color-text-primary, var(--color-text-primary))",
-                  fontSize: 14, fontWeight: 600, cursor: "pointer",
-                }}
-              >
-                キャンセル
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                style={{
-                  padding: "9px 20px", borderRadius: 8, border: "none",
-                  background: "#dc2626", color: "#fff",
-                  fontSize: 14, fontWeight: 600, cursor: "pointer",
-                  opacity: deleting ? 0.6 : 1,
-                }}
-              >
-                {deleting ? "削除中..." : "削除する"}
-              </button>
-            </div>
-          </div>
+      <Modal isOpen={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}
+        title={`${isTemplate ? "このテンプレート" : "この下書き"}を削除しますか？`}
+      >
+        <p style={{ margin: 0, fontSize: 14, color: "var(--color-danger)", fontWeight: 500 }}>
+          削除すると元に戻せません。
+        </p>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
+          <Button variant="ghost" onClick={() => setShowDeleteConfirm(false)}>キャンセル</Button>
+          <Button variant="danger" onClick={handleDelete} disabled={deleting}>
+            {deleting ? "削除中..." : "削除する"}
+          </Button>
         </div>
-      )}
+      </Modal>
 
       {/* ── Top Header Bar ── */}
       <div style={{

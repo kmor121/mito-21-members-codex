@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { PageHeader } from '../../components/ui';
+import { PageHeader, Modal, Button } from '../../components/ui';
 import { fullName } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -571,22 +571,8 @@ export default function Settings() {
                   <div className="panel-heading" style={{ marginBottom: 16, ...(isMobile ? { flexDirection: "column", alignItems: "flex-start", gap: 8 } : {}) }}>
                     <div><h2>テンプレート編集</h2></div>
                     <div style={{ display: "flex", gap: 8 }}>
-                      <button
-                        type="button"
-                        className="button ghost"
-                        style={{ fontSize: 13 }}
-                        onClick={() => setConfirmReset(true)}
-                      >
-                        デフォルトに戻す
-                      </button>
-                      <button
-                        type="button"
-                        className="button ghost"
-                        style={{ fontSize: 13 }}
-                        onClick={() => setShowPreview(true)}
-                      >
-                        プレビュー
-                      </button>
+                      <Button variant="ghost" size="sm" onClick={() => setConfirmReset(true)}>デフォルトに戻す</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setShowPreview(true)}>プレビュー</Button>
                     </div>
                   </div>
 
@@ -673,14 +659,9 @@ export default function Settings() {
                         未保存の変更があります
                       </span>
                     )}
-                    <button
-                      type="button"
-                      className="button"
-                      disabled={emailSaving || !emailDirty}
-                      onClick={saveEmailSettings}
-                    >
+                    <Button variant="primary" disabled={emailSaving || !emailDirty} onClick={saveEmailSettings}>
                       {emailSaving ? "保存中..." : "保存"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </section>
@@ -690,127 +671,58 @@ export default function Settings() {
       )}
 
       {/* ════════════ Preview modal ════════════ */}
-      {showPreview && (
+      <Modal isOpen={showPreview} onClose={() => setShowPreview(false)}
+        title={`プレビュー: ${TEMPLATE_TABS.find((t) => t.key === activeTemplate)?.label || ''}`}
+        style={{ maxWidth: 600 }}
+      >
         <div style={{
-          position: "fixed", inset: 0, zIndex: 1000,
-          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "var(--color-bg-sub)", border: "1px solid var(--color-border)", borderRadius: 8, padding: 16,
         }}>
-          <div style={{
-            position: "absolute", inset: 0, background: "rgba(15,23,42,0.4)",
-          }} onClick={() => setShowPreview(false)} />
-          <div style={{
-            position: "relative", background: "#fff", borderRadius: 12,
-            boxShadow: "0 4px 24px rgba(0,0,0,0.12)", padding: "28px 24px",
-            maxWidth: 600, width: "100%", zIndex: 1, maxHeight: "80vh", overflow: "auto",
+          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>
+            件名: {renderPreview(currentSubject, SAMPLE_DATA)}
+          </p>
+          <hr style={{ border: "none", borderTop: "1px solid var(--color-border)", margin: "8px 0" }} />
+          <pre style={{
+            fontSize: 13, whiteSpace: "pre-wrap", wordBreak: "break-word",
+            fontFamily: "inherit", lineHeight: 1.7, color: "var(--color-text-primary)", margin: 0,
           }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text-primary)" }}>
-                プレビュー: {TEMPLATE_TABS.find((t) => t.key === activeTemplate)?.label}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowPreview(false)}
-                style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--color-text-tertiary)" }}
-              >
-                &times;
-              </button>
-            </div>
-            <div style={{
-              background: "#f8fafc", border: "1px solid var(--color-border)", borderRadius: 8, padding: 16,
-            }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8 }}>
-                件名: {renderPreview(currentSubject, SAMPLE_DATA)}
-              </p>
-              <hr style={{ border: "none", borderTop: "1px solid var(--color-border)", margin: "8px 0" }} />
-              <pre style={{
-                fontSize: 13, whiteSpace: "pre-wrap", wordBreak: "break-word",
-                fontFamily: "inherit", lineHeight: 1.7, color: "var(--color-text-primary)", margin: 0,
-              }}>
-                {renderPreview(currentBody, SAMPLE_DATA)}
-              </pre>
-            </div>
-            <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", marginTop: 12 }}>
-              ※ サンプルデータによるプレビューです。実際の送信時は各変数が実データに置換されます。
-            </p>
-          </div>
+            {renderPreview(currentBody, SAMPLE_DATA)}
+          </pre>
         </div>
-      )}
+        <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", marginTop: 12 }}>
+          ※ サンプルデータによるプレビューです。実際の送信時は各変数が実データに置換されます。
+        </p>
+      </Modal>
 
       {/* ════════════ Reset confirm dialog ════════════ */}
-      {confirmReset && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 1000,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <div style={{
-            position: "absolute", inset: 0, background: "rgba(15,23,42,0.4)",
-          }} onClick={() => setConfirmReset(false)} />
-          <div style={{
-            position: "relative", background: "#fff", borderRadius: 12,
-            boxShadow: "0 4px 24px rgba(0,0,0,0.12)", padding: "32px 28px",
-            maxWidth: 420, width: "100%", zIndex: 1,
-          }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 12 }}>
-              テンプレートをデフォルトに戻す
-            </h3>
-            <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.6 }}>
-              「{TEMPLATE_TABS.find((t) => t.key === activeTemplate)?.label}」テンプレートをデフォルトに戻しますか？
-              現在の内容は上書きされます。
-            </p>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 24 }}>
-              <button className="button ghost" type="button" onClick={() => setConfirmReset(false)}>
-                キャンセル
-              </button>
-              <button className="button" type="button" onClick={resetTemplate}>
-                デフォルトに戻す
-              </button>
-            </div>
-          </div>
+      <Modal isOpen={confirmReset} onClose={() => setConfirmReset(false)} title="テンプレートをデフォルトに戻す">
+        <p style={{ fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
+          「{TEMPLATE_TABS.find((t) => t.key === activeTemplate)?.label}」テンプレートをデフォルトに戻しますか？
+          現在の内容は上書きされます。
+        </p>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 24 }}>
+          <Button variant="ghost" onClick={() => setConfirmReset(false)}>キャンセル</Button>
+          <Button variant="primary" onClick={resetTemplate}>デフォルトに戻す</Button>
         </div>
-      )}
+      </Modal>
 
       {/* ════════════ Role change confirm dialog ════════════ */}
-      {confirmDialog && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 1000,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <div style={{
-            position: "absolute", inset: 0, background: "rgba(15,23,42,0.4)",
-          }} onClick={() => !userSaving && setConfirmDialog(null)} />
-          <div style={{
-            position: "relative", background: "#fff", borderRadius: 12,
-            boxShadow: "0 4px 24px rgba(0,0,0,0.12)", padding: "32px 28px",
-            maxWidth: 420, width: "100%", zIndex: 1,
-          }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 12 }}>
-              ロール変更の確認
-            </h3>
-            <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.6 }}>
+      <Modal isOpen={!!confirmDialog} onClose={() => !userSaving && setConfirmDialog(null)} title="ロール変更の確認">
+        {confirmDialog && (
+          <>
+            <p style={{ fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
               <strong>{confirmDialog.memberName}</strong> のロールを
               <strong> {APP_ROLE_LABELS[confirmDialog.newRole] || confirmDialog.newRole}</strong> に変更しますか？
             </p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 24 }}>
-              <button
-                className="button ghost"
-                type="button"
-                disabled={userSaving}
-                onClick={() => setConfirmDialog(null)}
-              >
-                キャンセル
-              </button>
-              <button
-                className="button"
-                type="button"
-                disabled={userSaving}
-                onClick={handleRoleChangeConfirm}
-              >
+              <Button variant="ghost" disabled={userSaving} onClick={() => setConfirmDialog(null)}>キャンセル</Button>
+              <Button variant="primary" disabled={userSaving} onClick={handleRoleChangeConfirm}>
                 {userSaving ? "変更中..." : "変更する"}
-              </button>
+              </Button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </section>
   );
 }
