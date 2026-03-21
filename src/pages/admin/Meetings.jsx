@@ -529,8 +529,9 @@ export default function Meetings() {
       <style>{`
         .mtg-label { display: block; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 6px; }
         .mtg-input {
-          width: 100%; box-sizing: border-box; padding: 10px 14px; border-radius: var(--radius-md);
+          width: 100%; box-sizing: border-box; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);
           border: 1px solid var(--color-border); background: var(--color-bg-sub); font-size: 14px; color: var(--color-text-primary);
+          line-height: 1.5; min-height: 38px;
           outline: none; transition: border-color 0.15s, background 0.15s;
         }
         .mtg-input:focus { border-color: var(--color-accent); background: #fff; }
@@ -559,7 +560,7 @@ export default function Meetings() {
         }
         @media (max-width: 768px) {
           .mtg-form-2col { grid-template-columns: 1fr !important; }
-          .mtg-input { font-size: 16px !important; padding: 12px 14px !important; }
+          .mtg-input { font-size: 16px !important; padding: 10px 12px !important; }
           .mtg-label { font-size: 14px !important; margin-bottom: 8px !important; }
         }
       `}</style>
