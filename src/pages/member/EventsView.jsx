@@ -290,14 +290,12 @@ export default function EventsView() {
                           disabled={disabled}
                           onClick={() => (canRespond || canChange) && handleResponse(evt.id, opt)}
                           style={{
-                            padding: isMobile ? '8px 14px' : '7px 16px',
-                            borderRadius: 'var(--radius)',
+                            padding: '6px 16px', borderRadius: 8,
                             fontSize: 13, fontWeight: 600, cursor: disabled ? 'default' : 'pointer',
                             transition: 'all 0.15s',
-                            minHeight: 36,
-                            background: isSelected ? rc.color : 'transparent',
+                            background: isSelected ? rc.color : '#fff',
                             color: isSelected ? '#fff' : 'var(--color-text-secondary)',
-                            border: isSelected ? `2px solid ${rc.color}` : '1px solid var(--color-border)',
+                            border: isSelected ? 'none' : '1px solid var(--color-border)',
                             opacity: disabled && !isSelected ? 0.5 : 1,
                           }}
                         >
@@ -349,13 +347,13 @@ export default function EventsView() {
                               <button key={opt} type="button" disabled={disabled}
                                 onClick={() => apCanRespond && handleResponse(ap.id, opt)}
                                 style={{
-                                  padding: isMobile ? '8px 14px' : '7px 16px',
-                                  borderRadius: 'var(--radius)', fontSize: 13, fontWeight: 600,
+                                  padding: '6px 16px', borderRadius: 8,
+                                  fontSize: 13, fontWeight: 600,
                                   cursor: disabled ? 'default' : 'pointer',
-                                  transition: 'all 0.15s', minHeight: 36,
-                                  background: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : 'transparent',
+                                  transition: 'all 0.15s',
+                                  background: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : '#fff',
                                   color: isSelected ? '#fff' : 'var(--color-text-secondary)',
-                                  border: isSelected ? `2px solid ${isAttend ? 'var(--color-success)' : 'var(--color-danger)'}` : '1px solid var(--color-border)',
+                                  border: isSelected ? 'none' : '1px solid var(--color-border)',
                                   opacity: disabled && !isSelected ? 0.5 : 1,
                                 }}>
                                 {isSelected && '✓ '}{opt}

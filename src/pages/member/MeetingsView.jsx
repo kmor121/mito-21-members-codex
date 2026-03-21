@@ -585,12 +585,12 @@ export default function MeetingsView() {
                             <button key={opt} type="button" disabled={!canResp || isSav}
                               onClick={() => canResp && handleMeetingResponse(m.id, opt)}
                               style={{
-                                padding: isMobile ? '8px 14px' : '7px 16px', borderRadius: 'var(--radius)',
+                                padding: '6px 16px', borderRadius: 8,
                                 fontSize: 13, fontWeight: 600, cursor: (!canResp || isSav) ? 'default' : 'pointer',
-                                transition: 'all 0.15s', minHeight: 36,
-                                background: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : 'transparent',
+                                transition: 'all 0.15s',
+                                background: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : '#fff',
                                 color: isSelected ? '#fff' : 'var(--color-text-secondary)',
-                                border: isSelected ? `2px solid ${isAttend ? 'var(--color-success)' : 'var(--color-danger)'}` : '1px solid var(--color-border)',
+                                border: isSelected ? 'none' : '1px solid var(--color-border)',
                                 opacity: (!canResp || isSav) && !isSelected ? 0.5 : 1,
                               }}>{isSelected && '✓ '}{opt}</button>
                           );
