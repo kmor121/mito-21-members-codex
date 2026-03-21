@@ -220,6 +220,7 @@ export default function MeetingDetail() {
   const [meetingAtts, setMeetingAtts] = useState([]);
   const [afterParty, setAfterParty] = useState(null);
   const [afterPartyAtts, setAfterPartyAtts] = useState([]);
+  const [apObserverIds, setApObserverIds] = useState([]);
   const [showApForm, setShowApForm] = useState(false);
   const [apEditing, setApEditing] = useState(false);
   const [apForm, setApForm] = useState({ location: '', start_time: '21:00', end_time: '23:00', fee: '' });
@@ -271,6 +272,7 @@ export default function MeetingDetail() {
       const ap = (apEvents || [])[0] || null;
       setAfterParty(ap);
       if (ap) {
+        setApObserverIds(Array.isArray(ap.observer_ids) ? ap.observer_ids : []);
         base44.entities.Attendance.filter({ event_id: ap.id }).then(a => setAfterPartyAtts(a || [])).catch(() => setAfterPartyAtts([]));
       } else {
         setAfterPartyAtts([]);
@@ -672,6 +674,30 @@ export default function MeetingDetail() {
         await loadMeeting();
       }
     } catch (err) { showToastMsg(err.message || '取消に失敗しました', 'error'); }
+    setSaving(false);
+  }
+
+  // After-party observer helpers
+  function addApObserver(memberId) {
+    if (!memberId || apObserverIds.includes(memberId)) return;
+    setApObserverIds(prev => [...prev, memberId]);
+  }
+  function removeApObserver(memberId) {
+    setApObserverIds(prev => prev.filter(id => id !== memberId));
+  }
+  const apObserverCandidates = allMembers.filter(m => {
+    const mid = m.id || m._id;
+    return !boardMemberIds.has(mid) && !apObserverIds.includes(mid);
+  });
+  async function saveApObservers() {
+    if (!afterParty) return;
+    setSaving(true);
+    try {
+      await base44.entities.Event.update(afterParty.id, { observer_ids: apObserverIds });
+      invalidateReadCache('Event');
+      showToastMsg('懇親会のオブザーバーを保存しました');
+      await loadMeeting();
+    } catch (err) { showToastMsg(err.message || '保存に失敗しました', 'error'); }
     setSaving(false);
   }
 
@@ -1652,6 +1678,47 @@ export default function MeetingDetail() {
                             </div>
                           </div>
                         )}
+                        {/* AP Observer section */}
+                        <div style={{ marginTop: 16 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, paddingBottom: 4, borderBottom: "1px solid var(--color-border)", flexWrap: "wrap" }}>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)" }}>懇親会オブザーバー</span>
+                            {canEditAttendance && (
+                              <div style={{ width: isMobile ? "100%" : 220, marginTop: isMobile ? 4 : 0 }}>
+                                <MemberSelector value="" onChange={(mid) => { if (mid) addApObserver(mid); }}
+                                  members={apObserverCandidates} roleMap={memberRoleMap} placeholder="+ 追加..." />
+                              </div>
+                            )}
+                          </div>
+                          {apObserverIds.length === 0 ? (
+                            <p style={{ fontSize: 12, color: "var(--color-text-secondary)", textAlign: "center", padding: "8px 0" }}>オブザーバーはいません</p>
+                          ) : (
+                            <div style={{ border: "1px solid var(--color-border)", borderRadius: 8, overflow: "hidden" }}>
+                              {apObserverIds.map((oid, idx) => {
+                                const m = memberMap[oid];
+                                if (!m) return null;
+                                return (
+                                  <div key={oid} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", borderBottom: idx < apObserverIds.length - 1 ? "1px solid var(--color-bg-sub)" : "none" }}>
+                                    <MemberAvatar member={m} size={28} />
+                                    <span style={{ fontSize: 13, fontWeight: 500, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fullName(m)}</span>
+                                    {canEditAttendance && (
+                                      <button type="button" onClick={() => removeApObserver(oid)}
+                                        style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--color-danger)", fontSize: 16, padding: "0 4px", flexShrink: 0 }}>&times;</button>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {canEditAttendance && (() => {
+                            const initApObs = Array.isArray(afterParty?.observer_ids) ? afterParty.observer_ids : [];
+                            const changed = JSON.stringify([...apObserverIds].sort()) !== JSON.stringify([...initApObs].sort());
+                            return changed ? (
+                              <div style={{ marginTop: 12, display: "flex", justifyContent: "flex-end" }}>
+                                <Button variant="primary" disabled={saving} onClick={saveApObservers}>{saving ? "保存中..." : "懇親会オブザーバーを保存"}</Button>
+                              </div>
+                            ) : null;
+                          })()}
+                        </div>
                       </div>
                     );
                   })()}

@@ -89,6 +89,11 @@
       "type": "boolean",
       "description": "出欠受付を終了したかどうか"
     },
+    "observer_ids": {
+      "type": "array",
+      "description": "オブザーバー出席者のMember IDリスト",
+      "items": { "type": "string" }
+    },
     "attendance_deadline": {
       "type": "string",
       "description": "出欠回答の期限日（ISO date string）"
