@@ -1274,8 +1274,8 @@ export default function MeetingDetail() {
         </section>
       )}
 
-      {/* ── After Party section (always visible, outside tabs) ── */}
-      {afterParty ? (
+      {/* ── After Party section (hidden on attendance tab — has its own AP section) ── */}
+      {activeTab !== "attendance" && afterParty ? (
         <div style={{ marginBottom: 16, padding: 16, background: '#fffbeb', borderRadius: 'var(--radius-lg)', border: '1px solid #fde68a' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

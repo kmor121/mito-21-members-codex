@@ -580,8 +580,8 @@ export default function EventDetail() {
         </section>
       )}
 
-      {/* ── After Party Section (always visible if not a party itself) ── */}
-      {event.event_type !== '懇親会' && !event.is_after_party && (
+      {/* ── After Party Section (hidden on attendance tab — has its own AP section) ── */}
+      {activeTab !== 'attendance' && event.event_type !== '懇親会' && !event.is_after_party && (
         <div style={{ marginBottom: 16 }}>
           {childAfterParty ? (
             /* Has after-party: show info + edit/delete */
