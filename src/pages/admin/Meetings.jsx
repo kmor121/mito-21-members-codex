@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44, invalidateReadCache } from '../../api/base44Client';
 import { useAuth } from '../../contexts/AuthContext';
@@ -76,6 +76,16 @@ export default function Meetings() {
   const [copiedAgenda, setCopiedAgenda] = useState(null);
   const [copiedFromTitle, setCopiedFromTitle] = useState('');
   const [showCopySelector, setShowCopySelector] = useState(false);
+  const copySelectorRef = useRef(null);
+
+  useEffect(() => {
+    if (!showCopySelector) return;
+    const handler = (e) => {
+      if (copySelectorRef.current && !copySelectorRef.current.contains(e.target)) setShowCopySelector(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showCopySelector]);
 
   const currentFyId = useMemo(() => {
     const fy = fiscalYears.find(f => f.is_current);
@@ -427,7 +437,7 @@ export default function Meetings() {
           <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 16, marginTop: -4 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>次第のコピー</label>
             {!copiedFromTitle ? (
-              <>
+              <div ref={copySelectorRef}>
                 <button type="button" className="mtg-copy-source-btn" onClick={() => setShowCopySelector(!showCopySelector)}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                   過去の次第をコピー
@@ -448,7 +458,7 @@ export default function Meetings() {
                     })}
                   </div>
                 )}
-              </>
+              </div>
             ) : (
               <div className="mtg-copy-preview">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>

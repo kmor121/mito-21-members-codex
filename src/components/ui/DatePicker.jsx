@@ -124,7 +124,8 @@ export default function DatePicker({
       position: 'fixed',
       top: pos.top,
       left: pos.left,
-      width: pos.width,
+      width: Math.min(pos.width, 300),
+      maxWidth: 300,
       zIndex: 10000,
     }}>
       <div className="dp-header">
