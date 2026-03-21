@@ -662,50 +662,28 @@ export default function ApplicationDetail() {
       {/* ══ Fixed Action Bar (pending only) ══ */}
       {isPending && (
         <div style={{
-          position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100,
+          position: "sticky", bottom: 0, zIndex: 10,
           background: "#fff", borderTop: "1px solid var(--color-border)",
-          boxShadow: "0 -4px 12px rgba(0,0,0,0.06)",
-          padding: "14px 24px",
-          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "16px 24px",
+          paddingBottom: "max(16px, env(safe-area-inset-bottom, 16px))",
+          display: "flex", justifyContent: "flex-end", gap: 12,
         }}>
-          <div style={{ width: "100%", maxWidth: 1080, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            {/* Reject button (left, subdued) */}
-            <button
-              type="button"
-              onClick={() => {
-                if (!rejectionReason.trim()) {
-                  setFieldError("却下する場合は、先に却下理由を入力してください。");
-                  return;
-                }
-                openRejectModal();
-              }}
-              disabled={rejectSubmitting}
-              style={{
-                padding: "10px 24px", borderRadius: "var(--radius)", fontSize: 14, fontWeight: 600,
-                background: "#fff", color: "var(--color-danger)", border: "1px solid var(--color-danger)",
-                cursor: rejectSubmitting ? "not-allowed" : "pointer",
-                opacity: rejectSubmitting ? 0.6 : 1, transition: "all 0.15s",
-              }}
-            >
-              却下する
-            </button>
-
-            {/* Approve button (right, prominent) */}
-            <button
-              type="button"
-              onClick={openApproveModal}
-              disabled={approveSubmitting}
-              style={{
-                padding: "10px 32px", borderRadius: "var(--radius)", fontSize: 14, fontWeight: 700,
-                background: "var(--color-accent)", color: "#fff", border: "none",
-                cursor: approveSubmitting ? "not-allowed" : "pointer",
-                opacity: approveSubmitting ? 0.6 : 1, transition: "all 0.15s",
-                boxShadow: "var(--shadow-md)",
-              }}
-            >
-              承認する
-            </button>
-          </div>
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (!rejectionReason.trim()) {
+                setFieldError("却下する場合は、先に却下理由を入力してください。");
+                return;
+              }
+              openRejectModal();
+            }}
+            disabled={rejectSubmitting}
+          >
+            却下する
+          </Button>
+          <Button variant="primary" onClick={openApproveModal} disabled={approveSubmitting}>
+            承認する
+          </Button>
         </div>
       )}
 
