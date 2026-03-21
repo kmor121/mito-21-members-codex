@@ -328,16 +328,8 @@ export default function Events() {
         onClose={() => setShowCreateModal(false)}
         title="新規イベント作成"
         width="520px"
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setShowCreateModal(false)}>キャンセル</Button>
-            <Button variant="primary" onClick={handleCreate} disabled={saving || !form.title.trim() || !form.event_date}>
-              {saving ? '作成中...' : '作成'}
-            </Button>
-          </>
-        }
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Title + Type */}
           <div>
             <label className="evt-label">イベント名 <span style={{ color: 'var(--color-danger)' }}>*</span></label>
@@ -466,6 +458,14 @@ export default function Events() {
               )}
             </div>
           )}
+
+          {/* ボタン */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, borderTop: '1px solid var(--color-border)', marginTop: -4, paddingTop: 16, paddingBottom: 8 }}>
+            <Button variant="ghost" onClick={() => setShowCreateModal(false)} disabled={saving}>キャンセル</Button>
+            <Button variant="primary" onClick={handleCreate} disabled={saving || !form.title.trim() || !form.event_date}>
+              {saving ? '作成中...' : '作成'}
+            </Button>
+          </div>
         </div>
       </Modal>
 

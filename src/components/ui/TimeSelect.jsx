@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5);
+const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 const QUICK_TIMES = [
+  { label: "10:00", h: 10, m: 0 },
+  { label: "13:00", h: 13, m: 0 },
+  { label: "15:00", h: 15, m: 0 },
   { label: "18:00", h: 18, m: 0 },
-  { label: "18:30", h: 18, m: 30 },
   { label: "19:00", h: 19, m: 0 },
-  { label: "19:30", h: 19, m: 30 },
   { label: "20:00", h: 20, m: 0 },
-  { label: "21:00", h: 21, m: 0 },
 ];
 
 function pad2(n) { return String(n).padStart(2, '0'); }
