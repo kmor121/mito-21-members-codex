@@ -1534,7 +1534,9 @@ textarea { resize: vertical; }
   position: relative;
   display: inline-flex;
   width: 40px;
+  min-width: 40px;
   height: 22px;
+  min-height: 22px;
   border-radius: 999px;
   border: none;
   background: var(--color-border);
@@ -1542,6 +1544,10 @@ textarea { resize: vertical; }
   transition: background 0.2s;
   padding: 0;
   flex-shrink: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  box-sizing: border-box;
 }
 .doc-toggle-on { background: var(--color-success); }
 .doc-toggle-knob {

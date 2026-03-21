@@ -684,7 +684,7 @@ export default function MemberCreate() {
         {/* ======== Section 6: 名簿設定 ======== */}
         <section
           className="card panel-card single-panel"
-          style={{ ...sectionStyle, marginBottom: 24 }}
+          style={{ ...sectionStyle, marginBottom: 8 }}
           ref={() => handleSectionVisible(5)}
         >
           <div className="card-body stack">
