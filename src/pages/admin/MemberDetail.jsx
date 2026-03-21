@@ -440,7 +440,7 @@ export default function MemberDetail() {
   }
 
   return (
-    <section className="admin-shell" style={{ overflow: 'hidden', maxWidth: '100%' }}>
+    <section className="admin-shell" style={{ minWidth: 0, maxWidth: '100%' }}>
       {/* Toast notification */}
       <Toast message={toastMessage} onClose={() => setToastMessage("")} />
 
@@ -590,17 +590,21 @@ export default function MemberDetail() {
 
       {/* ===== Tab bar ===== */}
       <div className="tab-bar" style={{ marginBottom: "1rem" }}>
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            className={`tab-button${activeTab === tab.key ? " is-active" : ""}`}
-            onClick={() => { if (!isEditing || tab.key === "basic") setActiveTab(tab.key); }}
-            style={isEditing && tab.key !== "basic" ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
-          >
-            {tab.label}
-          </button>
-        ))}
+        {TABS.map((tab) => {
+          const disabledStyle = isEditing && tab.key !== "basic" ? { opacity: 0.4, cursor: "not-allowed" } : {};
+          const mobileStyle = isMobile ? { padding: '10px 12px', fontSize: 13 } : {};
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              className={`tab-button${activeTab === tab.key ? " is-active" : ""}`}
+              onClick={() => { if (!isEditing || tab.key === "basic") setActiveTab(tab.key); }}
+              style={{ ...disabledStyle, ...mobileStyle }}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* ========== 基本情報 tab ========== */}
