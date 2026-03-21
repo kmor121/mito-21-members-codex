@@ -18,9 +18,9 @@ const EVENT_TYPE_BADGE = {
 
 const STATUS_CONF = {
   draft:     { label: "下書き", color: "var(--color-text-secondary)", bg: "var(--color-bg-sub)", border: "var(--color-border)" },
-  published: { label: "公開中", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
-  closed:    { label: "受付終了", color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
-  completed: { label: "完了",   color: "#059669", bg: "#ecfdf5", border: "#bbf7d0" },
+  published: { label: "公開", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
+  closed:    { label: "公開", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" }, // legacy: closedもpublished扱い
+  completed: { label: "完了", color: "#059669", bg: "#ecfdf5", border: "#bbf7d0" },
 };
 
 function formatDateFull(d) {
@@ -197,15 +197,15 @@ export default function EventDetail() {
   const STATUS_TRANSITIONS = {
     draft:     [{ to: 'published', label: '公開する', msg: '公開すると会員がイベントを閲覧・出欠回答できるようになります。' }],
     published: [
-      { to: 'closed', label: '受付終了にする', msg: '受付終了にすると新規の出欠回答を受け付けなくなります。' },
+      { to: 'completed', label: '完了にする', msg: '完了にすると編集がロックされます。' },
       { to: 'draft', label: '下書きに戻す', msg: '下書きに戻すと会員には非表示になります。', secondary: true },
     ],
-    closed: [
+    closed: [ // legacy: closedステータスのイベントも操作可能にする
       { to: 'completed', label: '完了にする', msg: '完了にすると編集がロックされます。' },
       { to: 'published', label: '公開に戻す', msg: '公開に戻すと出欠回答を再開できます。', secondary: true },
     ],
     completed: [
-      { to: 'closed', label: '受付終了に戻す', msg: 'ステータスを戻すと編集が再開できます。', secondary: true },
+      { to: 'published', label: '公開に戻す', msg: 'ステータスを戻すと編集が再開できます。', secondary: true },
     ],
   };
 
@@ -737,6 +737,44 @@ export default function EventDetail() {
                         .catch(() => showToast('更新に失敗しました', 'error'));
                     }} placeholder="期限日を選択" />
                   </div>
+                )}
+              </div>
+            )}
+
+            {/* 受付終了/再開 */}
+            {(status === 'published' || status === 'closed') && (
+              <div style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "10px 14px", marginBottom: 12,
+                background: event.attendance_closed ? "var(--color-warning-light, #fffbeb)" : "var(--color-bg-sub)",
+                borderRadius: "var(--radius-md)",
+                border: event.attendance_closed ? "1px solid var(--color-warning, #fde68a)" : "1px solid var(--color-border)",
+              }}>
+                <span style={{ fontSize: 13, color: event.attendance_closed ? "var(--color-warning, #92400e)" : "var(--color-text-secondary)" }}>
+                  {event.attendance_closed ? "出欠の受付は終了しています" : "出欠を受付中です"}
+                </span>
+                {event.attendance_closed ? (
+                  <Button variant="ghost" size="sm" disabled={saving} onClick={async () => {
+                    setSaving(true);
+                    try {
+                      await base44.entities.Event.update(eventId, { attendance_closed: false });
+                      setEvent(prev => ({ ...prev, attendance_closed: false }));
+                      showToast("出欠の受付を再開しました");
+                    } catch { showToast("更新に失敗しました", "error"); }
+                    finally { setSaving(false); }
+                  }}>受付を再開</Button>
+                ) : (
+                  <Button variant="secondary" size="sm" disabled={saving} onClick={() => setConfirmModal({
+                    title: "出欠の受付を終了しますか？",
+                    message: "会員は出欠の回答・変更ができなくなります。",
+                    confirmLabel: "受付終了",
+                    onConfirm: async () => {
+                      await base44.entities.Event.update(eventId, { attendance_closed: true });
+                      setEvent(prev => ({ ...prev, attendance_closed: true }));
+                      showToast("出欠の受付を終了しました");
+                      setConfirmModal(null);
+                    },
+                  })}>受付終了</Button>
                 )}
               </div>
             )}
