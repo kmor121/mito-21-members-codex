@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { base44, invalidateReadCache, apiRequest } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -7,6 +7,8 @@ import TimeSelect from '../../components/ui/TimeSelect';
 import { fullName } from '../../utils/formatName';
 import { Modal, Button } from '../../components/ui';
 import { useIsMobile } from '../../hooks/useIsMobile';
+
+const RichTextEditor = lazy(() => import('../../components/common/RichTextEditor'));
 
 const EVENT_TYPE_BADGE = {
   "懇親会": { color: "#ea580c", bg: "#fff7ed", border: "#fed7aa" },
@@ -553,7 +555,14 @@ export default function EventDetail() {
                   <div><label className="evtd-label">参加費</label><input className="evtd-input" type="number" min="0" value={editForm.fee} onChange={e => setEditForm(f => ({ ...f, fee: e.target.value }))} /></div>
                 </div>
                 <div><label className="evtd-label">出欠回答期限</label><DatePicker value={editForm.rsvp_deadline} onChange={v => setEditForm(f => ({ ...f, rsvp_deadline: v }))} /></div>
-                <div><label className="evtd-label">イベント説明</label><textarea className="evtd-input" rows={4} value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} /></div>
+                <div>
+                  <label className="evtd-label">イベント説明</label>
+                  <Suspense fallback={<div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><LoadingSpinner /></div>}>
+                    <div className="doc-ed-editor-wrap">
+                      <RichTextEditor content={editForm.description} onChange={v => setEditForm(f => ({ ...f, description: v }))} placeholder="イベントの説明を入力..." />
+                    </div>
+                  </Suspense>
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                   <Button variant="secondary" onClick={() => setIsEditing(false)}>キャンセル</Button>
                   <Button variant="primary" disabled={saving} onClick={saveEdit}>{saving ? '保存中...' : '保存'}</Button>

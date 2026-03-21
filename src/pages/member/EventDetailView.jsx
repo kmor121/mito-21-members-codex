@@ -221,7 +221,7 @@ export default function EventDetailView() {
         <div className="card panel-card" style={{ marginBottom: 20 }}>
           <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
             <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>詳細</h2>
-            <div style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--color-text-secondary)', whiteSpace: 'pre-wrap' }}>{event.description}</div>
+            <div className="tiptap-content-view" style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--color-text-secondary)' }} dangerouslySetInnerHTML={{ __html: event.description }} />
           </div>
         </div>
       )}
