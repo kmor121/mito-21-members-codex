@@ -6,7 +6,7 @@ export default function YearPillNav({ fiscalYears, activeFyId, currentFyId, onCh
     [fiscalYears]
   );
 
-  if (!fiscalYears || fiscalYears.length <= 1) return null;
+  if (!fiscalYears || fiscalYears.length === 0) return null;
 
   return (
     <select

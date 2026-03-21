@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { fullName } from '../../utils/formatName';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { PageHeader } from '../../components/ui';
+import YearPillNav from '../../components/ui/YearPillNav';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 const STATUS_BADGE = {
@@ -453,17 +454,16 @@ export default function MeetingsView() {
       <PageHeader title="幹事会" subtitle="幹事会の次第・議事録を確認" />
 
       {/* ── FY navigation ── */}
-      <div style={styles.fyNav}>
-        <button type="button" disabled={currentFYIndex <= 0} onClick={prevFY}
-          style={styles.fyBtn(currentFYIndex <= 0)}>
-          <ChevronLeft />
-        </button>
-        <span style={styles.fyText}>{selectedFY ? `${selectedFY.year}年度` : ""}</span>
-        <button type="button" disabled={currentFYIndex >= sortedFYs.length - 1} onClick={nextFY}
-          style={styles.fyBtn(currentFYIndex >= sortedFYs.length - 1)}>
-          <ChevronRight />
-        </button>
-      </div>
+      {fiscalYears.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <YearPillNav
+            fiscalYears={fiscalYears}
+            activeFyId={selectedFYId}
+            currentFyId={fiscalYears.find(fy => fy.is_current)?.id || ''}
+            onChange={setSelectedFYId}
+          />
+        </div>
+      )}
 
       {/* ── Summary stats ── */}
       {isMobile ? (
@@ -564,11 +564,6 @@ export default function MeetingsView() {
                       )}
                     </div>
                   </div>
-
-                  {/* Attendance ring */}
-                  {isCompleted && attendeeIds.length > 0 && (
-                    <AttendanceRing present={attendeeIds.length} total={allMembers.length || attendeeIds.length} />
-                  )}
 
                   {/* Chevron */}
                   <div style={styles.chevronWrap(isExpanded)}>

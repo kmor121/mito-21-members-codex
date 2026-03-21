@@ -150,7 +150,17 @@ function PillSelector({ options, value, onChange, id }) {
 }
 
 /* ---------- Progress Indicator ---------- */
-function ProgressIndicator({ currentSection }) {
+function ProgressIndicator({ currentSection, formData }) {
+  // Check if required fields for each section are filled
+  const sectionComplete = [
+    !!(formData?.last_name && formData?.first_name && formData?.last_name_kana && formData?.first_name_kana && formData?.birthday), // 基本情報
+    true, // 会社情報（全て任意）
+    !!(formData?.email && formData?.mobile_phone), // 連絡先
+    true, // 自宅情報（全て任意）
+    !!(formData?.referrer_1 && formData?.referrer_2), // その他（紹介者必須）
+    true, // 名簿設定（全て任意）
+  ];
+
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 0,
@@ -158,7 +168,7 @@ function ProgressIndicator({ currentSection }) {
     }}>
       {SECTION_STEPS.map((step, i) => {
         const isCurrent = i === currentSection;
-        const isPast = i < currentSection;
+        const isPast = i < currentSection && sectionComplete[i];
         return (
           <div key={step} style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             <div style={{
@@ -352,7 +362,7 @@ export default function MemberCreate() {
       </div>
 
       {/* ---- Progress Indicator ---- */}
-      <ProgressIndicator currentSection={visibleSection} />
+      <ProgressIndicator currentSection={visibleSection} formData={form} />
 
       {/* ---- Top-level error ---- */}
       {error && (
