@@ -714,13 +714,10 @@ export default function MemberCreate() {
 
         {/* ======== Sticky Action Bar ======== */}
         <div style={{
-          position: 'sticky', bottom: 0, left: 0, right: 0,
           background: '#fff',
           borderTop: '1px solid var(--color-border)',
-          padding: '16px 24px',
-          paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
+          padding: '16px 0 0',
           display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-          zIndex: 10,
         }}>
           {Object.keys(errors).length > 0 && (
             <span style={{
