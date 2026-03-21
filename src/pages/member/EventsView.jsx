@@ -3,6 +3,8 @@ import { base44, invalidateReadCache } from '../../api/base44Client';
 import { useAuth } from '../../contexts/AuthContext';
 import { fullName } from '../../utils/formatName';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import AttendanceDeadlineBadge from '../../components/ui/AttendanceDeadlineBadge';
+import { isAttendanceClosed, getDeadline } from '../../utils/attendanceUtils';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 const EVENT_TYPE_BADGE = {
@@ -224,10 +226,9 @@ export default function EventsView() {
             const myResponse = myAtt?.response || '';
             const isSaving = saving === evt.id;
 
-            const isDeadlinePassed = evt.rsvp_deadline && evt.rsvp_deadline < today;
-            const isClosed = evt.status === 'closed' || evt.status === 'completed';
-            const canRespond = evt.status === 'published' && !isDeadlinePassed;
-            const canChange = evt.status === 'published' && !isDeadlinePassed;
+            const isClosed = isAttendanceClosed(evt) || evt.status === 'closed' || evt.status === 'completed';
+            const canRespond = evt.status === 'published' && !isAttendanceClosed(evt);
+            const canChange = canRespond;
 
             const evtAtts = eventAttsCache[evt.id] || [];
             const isExpanded = expandedId === evt.id;
@@ -258,11 +259,20 @@ export default function EventsView() {
                   {evt.fee > 0 && <span>¥{Number(evt.fee).toLocaleString()}</span>}
                 </div>
 
-                {/* Deadline */}
-                {evt.rsvp_deadline && (
-                  <p style={{ fontSize: 12, color: isDeadlinePassed ? 'var(--color-danger)' : 'var(--color-text-secondary)', margin: '0 0 8px' }}>
-                    回答期限: {formatDate(evt.rsvp_deadline)}{isDeadlinePassed ? '（締切済み）' : ''}
-                  </p>
+                {/* Deadline badge */}
+                <div style={{ marginBottom: 8 }}>
+                  <AttendanceDeadlineBadge deadline={getDeadline(evt)} closed={isAttendanceClosed(evt)} />
+                </div>
+
+                {/* Closed notice */}
+                {isAttendanceClosed(evt) && evt.status === 'published' && (
+                  <div style={{
+                    padding: '8px 12px', background: 'var(--color-bg-sub)',
+                    borderRadius: 'var(--radius-md)', fontSize: 13,
+                    color: 'var(--color-text-tertiary)', marginBottom: 8,
+                  }}>
+                    出欠の受付は終了しました
+                  </div>
                 )}
 
                 {/* Response buttons */}

@@ -65,8 +65,9 @@ export default function Meetings() {
 
   const [form, setForm] = useState({
     title: '', meeting_date: '', start_time: '19:00', end_time: '21:00',
-    location: '', moderator_id: '',
+    location: '', attendance_deadline: '',
   });
+  const [deadlineManuallySet, setDeadlineManuallySet] = useState(false);
   const [hasAfterParty, setHasAfterParty] = useState(false);
   const [apForm, setApForm] = useState({ location: '', start_time: '21:00', end_time: '23:00', fee: '' });
 
@@ -189,7 +190,8 @@ export default function Meetings() {
       const payload = {
         title: form.title.trim(), meeting_date: form.meeting_date,
         start_time: form.start_time || '', end_time: form.end_time || '',
-        location: form.location.trim(), moderator_id: form.moderator_id || '',
+        location: form.location.trim(),
+        attendance_deadline: form.attendance_deadline || '',
         fiscal_year_id: selectedFYId, status: '下書き',
         ceremony_items: useCeremony, agenda_items: useAgenda, minutes_note: '', created_by: memberId,
       };
@@ -205,7 +207,8 @@ export default function Meetings() {
         invalidateReadCache('Event');
       }
       invalidateReadCache('Meeting');
-      setForm({ title: '', meeting_date: '', start_time: '19:00', end_time: '21:00', location: '', moderator_id: '' });
+      setForm({ title: '', meeting_date: '', start_time: '19:00', end_time: '21:00', location: '', attendance_deadline: '' });
+      setDeadlineManuallySet(false);
       setHasAfterParty(false);
       setApForm({ location: '', start_time: '21:00', end_time: '23:00', fee: '' });
       clearCopy();
@@ -376,7 +379,13 @@ export default function Meetings() {
           <div className="mtg-form-2col">
             <div>
               <label className="mtg-label">開催日 <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-              <DatePicker value={form.meeting_date} onChange={(v) => setForm((p) => ({ ...p, meeting_date: v }))} placeholder="日付を選択" />
+              <DatePicker value={form.meeting_date} onChange={(v) => {
+                setForm((p) => ({ ...p, meeting_date: v }));
+                if (!deadlineManuallySet && v) {
+                  const d = new Date(v); d.setDate(d.getDate() - 3);
+                  setForm((p) => ({ ...p, meeting_date: v, attendance_deadline: d.toISOString().split('T')[0] }));
+                }
+              }} placeholder="日付を選択" />
             </div>
             <div>
               <label className="mtg-label">場所</label>
@@ -389,9 +398,11 @@ export default function Meetings() {
             <div><label className="mtg-label">終了時刻</label><TimeSelect value={form.end_time} onChange={(v) => setForm((p) => ({ ...p, end_time: v }))} /></div>
           </div>
           <div>
-            <label className="mtg-label">司会者</label>
-            <MemberSelector value={form.moderator_id} onChange={(v) => setForm((p) => ({ ...p, moderator_id: v }))}
-              members={allMembers} roleMap={memberRoleMap} placeholder="司会者を選択..." />
+            <label className="mtg-label">出欠期限</label>
+            <DatePicker value={form.attendance_deadline} onChange={(v) => {
+              setForm((p) => ({ ...p, attendance_deadline: v }));
+              setDeadlineManuallySet(true);
+            }} placeholder="期限日を選択（任意）" />
           </div>
 
           {/* agenda copy */}

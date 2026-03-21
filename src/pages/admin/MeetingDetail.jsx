@@ -209,6 +209,7 @@ export default function MeetingDetail() {
   const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
   const [moderatorId, setModeratorId] = useState("");
+  const [attendanceDeadline, setAttendanceDeadline] = useState("");
   const [ceremonyItems, setCeremonyItems] = useState([]);
   const [agendaItems, setAgendaItems] = useState([]);
   const [attendeeIds, setAttendeeIds] = useState([]);
@@ -280,6 +281,7 @@ export default function MeetingDetail() {
       setEndTime(m.end_time || "");
       setLocation(m.location || "");
       setModeratorId(m.moderator_id || "");
+      setAttendanceDeadline(m.attendance_deadline || "");
       setCeremonyItems(
         Array.isArray(m.ceremony_items) && m.ceremony_items.length > 0
           ? m.ceremony_items
@@ -383,6 +385,7 @@ export default function MeetingDetail() {
       end_time: endTime,
       location: location.trim(),
       moderator_id: moderatorId,
+      attendance_deadline: attendanceDeadline || '',
       ceremony_items: ceremonyItems,
       agenda_items: sortedAgenda,
       attendee_ids: attendeeIds,
@@ -855,9 +858,16 @@ export default function MeetingDetail() {
                   <TimeSelect value={endTime} onChange={setEndTime} disabled={!canEditAgenda} />
                 </div>
               </div>
-              <div className="field">
-                <label>司会者</label>
-                <MemberSelector value={moderatorId} onChange={setModeratorId} members={allMembers} roleMap={memberRoleMap} disabled={!canEditAgenda} placeholder="司会者を選択..." />
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <div className="field" style={{ flex: 1, minWidth: 180 }}>
+                  <label>出欠期限</label>
+                  <DatePicker value={attendanceDeadline} onChange={setAttendanceDeadline}
+                    disabled={!canEditAgenda || (status === "公開" && meeting?.attendance_closed)} />
+                </div>
+                <div className="field" style={{ flex: 1, minWidth: 180 }}>
+                  <label>司会者</label>
+                  <MemberSelector value={moderatorId} onChange={setModeratorId} members={allMembers} roleMap={memberRoleMap} disabled={!canEditAgenda} placeholder="司会者を選択..." />
+                </div>
               </div>
             </div>
 
