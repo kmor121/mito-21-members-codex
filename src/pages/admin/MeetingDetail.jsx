@@ -1340,25 +1340,39 @@ export default function MeetingDetail() {
 
               {/* 出欠期限 — 出欠タブ内 */}
               {status !== '完了' && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '8px 0', marginBottom: 8 }}>
                   <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>出欠期限:</span>
-                  <div style={{ maxWidth: 200 }}>
-                    <DatePicker value={attendanceDeadline} onChange={(v) => {
-                      setAttendanceDeadline(v);
-                      base44.entities.Meeting.update(meetingId, { attendance_deadline: v || '' })
-                        .then(() => showToastMsg('出欠期限を更新しました'))
-                        .catch(() => showToastMsg('更新に失敗しました'));
-                    }} placeholder="期限日を選択" />
-                  </div>
-                  {attendanceDeadline && (
-                    <button type="button" onClick={() => {
-                      setAttendanceDeadline('');
-                      base44.entities.Meeting.update(meetingId, { attendance_deadline: '' })
-                        .then(() => showToastMsg('出欠期限を解除しました'))
-                        .catch(() => showToastMsg('更新に失敗しました'));
-                    }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-tertiary)', textDecoration: 'underline' }}>
-                      解除
-                    </button>
+                  {attendanceDeadline ? (
+                    <>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                        {(() => { const d = new Date(attendanceDeadline); const dow = ['日','月','火','水','木','金','土'][d.getDay()]; return `${d.getMonth()+1}/${d.getDate()}（${dow}）`; })()}
+                      </span>
+                      <div style={{ maxWidth: 160 }}>
+                        <DatePicker value={attendanceDeadline} onChange={(v) => {
+                          setAttendanceDeadline(v);
+                          base44.entities.Meeting.update(meetingId, { attendance_deadline: v || '' })
+                            .then(() => showToastMsg('出欠期限を更新しました'))
+                            .catch(() => showToastMsg('更新に失敗しました'));
+                        }} placeholder="変更" />
+                      </div>
+                      <button type="button" onClick={() => {
+                        setAttendanceDeadline('');
+                        base44.entities.Meeting.update(meetingId, { attendance_deadline: '' })
+                          .then(() => showToastMsg('出欠期限を解除しました'))
+                          .catch(() => showToastMsg('更新に失敗しました'));
+                      }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-tertiary)', textDecoration: 'underline', padding: '4px' }}>
+                        解除
+                      </button>
+                    </>
+                  ) : (
+                    <div style={{ maxWidth: 200 }}>
+                      <DatePicker value={attendanceDeadline} onChange={(v) => {
+                        setAttendanceDeadline(v);
+                        base44.entities.Meeting.update(meetingId, { attendance_deadline: v || '' })
+                          .then(() => showToastMsg('出欠期限を設定しました'))
+                          .catch(() => showToastMsg('更新に失敗しました'));
+                      }} placeholder="期限日を選択" />
+                    </div>
                   )}
                 </div>
               )}
