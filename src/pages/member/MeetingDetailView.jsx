@@ -174,38 +174,6 @@ export default function MeetingDetailView() {
         </div>
       </div>
 
-      {/* ── My Response ── */}
-      <div className="card panel-card" style={{ marginBottom: 20 }}>
-        <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 16px' }}>あなたの回答</h2>
-          {closed && (
-            <div style={{ padding: '10px 14px', background: 'var(--color-bg-sub)', borderRadius: 'var(--radius-md)', fontSize: 13, color: 'var(--color-text-tertiary)', marginBottom: 12 }}>出欠の受付は終了しました</div>
-          )}
-          {myResponse && (
-            <div style={{ marginBottom: 12 }}>
-              <span style={{ display: 'inline-block', padding: '6px 20px', borderRadius: 99, fontSize: 14, fontWeight: 700, background: myResponse === '出席' ? 'var(--color-success)' : 'var(--color-danger)', color: '#fff' }}>{myResponse}</span>
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {['出席', '欠席'].map(opt => {
-              const isSelected = myResponse === opt;
-              const isAttend = opt === '出席';
-              return (
-                <button key={opt} type="button" disabled={closed || saving} onClick={() => handleResponse(meetingId, opt, true)}
-                  style={{
-                    padding: isMobile ? '10px 20px' : '10px 24px', borderRadius: 8, fontSize: 14, fontWeight: 600,
-                    cursor: (closed || saving) ? 'default' : 'pointer', transition: 'all 0.15s', minHeight: 44,
-                    background: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : '#fff',
-                    color: isSelected ? '#fff' : 'var(--color-text-secondary)',
-                    border: isSelected ? 'none' : '1px solid var(--color-border)',
-                    opacity: (closed || saving) ? 0.5 : 1,
-                  }}>{isSelected && '✓ '}{opt}</button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
       {/* ── Agenda (次第) ── */}
       {(ceremony.length > 0 || agenda.length > 0) && (
         <div className="card panel-card" style={{ marginBottom: 20 }}>
@@ -217,7 +185,11 @@ export default function MeetingDetailView() {
                   <div key={i} style={{ display: 'flex', gap: 8, padding: '6px 0', borderBottom: i < ceremony.length - 1 ? '1px solid var(--color-border)' : 'none', fontSize: 14 }}>
                     <span style={{ color: 'var(--color-text-tertiary)', minWidth: 24, textAlign: 'right' }}>{c.order || i + 1}.</span>
                     <span style={{ fontWeight: 500, color: 'var(--color-text-primary)' }}>{c.title}</span>
-                    {c.person_label && <span style={{ color: 'var(--color-text-secondary)', marginLeft: 'auto', whiteSpace: 'nowrap' }}>{c.person_label}</span>}
+                    {(c.person_id || c.person_label) && (
+                      <span style={{ color: 'var(--color-text-secondary)', marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: 13 }}>
+                        {c.person_id && memberMap[c.person_id] ? fullName(memberMap[c.person_id]) : c.person_label}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -229,8 +201,12 @@ export default function MeetingDetailView() {
                   <div key={i} style={{ padding: '8px 0', borderBottom: i < agenda.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                       {a.tag && <span style={{ padding: '1px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500, background: 'var(--color-accent-light)', color: 'var(--color-accent)' }}>{a.tag}</span>}
-                      <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text-primary)' }}>{a.title}</span>
-                      {a.person_label && <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginLeft: 'auto' }}>{a.person_label}</span>}
+                      <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text-primary)', flex: 1 }}>{a.title}</span>
+                      {(a.person_id || a.person_label) && (
+                        <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                          {a.person_id && memberMap[a.person_id] ? fullName(memberMap[a.person_id]) : a.person_label}
+                        </span>
+                      )}
                     </div>
                     {a.link_url && (
                       <a href={a.link_url} target="_blank" rel="noopener noreferrer" className="text-link" style={{ fontSize: 12, marginTop: 4, display: 'inline-block' }}>{a.link_label || '資料を見る'} →</a>
@@ -293,6 +269,38 @@ export default function MeetingDetailView() {
           </div>
         </div>
       )}
+
+      {/* ── My Response ── */}
+      <div className="card panel-card" style={{ marginBottom: 20 }}>
+        <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 16px' }}>あなたの回答</h2>
+          {closed && (
+            <div style={{ padding: '10px 14px', background: 'var(--color-bg-sub)', borderRadius: 'var(--radius-md)', fontSize: 13, color: 'var(--color-text-tertiary)', marginBottom: 12 }}>出欠の受付は終了しました</div>
+          )}
+          {myResponse && (
+            <div style={{ marginBottom: 12 }}>
+              <span style={{ display: 'inline-block', padding: '6px 20px', borderRadius: 99, fontSize: 14, fontWeight: 700, background: myResponse === '出席' ? 'var(--color-success)' : 'var(--color-danger)', color: '#fff' }}>{myResponse}</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {['出席', '欠席'].map(opt => {
+              const isSelected = myResponse === opt;
+              const isAttend = opt === '出席';
+              return (
+                <button key={opt} type="button" disabled={closed || saving} onClick={() => handleResponse(meetingId, opt, true)}
+                  style={{
+                    padding: isMobile ? '10px 20px' : '10px 24px', borderRadius: 8, fontSize: 14, fontWeight: 600,
+                    cursor: (closed || saving) ? 'default' : 'pointer', transition: 'all 0.15s', minHeight: 44,
+                    background: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : '#fff',
+                    color: isSelected ? '#fff' : 'var(--color-text-secondary)',
+                    border: isSelected ? 'none' : '1px solid var(--color-border)',
+                    opacity: (closed || saving) ? 0.5 : 1,
+                  }}>{isSelected && '✓ '}{opt}</button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
       {/* ── Attendance Status ── */}
       <div className="card panel-card" style={{ marginBottom: 20 }}>
