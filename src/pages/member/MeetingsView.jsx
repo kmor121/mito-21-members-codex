@@ -601,6 +601,49 @@ export default function MeetingsView() {
                     </div>
                   );
                 })()}
+
+                {/* ── After Party attendance ── */}
+                {(() => {
+                  const ap = afterPartyMap[m.id];
+                  if (!ap) return null;
+                  const apMyResponse = myEventAttMap[ap.id]?.response || '';
+                  const apCanResp = m.status === '公開' && !isAttendanceClosed(m);
+                  const apIsSav = savingResponse === ap.id;
+                  return (
+                    <div style={{ padding: '10px 16px', background: '#FFFBEB', borderTop: '1px solid #FDE68A' }} onClick={e => e.stopPropagation()}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#92400e' }}>懇親会</span>
+                        {ap.start_time && <span style={{ fontSize: 12, color: '#78350f' }}>{ap.start_time}{ap.end_time ? `〜${ap.end_time}` : ''}</span>}
+                        {ap.location && <span style={{ fontSize: 12, color: '#78350f' }}>{ap.location}</span>}
+                      </div>
+                      {m.status !== '完了' ? (
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          {['出席', '欠席'].map(opt => {
+                            const sel = apMyResponse === opt;
+                            const attend = opt === '出席';
+                            const disabled = apIsSav || !apCanResp;
+                            return (
+                              <button key={opt} type="button" disabled={disabled}
+                                onClick={() => apCanResp && handleAfterPartyResponse(ap.id, opt)}
+                                style={{
+                                  padding: '6px 16px', borderRadius: 8,
+                                  fontSize: 13, fontWeight: 600,
+                                  cursor: disabled ? 'default' : 'pointer',
+                                  transition: 'all 0.15s',
+                                  background: sel ? (attend ? 'var(--color-success)' : 'var(--color-danger)') : '#fff',
+                                  color: sel ? '#fff' : '#78350F',
+                                  border: sel ? 'none' : '1px solid #FDE68A',
+                                  opacity: disabled && !sel ? 0.5 : 1,
+                                }}>{sel ? '✓ ' : ''}{attend ? '参加' : '不参加'}</button>
+                            );
+                          })}
+                        </div>
+                      ) : apMyResponse ? (
+                        <span style={{ fontSize: 12, color: 'var(--color-success)', fontWeight: 600 }}>✓ 懇親会: {apMyResponse === '出席' ? '参加' : '不参加'}</span>
+                      ) : null}
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}
