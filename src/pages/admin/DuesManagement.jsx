@@ -1137,7 +1137,7 @@ export default function DuesManagement() {
       {activeTab === "current" && (
         <>
           {/* Year pill nav */}
-          {!isMobile && fiscalYears.length > 0 && (
+          {fiscalYears.length > 0 && (
             <div style={{ marginBottom: 16 }}>
               <YearPillNav
                 fiscalYears={fiscalYears}

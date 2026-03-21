@@ -248,9 +248,9 @@ export default function Events() {
         />
       )}
 
-      {/* ── Year Nav (desktop) ── */}
-      {!isMobile && fiscalYears.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
+      {/* ── Year Nav ── */}
+      {fiscalYears.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
           <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
         </div>
       )}

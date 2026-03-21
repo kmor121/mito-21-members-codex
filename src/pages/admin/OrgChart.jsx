@@ -887,14 +887,12 @@ export default function OrgChart() {
         gap: 12, marginBottom: isMobile ? 16 : 20,
         flexWrap: "wrap",
       }}>
-        <div style={{ maxWidth: "100%", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-          <YearPillNav
-            fiscalYears={fiscalYears}
-            activeFyId={activeFiscalYearId}
-            currentFyId={fiscalYears.find(fy => fy.is_current)?.id || ""}
-            onChange={(id) => setSearchParams({ fiscalYearId: id })}
-          />
-        </div>
+        <YearPillNav
+          fiscalYears={fiscalYears}
+          activeFyId={activeFiscalYearId}
+          currentFyId={fiscalYears.find(fy => fy.is_current)?.id || ""}
+          onChange={(id) => setSearchParams({ fiscalYearId: id })}
+        />
         {!isMobile && (
           <div style={{ display: "flex", gap: 4 }}>
             <button type="button" onClick={expandAll}

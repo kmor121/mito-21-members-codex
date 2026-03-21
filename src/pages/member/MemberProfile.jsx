@@ -232,12 +232,12 @@ export default function MemberProfile() {
                     <div key={aId} style={{
                       display: "flex", justifyContent: "space-between", alignItems: "center",
                       padding: "0.6rem 1rem", borderRadius: 8,
-                      background: "var(--color-border)", border: "1px solid var(--color-border)",
+                      background: "var(--color-bg-sub)", border: "1px solid var(--color-border)",
                     }}>
                       <span style={{ fontWeight: 600, fontSize: 14 }}>
                         {org?.org_name || "不明な組織"}
                       </span>
-                      <span className="pill" style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe" }}>
+                      <span className="pill" style={{ background: "var(--color-accent-light)", color: "var(--color-accent)", border: "1px solid var(--color-accent-light)" }}>
                         {a.role || "メンバー"}
                       </span>
                     </div>

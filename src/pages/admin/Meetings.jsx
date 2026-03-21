@@ -273,7 +273,7 @@ export default function Meetings() {
 
       {/* ── FY navigation ── */}
       {fiscalYears.length > 0 && (
-        <div style={{ marginBottom: isMobile ? 12 : 20, maxWidth: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <div style={{ marginBottom: 16 }}>
           <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
         </div>
       )}

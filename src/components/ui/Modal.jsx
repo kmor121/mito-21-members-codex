@@ -33,8 +33,8 @@ export function Modal({ isOpen, onClose, title, children, footer, width = "480px
           borderRadius: isMobile ? 0 : "var(--radius-xl)",
           width: isMobile ? "100%" : width,
           maxWidth: isMobile ? "100%" : "100%",
-          height: isMobile ? "100%" : "auto",
-          maxHeight: isMobile ? "100%" : "90vh",
+          height: isMobile ? "100dvh" : "auto",
+          maxHeight: isMobile ? "100dvh" : "90vh",
           display: "flex",
           flexDirection: "column",
           boxShadow: isMobile ? "none" : "0 20px 60px rgba(0,0,0,0.15)",
@@ -52,6 +52,7 @@ export function Modal({ isOpen, onClose, title, children, footer, width = "480px
         {/* Body */}
         <div style={{
           padding: isMobile ? "16px" : "var(--space-6)",
+          paddingBottom: isMobile && !footer ? "max(24px, calc(env(safe-area-inset-bottom, 0px) + 16px))" : undefined,
           overflowY: "auto", flex: 1,
           WebkitOverflowScrolling: "touch",
         }}>{children}</div>
