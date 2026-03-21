@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { base44, invalidateReadCache, apiRequest } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -75,6 +75,8 @@ export default function EventDetail() {
   const [showApForm, setShowApForm] = useState(false);
   const [apEditing, setApEditing] = useState(false);
   const [apForm, setApForm] = useState({ location: '', start_time: '20:00', end_time: '22:00', fee: '' });
+  const [showTypeDd, setShowTypeDd] = useState(false);
+  const typeDdRef = useRef(null);
 
   function showToast(msg, type) {
     if (window.__showToast) window.__showToast(msg, type || 'success');
@@ -110,6 +112,13 @@ export default function EventDetail() {
   }, [eventId]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  useEffect(() => {
+    if (!showTypeDd) return;
+    const handler = (e) => { if (typeDdRef.current && !typeDdRef.current.contains(e.target)) setShowTypeDd(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showTypeDd]);
 
   const status = event?.status || 'draft';
   const canEditAttendance = status !== 'completed';
@@ -538,9 +547,31 @@ export default function EventDetail() {
                   <>
                     <div><label className="evtd-label">イベント名</label><input className="evtd-input" value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} /></div>
                     <div><label className="evtd-label">イベント種別</label>
-                      <select className="evtd-input" value={editForm.event_type} onChange={e => setEditForm(f => ({ ...f, event_type: e.target.value }))}>
-                        {["懇親会","総会","例会","セミナー","その他"].map(t => <option key={t}>{t}</option>)}
-                      </select>
+                      <div ref={typeDdRef} style={{ position: 'relative' }}>
+                        <button type="button" onClick={() => setShowTypeDd(v => !v)}
+                          className={`dp-trigger${showTypeDd ? ' dp-trigger--open' : ''}`} style={{ height: 38 }}>
+                          <span className="dp-trigger-text">{editForm.event_type}</span>
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, color: 'var(--color-text-tertiary)', transition: 'transform 0.15s', transform: showTypeDd ? 'rotate(180deg)' : 'none' }}>
+                            <path d="M3 5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+                        {showTypeDd && (
+                          <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 100, background: '#fff', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', overflow: 'hidden', animation: 'yearDropIn 0.12s ease' }}>
+                            {["例会","セミナー","総会","懇親会","その他"].map(t => {
+                              const act = editForm.event_type === t;
+                              return (
+                                <button key={t} type="button" onClick={() => { setEditForm(f => ({ ...f, event_type: t })); setShowTypeDd(false); }}
+                                  style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 14px', border: 'none', background: act ? 'var(--color-accent-light)' : 'transparent', color: act ? 'var(--color-accent)' : 'var(--color-text-primary)', fontSize: 13, fontWeight: act ? 600 : 400, textAlign: 'left', cursor: 'pointer', transition: 'background 0.1s' }}
+                                  onMouseEnter={e => { if (!act) e.currentTarget.style.background = 'var(--color-bg-sub)'; }}
+                                  onMouseLeave={e => { e.currentTarget.style.background = act ? 'var(--color-accent-light)' : 'transparent'; }}>
+                                  <span style={{ flex: 1 }}>{t}</span>
+                                  {act ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span style={{ width: 14 }} />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div><label className="evtd-label">開催日</label><DatePicker value={editForm.event_date} onChange={v => setEditForm(f => ({ ...f, event_date: v }))} /></div>
                   </>
@@ -1037,11 +1068,12 @@ export default function EventDetail() {
       <style>{`
         .evtd-label { display: block; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 6px; }
         .evtd-input {
-          width: 100%; box-sizing: border-box; padding: 10px 14px; border-radius: var(--radius-md);
-          border: 1px solid var(--color-border); background: var(--color-bg-sub); font-size: 14px; color: var(--color-text-primary);
-          outline: none; transition: border-color 0.15s, background 0.15s;
+          width: 100%; box-sizing: border-box; height: 38px; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);
+          border: 1px solid var(--color-border); background: var(--color-bg); font-size: 0.875rem; color: var(--color-text-primary);
+          font-family: inherit; line-height: 1.5;
+          outline: none; transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
-        .evtd-input:focus { border-color: var(--color-accent); background: #fff; }
+        .evtd-input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
         .evtd-info-grid {
           display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
           gap: 12px; margin: 0;
