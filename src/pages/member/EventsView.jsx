@@ -350,12 +350,12 @@ export default function EventsView() {
                                 onClick={() => apCanRespond && handleResponse(ap.id, opt)}
                                 style={{
                                   padding: isMobile ? '8px 14px' : '7px 16px',
-                                  borderRadius: 8, fontSize: 13, fontWeight: 600,
+                                  borderRadius: 'var(--radius)', fontSize: 13, fontWeight: 600,
                                   cursor: disabled ? 'default' : 'pointer',
                                   transition: 'all 0.15s', minHeight: 36,
                                   background: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : 'transparent',
-                                  color: isSelected ? '#fff' : '#78350f',
-                                  border: isSelected ? `2px solid ${isAttend ? 'var(--color-success)' : 'var(--color-danger)'}` : '1px solid #FDE68A',
+                                  color: isSelected ? '#fff' : 'var(--color-text-secondary)',
+                                  border: isSelected ? `2px solid ${isAttend ? 'var(--color-success)' : 'var(--color-danger)'}` : '1px solid var(--color-border)',
                                   opacity: disabled && !isSelected ? 0.5 : 1,
                                 }}>
                                 {isSelected && '✓ '}{opt}
