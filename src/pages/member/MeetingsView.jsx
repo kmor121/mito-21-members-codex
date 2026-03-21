@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { base44, invalidateReadCache } from '../../api/base44Client';
 import { useAuth } from '../../contexts/AuthContext';
 import { fullName } from '../../utils/formatName';
@@ -193,6 +193,7 @@ const styles = {
 export default function MeetingsView() {
   const { memberInfo } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   const [meetings, setMeetings] = useState([]);
   const [fiscalYears, setFiscalYears] = useState([]);
@@ -522,7 +523,8 @@ export default function MeetingsView() {
             };
 
             return (
-              <div key={m.id} style={cardStyle}
+              <div key={m.id} style={{ ...cardStyle, cursor: 'pointer' }}
+                onClick={() => navigate(`/meetings/${m.id}`)}
                 onMouseEnter={() => setHoveredId(m.id)}
                 onMouseLeave={() => setHoveredId(null)}
               >
@@ -540,7 +542,7 @@ export default function MeetingsView() {
                   {/* Center */}
                   <div style={styles.cardCenter}>
                     <div style={styles.cardTitleRow}>
-                      <Link to={`/meetings/${m.id}`} style={{ ...styles.cardTitle, textDecoration: 'none' }}>{m.title}</Link>
+                      <span style={styles.cardTitle}>{m.title}</span>
                       <span style={styles.statusPill(badge)}>{STATUS_LABEL[m.status] || m.status}</span>
                       {isNext && <span style={styles.nextBadge}>次回</span>}
                       <AttendanceDeadlineBadge deadline={m.attendance_deadline} closed={isAttendanceClosed(m)} />
