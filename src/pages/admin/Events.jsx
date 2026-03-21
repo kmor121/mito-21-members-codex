@@ -475,17 +475,18 @@ export default function Events() {
         .evt-card-divider { width: 1px; height: 40px; background: var(--color-border); flex-shrink: 0; }
         .evt-label { display: block; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 6px; }
         .evt-input {
-          width: 100%; box-sizing: border-box; padding: 10px 14px; border-radius: var(--radius-md);
-          border: 1px solid var(--color-border); background: var(--color-bg-sub); font-size: 14px; color: var(--color-text-primary);
-          outline: none; transition: border-color 0.15s, background 0.15s;
+          width: 100%; box-sizing: border-box; height: 38px; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);
+          border: 1px solid var(--color-border); background: var(--color-bg); font-size: 0.875rem; color: var(--color-text-primary);
+          font-family: inherit; line-height: 1.5;
+          outline: none; transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
-        .evt-input:focus { border-color: var(--color-accent); background: #fff; }
+        .evt-input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
         .evt-form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 768px) {
           .evt-date-col { min-width: 44px; }
           .evt-card-divider { height: 32px; }
           .evt-form-2col { grid-template-columns: 1fr !important; }
-          .evt-input { font-size: 16px !important; padding: 12px 14px !important; }
+          .evt-input { font-size: 16px !important; padding: 10px 12px !important; height: auto !important; }
           .evt-label { font-size: 14px !important; margin-bottom: 8px !important; }
         }
       `}</style>
