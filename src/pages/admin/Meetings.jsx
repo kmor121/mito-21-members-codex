@@ -377,9 +377,8 @@ export default function Meetings() {
             <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
               会議名 <span style={{ color: 'var(--color-danger)' }}>*</span>
             </label>
-            <input type="text" value={form.title}
+            <input type="text" className="mtg-input" value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="例: 第6回幹事会"
-              style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
 
@@ -402,9 +401,8 @@ export default function Meetings() {
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>場所</label>
-              <input type="text" value={form.location}
+              <input type="text" className="mtg-input" value={form.location}
                 onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="例: よつ葉"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
           </div>
@@ -491,8 +489,7 @@ export default function Meetings() {
             <div style={{ padding: 16, background: 'var(--color-bg-sub)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>場所</label>
-                <input type="text" value={apForm.location} onChange={e => setApForm(p => ({ ...p, location: e.target.value }))} placeholder="例: 居酒屋XX"
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+                <input type="text" className="mtg-input" value={apForm.location} onChange={e => setApForm(p => ({ ...p, location: e.target.value }))} placeholder="例: 居酒屋XX" />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
                 <div><label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>開始時刻</label><TimeSelect value={apForm.start_time} onChange={v => setApForm(p => ({ ...p, start_time: v }))} /></div>
@@ -500,8 +497,8 @@ export default function Meetings() {
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6 }}>参加費</label>
-                <input type="number" min="0" placeholder="0 = 無料" value={apForm.fee} onChange={e => setApForm(p => ({ ...p, fee: e.target.value }))}
-                  style={{ width: '100%', maxWidth: 160, padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+                <input type="number" className="mtg-input" min="0" placeholder="0 = 無料" value={apForm.fee} onChange={e => setApForm(p => ({ ...p, fee: e.target.value }))}
+                  style={{ maxWidth: 160 }} />
               </div>
             </div>
           )}
