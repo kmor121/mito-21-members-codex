@@ -244,9 +244,16 @@ export default function Documents() {
 
       {/* Sort dirty banner */}
       {sortDirty && (
-        <div className="doc-sort-banner">
-          <span className="doc-sort-banner-text">未保存の変更があります</span>
-          <div className="doc-sort-banner-actions">
+        <div style={{
+          position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+          background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+          border: "1px solid var(--color-border)", borderRadius: "var(--radius-xl)",
+          padding: "12px 24px", display: "flex", alignItems: "center", gap: 14,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.12)", zIndex: 100,
+          maxWidth: "calc(100vw - 32px)", flexWrap: "wrap",
+        }}>
+          <span style={{ fontSize: 13, color: "var(--color-text-primary)", fontWeight: 500 }}>未保存の変更があります</span>
+          <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
             <Button variant="primary" onClick={handleSaveSortOrder} disabled={saving}>
               {saving ? "保存中..." : "並び順を保存"}
             </Button>
