@@ -403,13 +403,13 @@ export default function MemberDuesView() {
             <table className="data-table" style={{ width: "100%" }}>
               <thead>
                 <tr>
-                  <th>氏名</th>
-                  <th style={{ width: 80 }}>会員種別</th>
-                  <th style={{ width: 100 }}>所属</th>
-                  <th style={{ width: 90 }}>会費種類</th>
-                  <th style={{ width: 100, textAlign: "right" }}>金額</th>
-                  <th style={{ width: 90, textAlign: "center" }}>ステータス</th>
-                  <th style={{ width: 100 }}>入金日</th>
+                  <th style={{ whiteSpace: "nowrap" }}>氏名</th>
+                  <th style={{ width: 80, whiteSpace: "nowrap" }}>会員種別</th>
+                  <th style={{ width: 100, whiteSpace: "nowrap" }}>所属</th>
+                  <th style={{ width: 90, whiteSpace: "nowrap" }}>会費種類</th>
+                  <th style={{ width: 100, textAlign: "right", whiteSpace: "nowrap" }}>金額</th>
+                  <th style={{ width: 90, textAlign: "center", whiteSpace: "nowrap" }}>ステータス</th>
+                  <th style={{ width: 100, whiteSpace: "nowrap" }}>入金日</th>
                 </tr>
               </thead>
               <tbody>
@@ -419,17 +419,17 @@ export default function MemberDuesView() {
                   const mtBadge = MEMBER_TYPE_BADGE[r.member_type];
                   return (
                     <tr key={r.id}>
-                      <td><span style={{ fontWeight: 600, fontSize: 13 }}>{r.member_name}</span></td>
-                      <td>{mtBadge ? <span style={{ fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 4, background: mtBadge.bg, color: mtBadge.color }}>{r.member_type}</span> : <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{r.member_type || "-"}</span>}</td>
-                      <td style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{r.org_name}</td>
-                      <td>{typeBadge ? <span style={{ fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 4, background: typeBadge.bg, color: typeBadge.color }}>{r.due_type}</span> : <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>-</span>}</td>
-                      <td style={{ textAlign: "right", fontSize: 13, fontVariantNumeric: "tabular-nums" }}>{r.amount != null ? `¥${r.amount.toLocaleString()}` : "-"}</td>
-                      <td style={{ textAlign: "center" }}>
+                      <td style={{ whiteSpace: "nowrap" }}><span style={{ fontWeight: 600, fontSize: 13 }}>{r.member_name}</span></td>
+                      <td style={{ whiteSpace: "nowrap" }}>{mtBadge ? <span style={{ fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 4, background: mtBadge.bg, color: mtBadge.color }}>{r.member_type}</span> : <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{r.member_type || "-"}</span>}</td>
+                      <td style={{ fontSize: 12, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>{r.org_name}</td>
+                      <td style={{ whiteSpace: "nowrap" }}>{typeBadge ? <span style={{ fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 4, background: typeBadge.bg, color: typeBadge.color }}>{r.due_type}</span> : <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>-</span>}</td>
+                      <td style={{ textAlign: "right", fontSize: 13, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{r.amount != null ? `¥${r.amount.toLocaleString()}` : "-"}</td>
+                      <td style={{ textAlign: "center", whiteSpace: "nowrap" }}>
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600, background: statusBadge.bg, color: statusBadge.color, border: `1px solid ${statusBadge.border}` }}>
                           <span style={{ width: 6, height: 6, borderRadius: "50%", background: statusBadge.color }} />{r.status}
                         </span>
                       </td>
-                      <td style={{ fontSize: 12, color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>{r.paid_date ? r.paid_date.replace(/-/g, "/") : "-"}</td>
+                      <td style={{ fontSize: 12, color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{r.paid_date ? r.paid_date.replace(/-/g, "/") : "-"}</td>
                     </tr>
                   );
                 })}
