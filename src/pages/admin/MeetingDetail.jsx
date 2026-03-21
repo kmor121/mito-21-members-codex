@@ -1061,7 +1061,8 @@ export default function MeetingDetail() {
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div className="field">
                 <label>会議名 <span style={{ color: "#dc2626" }}>*</span></label>
-                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} disabled={!canEditAgenda} />
+                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} disabled={!canEditAgenda}
+                  style={{ height: 38, fontSize: 14, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit", boxSizing: "border-box" }} />
               </div>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <div className="field" style={{ flex: 1, minWidth: 180 }}>
@@ -1070,7 +1071,8 @@ export default function MeetingDetail() {
                 </div>
                 <div className="field" style={{ flex: 1, minWidth: 180 }}>
                   <label>場所</label>
-                  <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} disabled={!canEditAgenda} />
+                  <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} disabled={!canEditAgenda}
+                    style={{ height: 38, fontSize: 14, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit", boxSizing: "border-box" }} />
                 </div>
               </div>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -1150,7 +1152,7 @@ export default function MeetingDetail() {
                           <span style={{ fontWeight: 700, fontSize: 13, color: "var(--color-text-secondary)", minWidth: isMobile ? 24 : 30 }}>{idx + 1}）</span>
                           {canEditAgenda ? (
                             <input type="text" value={item.title} onChange={(e) => updateAgendaItem(idx, "title", e.target.value)}
-                              placeholder="議題名" style={{ flex: 1, fontSize: 13, height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", fontFamily: "inherit", lineHeight: 1.5, boxSizing: "border-box" }} />
+                              placeholder="議題名" style={{ flex: 1, fontSize: 14, height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", fontFamily: "inherit", lineHeight: 1.5, boxSizing: "border-box" }} />
                           ) : (
                             <span style={{ fontWeight: 600, fontSize: 13, flex: 1 }}>{item.title}</span>
                           )}
