@@ -623,6 +623,20 @@ export default function MeetingDetail() {
     setSaving(false);
   }
 
+  async function handleCancelMeetingResponse(memberId) {
+    setSaving(true);
+    try {
+      const existing = attRecordMap[memberId];
+      if (existing) {
+        await base44.entities.Attendance.delete(existing.id);
+        invalidateReadCache('Attendance');
+        showToastMsg('回答を取り消しました');
+        await loadMeeting();
+      }
+    } catch (err) { showToastMsg(err.message || '取消に失敗しました', 'error'); }
+    setSaving(false);
+  }
+
   // Observer
   function addObserver(memberId) {
     if (!memberId || observerIds.includes(memberId)) return;
@@ -1274,12 +1288,20 @@ export default function MeetingDetail() {
 
       {/* ── ATTENDANCE TAB ── */}
       {activeTab === "attendance" && (() => {
-        const presentCount = attendeeIds.length;
-        const totalCount = boardMembers.length;
-        const absCount = totalCount - presentCount;
-        const obsCount = observerIds.length;
-        const initialAttendeeIds = Array.isArray(meeting.attendee_ids) ? meeting.attendee_ids : [];
-        const initialObserverIds = Array.isArray(meeting.observer_ids) ? meeting.observer_ids : [];
+        const responseOptions = ['出席', '欠席'];
+        const respondedMembers = boardMembers.filter(m => attRecordMap[m.id || m._id]);
+        const notRespondedMembers = boardMembers.filter(m => !attRecordMap[m.id || m._id]);
+        const responseSummary = {};
+        responseOptions.forEach(opt => { responseSummary[opt] = 0; });
+        meetingAtts.forEach(a => {
+          const resp = a.response || a.status;
+          if (responseSummary[resp] !== undefined) responseSummary[resp]++;
+        });
+        const totalTarget = boardMembers.length;
+        const responded = respondedMembers.length;
+        const attend = responseSummary["出席"] || 0;
+        const responseRate = totalTarget > 0 ? Math.round((responded / totalTarget) * 100) : 0;
+        const attendRate = responded > 0 ? Math.round((attend / responded) * 100) : 0;
 
         return (
           <section className="card panel-card">
@@ -1287,16 +1309,42 @@ export default function MeetingDetail() {
               {/* Header */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", marginBottom: 16, flexWrap: "wrap", gap: 6 }}>
                 <h3 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>出欠管理</h3>
-                <div style={{ fontSize: isMobile ? 12 : 13 }}>
-                  出席: <strong style={{ color: "#059669" }}>{presentCount}名</strong>
-                  <span style={{ margin: "0 4px", color: "var(--color-text-secondary)" }}>/</span>
-                  欠席: <strong style={{ color: absCount > 0 ? "#dc2626" : "var(--color-text-secondary)" }}>{absCount}名</strong>
-                  {obsCount > 0 && (
-                    <>
-                      <span style={{ margin: "0 4px", color: "var(--color-text-secondary)" }}>/</span>
-                      オブザーバー: <strong style={{ color: "var(--color-accent)" }}>{obsCount}名</strong>
-                    </>
-                  )}
+              </div>
+
+              {/* Summary rates */}
+              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 20 }}>
+                <div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 2 }}>回答率</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                    <span style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: 'var(--color-text-primary)' }}>{responseRate}</span>
+                    <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>%</span>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginLeft: 4 }}>({responded}/{totalTarget})</span>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 2 }}>出席率</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                    <span style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: 'var(--color-success)' }}>{attendRate}</span>
+                    <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>%</span>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginLeft: 4 }}>({attend}/{responded})</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+                {responseOptions.map(opt => {
+                  const count = responseSummary[opt] || 0;
+                  const isAttend = opt === '出席';
+                  const isAbsent = opt === '欠席';
+                  return (
+                    <div key={opt} style={{ padding: '4px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', background: isAttend ? 'var(--color-success-light)' : isAbsent ? 'var(--color-danger-light)' : 'var(--color-bg-sub)', fontSize: 13 }}>
+                      <span style={{ color: 'var(--color-text-secondary)' }}>{opt}</span>
+                      <span style={{ marginLeft: 6, fontWeight: 700, color: isAttend ? 'var(--color-success)' : isAbsent ? 'var(--color-danger)' : 'var(--color-text-primary)' }}>{count}</span>
+                    </div>
+                  );
+                })}
+                <div style={{ padding: '4px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', background: 'var(--color-bg-sub)', fontSize: 13 }}>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>未回答</span>
+                  <span style={{ marginLeft: 6, fontWeight: 700, color: 'var(--color-text-tertiary)' }}>{notRespondedMembers.length}</span>
                 </div>
               </div>
 
@@ -1384,171 +1432,72 @@ export default function MeetingDetail() {
                 </div>
               )}
 
-              {boardMembers.length === 0 && (
+              {boardMembers.length === 0 ? (
                 <p style={{ color: "var(--color-text-secondary)", textAlign: "center", padding: "2rem 0", fontSize: 13 }}>
                   この年度の幹事会メンバーが見つかりません。組織図から幹事会の配属を確認してください。
                 </p>
-              )}
-              {boardMembers.length > 0 && (
+              ) : (
                 <>
-                  {/* Bulk actions - only in draft */}
-                  {canEditAttendance && (
-                    <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                      <button type="button" onClick={() => setAttendeeIds(boardMembers.map((m) => m.id || m._id))}
-                        style={{ height: 32, padding: "0 12px", fontSize: 12, fontWeight: 500, background: "none", border: "1px solid var(--color-border)", borderRadius: 6, cursor: "pointer", color: "var(--color-text-primary)" }}>
-                        全員出席
-                      </button>
-                      <button type="button" onClick={() => setAttendeeIds([])}
-                        style={{ height: 32, padding: "0 12px", fontSize: 12, fontWeight: 500, background: "none", border: "1px solid var(--color-border)", borderRadius: 6, cursor: "pointer", color: "var(--color-text-primary)" }}>
-                        全員欠席
-                      </button>
-                      <button type="button" onClick={() => setAttendeeIds([...initialAttendeeIds])}
-                        style={{ height: 32, padding: "0 12px", fontSize: 12, fontWeight: 500, background: "none", border: "1px solid var(--color-border)", borderRadius: 6, cursor: "pointer", color: "var(--color-text-secondary)" }}>
-                        リセット
-                      </button>
+                  {/* Responded list */}
+                  {respondedMembers.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, color: 'var(--color-text-primary)' }}>回答済み（{respondedMembers.length}名）</h3>
+                      <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                        {respondedMembers.map((m, idx) => {
+                          const mid = m.id || m._id;
+                          const att = attRecordMap[mid];
+                          const resp = att?.response || att?.status || '';
+                          return (
+                            <div key={mid} style={{
+                              display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+                              alignItems: isMobile ? 'flex-start' : 'center',
+                              gap: isMobile ? 6 : 10, padding: isMobile ? '10px 12px' : '10px 14px',
+                              borderBottom: idx < respondedMembers.length - 1 ? '1px solid var(--color-border)' : 'none',
+                            }}>
+                              <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80 }}>{fullName(m)}</span>
+                              <select value={resp} onChange={e => {
+                                if (e.target.value === '__cancel__') handleCancelMeetingResponse(mid);
+                                else handleProxyMeetingResponse(mid, e.target.value);
+                              }} disabled={saving || !canEditAttendance}
+                                style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
+                                {responseOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                                <option value="__cancel__" style={{ color: '#999' }}>-- 取消 --</option>
+                              </select>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
-                  {/* Section: 幹事会メンバー */}
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8, paddingBottom: 4, borderBottom: "1px solid var(--color-border)" }}>
-                    幹事会メンバー
-                  </div>
-
-                  {/* Member list */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 20 }}>
-                    {boardMembers.map((m) => {
-                      const mid = m.id || m._id;
-                      const isPresent = attendeeIds.includes(mid);
-                      return (
-                        <div
-                          key={mid}
-                          onClick={canEditAttendance ? () => toggleAttendee(mid) : undefined}
-                          style={{
-                            display: "flex", alignItems: "center", gap: 10,
-                            padding: isMobile ? "8px 10px" : "10px 14px",
-                            borderRadius: "var(--radius-md)",
-                            border: `1px solid ${isPresent ? "var(--color-success, #059669)" : "var(--color-border)"}`,
-                            background: isPresent ? "var(--color-success-light, #ecfdf5)" : "#fff",
-                            cursor: canEditAttendance ? "pointer" : "default",
-                            userSelect: "none",
-                            transition: "all 0.15s",
-                          }}
-                        >
-                          <MemberAvatar member={m} size={isMobile ? 28 : 32} />
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <span style={{ fontWeight: 600, fontSize: 13, display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fullName(m)}</span>
-                            {memberRoleMap[mid] && (
-                              <span style={{ fontSize: 11, color: "var(--color-text-tertiary)" }}>{memberRoleMap[mid]}</span>
-                            )}
-                          </div>
-                          <span style={{
-                            flexShrink: 0, fontSize: 12, fontWeight: 600,
-                            padding: "3px 10px", borderRadius: 99,
-                            background: isPresent ? "var(--color-success, #059669)" : "var(--color-bg-sub)",
-                            color: isPresent ? "#fff" : "var(--color-text-tertiary)",
-                          }}>
-                            {isPresent ? "出席" : "欠席"}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Section: オブザーバー */}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, paddingBottom: 4, borderBottom: "1px solid var(--color-border)", flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)" }}>オブザーバー</span>
-                    {canEditAttendance && (
-                      <div style={{ width: isMobile ? "100%" : 220, marginTop: isMobile ? 4 : 0 }}>
-                        <MemberSelector
-                          value=""
-                          onChange={(mid) => { if (mid) addObserver(mid); }}
-                          members={observerCandidates}
-                          roleMap={memberRoleMap}
-                          placeholder="+ オブザーバーを追加..."
-                        />
+                  {/* Not responded list */}
+                  {notRespondedMembers.length > 0 && (
+                    <div>
+                      <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, color: 'var(--color-text-tertiary)' }}>未回答（{notRespondedMembers.length}名）</h3>
+                      <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                        {notRespondedMembers.map((m, idx) => {
+                          const mid = m.id || m._id;
+                          return (
+                            <div key={mid} style={{
+                              display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+                              alignItems: isMobile ? 'flex-start' : 'center',
+                              gap: isMobile ? 6 : 10, padding: isMobile ? '10px 12px' : '10px 14px',
+                              borderBottom: idx < notRespondedMembers.length - 1 ? '1px solid var(--color-border)' : 'none',
+                              background: 'var(--color-bg-sub)',
+                            }}>
+                              <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80, color: 'var(--color-text-tertiary)' }}>{fullName(m)}</span>
+                              <select value="" onChange={e => e.target.value && handleProxyMeetingResponse(mid, e.target.value)} disabled={saving || !canEditAttendance}
+                                style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', color: 'var(--color-text-tertiary)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
+                                <option value="">--</option>
+                                {responseOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                              </select>
+                            </div>
+                          );
+                        })}
                       </div>
-                    )}
-                  </div>
-
-                  {observerIds.length === 0 ? (
-                    <p style={{ fontSize: 12, color: "var(--color-text-secondary)", textAlign: "center", padding: "12px 0" }}>
-                      オブザーバーはいません
-                    </p>
-                  ) : (
-                    <div style={{ border: "1px solid var(--color-border)", borderRadius: 8, overflow: "hidden" }}>
-                      {observerIds.map((oid, idx) => {
-                        const m = memberMap[oid];
-                        if (!m) return null;
-                        return (
-                          <div key={oid} style={{
-                            display: "flex", alignItems: "center", gap: 12,
-                            padding: "10px 14px", minHeight: 48,
-                            borderBottom: idx < observerIds.length - 1 ? "1px solid var(--color-bg-sub)" : "none",
-                          }}>
-                            <MemberAvatar member={m} />
-                            <span style={{ fontWeight: 600, fontSize: 13, whiteSpace: "nowrap", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{fullName(m)}</span>
-                            {memberRoleMap[oid] && (
-                              <span style={{ fontSize: 12, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>{memberRoleMap[oid]}</span>
-                            )}
-                            {canEditAttendance && (
-                              <button type="button" onClick={() => removeObserver(oid)}
-                                style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#dc2626", fontSize: 16, padding: "0 4px", flexShrink: 0 }}>
-                                &times;
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
                     </div>
                   )}
                 </>
-              )}
-
-              {/* ── Attendance Records (会員回答) ── */}
-              {meetingAtts.length > 0 && (
-                <div style={{ marginTop: 20 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8, paddingBottom: 4, borderBottom: "1px solid var(--color-border)" }}>
-                    会員回答（Attendance レコード: {meetingAtts.length}件）
-                  </div>
-                  <div style={{ border: "1px solid var(--color-border)", borderRadius: 8, overflow: "hidden" }}>
-                    {meetingAtts.map((att, idx) => {
-                      const m = refDataRef.current?.memberMap?.[att.member_id];
-                      const resp = att.response || att.status || '';
-                      const isA = resp === '出席';
-                      return (
-                        <div key={att.id} style={{
-                          display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
-                          borderBottom: idx < meetingAtts.length - 1 ? "1px solid var(--color-border)" : "none",
-                          flexWrap: "wrap",
-                        }}>
-                          <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80 }}>{m ? fullName(m) : att.member_id}</span>
-                          <span style={{
-                            padding: "2px 8px", borderRadius: 10, fontSize: 12, fontWeight: 500,
-                            background: isA ? "#ecfdf5" : "#fef2f2", color: isA ? "#059669" : "#dc2626",
-                          }}>{resp}</span>
-                          {att.responded_at && <span style={{ fontSize: 11, color: "var(--color-text-tertiary)" }}>{att.responded_at.slice(0, 10)}</span>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* ── Reminder button ── */}
-              {canEditAttendance && (
-                <div style={{ marginTop: 16 }}>
-                  <Button variant="secondary" disabled={saving}
-                    onClick={() => showToastMsg('リマインド送信機能は準備中です')}>
-                    未回答者にリマインド送信
-                  </Button>
-                </div>
-              )}
-
-              {/* Save - only in draft */}
-              {canEditAttendance && (
-                <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
-                  <Button variant="primary" disabled={saving} onClick={handleSave}>{saving ? "保存中..." : "保存"}</Button>
-                </div>
               )}
             </div>
           </section>
