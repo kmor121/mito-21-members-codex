@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '../../api/base44Client';
 import { fullName } from '../../utils/formatName';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import YearPillNav from '../../components/ui/YearPillNav';
 
 const DUE_STATUS_BADGE = {
   "納入済": { bg: "#ecfdf5", color: "#065f46", border: "#a7f3d0" },
@@ -24,7 +25,6 @@ const MEMBER_TYPE_BADGE = {
 };
 
 const ELIGIBLE_MEMBER_TYPES = ["正会員", "賛助会員"];
-const STATUS_OPTIONS = ["全て", "納入済", "未納", "未発行"];
 
 export default function MemberDuesView() {
   const isMobile = useIsMobile();
@@ -38,11 +38,17 @@ export default function MemberDuesView() {
   const [loading, setLoading] = useState(true);
 
   // Filters
-  const [memberTypeFilter, setMemberTypeFilter] = useState("全種別");
-  const [orgFilter, setOrgFilter] = useState("全組織");
-  const [statusFilter, setStatusFilter] = useState("全て");
+  const [memberTypeFilter, setMemberTypeFilter] = useState("all");
+  const [orgFilter, setOrgFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [searchText, setSearchText] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+
+  // Custom dropdown state
+  const [showMemberTypeDd, setShowMemberTypeDd] = useState(false);
+  const [showOrgDd, setShowOrgDd] = useState(false);
+  const memberTypeDdRef = useRef(null);
+  const orgDdRef = useRef(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -71,32 +77,38 @@ export default function MemberDuesView() {
 
   // Reset filters when FY changes
   useEffect(() => {
-    setMemberTypeFilter("全種別");
-    setOrgFilter("全組織");
-    setStatusFilter("全て");
+    setMemberTypeFilter("all");
+    setOrgFilter("all");
+    setStatusFilter("all");
     setSearchText("");
   }, [selectedFYId]);
 
-  // Build member map (approved only, eligible types only)
+  // Outside-click for custom dropdowns
+  useEffect(() => {
+    if (!showMemberTypeDd && !showOrgDd) return;
+    const handler = (e) => {
+      if (showMemberTypeDd && memberTypeDdRef.current && !memberTypeDdRef.current.contains(e.target)) setShowMemberTypeDd(false);
+      if (showOrgDd && orgDdRef.current && !orgDdRef.current.contains(e.target)) setShowOrgDd(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showMemberTypeDd, showOrgDd]);
+
   const memberMap = useMemo(() => {
     const map = {};
     (members || []).forEach((m) => {
       const id = m.id || m._id;
-      if (m.approval_status === "承認済" && ELIGIBLE_MEMBER_TYPES.includes(m.member_type)) {
-        map[id] = m;
-      }
+      if (m.approval_status === "承認済" && ELIGIBLE_MEMBER_TYPES.includes(m.member_type)) map[id] = m;
     });
     return map;
   }, [members]);
 
-  // Build org map
   const orgMap = useMemo(() => {
     const map = {};
     (organizations || []).forEach((o) => { map[o.id || o._id] = o; });
     return map;
   }, [organizations]);
 
-  // OrgAssignment lookup: member_id -> org names for selected FY
   const memberOrgMap = useMemo(() => {
     const map = {};
     (orgAssignments || []).forEach((a) => {
@@ -110,7 +122,6 @@ export default function MemberDuesView() {
     return map;
   }, [orgAssignments, selectedFYId, orgMap]);
 
-  // Member org assignment lookup for filtering: member_id -> org_id set
   const memberOrgIdMap = useMemo(() => {
     const map = {};
     (orgAssignments || []).forEach((a) => {
@@ -123,7 +134,6 @@ export default function MemberDuesView() {
     return map;
   }, [orgAssignments, selectedFYId]);
 
-  // Organizations available for the selected FY (only those that have assignments)
   const fyOrganizations = useMemo(() => {
     const orgIds = new Set();
     (orgAssignments || []).forEach((a) => {
@@ -133,102 +143,112 @@ export default function MemberDuesView() {
       .sort((a, b) => (a.org_name || "").localeCompare(b.org_name || ""));
   }, [orgAssignments, organizations, selectedFYId]);
 
-  // Build merged list
+  const currentFyId = useMemo(() => {
+    const c = (fiscalYears || []).find(fy => fy.is_current);
+    return c ? c.id : '';
+  }, [fiscalYears]);
+
   const mergedList = useMemo(() => {
     if (!selectedFYId) return [];
-
-    // Dues for selected FY, indexed by member_id
     const duesByMember = {};
-    (dues || []).forEach((d) => {
-      if (d.fiscal_year_id === selectedFYId) {
-        duesByMember[d.member_id] = d;
-      }
-    });
-
+    (dues || []).forEach((d) => { if (d.fiscal_year_id === selectedFYId) duesByMember[d.member_id] = d; });
     const rows = [];
     Object.entries(memberMap).forEach(([memberId, member]) => {
       const due = duesByMember[memberId];
       const orgNames = memberOrgMap[memberId] || [];
       const name = fullName(member);
-
-      if (due) {
-        rows.push({
-          id: due.id || due._id,
-          member_id: memberId,
-          member_name: name,
-          member_type: member.member_type,
-          org_name: orgNames.length > 0 ? orgNames[0] : "-",
-          due_type: due.due_type || null,
-          amount: due.amount != null ? due.amount : null,
-          status: due.status || "未納",
-          paid_date: due.paid_date || null,
-        });
-      } else {
-        rows.push({
-          id: `virtual-${memberId}`,
-          member_id: memberId,
-          member_name: name,
-          member_type: member.member_type,
-          org_name: orgNames.length > 0 ? orgNames[0] : "-",
-          due_type: null,
-          amount: null,
-          status: "未発行",
-          paid_date: null,
-        });
-      }
+      rows.push({
+        id: due ? (due.id || due._id) : `virtual-${memberId}`,
+        member_id: memberId,
+        member_name: name,
+        member_type: member.member_type,
+        org_name: orgNames.length > 0 ? orgNames[0] : "-",
+        due_type: due?.due_type || null,
+        amount: due?.amount != null ? due.amount : null,
+        status: due ? (due.status || "未納") : "未発行",
+        paid_date: due?.paid_date || null,
+      });
     });
-
     return rows.sort((a, b) => a.member_name.localeCompare(b.member_name));
   }, [selectedFYId, dues, memberMap, memberOrgMap]);
 
-  // Apply filters
   const filteredList = useMemo(() => {
     let list = mergedList;
-
-    if (memberTypeFilter !== "全種別") {
-      list = list.filter((r) => r.member_type === memberTypeFilter);
+    if (memberTypeFilter !== "all") list = list.filter((r) => r.member_type === memberTypeFilter);
+    if (orgFilter !== "all") {
+      list = list.filter((r) => {
+        const memberOrgs = memberOrgIdMap[r.member_id];
+        return memberOrgs && memberOrgs.has(orgFilter);
+      });
     }
-
-    if (orgFilter !== "全組織") {
-      const selectedOrg = fyOrganizations.find((o) => o.org_name === orgFilter);
-      if (selectedOrg) {
-        const orgId = selectedOrg.id || selectedOrg._id;
-        list = list.filter((r) => {
-          const memberOrgs = memberOrgIdMap[r.member_id];
-          return memberOrgs && memberOrgs.has(orgId);
-        });
-      }
+    if (statusFilter !== "all") {
+      const map = { unpaid: "未納", paid: "納入済", unissued: "未発行" };
+      list = list.filter((r) => r.status === map[statusFilter]);
     }
-
-    if (statusFilter !== "全て") {
-      list = list.filter((r) => r.status === statusFilter);
-    }
-
     if (searchText.trim()) {
       const q = searchText.trim().toLowerCase();
       list = list.filter((r) => r.member_name.toLowerCase().includes(q));
     }
-
     return list;
-  }, [mergedList, memberTypeFilter, orgFilter, statusFilter, searchText, fyOrganizations, memberOrgIdMap]);
+  }, [mergedList, memberTypeFilter, orgFilter, statusFilter, searchText, memberOrgIdMap]);
 
-  // FY navigation
-  const selectedFY = fiscalYears.find((fy) => fy.id === selectedFYId);
-  const sortedFYs = useMemo(() => [...fiscalYears].sort((a, b) => a.year - b.year), [fiscalYears]);
-  const currentFYIndex = sortedFYs.findIndex((fy) => fy.id === selectedFYId);
-  function prevFY() { if (currentFYIndex > 0) setSelectedFYId(sortedFYs[currentFYIndex - 1].id); }
-  function nextFY() { if (currentFYIndex < sortedFYs.length - 1) setSelectedFYId(sortedFYs[currentFYIndex + 1].id); }
-
-  // Summary counts (from filtered list)
   const paidCount = filteredList.filter((r) => r.status === "納入済").length;
   const unpaidCount = filteredList.filter((r) => r.status === "未納").length;
   const unissuedCount = filteredList.filter((r) => r.status === "未発行").length;
   const denominator = paidCount + unpaidCount;
   const paymentRate = denominator > 0 ? Math.round((paidCount / denominator) * 100) : null;
-
-  // Footer totals
   const totalAmount = filteredList.reduce((s, r) => s + (r.amount || 0), 0);
   const paidAmount = filteredList.filter((r) => r.status === "納入済").reduce((s, r) => s + (r.amount || 0), 0);
+
+  // Dropdown render helper
+  const renderDropdown = (ref, open, setOpen, value, setValue, label, options) => (
+    <div ref={ref} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginRight: 4 }}>{label}</span>
+      <button type="button" onClick={() => setOpen(v => !v)} style={{
+        padding: '5px 14px', borderRadius: 999,
+        border: value !== 'all' ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+        background: value !== 'all' ? 'var(--color-accent)' : '#fff',
+        color: value !== 'all' ? '#fff' : 'var(--color-text-secondary)',
+        fontSize: 12, fontWeight: 600, cursor: 'pointer',
+        display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', transition: 'all 0.15s',
+      }}>
+        {(options.find(o => o.v === value)?.l) || 'すべて'}
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 100,
+          background: '#fff', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.08)', minWidth: 240, maxHeight: 240, overflowY: 'auto',
+          animation: 'yearDropIn 0.12s ease',
+        }}>
+          {options.map(o => {
+            const act = value === o.v;
+            return (
+              <button key={o.v} type="button" onClick={() => { setValue(o.v); setOpen(false); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 14px',
+                  border: 'none', background: act ? 'var(--color-accent-light)' : 'transparent',
+                  color: act ? 'var(--color-accent)' : 'var(--color-text-primary)',
+                  fontSize: 12, fontWeight: act ? 600 : 400, textAlign: 'left', cursor: 'pointer', transition: 'background 0.1s',
+                }}
+                onMouseEnter={e => { if (!act) e.currentTarget.style.background = 'var(--color-bg-sub)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = act ? 'var(--color-accent-light)' : 'transparent'; }}
+              >
+                <span style={{ flex: 1 }}>{o.l}</span>
+                {act ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span style={{ width: 14 }} />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  const memberTypeOptions = [{ v: 'all', l: 'すべて' }, { v: '正会員', l: '正会員' }, { v: '賛助会員', l: '賛助会員' }];
+  const orgOptions = [{ v: 'all', l: 'すべて' }, ...fyOrganizations.map(o => ({ v: o.id || o._id, l: o.org_name }))];
 
   if (loading) {
     return (
@@ -249,18 +269,14 @@ export default function MemberDuesView() {
       {isMobile ? (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <h1 className="page-title" style={{ margin: 0 }}>会費一覧</h1>
-          <button
-            type="button"
-            onClick={() => setShowFilters((v) => !v)}
+          <button type="button" onClick={() => setShowFilters((v) => !v)}
             style={{
               width: 36, height: 36, borderRadius: 8,
               border: showFilters ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
               background: showFilters ? "var(--color-accent)" : "#fff",
               color: showFilters ? "#fff" : "var(--color-text-secondary)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0,
             }}
-            aria-label="フィルター表示切替"
           >
             <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
@@ -274,36 +290,19 @@ export default function MemberDuesView() {
         </div>
       )}
 
-      {/* FY navigation */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-        <button className="button button-secondary" type="button" disabled={currentFYIndex <= 0} onClick={prevFY} style={{ padding: "4px 10px", fontSize: 13 }}>&laquo;</button>
-        <span style={{ fontWeight: 600, fontSize: 15 }}>{selectedFY ? `${selectedFY.year}年度` : ""}</span>
-        <button className="button button-secondary" type="button" disabled={currentFYIndex >= sortedFYs.length - 1} onClick={nextFY} style={{ padding: "4px 10px", fontSize: 13 }}>&raquo;</button>
+      {/* Year pill nav */}
+      <div style={{ marginBottom: 16 }}>
+        <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
       </div>
 
-      {/* Summary — stat-chip-bar on mobile, SummaryCard grid on desktop */}
+      {/* Summary */}
       {isMobile ? (
         <div className="stat-chip-bar" style={{ marginBottom: 8 }}>
-          <div className="stat-chip">
-            <span className="stat-chip-label">全体</span>
-            <span className="stat-chip-value">{filteredList.length}</span>
-          </div>
-          <div className="stat-chip">
-            <span className="stat-chip-label">納入済</span>
-            <span className="stat-chip-value" style={{ color: "#059669" }}>{paidCount}</span>
-          </div>
-          <div className="stat-chip">
-            <span className="stat-chip-label">未納</span>
-            <span className="stat-chip-value" style={{ color: unpaidCount > 0 ? "#dc2626" : "var(--color-text-secondary)" }}>{unpaidCount}</span>
-          </div>
-          <div className="stat-chip">
-            <span className="stat-chip-label">未発行</span>
-            <span className="stat-chip-value" style={{ color: "var(--color-text-secondary)" }}>{unissuedCount}</span>
-          </div>
-          <div className="stat-chip">
-            <span className="stat-chip-label">納入率</span>
-            <span className="stat-chip-value">{paymentRate != null ? `${paymentRate}%` : "-"}</span>
-          </div>
+          <div className="stat-chip"><span className="stat-chip-label">全体</span><span className="stat-chip-value">{filteredList.length}</span></div>
+          <div className="stat-chip"><span className="stat-chip-label">納入済</span><span className="stat-chip-value" style={{ color: "#059669" }}>{paidCount}</span></div>
+          <div className="stat-chip"><span className="stat-chip-label">未納</span><span className="stat-chip-value" style={{ color: unpaidCount > 0 ? "#dc2626" : "var(--color-text-secondary)" }}>{unpaidCount}</span></div>
+          <div className="stat-chip"><span className="stat-chip-label">未発行</span><span className="stat-chip-value" style={{ color: "var(--color-text-secondary)" }}>{unissuedCount}</span></div>
+          <div className="stat-chip"><span className="stat-chip-label">納入率</span><span className="stat-chip-value">{paymentRate != null ? `${paymentRate}%` : "-"}</span></div>
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12, marginBottom: 20 }}>
@@ -315,145 +314,53 @@ export default function MemberDuesView() {
         </div>
       )}
 
-      {/* Filter bar — collapsible on mobile */}
+      {/* Filters */}
       {isMobile ? (
         showFilters && (
-          <div style={{
-            padding: "12px 16px", marginBottom: 8,
-            borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", background: "var(--color-bg-sub)",
-          }}>
-            {/* Search */}
-            <div style={{ position: "relative", marginBottom: 10 }}>
-              <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "var(--color-text-tertiary)" }} viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+          <div style={{ padding: '12px 16px', marginBottom: 8, borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', background: 'var(--color-bg-sub)' }}>
+            <div style={{ position: 'relative', marginBottom: 10 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-secondary)' }}>
+                <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
-              <input
-                type="text"
-                placeholder="氏名検索..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                style={{
-                  width: "100%", padding: "7px 10px 7px 32px", fontSize: 13,
-                  border: "1px solid var(--color-border)", borderRadius: 6, background: "#fff",
-                  outline: "none", boxSizing: "border-box",
-                }}
-              />
+              <input type="text" placeholder="氏名検索..." value={searchText} onChange={(e) => setSearchText(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13 }} />
             </div>
-
-            {/* Member type + Org dropdowns */}
-            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-              <select
-                value={memberTypeFilter}
-                onChange={(e) => setMemberTypeFilter(e.target.value)}
-                style={{ flex: 1, padding: "7px 10px", fontSize: 13, border: "1px solid var(--color-border)", borderRadius: 6, background: "#fff", cursor: "pointer" }}
-              >
-                <option value="全種別">会員種別: 全種別</option>
-                <option value="正会員">正会員</option>
-                <option value="賛助会員">賛助会員</option>
-              </select>
-
-              <select
-                value={orgFilter}
-                onChange={(e) => setOrgFilter(e.target.value)}
-                style={{ flex: 1, padding: "7px 10px", fontSize: 13, border: "1px solid var(--color-border)", borderRadius: 6, background: "#fff", cursor: "pointer" }}
-              >
-                <option value="全組織">所属組織: 全組織</option>
-                {fyOrganizations.map((o) => (
-                  <option key={o.id || o._id} value={o.org_name}>{o.org_name}</option>
-                ))}
-              </select>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginRight: 2 }}>ステータス</span>
+              {[{ key: 'all', label: 'すべて' }, { key: 'unpaid', label: '未納' }, { key: 'paid', label: '納入済' }, { key: 'unissued', label: '未発行' }].map(opt => (
+                <button key={opt.key} type="button" className={`nl2-pill-tab${statusFilter === opt.key ? ' active' : ''}`}
+                  onClick={() => setStatusFilter(opt.key)}>{opt.label}</button>
+              ))}
             </div>
-
-            {/* Status pills */}
-            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-              {STATUS_OPTIONS.map((opt) => {
-                const isActive = statusFilter === opt;
-                return (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setStatusFilter(opt)}
-                    className="nl2-pill-tab"
-                    style={{
-                      padding: "5px 12px", fontSize: 12, fontWeight: 500, borderRadius: 999,
-                      border: isActive ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
-                      background: isActive ? "var(--color-accent)" : "#fff",
-                      color: isActive ? "#fff" : "var(--color-text-secondary)",
-                      cursor: "pointer", whiteSpace: "nowrap",
-                    }}
-                  >
-                    {opt}
-                  </button>
-                );
-              })}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+              {renderDropdown(memberTypeDdRef, showMemberTypeDd, setShowMemberTypeDd, memberTypeFilter, setMemberTypeFilter, '種別', memberTypeOptions)}
+              <span style={{ width: 1, height: 18, background: 'var(--color-border)', flexShrink: 0 }} />
+              {renderDropdown(orgDdRef, showOrgDd, setShowOrgDd, orgFilter, setOrgFilter, '所属', orgOptions)}
             </div>
           </div>
         )
       ) : (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 16, alignItems: "center" }}>
-          {/* Search input */}
-          <div style={{ flex: "1 1 200px", position: "relative" }}>
-            <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "var(--color-text-tertiary)" }} viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+          {/* Row 1: Search */}
+          <div style={{ position: 'relative' }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-secondary)' }}>
+              <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            <input
-              type="text"
-              placeholder="氏名検索..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{
-                width: "100%", padding: "6px 10px 6px 32px", fontSize: 13,
-                border: "1px solid var(--color-border)", borderRadius: 6, background: "#fff",
-                outline: "none", boxSizing: "border-box",
-              }}
-            />
+            <input type="text" placeholder="氏名検索..." value={searchText} onChange={(e) => setSearchText(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13 }} />
           </div>
-
-          {/* Member type dropdown */}
-          <select
-            value={memberTypeFilter}
-            onChange={(e) => setMemberTypeFilter(e.target.value)}
-            style={{ padding: "6px 10px", fontSize: 13, border: "1px solid var(--color-border)", borderRadius: 6, background: "#fff", cursor: "pointer" }}
-          >
-            <option value="全種別">会員種別: 全種別</option>
-            <option value="正会員">正会員</option>
-            <option value="賛助会員">賛助会員</option>
-          </select>
-
-          {/* Organization dropdown */}
-          <select
-            value={orgFilter}
-            onChange={(e) => setOrgFilter(e.target.value)}
-            style={{ padding: "6px 10px", fontSize: 13, border: "1px solid var(--color-border)", borderRadius: 6, background: "#fff", cursor: "pointer" }}
-          >
-            <option value="全組織">所属組織: 全組織</option>
-            {fyOrganizations.map((o) => (
-              <option key={o.id || o._id} value={o.org_name}>{o.org_name}</option>
+          {/* Row 2: Status pills + dropdowns */}
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginRight: 4 }}>ステータス</span>
+            {[{ key: 'all', label: 'すべて' }, { key: 'unpaid', label: '未納' }, { key: 'paid', label: '納入済' }, { key: 'unissued', label: '未発行' }].map(opt => (
+              <button key={opt.key} type="button" className={`nl2-pill-tab${statusFilter === opt.key ? ' active' : ''}`}
+                onClick={() => setStatusFilter(opt.key)}>{opt.label}</button>
             ))}
-          </select>
-
-          {/* Status pills */}
-          <div style={{ display: "flex", gap: 4 }}>
-            {STATUS_OPTIONS.map((opt) => {
-              const isActive = statusFilter === opt;
-              return (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => setStatusFilter(opt)}
-                  className="nl2-pill-tab"
-                  style={{
-                    padding: "5px 12px", fontSize: 12, fontWeight: 500, borderRadius: 999,
-                    border: isActive ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
-                    background: isActive ? "var(--color-accent)" : "#fff",
-                    color: isActive ? "#fff" : "var(--color-text-secondary)",
-                    cursor: "pointer", whiteSpace: "nowrap",
-                  }}
-                >
-                  {opt}
-                </button>
-              );
-            })}
+            <span style={{ width: 1, height: 18, background: 'var(--color-border)', margin: '0 6px', flexShrink: 0 }} />
+            {renderDropdown(memberTypeDdRef, showMemberTypeDd, setShowMemberTypeDd, memberTypeFilter, setMemberTypeFilter, '種別', memberTypeOptions)}
+            <span style={{ width: 1, height: 18, background: 'var(--color-border)', margin: '0 6px', flexShrink: 0 }} />
+            {renderDropdown(orgDdRef, showOrgDd, setShowOrgDd, orgFilter, setOrgFilter, '所属', orgOptions)}
           </div>
         </div>
       )}
@@ -466,56 +373,21 @@ export default function MemberDuesView() {
           </div>
         </section>
       ) : isMobile ? (
-        /* Mobile card list */
         <section className="card panel-card" style={{ padding: 0, overflow: "hidden" }}>
           <div>
             {filteredList.map((r) => {
               const statusBadge = DUE_STATUS_BADGE[r.status] || DUE_STATUS_BADGE["未発行"];
               const initial = r.member_name ? r.member_name.charAt(0) : "?";
               const amountText = r.amount != null ? `¥${r.amount.toLocaleString()}` : "";
-              const dueTypeText = r.due_type || "-";
-              const memberTypeText = r.member_type || "-";
-
               return (
-                <div
-                  key={r.id}
-                  style={{
-                    padding: "10px 16px", display: "flex", alignItems: "center", gap: 10,
-                    borderBottom: "1px solid var(--color-border)",
-                  }}
-                >
-                  {/* Avatar */}
-                  <div style={{
-                    width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-                    background: "linear-gradient(135deg, var(--color-border), var(--color-bg-sub))",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 12, fontWeight: 700, color: "#475467",
-                  }}>
-                    {initial}
-                  </div>
-
-                  {/* Info */}
+                <div key={r.id} style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: 10, borderBottom: "1px solid var(--color-border)" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", flexShrink: 0, background: "linear-gradient(135deg, var(--color-border), var(--color-bg-sub))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#475467" }}>{initial}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontWeight: 600, fontSize: 14, color: "var(--text)",
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                    }}>
-                      {r.member_name}
-                    </div>
-                    <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 1 }}>
-                      {memberTypeText} · {dueTypeText}{amountText ? ` ${amountText}` : ""}
-                    </div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "var(--color-text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.member_name}</div>
+                    <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 1 }}>{r.member_type} · {r.due_type || "-"}{amountText ? ` ${amountText}` : ""}</div>
                   </div>
-
-                  {/* Status badge */}
-                  <span style={{
-                    display: "inline-flex", alignItems: "center", gap: 4,
-                    padding: "2px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600,
-                    background: statusBadge.bg, color: statusBadge.color, border: `1px solid ${statusBadge.border}`,
-                    flexShrink: 0,
-                  }}>
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: statusBadge.color }} />
-                    {r.status}
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600, background: statusBadge.bg, color: statusBadge.color, border: `1px solid ${statusBadge.border}`, flexShrink: 0 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: statusBadge.color }} />{r.status}
                   </span>
                 </div>
               );
@@ -526,7 +398,6 @@ export default function MemberDuesView() {
           </div>
         </section>
       ) : (
-        /* Desktop table */
         <section className="card panel-card">
           <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
             <table className="data-table" style={{ width: "100%" }}>
@@ -548,46 +419,17 @@ export default function MemberDuesView() {
                   const mtBadge = MEMBER_TYPE_BADGE[r.member_type];
                   return (
                     <tr key={r.id}>
-                      <td>
-                        <span style={{ fontWeight: 600, fontSize: 13 }}>{r.member_name}</span>
-                      </td>
-                      <td>
-                        {mtBadge ? (
-                          <span style={{ fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 4, background: mtBadge.bg, color: mtBadge.color }}>
-                            {r.member_type}
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{r.member_type || "-"}</span>
-                        )}
-                      </td>
-                      <td style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
-                        {r.org_name}
-                      </td>
-                      <td>
-                        {typeBadge ? (
-                          <span style={{ fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 4, background: typeBadge.bg, color: typeBadge.color }}>
-                            {r.due_type}
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>-</span>
-                        )}
-                      </td>
-                      <td style={{ textAlign: "right", fontSize: 13, fontVariantNumeric: "tabular-nums" }}>
-                        {r.amount != null ? `¥${r.amount.toLocaleString()}` : "-"}
-                      </td>
+                      <td><span style={{ fontWeight: 600, fontSize: 13 }}>{r.member_name}</span></td>
+                      <td>{mtBadge ? <span style={{ fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 4, background: mtBadge.bg, color: mtBadge.color }}>{r.member_type}</span> : <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{r.member_type || "-"}</span>}</td>
+                      <td style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{r.org_name}</td>
+                      <td>{typeBadge ? <span style={{ fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 4, background: typeBadge.bg, color: typeBadge.color }}>{r.due_type}</span> : <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>-</span>}</td>
+                      <td style={{ textAlign: "right", fontSize: 13, fontVariantNumeric: "tabular-nums" }}>{r.amount != null ? `¥${r.amount.toLocaleString()}` : "-"}</td>
                       <td style={{ textAlign: "center" }}>
-                        <span style={{
-                          display: "inline-flex", alignItems: "center", gap: 4,
-                          padding: "2px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600,
-                          background: statusBadge.bg, color: statusBadge.color, border: `1px solid ${statusBadge.border}`,
-                        }}>
-                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: statusBadge.color }} />
-                          {r.status}
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600, background: statusBadge.bg, color: statusBadge.color, border: `1px solid ${statusBadge.border}` }}>
+                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: statusBadge.color }} />{r.status}
                         </span>
                       </td>
-                      <td style={{ fontSize: 12, color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
-                        {r.paid_date ? r.paid_date.replace(/-/g, "/") : "-"}
-                      </td>
+                      <td style={{ fontSize: 12, color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>{r.paid_date ? r.paid_date.replace(/-/g, "/") : "-"}</td>
                     </tr>
                   );
                 })}
@@ -607,7 +449,7 @@ function SummaryCard({ label, value, color }) {
   return (
     <div style={{ padding: "14px 16px", background: "#fff", borderRadius: 8, border: "1px solid var(--color-border)", textAlign: "center" }}>
       <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: color || "var(--text)" }}>{value}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: color || "var(--color-text-primary)" }}>{value}</div>
     </div>
   );
 }
