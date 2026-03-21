@@ -52,6 +52,7 @@ const MeetingsView = lazy(() => import('./pages/member/MeetingsView'));
 const MemberApplicationsView = lazy(() => import('./pages/member/MemberApplicationsView'));
 const MemberDuesView = lazy(() => import('./pages/member/MemberDuesView'));
 const EventsView = lazy(() => import('./pages/member/EventsView'));
+const EventDetailView = lazy(() => import('./pages/member/EventDetailView'));
 
 function PageFallback() {
   return (
@@ -138,6 +139,7 @@ export default function App() {
               <Route path="/member/applications" element={<MemberApplicationsView />} />
               <Route path="/member/dues-overview" element={<MemberDuesView />} />
               <Route path="/events" element={<EventsView />} />
+              <Route path="/events/:eventId" element={<EventDetailView />} />
             </Route>
 
             {/* Catch-all */}

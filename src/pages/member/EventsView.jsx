@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { base44, invalidateReadCache } from '../../api/base44Client';
 import { useAuth } from '../../contexts/AuthContext';
 import { fullName } from '../../utils/formatName';
@@ -245,7 +246,7 @@ export default function EventsView() {
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
                   <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', whiteSpace: 'nowrap' }}>{formatDate(evt.event_date)}</span>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', flex: 1, minWidth: 0 }}>{evt.title}</span>
+                  <Link to={`/events/${evt.id}`} style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', flex: 1, minWidth: 0, textDecoration: 'none' }}>{evt.title}</Link>
                   <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                     <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: 6, fontSize: 11, fontWeight: 500, background: tb.bg, color: tb.color, border: `1px solid ${tb.border}` }}>{evt.event_type}</span>
                     <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: 6, fontSize: 11, fontWeight: 500, background: sb.bg, color: sb.color, border: `1px solid ${sb.border}` }}>{sb.label}</span>
