@@ -323,34 +323,28 @@ export default function EventDetailView() {
         </div>
       )}
 
-      {/* ── Attendance Status ── */}
+      {/* ── Event Attendance Status ── */}
       <div className="card panel-card" style={{ marginBottom: 20 }}>
         <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 16px' }}>出欠状況</h2>
-
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 20 }}>
-            <div style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', background: 'var(--color-success-light)', border: '1px solid var(--color-border)' }}>
-              <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>出席</span>
-              <span style={{ marginLeft: 8, fontSize: 18, fontWeight: 700, color: 'var(--color-success)' }}>{attendList.length}</span>
-            </div>
-            <div style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', background: 'var(--color-danger-light)', border: '1px solid var(--color-border)' }}>
-              <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>欠席</span>
-              <span style={{ marginLeft: 8, fontSize: 18, fontWeight: 700, color: 'var(--color-danger)' }}>{absentList.length}</span>
-            </div>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>イベント出欠</h2>
+          <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+            回答率: <strong style={{ color: 'var(--color-text-primary)' }}>{members.length > 0 ? Math.round((respondedCount / members.length) * 100) : 0}%</strong> ({respondedCount}/{members.length})
           </div>
-
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+            <span style={{ padding: '4px 12px', borderRadius: 'var(--radius-md)', background: 'var(--color-success-light)', border: '1px solid var(--color-border)', fontSize: 13 }}>
+              出席 <strong style={{ color: 'var(--color-success)' }}>{attendList.length}</strong>
+            </span>
+            <span style={{ padding: '4px 12px', borderRadius: 'var(--radius-md)', background: 'var(--color-danger-light)', border: '1px solid var(--color-border)', fontSize: 13 }}>
+              欠席 <strong style={{ color: 'var(--color-danger)' }}>{absentList.length}</strong>
+            </span>
+          </div>
           {attendList.length > 0 && (
-            <div style={{ marginBottom: 16 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8 }}>出席（{attendList.length}名）</h3>
+            <div style={{ marginBottom: 12 }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {attendList.map(a => {
                   const m = memberMap[a.member_id];
                   return (
-                    <span key={a.id} style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 4,
-                      padding: '4px 12px', borderRadius: 99, fontSize: 13,
-                      background: 'var(--color-success-light)', color: 'var(--color-success)', fontWeight: 500,
-                    }}>
+                    <span key={a.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 99, fontSize: 13, background: 'var(--color-success-light)', color: 'var(--color-success)', fontWeight: 500 }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-success)' }} />
                       {m ? fullName(m) : '不明'}
                     </span>
@@ -359,19 +353,13 @@ export default function EventDetailView() {
               </div>
             </div>
           )}
-
           {absentList.length > 0 && (
-            <div style={{ marginBottom: 16 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8 }}>欠席（{absentList.length}名）</h3>
+            <div style={{ marginBottom: 12 }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {absentList.map(a => {
                   const m = memberMap[a.member_id];
                   return (
-                    <span key={a.id} style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 4,
-                      padding: '4px 12px', borderRadius: 99, fontSize: 13,
-                      background: 'var(--color-danger-light)', color: 'var(--color-danger)', fontWeight: 500,
-                    }}>
+                    <span key={a.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 99, fontSize: 13, background: 'var(--color-danger-light)', color: 'var(--color-danger)', fontWeight: 500 }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-danger)' }} />
                       {m ? fullName(m) : '不明'}
                     </span>
@@ -380,14 +368,69 @@ export default function EventDetailView() {
               </div>
             </div>
           )}
-
           {members.length - respondedCount > 0 && (
-            <p style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>
-              未回答: {members.length - respondedCount}名
-            </p>
+            <p style={{ fontSize: 13, color: 'var(--color-text-tertiary)', margin: 0 }}>未回答: {members.length - respondedCount}名</p>
           )}
         </div>
       </div>
+
+      {/* ── After Party Attendance Status ── */}
+      {afterParty && (() => {
+        const apAttendList = apAtts.filter(a => (a.response || a.status) === '出席');
+        const apAbsentList = apAtts.filter(a => (a.response || a.status) === '欠席');
+        const apRespondedCount = apAtts.length;
+        return (
+          <div className="card panel-card" style={{ marginBottom: 20 }}>
+            <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>🍻 懇親会出欠</h2>
+              <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+                回答率: <strong style={{ color: 'var(--color-text-primary)' }}>{members.length > 0 ? Math.round((apRespondedCount / members.length) * 100) : 0}%</strong> ({apRespondedCount}/{members.length})
+              </div>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+                <span style={{ padding: '4px 12px', borderRadius: 'var(--radius-md)', background: 'var(--color-success-light)', border: '1px solid var(--color-border)', fontSize: 13 }}>
+                  参加 <strong style={{ color: 'var(--color-success)' }}>{apAttendList.length}</strong>
+                </span>
+                <span style={{ padding: '4px 12px', borderRadius: 'var(--radius-md)', background: 'var(--color-danger-light)', border: '1px solid var(--color-border)', fontSize: 13 }}>
+                  不参加 <strong style={{ color: 'var(--color-danger)' }}>{apAbsentList.length}</strong>
+                </span>
+              </div>
+              {apAttendList.length > 0 && (
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {apAttendList.map(a => {
+                      const m = memberMap[a.member_id];
+                      return (
+                        <span key={a.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 99, fontSize: 13, background: 'var(--color-success-light)', color: 'var(--color-success)', fontWeight: 500 }}>
+                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-success)' }} />
+                          {m ? fullName(m) : '不明'}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {apAbsentList.length > 0 && (
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {apAbsentList.map(a => {
+                      const m = memberMap[a.member_id];
+                      return (
+                        <span key={a.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 99, fontSize: 13, background: 'var(--color-danger-light)', color: 'var(--color-danger)', fontWeight: 500 }}>
+                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-danger)' }} />
+                          {m ? fullName(m) : '不明'}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {members.length - apRespondedCount > 0 && (
+                <p style={{ fontSize: 13, color: 'var(--color-text-tertiary)', margin: 0 }}>未回答: {members.length - apRespondedCount}名</p>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </section>
   );
 }
