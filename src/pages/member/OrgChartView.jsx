@@ -468,9 +468,9 @@ export default function OrgChartView() {
         gap: 12, marginBottom: 20, flexWrap: "wrap",
       }}>
         <YearPillNav
-          fiscalYears={fiscalYears}
+          fiscalYears={years}
           activeFyId={activeFiscalYearId}
-          currentFyId={fiscalYears.find(fy => fy.is_current)?.id || ""}
+          currentFyId={years.find(fy => fy.is_current)?.id || ""}
           onChange={(id) => setSearchParams({ fiscalYearId: id })}
         />
         <div style={{ display: "flex", gap: 6 }}>
