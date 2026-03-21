@@ -93,8 +93,7 @@ function SummaryCard({ icon, label, value, sub, color, progress }) {
       background: "#fff",
       borderTop: `3px solid ${color || "var(--color-accent)"}`,
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500 }}>
-        <span style={{ fontSize: 16 }}>{icon}</span>
+      <div style={{ fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500 }}>
         {label}
       </div>
       <div style={{ fontSize: 26, fontWeight: 700, color: color || "var(--color-text-primary)", lineHeight: 1.2 }}>
@@ -476,6 +475,10 @@ export default function DuesManagement() {
   const [dueTypeFilter, setDueTypeFilter] = useState("all");
   const [memberTypeFilter, setMemberTypeFilter] = useState("all");
   const [orgFilter, setOrgFilter] = useState("all");
+  const [showMemberTypeDd, setShowMemberTypeDd] = useState(false);
+  const [showOrgDd, setShowOrgDd] = useState(false);
+  const memberTypeDdRef = useRef(null);
+  const orgDdRef = useRef(null);
 
   // Organization data
   const [allOrgs, setAllOrgs] = useState([]);
@@ -616,6 +619,17 @@ export default function DuesManagement() {
   }, [fiscalYearId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Outside-click handlers for custom dropdowns
+  useEffect(() => {
+    if (!showMemberTypeDd && !showOrgDd) return;
+    const handler = (e) => {
+      if (showMemberTypeDd && memberTypeDdRef.current && !memberTypeDdRef.current.contains(e.target)) setShowMemberTypeDd(false);
+      if (showOrgDd && orgDdRef.current && !orgDdRef.current.contains(e.target)) setShowOrgDd(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showMemberTypeDd, showOrgDd]);
 
   function loadSettingsForFy(fyId, settings) {
     const list = settings || allDueSettings;
@@ -1215,30 +1229,54 @@ export default function DuesManagement() {
                 <input type="text" placeholder={"\u6C0F\u540D\u30FB\u632F\u8FBC\u540D\u7FA9\u3067\u691C\u7D22"} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                   style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13 }} />
               </div>
-              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
-                {[{ key: 'all', label: '\u5168\u3066' }, { key: 'unpaid', label: '\u672A\u7D0D' }, { key: 'paid', label: '\u7D0D\u5165\u6E08' }, { key: 'unissued', label: '\u672A\u767A\u884C' }].map(opt => (
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginRight: 2 }}>ステータス</span>
+                {[{ key: 'all', label: '全て' }, { key: 'unpaid', label: '未納' }, { key: 'paid', label: '納入済' }, { key: 'unissued', label: '未発行' }].map(opt => (
                   <button key={opt.key} type="button" className={`nl2-pill-tab${statusFilter === opt.key ? ' active' : ''}`}
                     onClick={() => setStatusFilter(opt.key)}>{opt.label}</button>
                 ))}
               </div>
               {dueTypes.length > 1 && (
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
-                  <button type="button" className={`nl2-pill-tab${dueTypeFilter === 'all' ? ' active' : ''}`} onClick={() => setDueTypeFilter('all')}>{"\u5168\u3066"}</button>
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginRight: 2 }}>種類</span>
+                  <button type="button" className={`nl2-pill-tab${dueTypeFilter === 'all' ? ' active' : ''}`} onClick={() => setDueTypeFilter('all')}>全て</button>
                   {dueTypes.map(t => (
                     <button key={t} type="button" className={`nl2-pill-tab${dueTypeFilter === t ? ' active' : ''}`} onClick={() => setDueTypeFilter(t)}>{t}</button>
                   ))}
                 </div>
               )}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <select value={memberTypeFilter} onChange={(e) => setMemberTypeFilter(e.target.value)}
-                  style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13 }}>
-                  <option value="all">{"\u5168\u7A2E\u5225"}</option><option value={"\u6B63\u4F1A\u54E1"}>{"\u6B63\u4F1A\u54E1"}</option><option value={"\u8CDB\u52A9\u4F1A\u54E1"}>{"\u8CDB\u52A9\u4F1A\u54E1"}</option>
-                </select>
-                <select value={orgFilter} onChange={(e) => setOrgFilter(e.target.value)}
-                  style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13 }}>
-                  <option value="all">{"\u5168\u7D44\u7E54"}</option>
-                  {fyOrgs.map(o => (<option key={o.id} value={o.id}>{o.org_name}</option>))}
-                </select>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                <div ref={memberTypeDdRef} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>種別</span>
+                  <button type="button" onClick={() => setShowMemberTypeDd(v => !v)} style={{ padding: '5px 14px', borderRadius: 999, border: memberTypeFilter !== 'all' ? '1px solid var(--color-accent)' : '1px solid var(--color-border)', background: memberTypeFilter !== 'all' ? 'var(--color-accent)' : '#fff', color: memberTypeFilter !== 'all' ? '#fff' : 'var(--color-text-secondary)', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', transition: 'all 0.15s' }}>
+                    {memberTypeFilter === 'all' ? '全種別' : memberTypeFilter}
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: showMemberTypeDd ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </button>
+                  {showMemberTypeDd && (
+                    <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 100, background: '#fff', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', minWidth: 140, animation: 'yearDropIn 0.12s ease' }}>
+                      {[{ v: 'all', l: '全種別' }, { v: '正会員', l: '正会員' }, { v: '賛助会員', l: '賛助会員' }].map(o => {
+                        const act = memberTypeFilter === o.v;
+                        return <button key={o.v} type="button" onClick={() => { setMemberTypeFilter(o.v); setShowMemberTypeDd(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 14px', border: 'none', background: act ? 'var(--color-accent-light)' : 'transparent', color: act ? 'var(--color-accent)' : 'var(--color-text-primary)', fontSize: 12, fontWeight: act ? 600 : 400, textAlign: 'left', cursor: 'pointer', transition: 'background 0.1s' }} onMouseEnter={e => { if (!act) e.currentTarget.style.background = 'var(--color-bg-sub)'; }} onMouseLeave={e => { e.currentTarget.style.background = act ? 'var(--color-accent-light)' : 'transparent'; }}><span style={{ flex: 1 }}>{o.l}</span>{act ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span style={{ width: 14 }} />}</button>;
+                      })}
+                    </div>
+                  )}
+                </div>
+                <span style={{ width: 1, height: 18, background: 'var(--color-border)', flexShrink: 0 }} />
+                <div ref={orgDdRef} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>所属</span>
+                  <button type="button" onClick={() => setShowOrgDd(v => !v)} style={{ padding: '5px 14px', borderRadius: 999, border: orgFilter !== 'all' ? '1px solid var(--color-accent)' : '1px solid var(--color-border)', background: orgFilter !== 'all' ? 'var(--color-accent)' : '#fff', color: orgFilter !== 'all' ? '#fff' : 'var(--color-text-secondary)', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', transition: 'all 0.15s' }}>
+                    {orgFilter === 'all' ? '全組織' : (fyOrgs.find(o => o.id === orgFilter)?.org_name || '選択中')}
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: showOrgDd ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </button>
+                  {showOrgDd && (
+                    <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 100, background: '#fff', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', minWidth: 180, maxHeight: 240, overflowY: 'auto', animation: 'yearDropIn 0.12s ease' }}>
+                      {[{ v: 'all', l: '全組織' }, ...fyOrgs.map(o => ({ v: o.id, l: o.org_name }))].map(o => {
+                        const act = orgFilter === o.v;
+                        return <button key={o.v} type="button" onClick={() => { setOrgFilter(o.v); setShowOrgDd(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 14px', border: 'none', background: act ? 'var(--color-accent-light)' : 'transparent', color: act ? 'var(--color-accent)' : 'var(--color-text-primary)', fontSize: 12, fontWeight: act ? 600 : 400, textAlign: 'left', cursor: 'pointer', transition: 'background 0.1s' }} onMouseEnter={e => { if (!act) e.currentTarget.style.background = 'var(--color-bg-sub)'; }} onMouseLeave={e => { e.currentTarget.style.background = act ? 'var(--color-accent-light)' : 'transparent'; }}><span style={{ flex: 1 }}>{o.l}</span>{act ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span style={{ width: 14 }} />}</button>;
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -1271,71 +1309,64 @@ export default function DuesManagement() {
                   />
                 </div>
 
-                {/* Member type filter */}
-                <select
-                  value={memberTypeFilter}
-                  onChange={(e) => setMemberTypeFilter(e.target.value)}
-                  style={{
-                    padding: "8px 12px", borderRadius: "var(--radius-md)",
-                    border: "1px solid var(--color-border)", fontSize: 13,
-                  }}
-                >
-                  <option value="all">全種別</option>
-                  <option value="正会員">正会員</option>
-                  <option value="賛助会員">賛助会員</option>
-                </select>
-
-                {/* Organization filter */}
-                <select
-                  value={orgFilter}
-                  onChange={(e) => setOrgFilter(e.target.value)}
-                  style={{
-                    padding: "8px 12px", borderRadius: "var(--radius-md)",
-                    border: "1px solid var(--color-border)", fontSize: 13,
-                  }}
-                >
-                  <option value="all">全組織</option>
-                  {fyOrgs.map(o => (
-                    <option key={o.id} value={o.id}>{o.org_name}</option>
-                  ))}
-                </select>
-
-                {/* Status filter pills */}
+                {/* Status pills + dropdowns */}
                 <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", whiteSpace: "nowrap", marginRight: 2 }}>ステータス</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginRight: 4 }}>ステータス</span>
                   {[
                     { key: "all", label: "全て" },
                     { key: "unpaid", label: "未納" },
                     { key: "paid", label: "納入済" },
                     { key: "unissued", label: "未発行" },
                   ].map(opt => (
-                    <button
-                      key={opt.key}
-                      type="button"
-                      className={`nl2-pill-tab${statusFilter === opt.key ? " active" : ""}`}
-                      onClick={() => setStatusFilter(opt.key)}
-                    >
-                      {opt.label}
-                    </button>
+                    <button key={opt.key} type="button" className={`nl2-pill-tab${statusFilter === opt.key ? " active" : ""}`} onClick={() => setStatusFilter(opt.key)}>{opt.label}</button>
                   ))}
+
+                  <span style={{ width: 1, height: 18, background: "var(--color-border)", margin: "0 6px", flexShrink: 0 }} />
+
+                  {/* Member type dropdown */}
+                  <div ref={memberTypeDdRef} style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginRight: 4 }}>種別</span>
+                    <button type="button" onClick={() => setShowMemberTypeDd(v => !v)} style={{ padding: "5px 14px", borderRadius: 999, border: memberTypeFilter !== "all" ? "1px solid var(--color-accent)" : "1px solid var(--color-border)", background: memberTypeFilter !== "all" ? "var(--color-accent)" : "#fff", color: memberTypeFilter !== "all" ? "#fff" : "var(--color-text-secondary)", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap", transition: "all 0.15s" }}>
+                      {memberTypeFilter === "all" ? "全種別" : memberTypeFilter}
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: showMemberTypeDd ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                    {showMemberTypeDd && (
+                      <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", boxShadow: "0 4px 16px rgba(0,0,0,0.08)", minWidth: 140, animation: "yearDropIn 0.12s ease" }}>
+                        {[{ v: "all", l: "全種別" }, { v: "正会員", l: "正会員" }, { v: "賛助会員", l: "賛助会員" }].map(o => {
+                          const act = memberTypeFilter === o.v;
+                          return <button key={o.v} type="button" onClick={() => { setMemberTypeFilter(o.v); setShowMemberTypeDd(false); }} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", border: "none", background: act ? "var(--color-accent-light)" : "transparent", color: act ? "var(--color-accent)" : "var(--color-text-primary)", fontSize: 12, fontWeight: act ? 600 : 400, textAlign: "left", cursor: "pointer", transition: "background 0.1s" }} onMouseEnter={e => { if (!act) e.currentTarget.style.background = "var(--color-bg-sub)"; }} onMouseLeave={e => { e.currentTarget.style.background = act ? "var(--color-accent-light)" : "transparent"; }}><span style={{ flex: 1 }}>{o.l}</span>{act ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span style={{ width: 14 }} />}</button>;
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <span style={{ width: 1, height: 18, background: "var(--color-border)", margin: "0 6px", flexShrink: 0 }} />
+
+                  {/* Organization dropdown */}
+                  <div ref={orgDdRef} style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginRight: 4 }}>所属</span>
+                    <button type="button" onClick={() => setShowOrgDd(v => !v)} style={{ padding: "5px 14px", borderRadius: 999, border: orgFilter !== "all" ? "1px solid var(--color-accent)" : "1px solid var(--color-border)", background: orgFilter !== "all" ? "var(--color-accent)" : "#fff", color: orgFilter !== "all" ? "#fff" : "var(--color-text-secondary)", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap", transition: "all 0.15s" }}>
+                      {orgFilter === "all" ? "全組織" : (fyOrgs.find(o => o.id === orgFilter)?.org_name || "選択中")}
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: showOrgDd ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                    {showOrgDd && (
+                      <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", boxShadow: "0 4px 16px rgba(0,0,0,0.08)", minWidth: 180, maxHeight: 240, overflowY: "auto", animation: "yearDropIn 0.12s ease" }}>
+                        {[{ v: "all", l: "全組織" }, ...fyOrgs.map(o => ({ v: o.id, l: o.org_name }))].map(o => {
+                          const act = orgFilter === o.v;
+                          return <button key={o.v} type="button" onClick={() => { setOrgFilter(o.v); setShowOrgDd(false); }} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", border: "none", background: act ? "var(--color-accent-light)" : "transparent", color: act ? "var(--color-accent)" : "var(--color-text-primary)", fontSize: 12, fontWeight: act ? 600 : 400, textAlign: "left", cursor: "pointer", transition: "background 0.1s" }} onMouseEnter={e => { if (!act) e.currentTarget.style.background = "var(--color-bg-sub)"; }} onMouseLeave={e => { e.currentTarget.style.background = act ? "var(--color-accent-light)" : "transparent"; }}><span style={{ flex: 1 }}>{o.l}</span>{act ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span style={{ width: 14 }} />}</button>;
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Due type filter pills */}
                 {dueTypes.length > 1 && (
                   <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", whiteSpace: "nowrap", marginRight: 2 }}>種類</span>
-                    <button
-                      type="button"
-                      className={`nl2-pill-tab${dueTypeFilter === "all" ? " active" : ""}`}
-                      onClick={() => setDueTypeFilter("all")}
-                    >全て</button>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginRight: 4 }}>種類</span>
+                    <button type="button" className={`nl2-pill-tab${dueTypeFilter === "all" ? " active" : ""}`} onClick={() => setDueTypeFilter("all")}>全て</button>
                     {dueTypes.map(t => (
-                      <button
-                        key={t}
-                        type="button"
-                        className={`nl2-pill-tab${dueTypeFilter === t ? " active" : ""}`}
-                        onClick={() => setDueTypeFilter(t)}
-                      >{t}</button>
+                      <button key={t} type="button" className={`nl2-pill-tab${dueTypeFilter === t ? " active" : ""}`} onClick={() => setDueTypeFilter(t)}>{t}</button>
                     ))}
                   </div>
                 )}
