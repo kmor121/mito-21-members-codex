@@ -338,7 +338,7 @@ export default function Events() {
           <div>
             <label className="evt-label">イベント種別 <span style={{ color: 'var(--color-danger)' }}>*</span></label>
             <select className="evt-input" value={form.event_type} onChange={e => setForm(f => ({ ...f, event_type: e.target.value }))}>
-              {["懇親会", "総会", "例会", "セミナー", "その他"].map(t => <option key={t} value={t}>{t}</option>)}
+              {["例会", "セミナー", "総会", "懇親会", "その他"].map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           {/* Date + Times */}
@@ -481,6 +481,7 @@ export default function Events() {
           outline: none; transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
         .evt-input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
+        select.evt-input { height: auto; min-height: 38px; padding-top: 7px; padding-bottom: 7px; }
         .evt-form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 768px) {
           .evt-date-col { min-width: 44px; }
