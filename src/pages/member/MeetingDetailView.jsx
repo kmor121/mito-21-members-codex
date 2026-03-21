@@ -384,7 +384,7 @@ export default function MeetingDetailView() {
             const person = getPersonDisplay(c.person_id, c.person_label);
             return (
               <div key={`cb-${i}`} style={{
-                display: 'flex', alignItems: 'flex-start', gap: 12,
+                display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: 12,
                 padding: '14px 0',
                 borderBottom: '1px solid var(--color-border)',
               }}>
@@ -394,12 +394,12 @@ export default function MeetingDetailView() {
                 }}>
                   {c.order}.
                 </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: 0, display: isMobile ? 'block' : 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', lineHeight: '1.5' }}>
                     {c.title}
                   </div>
                   {person && (
-                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 3 }}>
+                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: isMobile ? 3 : 0, whiteSpace: 'nowrap', flexShrink: 0 }}>
                       {person}
                     </div>
                   )}
@@ -482,10 +482,10 @@ export default function MeetingDetailView() {
                         </div>
                       )}
 
-                      {/* Header: number + tag + title */}
+                      {/* Header: number + tag + title + person(desktop) */}
                       <div style={{
                         display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
-                        gap: 8, marginBottom: 6, flexWrap: 'wrap',
+                        gap: 8, marginBottom: 6, flexWrap: isMobile ? 'wrap' : 'nowrap',
                       }}>
                         <span style={{
                           fontSize: 13, fontWeight: 600, color: 'var(--color-text-tertiary)',
@@ -496,7 +496,7 @@ export default function MeetingDetailView() {
                           <span style={{
                             padding: '3px 12px', borderRadius: 6,
                             fontSize: 12, fontWeight: 700, letterSpacing: '0.02em',
-                            background: tc.bg, color: tc.color,
+                            background: tc.bg, color: tc.color, flexShrink: 0,
                           }}>
                             {item.tag}
                           </span>
@@ -507,10 +507,18 @@ export default function MeetingDetailView() {
                         }}>
                           {item.title}
                         </span>
+                        {person && !isMobile && (
+                          <span style={{
+                            fontSize: 13, color: 'var(--color-text-secondary)',
+                            whiteSpace: 'nowrap', flexShrink: 0,
+                          }}>
+                            {person}
+                          </span>
+                        )}
                       </div>
 
-                      {/* Person */}
-                      {person && (
+                      {/* Person (mobile only, below title) */}
+                      {person && isMobile && (
                         <div style={{
                           fontSize: 13, color: 'var(--color-text-secondary)',
                           marginBottom: 8, paddingLeft: 2,
@@ -590,7 +598,7 @@ export default function MeetingDetailView() {
               : '';
             return (
               <div key={`ca-${i}`} style={{
-                display: 'flex', alignItems: 'flex-start', gap: 12,
+                display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: 12,
                 padding: '14px 0',
                 borderBottom: i < ceremonyAfter.length - 1 ? '1px solid var(--color-border)' : 'none',
               }}>
@@ -600,18 +608,14 @@ export default function MeetingDetailView() {
                 }}>
                   {c.order}.
                 </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: 0, display: isMobile ? 'block' : 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', lineHeight: '1.5' }}>
                     {c.title}
                   </div>
-                  {person1 && (
-                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 3 }}>
-                      {person1}
-                    </div>
-                  )}
-                  {person2 && (
-                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>
-                      {person2}
+                  {(person1 || person2) && (
+                    <div style={{ flexShrink: 0, marginTop: isMobile ? 3 : 0, textAlign: isMobile ? 'left' : 'right' }}>
+                      {person1 && <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>{person1}</div>}
+                      {person2 && <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap', marginTop: 2 }}>{person2}</div>}
                     </div>
                   )}
                 </div>
