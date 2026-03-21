@@ -84,6 +84,14 @@
     "is_after_party": {
       "type": "boolean",
       "description": "懇親会フラグ（trueの場合、親イベント/幹事会に紐付くセット懇親会）"
+    },
+    "attendance_closed": {
+      "type": "boolean",
+      "description": "出欠受付を終了したかどうか"
+    },
+    "attendance_deadline": {
+      "type": "string",
+      "description": "出欠回答の期限日（ISO date string）"
     }
   },
   "required": ["title", "event_type", "event_date", "status"],

@@ -95,6 +95,10 @@
     "attendance_closed": {
       "type": "boolean",
       "description": "出欠受付を終了したかどうか"
+    },
+    "attendance_deadline": {
+      "type": "string",
+      "description": "出欠回答の期限日（ISO date string）"
     }
   },
   "required": ["title", "meeting_date", "fiscal_year_id", "status"],

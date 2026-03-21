@@ -7,6 +7,7 @@ import DatePicker from '../../components/ui/DatePicker';
 import TimeSelect from '../../components/ui/TimeSelect';
 import MemberSelector from '../../components/ui/MemberSelector';
 import { Modal, Button } from '../../components/ui';
+import { isAttendanceClosed } from '../../utils/attendanceUtils';
 import { fullName, nameInitial } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
 

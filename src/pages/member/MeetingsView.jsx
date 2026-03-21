@@ -6,6 +6,8 @@ import { fullName } from '../../utils/formatName';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { PageHeader } from '../../components/ui';
 import YearPillNav from '../../components/ui/YearPillNav';
+import AttendanceDeadlineBadge from '../../components/ui/AttendanceDeadlineBadge';
+import { isAttendanceClosed } from '../../utils/attendanceUtils';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 const STATUS_BADGE = {
@@ -542,6 +544,7 @@ export default function MeetingsView() {
                       <span style={styles.cardTitle}>{m.title}</span>
                       <span style={styles.statusPill(badge)}>{STATUS_LABEL[m.status] || m.status}</span>
                       {isNext && <span style={styles.nextBadge}>次回</span>}
+                      <AttendanceDeadlineBadge deadline={m.attendance_deadline} closed={isAttendanceClosed(m)} />
                     </div>
                     <div style={styles.metaRow}>
                       {m.location && (
@@ -716,7 +719,7 @@ export default function MeetingsView() {
                     {(() => {
                       const myAtt = myMeetingAttMap[m.id];
                       const myResponse = myAtt?.response || '';
-                      const canRespond = m.status === '公開' && !m.attendance_closed;
+                      const canRespond = m.status === '公開' && !isAttendanceClosed(m);
                       const isSaving = savingResponse === m.id;
 
                       // Build unified attendance map: Attendance records + old attendee_ids
@@ -737,7 +740,7 @@ export default function MeetingsView() {
                           <div style={{ fontSize: 13, fontWeight: 700, color: '#5F5E5A', marginBottom: 10 }}>出欠</div>
 
                           {/* Attendance closed notice */}
-                          {m.status === '公開' && m.attendance_closed && (
+                          {m.status === '公開' && isAttendanceClosed(m) && (
                             <div style={{
                               padding: '8px 12px', background: 'var(--color-bg-sub)',
                               borderRadius: 'var(--radius-md)', fontSize: 13,

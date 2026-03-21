@@ -52,7 +52,7 @@ export function Modal({ isOpen, onClose, title, children, footer, width = "480px
         {/* Body */}
         <div style={{
           padding: isMobile ? "16px" : "var(--space-6)",
-          paddingBottom: isMobile && !footer ? "max(24px, calc(env(safe-area-inset-bottom, 0px) + 16px))" : undefined,
+          paddingBottom: isMobile && !footer ? "max(32px, calc(env(safe-area-inset-bottom, 0px) + 24px))" : isMobile ? "24px" : undefined,
           overflowY: "auto", flex: 1,
           WebkitOverflowScrolling: "touch",
         }}>{children}</div>

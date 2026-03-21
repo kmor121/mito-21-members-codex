@@ -6,6 +6,8 @@ import DatePicker from '../../components/ui/DatePicker';
 import TimeSelect from '../../components/ui/TimeSelect';
 import YearPillNav from '../../components/ui/YearPillNav';
 import { Button, Card, PageHeader, Modal } from '../../components/ui';
+import AttendanceDeadlineBadge from '../../components/ui/AttendanceDeadlineBadge';
+import { isAttendanceClosed } from '../../utils/attendanceUtils';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { fullName } from '../../utils/formatName';
 
@@ -305,6 +307,7 @@ export default function Events() {
                       <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: 6, fontSize: 11, fontWeight: 500, background: tb.bg, color: tb.color, border: `1px solid ${tb.border}` }}>{evt.event_type}</span>
                       <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: 6, fontSize: 11, fontWeight: 500, background: sb.bg, color: sb.color, border: `1px solid ${sb.border}` }}>{sb.label}</span>
                       {isNext && <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: '#EEEDFE', color: '#534AB7' }}>次回</span>}
+                      <AttendanceDeadlineBadge deadline={evt.attendance_deadline} closed={isAttendanceClosed(evt)} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', fontSize: 13, color: 'var(--color-text-secondary)' }}>
                       {evt.location && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.75a3.5 3.5 0 0 0-3.5 3.5C3.5 8.75 7 12.25 7 12.25s3.5-3.5 3.5-7a3.5 3.5 0 0 0-3.5-3.5Zm0 4.75a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z" fill="currentColor"/></svg>{evt.location}</span>}
