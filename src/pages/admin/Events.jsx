@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -57,6 +57,21 @@ export default function Events() {
   });
   const [hasAfterParty, setHasAfterParty] = useState(false);
   const [apForm, setApForm] = useState({ location: '', start_time: '20:00', end_time: '22:00', fee: '' });
+  const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
+  const typeDropdownRef = useRef(null);
+
+  useEffect(() => {
+    if (!typeDropdownOpen) return;
+    const handler = (e) => {
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(e.target)) setTypeDropdownOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
+  }, [typeDropdownOpen]);
 
   function showToast(msg, type) {
     if (window.__showToast) window.__showToast(msg, type || 'success');
@@ -337,9 +352,60 @@ export default function Events() {
           </div>
           <div>
             <label className="evt-label">イベント種別 <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-            <select className="evt-input" value={form.event_type} onChange={e => setForm(f => ({ ...f, event_type: e.target.value }))}>
-              {["例会", "セミナー", "総会", "懇親会", "その他"].map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
+            {(() => {
+              const typeOptions = ["例会", "セミナー", "総会", "懇親会", "その他"];
+              return (
+                <div ref={typeDropdownRef} style={{ position: 'relative' }}>
+                  <button type="button" onClick={() => setTypeDropdownOpen(!typeDropdownOpen)}
+                    className={`dp-trigger${typeDropdownOpen ? ' dp-trigger--open' : ''}`}
+                    style={{ height: 38 }}
+                  >
+                    <span className="dp-trigger-text">{form.event_type}</span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
+                      style={{ transition: 'transform 0.15s ease', transform: typeDropdownOpen ? 'rotate(180deg)' : 'rotate(0)', flexShrink: 0, color: 'var(--color-text-tertiary)' }}
+                    >
+                      <path d="M3 5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                  {typeDropdownOpen && (
+                    <div style={{
+                      position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+                      background: '#fff', border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-md)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
+                      zIndex: 100, overflow: 'hidden',
+                      animation: 'yearDropIn 0.12s ease',
+                    }}>
+                      {typeOptions.map(t => {
+                        const isActive = form.event_type === t;
+                        return (
+                          <button key={t} type="button"
+                            onClick={() => { setForm(f => ({ ...f, event_type: t })); setTypeDropdownOpen(false); }}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 8,
+                              width: '100%', padding: '10px 14px',
+                              border: 'none', background: isActive ? 'var(--color-accent-light)' : 'transparent',
+                              fontSize: 13, fontWeight: isActive ? 600 : 400,
+                              color: isActive ? 'var(--color-accent)' : 'var(--color-text-primary)',
+                              cursor: 'pointer', transition: 'background 0.1s', textAlign: 'left',
+                            }}
+                            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--color-bg-sub)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = isActive ? 'var(--color-accent-light)' : 'transparent'; }}
+                          >
+                            <span style={{ flex: 1 }}>{t}</span>
+                            {isActive && (
+                              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
           {/* Date + Times */}
           <div className="evt-form-2col">
@@ -481,7 +547,7 @@ export default function Events() {
           outline: none; transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
         .evt-input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
-        select.evt-input { height: auto; min-height: 38px; padding-top: 7px; padding-bottom: 7px; }
+
         .evt-form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 768px) {
           .evt-date-col { min-width: 44px; }
