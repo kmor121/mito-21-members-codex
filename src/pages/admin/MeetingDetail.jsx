@@ -1415,8 +1415,8 @@ export default function MeetingDetail() {
                   </div>
 
                   {/* Member list */}
-                  <div style={{ border: "1px solid var(--color-border)", borderRadius: 8, overflow: "hidden", marginBottom: 20 }}>
-                    {boardMembers.map((m, idx) => {
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 20 }}>
+                    {boardMembers.map((m) => {
                       const mid = m.id || m._id;
                       const isPresent = attendeeIds.includes(mid);
                       return (
@@ -1424,36 +1424,28 @@ export default function MeetingDetail() {
                           key={mid}
                           onClick={canEditAttendance ? () => toggleAttendee(mid) : undefined}
                           style={{
-                            display: "flex", alignItems: "center", gap: 12,
-                            padding: "10px 14px", minHeight: 48,
-                            cursor: canEditAttendance ? "pointer" : "default", userSelect: "none",
-                            background: isPresent ? "#fff" : "#f9fafb",
-                            borderBottom: idx < boardMembers.length - 1 ? "1px solid var(--color-bg-sub)" : "none",
-                            transition: "background 0.1s",
-                            opacity: isPresent ? 1 : 0.55,
+                            display: "flex", alignItems: "center", gap: 10,
+                            padding: isMobile ? "8px 10px" : "10px 14px",
+                            borderRadius: "var(--radius-md)",
+                            border: `1px solid ${isPresent ? "var(--color-success, #059669)" : "var(--color-border)"}`,
+                            background: isPresent ? "var(--color-success-light, #ecfdf5)" : "#fff",
+                            cursor: canEditAttendance ? "pointer" : "default",
+                            userSelect: "none",
+                            transition: "all 0.15s",
                           }}
-                          onMouseEnter={canEditAttendance ? (e) => { e.currentTarget.style.background = isPresent ? "#f8fafc" : "#f3f4f6"; } : undefined}
-                          onMouseLeave={canEditAttendance ? (e) => { e.currentTarget.style.background = isPresent ? "#fff" : "#f9fafb"; } : undefined}
                         >
-                          <input
-                            type="checkbox"
-                            checked={isPresent}
-                            disabled={!canEditAttendance}
-                            onChange={() => {}}
-                            style={{ width: 18, height: 18, accentColor: "#059669", cursor: canEditAttendance ? "pointer" : "default", flexShrink: 0 }}
-                          />
                           <MemberAvatar member={m} size={isMobile ? 28 : 32} />
-                          <span style={{ fontWeight: 600, fontSize: 13, whiteSpace: "nowrap", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{fullName(m)}</span>
-                          {!isMobile && memberRoleMap[mid] && (
-                            <span style={{ fontSize: 12, color: "var(--color-text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {memberRoleMap[mid]}
-                            </span>
-                          )}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <span style={{ fontWeight: 600, fontSize: 13, display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fullName(m)}</span>
+                            {memberRoleMap[mid] && (
+                              <span style={{ fontSize: 11, color: "var(--color-text-tertiary)" }}>{memberRoleMap[mid]}</span>
+                            )}
+                          </div>
                           <span style={{
-                            marginLeft: "auto", flexShrink: 0,
-                            fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 10,
-                            background: isPresent ? "#ecfdf5" : "var(--color-bg-sub)",
-                            color: isPresent ? "#059669" : "var(--color-text-secondary)",
+                            flexShrink: 0, fontSize: 12, fontWeight: 600,
+                            padding: "3px 10px", borderRadius: 99,
+                            background: isPresent ? "var(--color-success, #059669)" : "var(--color-bg-sub)",
+                            color: isPresent ? "#fff" : "var(--color-text-tertiary)",
                           }}>
                             {isPresent ? "出席" : "欠席"}
                           </span>
