@@ -588,12 +588,12 @@ export default function MemberList() {
               ))}
             </div>
             {/* Organization dropdown */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, position: 'relative' }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>所属</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, position: 'relative', marginBottom: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginRight: 2 }}>所属</span>
               <button type="button" onClick={() => setShowOrgDropdown(v => !v)}
                 style={{
-                  padding: '4px 10px', borderRadius: 999,
-                  border: organizationId ? '2px solid var(--color-accent)' : '1px solid var(--color-border)',
+                  padding: '5px 14px', borderRadius: 999,
+                  border: organizationId ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
                   background: organizationId ? 'var(--color-accent)' : '#fff',
                   color: organizationId ? '#fff' : 'var(--color-text-secondary)',
                   fontSize: 12, fontWeight: 600, cursor: 'pointer',
@@ -720,16 +720,16 @@ export default function MemberList() {
             </div>
 
             {/* Filter row: Organization dropdown + count */}
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginBottom: "10px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", position: "relative" }}>
-                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>所属</span>
+                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--color-text-secondary)", marginRight: "4px" }}>所属</span>
                 <button type="button" onClick={() => setShowOrgDropdown(v => !v)}
                   style={{
-                    padding: "4px 10px", borderRadius: "999px",
-                    border: organizationId ? "2px solid var(--color-accent)" : "1px solid var(--color-border)",
+                    padding: "5px 14px", borderRadius: "999px",
+                    border: organizationId ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
                     background: organizationId ? "var(--color-accent)" : "#fff",
                     color: organizationId ? "#fff" : "var(--color-text-secondary)",
-                    fontSize: "12px", fontWeight: 600, cursor: "pointer", outline: "none",
+                    fontSize: "12px", fontWeight: 600, cursor: "pointer",
                     display: "inline-flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap", transition: "all 0.15s",
                   }}>
                   {organizationId ? (orgOptions.find(o => o.id === organizationId)?.name || '選択中') : 'すべて'}
