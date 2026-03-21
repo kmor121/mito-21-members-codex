@@ -259,7 +259,7 @@ export default function MemberDetail() {
     }
   }, [memberId]);
 
-  useEffect(() => { base44.appLogs.logUserInApp('A3-会員詳細'); }, []);
+  useEffect(() => { try { base44.appLogs?.logUserInApp?.('A3-会員詳細'); } catch (e) { /* analytics */ } }, []);
   useEffect(() => {
     loadData();
   }, [loadData]);

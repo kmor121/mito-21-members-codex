@@ -142,7 +142,7 @@ export default function Applications() {
     }
   }, []);
 
-  useEffect(() => { base44.appLogs.logUserInApp('A4-入会申込管理'); }, []);
+  useEffect(() => { try { base44.appLogs?.logUserInApp?.('A4-入会申込管理'); } catch (e) { /* analytics */ } }, []);
   useEffect(() => {
     loadPending();
   }, [loadPending]);

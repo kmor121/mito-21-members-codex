@@ -82,7 +82,7 @@ export default function Manual() {
   const [error, setError] = useState("");
   const [manuals, setManuals] = useState([]);
 
-  useEffect(() => { base44.appLogs.logUserInApp('M6-運用マニュアル'); }, []);
+  useEffect(() => { try { base44.appLogs?.logUserInApp?.('M6-運用マニュアル'); } catch (e) { /* analytics */ } }, []);
   useEffect(() => {
     setLoading(true);
     setError("");

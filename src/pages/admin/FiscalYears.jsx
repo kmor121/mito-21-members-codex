@@ -142,7 +142,7 @@ export default function FiscalYears() {
     }
   }, []);
 
-  useEffect(() => { base44.appLogs.logUserInApp('A8-年度管理'); }, []);
+  useEffect(() => { try { base44.appLogs?.logUserInApp?.('A8-年度管理'); } catch (e) { /* analytics */ } }, []);
   useEffect(() => { loadYears(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Auto-suggest dates when year changes ── */

@@ -510,7 +510,7 @@ export default function DuesManagement() {
     setToast(msg);
     setToastType(type);
   }
-  useEffect(() => { base44.appLogs.logUserInApp('A5-会費管理'); }, []);
+  useEffect(() => { try { base44.appLogs?.logUserInApp?.('A5-会費管理'); } catch (e) { /* analytics */ } }, []);
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(""), 3500);

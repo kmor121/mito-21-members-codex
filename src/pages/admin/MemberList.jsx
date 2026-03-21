@@ -159,7 +159,7 @@ export default function MemberList() {
     };
   }
 
-  useEffect(() => { base44.appLogs.logUserInApp('A2-会員一覧'); }, []);
+  useEffect(() => { try { base44.appLogs?.logUserInApp?.('A2-会員一覧'); } catch (e) { /* analytics */ } }, []);
   useEffect(() => {
     loadMembers({});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

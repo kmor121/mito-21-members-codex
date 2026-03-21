@@ -343,7 +343,7 @@ export default function OrgChartView() {
   const [supervisorRoleMap, setSupervisorRoleMap] = useState({});
   const [expandedOrgs, setExpandedOrgs] = useState(new Set());
 
-  useEffect(() => { base44.appLogs.logUserInApp('M5-組織図'); }, []);
+  useEffect(() => { try { base44.appLogs?.logUserInApp?.('M5-組織図'); } catch (e) { /* analytics */ } }, []);
   useEffect(() => {
     setLoading(true);
     setError("");

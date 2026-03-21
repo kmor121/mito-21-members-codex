@@ -188,7 +188,7 @@ export default function Settings() {
     }
   }, []);
 
-  useEffect(() => { base44.appLogs.logUserInApp('A9-設定'); }, []);
+  useEffect(() => { try { base44.appLogs?.logUserInApp?.('A9-設定'); } catch (e) { /* analytics */ } }, []);
   useEffect(() => { loadAppUsers(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---- Email: load settings (direct entity access) ---- */

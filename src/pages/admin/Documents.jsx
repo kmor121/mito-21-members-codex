@@ -88,7 +88,7 @@ export default function Documents() {
     }
   }, []);
 
-  useEffect(() => { base44.appLogs.logUserInApp('A10-資料管理'); }, []);
+  useEffect(() => { try { base44.appLogs?.logUserInApp?.('A10-資料管理'); } catch (e) { /* analytics */ } }, []);
   useEffect(() => { loadDocs(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

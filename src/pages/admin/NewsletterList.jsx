@@ -525,7 +525,7 @@ export default function NewsletterList() {
     }
   }, []);
 
-  useEffect(() => { base44.appLogs.logUserInApp('A7-配信管理'); }, []);
+  useEffect(() => { try { base44.appLogs?.logUserInApp?.('A7-配信管理'); } catch (e) { /* analytics */ } }, []);
   useEffect(() => {
     loadData();
   }, [loadData]);
