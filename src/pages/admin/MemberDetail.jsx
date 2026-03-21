@@ -34,8 +34,23 @@ const FIELD_LABELS = {
   hobbies: "趣味・信条", profile_image: "プロフィール画像",
   show_email_in_directory: "メール公開", show_company_in_directory: "会社公開",
   show_mobile_in_directory: "携帯公開", member_number: "会員番号",
-  member_type: "会員種別", status: "ステータス", is_new: "新入フラグ", notes: "備考",
+  member_type: "会員種別", status: "ステータス", is_new: "新入会員", is_graduate: "卒業",
+  app_role: "アプリロール", notes: "備考",
 };
+
+const BOOLEAN_FIELDS = new Set([
+  "is_new", "is_graduate", "show_email_in_directory", "show_company_in_directory", "show_mobile_in_directory",
+]);
+
+function formatChangeValue(fieldName, value) {
+  if (value === null || value === undefined || value === "") return "(なし)";
+  if (BOOLEAN_FIELDS.has(fieldName)) {
+    return value === "true" || value === true ? "○" : "×";
+  }
+  if (value === "true") return "○";
+  if (value === "false") return "×";
+  return String(value);
+}
 
 const TABS = [
   { key: "basic", label: "基本情報" },
@@ -1099,9 +1114,9 @@ export default function MemberDetail() {
                         </span>
                       </div>
                       <div style={{ marginTop: 4, fontSize: 12 }}>
-                        <span style={{ color: 'var(--color-text-tertiary)' }}>{displayValue(log.old_value)}</span>
+                        <span style={{ color: 'var(--color-text-tertiary)' }}>{formatChangeValue(log.field_name, log.old_value)}</span>
                         <span style={{ margin: '0 6px', color: 'var(--color-text-tertiary)' }}>→</span>
-                        <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{displayValue(log.new_value)}</span>
+                        <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{formatChangeValue(log.field_name, log.new_value)}</span>
                       </div>
                     </div>
                   );
@@ -1133,8 +1148,8 @@ export default function MemberDetail() {
                           <td style={{ whiteSpace: "nowrap" }}>{dateStr}</td>
                           <td>{changedBy}</td>
                           <td>{fieldLabel}</td>
-                          <td style={{ color: "var(--color-text-secondary)" }}>{displayValue(log.old_value)}</td>
-                          <td style={{ fontWeight: 500 }}>{displayValue(log.new_value)}</td>
+                          <td style={{ color: "var(--color-text-secondary)" }}>{formatChangeValue(log.field_name, log.old_value)}</td>
+                          <td style={{ fontWeight: 500 }}>{formatChangeValue(log.field_name, log.new_value)}</td>
                         </tr>
                       );
                     })}
