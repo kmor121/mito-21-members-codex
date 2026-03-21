@@ -516,48 +516,68 @@ export default function MemberDetail() {
 
       {/* ===== Profile Header Card ===== */}
       <section className="card panel-card" style={{ marginBottom: "1.25rem" }}>
-        <div className="card-body" style={{ padding: "1.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
+        <div className="card-body" style={{ padding: isMobile ? "16px" : "1.5rem" }}>
+          <div style={{
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "center" : "center",
+            gap: isMobile ? 12 : "1.5rem",
+            textAlign: isMobile ? "center" : "left",
+          }}>
             {/* Profile image */}
             <div style={{ flexShrink: 0 }}>
-              <MemberImage src={member.profile_image} name={fullName(member)} size="detail" />
+              <MemberImage src={member.profile_image} name={fullName(member)} size={isMobile ? "thumb-lg" : "detail"} />
             </div>
 
             {/* Name + badges */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
-                <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 700, color: "var(--text-primary, var(--color-text-primary))" }}>
+            <div style={{ flex: 1, minWidth: 0, width: isMobile ? "100%" : undefined }}>
+              <div style={{
+                display: "flex", alignItems: "baseline", gap: "0.5rem",
+                justifyContent: isMobile ? "center" : "flex-start",
+                marginBottom: 4,
+              }}>
+                <h1 style={{ margin: 0, fontSize: isMobile ? 20 : "1.5rem", fontWeight: 700, color: "var(--color-text-primary)", whiteSpace: "nowrap" }}>
                   {displayValue(fullName(member))}
                 </h1>
                 {member.member_number && (
-                  <span style={{ fontSize: "0.875rem", color: "var(--text-secondary, var(--color-text-secondary))" }}>
+                  <span style={{ fontSize: 13, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>
                     No. {member.member_number}
                   </span>
                 )}
               </div>
               {fullNameKana(member) && (
-                <p style={{ margin: "0 0 0.625rem 0", fontSize: "0.875rem", color: "var(--text-secondary, var(--color-text-secondary))" }}>
+                <p style={{ margin: "0 0 8px 0", fontSize: 12, color: "var(--color-text-secondary)" }}>
                   {fullNameKana(member)}
                 </p>
               )}
-              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              <div style={{
+                display: "flex", gap: 6, flexWrap: "wrap",
+                justifyContent: isMobile ? "center" : "flex-start",
+                alignItems: "center",
+              }}>
                 {member.member_type && <Badge label={member.member_type} styleMap={MEMBER_TYPE_BADGE} />}
                 {member.status && <Badge label={member.status} styleMap={STATUS_BADGE} />}
                 {member.is_new && (
-                  <span className="pill" style={{ backgroundColor: "#dbeafe", color: "#1d4ed8", fontWeight: 600, fontSize: "0.75rem", padding: "0.2rem 0.6rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
+                  <span className="pill" style={{ backgroundColor: "var(--color-accent-light)", color: "var(--color-accent)", fontWeight: 600, fontSize: "0.75rem", padding: "0.2rem 0.6rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
                     新入
                   </span>
                 )}
                 {member.is_graduate && (
-                  <span className="pill" style={{ backgroundColor: "#fef3c7", color: "#92400e", fontWeight: 600, fontSize: "0.75rem", padding: "0.2rem 0.6rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
+                  <span className="pill" style={{ backgroundColor: "var(--color-warning-light, #fffbeb)", color: "var(--color-warning, #d97706)", fontWeight: 600, fontSize: "0.75rem", padding: "0.2rem 0.6rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
                     卒業生
                   </span>
+                )}
+                {/* Edit button inline on mobile */}
+                {!isEditing && isMobile && (
+                  <Button variant="primary" size="sm" onClick={handleStartEdit} style={{ marginLeft: 4 }}>
+                    編集
+                  </Button>
                 )}
               </div>
             </div>
 
-            {/* Edit button */}
-            {!isEditing && (
+            {/* Edit button (desktop) */}
+            {!isEditing && !isMobile && (
               <div style={{ flexShrink: 0 }}>
                 <Button variant="primary" onClick={handleStartEdit}>
                   編集する
