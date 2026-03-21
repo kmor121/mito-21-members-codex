@@ -715,13 +715,12 @@ export default function MemberCreate() {
         {/* ======== Sticky Action Bar ======== */}
         <div style={{
           position: 'sticky', bottom: 0, left: 0, right: 0,
-          background: 'var(--color-bg)',
+          background: '#fff',
           borderTop: '1px solid var(--color-border)',
-          padding: '14px 16px',
+          padding: '16px 24px',
+          paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
           display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-          zIndex: 100,
-          boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
-          borderRadius: '0 0 var(--radius-lg) var(--radius-lg)',
+          zIndex: 10,
         }}>
           {Object.keys(errors).length > 0 && (
             <span style={{
@@ -736,22 +735,11 @@ export default function MemberCreate() {
               {Object.keys(errors).length}件の入力エラーがあります
             </span>
           )}
-          <Button variant="secondary" onClick={() => navigate("/admin/members")}>
+          <Button variant="ghost" onClick={() => navigate("/admin/members")}>
             キャンセル
           </Button>
-          <Button variant="primary" type="submit" disabled={saving}
-            style={{
-              minWidth: 140, fontSize: 15,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            }}>
-            {saving ? (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                </svg>
-                登録中...
-              </>
-            ) : "登録する"}
+          <Button variant="primary" type="submit" disabled={saving}>
+            {saving ? "登録中..." : "登録する"}
           </Button>
         </div>
       </form>
