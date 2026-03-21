@@ -1531,12 +1531,16 @@ export default function MeetingDetail() {
                     )}
                   </div>
 
-                  {/* Save button */}
-                  {canEditAttendance && (
-                    <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
-                      <Button variant="primary" disabled={saving} onClick={handleSave}>{saving ? "保存中..." : "保存"}</Button>
-                    </div>
-                  )}
+                  {/* Save observer changes */}
+                  {canEditAttendance && (() => {
+                    const initObs = Array.isArray(meeting.observer_ids) ? meeting.observer_ids : [];
+                    const changed = JSON.stringify([...observerIds].sort()) !== JSON.stringify([...initObs].sort());
+                    return changed ? (
+                      <div style={{ marginTop: 12, display: "flex", justifyContent: "flex-end" }}>
+                        <Button variant="primary" disabled={saving} onClick={handleSave}>{saving ? "保存中..." : "オブザーバーを保存"}</Button>
+                      </div>
+                    ) : null;
+                  })()}
                 </>
               )}
             </div>
