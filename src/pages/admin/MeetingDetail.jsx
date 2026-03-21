@@ -484,7 +484,81 @@ export default function MeetingDetail() {
     setConfirmModal(null);
     setSaving(true);
     try {
-      await base44.entities.Meeting.update(meetingId, buildPayload({ status: newStatus }));
+      // When completing, auto-populate decision fields for dues/applications agenda items
+      if (newStatus === "完了") {
+        const fyId = meeting?.fiscal_year_id;
+        const today = new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/\//g, "/");
+        const fyLabel = meeting?.fiscal_year_id ? (() => {
+          const ref = refDataRef.current;
+          // Try to derive year from meeting_date
+          const y = meetingDate ? new Date(meetingDate).getFullYear() : new Date().getFullYear();
+          return `${y}`;
+        })() : "";
+
+        const updatedItems = [...agendaItems];
+        let needsUpdate = false;
+
+        for (let i = 0; i < updatedItems.length; i++) {
+          const item = updatedItems[i];
+          const url = item.link_url || "";
+
+          // Dues summary
+          if (url.includes("dues")) {
+            try {
+              const [allDues, allMembers] = await Promise.all([
+                base44.entities.Due.filter({ fiscal_year_id: fyId }).catch(() => []),
+                base44.entities.Member.filter({ approval_status: "承認済" }).catch(() => []),
+              ]);
+              const eligibleCount = (allMembers || []).filter(m => m.member_type === "正会員" || m.member_type === "賛助会員").length;
+              const paidCount = (allDues || []).filter(d => d.status === "納入済").length;
+              const paidAmount = (allDues || []).filter(d => d.status === "納入済").reduce((s, d) => s + (d.amount || 0), 0);
+              const unpaidCount = (allDues || []).filter(d => d.status === "未納").length;
+              const unpaidAmount = (allDues || []).filter(d => d.status === "未納").reduce((s, d) => s + (d.amount || 0), 0);
+              const unissuedCount = eligibleCount - paidCount - unpaidCount;
+              const denom = paidCount + unpaidCount;
+              const rate = denom > 0 ? Math.round((paidCount / denom) * 100) : 0;
+
+              const summary = `【${fyLabel}年度 会費状況（${today}時点）】\n対象: ${eligibleCount}名 / 納入済: ${paidCount}件（¥${paidAmount.toLocaleString()}）/ 未納: ${unpaidCount}件（¥${unpaidAmount.toLocaleString()}）/ 未発行: ${unissuedCount}件 / 納入率: ${rate}%`;
+
+              const existing = (item.decision || "").trim();
+              updatedItems[i] = { ...item, decision: existing ? `${existing}\n\n${summary}` : summary };
+              needsUpdate = true;
+            } catch { /* ignore */ }
+          }
+
+          // Applications summary
+          if (url.includes("applications")) {
+            try {
+              const apps = await base44.entities.Application.filter({ status: "pending" }).catch(() => []);
+              const pendingCount = (apps || []).length;
+              const summary = `【入会申込状況（${today}時点）】\n承認待ち: ${pendingCount}件`;
+
+              const existing = (item.decision || "").trim();
+              updatedItems[i] = { ...item, decision: existing ? `${existing}\n\n${summary}` : summary };
+              needsUpdate = true;
+            } catch { /* ignore */ }
+          }
+        }
+
+        if (needsUpdate) {
+          // Update agendaItems state so buildPayload picks them up
+          setAgendaItems(updatedItems);
+          // Build payload with updated items directly (state may not flush yet)
+          const payload = buildPayload({ status: newStatus });
+          // Replace agenda_items with the enriched version
+          let items = [...updatedItems];
+          const sonotaIdx = items.findIndex((a) => a.title === "その他");
+          if (sonotaIdx === -1) items.push({ ...DEFAULT_SONOTA_ITEM });
+          else if (sonotaIdx !== items.length - 1) { const [s] = items.splice(sonotaIdx, 1); items.push(s); }
+          payload.agenda_items = items.map((item, i) => ({ ...item, order: i + 1 }));
+          await base44.entities.Meeting.update(meetingId, payload);
+        } else {
+          await base44.entities.Meeting.update(meetingId, buildPayload({ status: newStatus }));
+        }
+      } else {
+        await base44.entities.Meeting.update(meetingId, buildPayload({ status: newStatus }));
+      }
+
       // Sync after-party event status
       if (afterParty) {
         const eventStatusMap = { "下書き": "draft", "公開": "published", "完了": "completed" };
