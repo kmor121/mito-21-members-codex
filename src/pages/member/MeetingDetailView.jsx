@@ -12,7 +12,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 
 const STATUS_BADGE = {
   "公開": { label: "公開", bg: "#eff6ff", color: "#2563eb" },
-  "完了": { label: "完了", bg: "#ecfdf5", color: "#059669" },
+  "完了": { label: "完了", bg: "var(--color-bg-sub)", color: "var(--color-text-tertiary)" },
 };
 
 const TAG_COLORS = {
@@ -277,6 +277,14 @@ export default function MeetingDetailView() {
         }}>
           {/* Left: meeting info */}
           <div style={{ flex: 1, minWidth: 200 }}>
+            {isCompleted && (
+              <div style={{
+                fontSize: 12, fontWeight: 700, letterSpacing: '0.15em',
+                color: 'var(--color-text-tertiary)', marginBottom: 6,
+              }}>
+                議 事 録
+              </div>
+            )}
             <h1 style={{
               fontSize: isMobile ? 20 : 24, fontWeight: 700,
               color: 'var(--color-text-primary)', margin: '0 0 10px',
@@ -449,6 +457,8 @@ export default function MeetingDetailView() {
                   }
 
                   // Agenda card
+                  const hasDecision = isCompleted && item.decision_status && item.decision_status !== '未審議';
+
                   return (
                     <div key={idx} style={{
                       border: `1px solid ${tc?.border || 'var(--color-border)'}`,
@@ -457,6 +467,21 @@ export default function MeetingDetailView() {
                       marginBottom: 12,
                       background: '#fff',
                     }}>
+                      {/* Decision result badge at top (completed only) */}
+                      {hasDecision && (
+                        <div style={{ marginBottom: 12 }}>
+                          <span style={{
+                            display: 'inline-block',
+                            padding: '5px 16px', borderRadius: 6,
+                            fontSize: 14, fontWeight: 700,
+                            background: dc?.bg || 'var(--color-bg-sub)',
+                            color: dc?.color || 'var(--color-text-secondary)',
+                          }}>
+                            {item.decision_status}
+                          </span>
+                        </div>
+                      )}
+
                       {/* Header: number + tag + title */}
                       <div style={{
                         display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
@@ -515,33 +540,28 @@ export default function MeetingDetailView() {
                         </div>
                       )}
 
-                      {/* Decision result (completed only) */}
-                      {isCompleted && item.decision_status && item.decision_status !== '未審議' && (
+                      {/* Decision details (completed only) */}
+                      {hasDecision && item.decision && (
                         <div style={{
-                          marginTop: 16, paddingTop: 16,
+                          marginTop: 12, paddingTop: 12,
                           borderTop: '1px solid var(--color-border)',
                         }}>
-                          <span style={{
-                            display: 'inline-block',
-                            padding: '4px 14px', borderRadius: 6,
-                            fontSize: 13, fontWeight: 700,
-                            background: dc?.bg || 'var(--color-bg-sub)',
-                            color: dc?.color || 'var(--color-text-secondary)',
+                          <div style={{
+                            fontSize: 12, fontWeight: 600, color: 'var(--color-text-tertiary)',
+                            marginBottom: 6,
                           }}>
-                            {item.decision_status}
-                          </span>
-                          {item.decision && (
-                            <div style={{
-                              fontSize: 14, color: 'var(--color-text-primary)',
-                              lineHeight: 1.7, marginTop: 10,
-                              padding: '12px 16px',
-                              background: 'var(--color-bg-sub)',
-                              borderRadius: 8,
-                              whiteSpace: 'pre-wrap',
-                            }}>
-                              {item.decision}
-                            </div>
-                          )}
+                            決定事項
+                          </div>
+                          <div style={{
+                            fontSize: 14, color: 'var(--color-text-primary)',
+                            lineHeight: 1.7,
+                            padding: '12px 16px',
+                            background: 'var(--color-bg-sub)',
+                            borderRadius: 8,
+                            whiteSpace: 'pre-wrap',
+                          }}>
+                            {item.decision}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -590,11 +610,11 @@ export default function MeetingDetailView() {
         </div>
       )}
 
-      {/* ━━━━━━━━━━ 議事録 (completed only) ━━━━━━━━━━ */}
+      {/* ━━━━━━━━━━ 議事録補足 (completed only) ━━━━━━━━━━ */}
       {isCompleted && meeting.minutes_content && (
         <div style={cardStyle}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 16px', color: 'var(--color-text-primary)' }}>
-            議事録
+            議事録補足
           </h2>
           <div
             style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--color-text-primary)' }}
