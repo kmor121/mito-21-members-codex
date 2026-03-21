@@ -1031,56 +1031,30 @@ export default function OrgChart() {
 
       {/* ── Unsaved order banner ── */}
       {unsavedOrder && (
-        <div style={{
-          position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
-          background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-          border: "1px solid var(--color-border)", borderRadius: "var(--radius-xl)",
-          padding: "12px 24px", display: "flex", alignItems: "center", gap: 14,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.12)", zIndex: 100, animation: "orgSlideUp 0.3s ease",
-          maxWidth: "calc(100vw - 32px)", flexWrap: "wrap",
-        }}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="8" cy="8" r="7"/>
-            <path d="M8 5v3.5l2.5 1.5"/>
-          </svg>
-          <span style={{ fontSize: 13, color: "var(--color-text-primary)", fontWeight: 500 }}>未保存の並び順変更があります</span>
-          <button
-            className="btn"
-            type="button"
-            disabled={saving}
-            onClick={async () => {
-              setSaving(true);
-              try {
-                await apiRequest("batch-update-sort-order", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    entity: "organizations",
-                    items: organizations.map(o => ({ id: o.id, sort_order: o.sort_order })),
-                  }),
-                });
-                showToast("並び順を保存しました");
-                setUnsavedOrder(false);
-              } catch (err) {
-                showToast("並び順の保存に失敗しました", "error");
-              } finally { setSaving(false); }
-            }}
-            style={{
-              background: "var(--color-accent)", color: "#fff", border: "none",
-              fontSize: 13, padding: "6px 16px", borderRadius: "var(--radius)",
-            }}
-          >{saving ? "保存中..." : "並び順を保存"}</button>
-          <button
-            type="button"
-            onClick={() => { setUnsavedOrder(false); reloadData(); }}
-            style={{
-              background: "none", border: "none", cursor: "pointer", fontSize: 13,
-              color: "var(--color-text-secondary)", padding: "6px 8px",
-              transition: "color var(--transition-fast)",
-            }}
-            onMouseEnter={e => e.currentTarget.style.color = "var(--color-text-primary)"}
-            onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-secondary)"}
-          >取り消す</button>
+        <div className="doc-sort-banner">
+          <span className="doc-sort-banner-text">未保存の変更があります</span>
+          <div className="doc-sort-banner-actions">
+            <Button variant="primary" disabled={saving}
+              onClick={async () => {
+                setSaving(true);
+                try {
+                  await apiRequest("batch-update-sort-order", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      entity: "organizations",
+                      items: organizations.map(o => ({ id: o.id, sort_order: o.sort_order })),
+                    }),
+                  });
+                  showToast("並び順を保存しました");
+                  setUnsavedOrder(false);
+                } catch (err) {
+                  showToast("並び順の保存に失敗しました", "error");
+                } finally { setSaving(false); }
+              }}
+            >{saving ? "保存中..." : "並び順を保存"}</Button>
+            <Button variant="secondary" onClick={() => { setUnsavedOrder(false); reloadData(); }}>元に戻す</Button>
+          </div>
         </div>
       )}
 

@@ -245,7 +245,6 @@ export default function Documents() {
       {/* Sort dirty banner */}
       {sortDirty && (
         <div className="doc-sort-banner">
-          <span className="doc-sort-banner-icon">{"\u26A0\uFE0F"}</span>
           <span className="doc-sort-banner-text">未保存の変更があります</span>
           <div className="doc-sort-banner-actions">
             <Button variant="primary" onClick={handleSaveSortOrder} disabled={saving}>
