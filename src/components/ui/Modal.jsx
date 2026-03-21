@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export function Modal({ isOpen, onClose, title, children, footer, width = "480px" }) {
+export function Modal({ isOpen, onClose, title, children, footer, width = "480px", style }) {
   useEffect(() => {
     const handler = e => { if(e.key === "Escape") onClose(); };
     if(isOpen) {
@@ -32,7 +32,7 @@ export function Modal({ isOpen, onClose, title, children, footer, width = "480px
           background: "var(--color-bg)",
           borderRadius: isMobile ? 0 : "var(--radius-xl)",
           width: isMobile ? "100%" : width,
-          maxWidth: isMobile ? "100%" : "100%",
+          maxWidth: isMobile ? "100%" : (style?.maxWidth || "100%"),
           height: isMobile ? "100dvh" : "auto",
           maxHeight: isMobile ? "100dvh" : "90vh",
           display: "flex",
@@ -52,7 +52,7 @@ export function Modal({ isOpen, onClose, title, children, footer, width = "480px
         {/* Body */}
         <div style={{
           padding: isMobile ? "16px" : "var(--space-6)",
-          paddingBottom: isMobile && !footer ? "max(32px, calc(env(safe-area-inset-bottom, 0px) + 24px))" : isMobile ? "24px" : undefined,
+          paddingBottom: isMobile && !footer ? "max(32px, calc(env(safe-area-inset-bottom, 0px) + 24px))" : isMobile ? "24px" : "var(--space-6)",
           overflowY: "auto", flex: 1,
           WebkitOverflowScrolling: "touch",
         }}>{children}</div>
