@@ -1013,25 +1013,13 @@ export default function EventDetail() {
       )}
 
       {/* ── Confirm Modal ── */}
-      <Modal
-        isOpen={!!confirmModal}
-        onClose={() => setConfirmModal(null)}
-        title={confirmModal?.title}
-        width="440px"
-        footer={<>
-          <Button variant="secondary" onClick={() => setConfirmModal(null)}>キャンセル</Button>
-          <Button
-            variant={confirmModal?.danger ? "danger" : "primary"}
-            onClick={confirmModal?.onConfirm}
-            disabled={saving}
-            style={confirmModal?.danger ? { background: 'var(--color-danger)', color: '#fff', border: 'none' } : {}}
-          >
+      <Modal isOpen={!!confirmModal} onClose={() => setConfirmModal(null)} title={confirmModal?.title} width="420px">
+        <p style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.6, margin: '0 0 24px' }}>{confirmModal?.message}</p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+          <Button variant="ghost" onClick={() => setConfirmModal(null)}>キャンセル</Button>
+          <Button variant={confirmModal?.danger ? 'danger' : 'primary'} onClick={confirmModal?.onConfirm} disabled={saving}>
             {saving ? '処理中...' : confirmModal?.confirmLabel}
           </Button>
-        </>}
-      >
-        <div style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-secondary)' }}>
-          {confirmModal?.message}
         </div>
       </Modal>
 
