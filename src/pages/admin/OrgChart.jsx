@@ -190,7 +190,7 @@ function SkeletonCard() {
 function OrgTreeNode({
   org, depth, expandedOrgs, toggleExpand,
   onEditOrg, onDeleteOrg, onAddMember, onEditAssignment, onRemoveAssignment,
-  dragHandlers, memberMap, supervisorRoleMap,
+  dragHandlers, dragRef, onSwapOrder, memberMap, supervisorRoleMap,
 }) {
   const isMobile = useIsMobile();
   const assignments = Array.isArray(org.assignments) ? org.assignments : [];
@@ -198,6 +198,19 @@ function OrgTreeNode({
   const isExpanded = expandedOrgs.has(org.id);
   const tc = TYPE_COLORS[org.org_type] || TYPE_COLORS["その他"];
   const hasChildren = children.length > 0;
+
+  // Build per-node drag handlers using shared ref
+  const nodeDragHandlers = dragRef && onSwapOrder ? {
+    draggable: true,
+    onDragStart: () => { dragRef.current = org.id; },
+    onDragOver: (e) => e.preventDefault(),
+    onDrop: () => {
+      if (!dragRef.current || dragRef.current === org.id) return;
+      onSwapOrder(dragRef.current, org.id);
+      dragRef.current = null;
+    },
+    onDragEnd: () => { dragRef.current = null; },
+  } : {};
 
   return (
     <div style={{ position: "relative", animation: "orgSlideDown 0.25s ease" }}>
@@ -212,7 +225,7 @@ function OrgTreeNode({
         }}
         onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"; }}
         onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; }}
-        {...dragHandlers}
+        {...nodeDragHandlers}
       >
         {/* Card header */}
         <div style={{
@@ -430,7 +443,8 @@ function OrgTreeNode({
               onAddMember={onAddMember}
               onEditAssignment={onEditAssignment}
               onRemoveAssignment={onRemoveAssignment}
-              dragHandlers={{}}
+              dragRef={dragRef}
+              onSwapOrder={onSwapOrder}
               memberMap={memberMap}
               supervisorRoleMap={supervisorRoleMap}
             />
@@ -997,26 +1011,17 @@ export default function OrgChart() {
               onRemoveAssignment={handleRemoveAssignment}
               memberMap={memberMapById}
               supervisorRoleMap={supervisorRoleMap}
-              dragHandlers={{
-                draggable: true,
-                onDragStart: () => { dragOrgId.current = org.id; },
-                onDragOver: (e) => e.preventDefault(),
-                onDrop: async () => {
-                  if (!dragOrgId.current || dragOrgId.current === org.id) return;
-                  // Simple swap sort_order
-                  const fromOrg = organizations.find(o => o.id === dragOrgId.current);
-                  const toOrg = organizations.find(o => o.id === org.id);
-                  if (!fromOrg || !toOrg) return;
-                  const updated = organizations.map(o => {
-                    if (o.id === fromOrg.id) return { ...o, sort_order: toOrg.sort_order };
-                    if (o.id === toOrg.id) return { ...o, sort_order: fromOrg.sort_order };
-                    return o;
-                  });
-                  setOrganizations(updated);
-                  setUnsavedOrder(true);
-                  dragOrgId.current = null;
-                },
-                onDragEnd: () => { dragOrgId.current = null; },
+              dragRef={dragOrgId}
+              onSwapOrder={(fromId, toId) => {
+                const fromOrg = organizations.find(o => o.id === fromId);
+                const toOrg = organizations.find(o => o.id === toId);
+                if (!fromOrg || !toOrg) return;
+                setOrganizations(prev => prev.map(o => {
+                  if (o.id === fromId) return { ...o, sort_order: toOrg.sort_order };
+                  if (o.id === toId) return { ...o, sort_order: fromOrg.sort_order };
+                  return o;
+                }));
+                setUnsavedOrder(true);
               }}
             />
           ))}
