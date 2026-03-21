@@ -266,51 +266,59 @@ export default function EventDetailView() {
         </div>
       )}
 
-      {/* ── After Party ── */}
+      {/* ── After Party (warm card, bottom) ── */}
       {afterParty && (
-        <div className="card panel-card" style={{ marginBottom: 20 }}>
-          <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>🍻 懇親会</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
-              {afterParty.location && <span>📍 {afterParty.location}</span>}
-              {afterParty.start_time && <span>🕐 {afterParty.start_time}{afterParty.end_time ? `〜${afterParty.end_time}` : ''}</span>}
-              {afterParty.fee > 0 ? <span>💰 ¥{Number(afterParty.fee).toLocaleString()}</span> : <span>💰 無料</span>}
-            </div>
+        <div style={{
+          background: '#FFFBEB', borderRadius: 16, border: '1px solid #FDE68A',
+          padding: isMobile ? 20 : '28px 32px', marginBottom: 24,
+        }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 12px', color: '#78350F' }}>
+            懇親会
+          </h2>
+          <div style={{ fontSize: 14, color: '#92400E', lineHeight: 1.9, marginBottom: 16 }}>
+            {afterParty.location && <div>場所: {afterParty.location}</div>}
+            {afterParty.start_time && <div>時間: {afterParty.start_time}{afterParty.end_time ? `〜${afterParty.end_time}` : ''}</div>}
+            <div>会費: {afterParty.fee > 0 ? `¥${Number(afterParty.fee).toLocaleString()}` : '無料'}</div>
+          </div>
 
-            {myApResponse && (
-              <div style={{ marginBottom: 12 }}>
-                <span style={{
-                  display: 'inline-block', padding: '4px 16px', borderRadius: 99, fontSize: 13, fontWeight: 600,
-                  background: myApResponse === '出席' ? 'var(--color-success)' : 'var(--color-danger)',
-                  color: '#fff',
-                }}>
-                  懇親会: {myApResponse}
-                </span>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {!isCompleted ? (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              {myApResponse && (
+                <span style={{ fontSize: 13, color: '#78350F', marginRight: 4 }}>あなた:</span>
+              )}
               {['出席', '欠席'].map(opt => {
-                const isSelected = myApResponse === opt;
+                const sel = myApResponse === opt;
+                const attend = opt === '出席';
                 return (
                   <button key={opt} type="button"
                     disabled={closed || saving}
                     onClick={() => handleResponse(afterParty.id, opt, true)}
                     style={{
-                      padding: '8px 18px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                      padding: '6px 16px', borderRadius: 8,
+                      fontSize: 13, fontWeight: 600,
                       cursor: (closed || saving) ? 'default' : 'pointer',
-                      transition: 'all 0.15s', minHeight: 40,
-                      background: isSelected ? (opt === '出席' ? 'var(--color-success)' : 'var(--color-danger)') : '#fff',
-                      color: isSelected ? '#fff' : 'var(--color-text-secondary)',
-                      border: isSelected ? 'none' : '1px solid var(--color-border)',
-                      opacity: (closed || saving) ? 0.5 : 1,
-                    }}>
-                    {isSelected && '✓ '}{opt}
+                      border: sel ? 'none' : '1px solid #FDE68A',
+                      background: sel ? (attend ? 'var(--color-success)' : 'var(--color-danger)') : '#fff',
+                      color: sel ? '#fff' : '#78350F',
+                      transition: 'all 0.15s',
+                      opacity: (closed || saving) && !sel ? 0.5 : 1,
+                    }}
+                  >
+                    {sel ? '✓ ' : ''}{attend ? '参加' : '不参加'}
                   </button>
                 );
               })}
             </div>
-          </div>
+          ) : myApResponse ? (
+            <span style={{
+              display: 'inline-block',
+              padding: '5px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+              background: myApResponse === '出席' ? 'var(--color-success)' : 'var(--color-danger)',
+              color: '#fff',
+            }}>
+              {myApResponse === '出席' ? '参加' : '不参加'}
+            </span>
+          ) : null}
         </div>
       )}
 
@@ -373,7 +381,7 @@ export default function EventDetailView() {
         return (
           <div className="card panel-card" style={{ marginBottom: 20 }}>
             <div className="card-body" style={{ padding: isMobile ? 16 : 24 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>🍻 懇親会出欠</h2>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>懇親会出欠</h2>
               <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
                 回答率: <strong style={{ color: 'var(--color-text-primary)' }}>{members.length > 0 ? Math.round((apRespondedCount / members.length) * 100) : 0}%</strong> ({apRespondedCount}/{members.length})
               </div>
