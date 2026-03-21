@@ -440,7 +440,7 @@ export default function MemberDetail() {
   }
 
   return (
-    <section className="admin-shell">
+    <section className="admin-shell" style={{ overflow: 'hidden', maxWidth: '100%' }}>
       {/* Toast notification */}
       <Toast message={toastMessage} onClose={() => setToastMessage("")} />
 
@@ -951,9 +951,41 @@ export default function MemberDetail() {
           <div className="card-body" style={{ padding: "1.25rem" }}>
             <SectionHeader icon="💰" title="会費履歴" />
             {duesHistory.length === 0 ? (
-              <p style={{ color: "var(--text-tertiary, var(--color-text-tertiary))", fontSize: "0.875rem" }}>会費履歴はありません。</p>
+              <p style={{ color: "var(--color-text-tertiary)", fontSize: "0.875rem" }}>会費履歴はありません。</p>
+            ) : isMobile ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {duesHistory.map((d, idx) => {
+                  const statusStyle = d.status === "納入済"
+                    ? { backgroundColor: "var(--color-success-light, #ecfdf5)", color: "var(--color-success, #059669)" }
+                    : d.status === "未納"
+                      ? { backgroundColor: "var(--color-danger-light, #fef2f2)", color: "var(--color-danger, #dc2626)" }
+                      : { backgroundColor: "var(--color-bg-sub)", color: "var(--color-text-secondary)" };
+                  return (
+                    <div key={idx} style={{
+                      padding: '10px 12px', border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-md)', fontSize: 13,
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                        <span style={{ fontWeight: 600 }}>{displayValue(d.fiscal_year_label)}</span>
+                        <span className="pill" style={{ ...statusStyle, fontWeight: 600, fontSize: 11, padding: '2px 8px', borderRadius: 999 }}>
+                          {displayValue(d.status)}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: 'var(--color-text-secondary)' }}>{displayValue(d.due_type)}</span>
+                        <span style={{ fontWeight: 600 }}>{formatCurrency(d.amount)}</span>
+                      </div>
+                      {d.paid_date && (
+                        <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 4 }}>
+                          入金: {displayValue(d.paid_date)}{d.payer_name ? ` (${d.payer_name})` : ''}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
-              <div className="table-wrap">
+              <div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', maxWidth: '100%' }}>
                 <table className="data-table">
                   <thead>
                     <tr>
@@ -968,9 +1000,9 @@ export default function MemberDetail() {
                   <tbody>
                     {duesHistory.map((d, idx) => {
                       const statusStyle = d.status === "納入済"
-                        ? { backgroundColor: "#ecfdf5", color: "#059669" }
+                        ? { backgroundColor: "var(--color-success-light, #ecfdf5)", color: "var(--color-success, #059669)" }
                         : d.status === "未納"
-                          ? { backgroundColor: "#fee2e2", color: "#991b1b" }
+                          ? { backgroundColor: "var(--color-danger-light, #fef2f2)", color: "var(--color-danger, #dc2626)" }
                           : { backgroundColor: "var(--color-bg-sub)", color: "var(--color-text-secondary)" };
                       return (
                         <tr key={idx}>
@@ -978,16 +1010,7 @@ export default function MemberDetail() {
                           <td>{displayValue(d.due_type)}</td>
                           <td>{formatCurrency(d.amount)}</td>
                           <td>
-                            <span
-                              className="pill"
-                              style={{
-                                ...statusStyle,
-                                fontWeight: 600,
-                                fontSize: "0.78rem",
-                                padding: "0.2rem 0.6rem",
-                                borderRadius: "9999px",
-                              }}
-                            >
+                            <span className="pill" style={{ ...statusStyle, fontWeight: 600, fontSize: "0.78rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
                               {displayValue(d.status)}
                             </span>
                           </td>
@@ -1052,9 +1075,36 @@ export default function MemberDetail() {
               </Link>
             </div>
             {changeLogs.length === 0 ? (
-              <p style={{ color: "var(--text-tertiary, var(--color-text-tertiary))", fontSize: "0.875rem" }}>変更履歴はありません。</p>
+              <p style={{ color: "var(--color-text-tertiary)", fontSize: "0.875rem" }}>変更履歴はありません。</p>
+            ) : isMobile ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {changeLogs.map((log, idx) => {
+                  const fieldLabel = FIELD_LABELS[log.field_name] || log.field_name || "-";
+                  return (
+                    <div key={idx} style={{
+                      padding: '10px 12px', border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-md)', fontSize: 13,
+                    }}>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 4 }}>
+                        {log.changed_at ? new Date(log.changed_at).toLocaleString("ja-JP") : "-"}
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                        <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{fieldLabel}</span>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                          {log.changed_by || '-'}{log.changed_by_role ? ` (${log.changed_by_role})` : ''}
+                        </span>
+                      </div>
+                      <div style={{ marginTop: 4, fontSize: 12 }}>
+                        <span style={{ color: 'var(--color-text-tertiary)' }}>{displayValue(log.old_value)}</span>
+                        <span style={{ margin: '0 6px', color: 'var(--color-text-tertiary)' }}>→</span>
+                        <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{displayValue(log.new_value)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
-              <div className="table-wrap">
+              <div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', maxWidth: '100%' }}>
                 <table className="data-table">
                   <thead>
                     <tr>
@@ -1074,13 +1124,12 @@ export default function MemberDetail() {
                         ? `${log.changed_by}${log.changed_by_role ? " (" + log.changed_by_role + ")" : ""}`
                         : "-";
                       const fieldLabel = FIELD_LABELS[log.field_name] || log.field_name || "-";
-
                       return (
                         <tr key={idx}>
                           <td style={{ whiteSpace: "nowrap" }}>{dateStr}</td>
                           <td>{changedBy}</td>
                           <td>{fieldLabel}</td>
-                          <td style={{ color: "var(--text-secondary, var(--color-text-secondary))" }}>{displayValue(log.old_value)}</td>
+                          <td style={{ color: "var(--color-text-secondary)" }}>{displayValue(log.old_value)}</td>
                           <td style={{ fontWeight: 500 }}>{displayValue(log.new_value)}</td>
                         </tr>
                       );
