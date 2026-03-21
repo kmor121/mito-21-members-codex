@@ -1000,16 +1000,7 @@ export default function DuesManagement() {
         </div>
       ) : (
         <PageHeader
-          title={<>会費管理{selectedFiscalYear && (
-                <span style={{
-                  padding: "4px 12px", borderRadius: 999,
-                  background: "var(--color-accent-light)", color: "var(--color-accent)",
-                  fontSize: 12, fontWeight: 700,
-                  marginLeft: 10,
-                }}>
-                  {selectedFiscalYear.year_label || `${selectedFiscalYear.year}年度`}
-                </span>
-              )}</>}
+          title="会費管理"
           subtitle="年度別の会費管理・消込・未納確認"
           actions={computedSummary.unissuedCount > 0 ? (
             <Button
