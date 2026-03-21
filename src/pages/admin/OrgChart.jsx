@@ -591,7 +591,8 @@ export default function OrgChart() {
 
   /* ── Org modal ── */
   function openNewOrg() {
-    setOrgForm({ id: "", org_name: "", org_type: "幹事会", parent_id: "", sort_order: organizations.length, supervisor_id: "" });
+    const maxOrder = organizations.reduce((max, o) => Math.max(max, o.sort_order || 0), 0);
+    setOrgForm({ id: "", org_name: "", org_type: "幹事会", parent_id: "", sort_order: maxOrder + 1, supervisor_id: "" });
     setSupervisorSearch("");
     setShowOrgModal(true);
   }
@@ -1178,24 +1179,6 @@ export default function OrgChart() {
                       <option key={o.id} value={o.id}>{o.label}</option>
                     ))}
                   </select>
-                </div>
-
-                {/* Sort order */}
-                <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--color-text-primary)", letterSpacing: "0.02em" }}>
-                    表示順
-                  </label>
-                  <input
-                    type="number" value={orgForm.sort_order}
-                    onChange={e => setOrgForm(p => ({ ...p, sort_order: e.target.value }))}
-                    style={{
-                      width: 100, height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit",
-                      border: "1px solid var(--color-border)", fontSize: 14,
-                      transition: "border-color var(--transition-fast)", outline: "none",
-                    }}
-                    onFocus={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.12)"; }}
-                    onBlur={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
-                  />
                 </div>
 
                 {/* Supervisor */}
