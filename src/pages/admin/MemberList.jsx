@@ -587,15 +587,58 @@ export default function MemberList() {
                 <button key={s} type="button" className={`nl2-pill-tab${status === s ? ' active' : ''}`} onClick={() => setStatus(s)}>{s}</button>
               ))}
             </div>
-            {/* Organization select */}
-            <div style={{ display: 'flex', gap: 8 }}>
-              <select value={organizationId} onChange={(e) => setOrganizationId(e.target.value)}
-                style={{ flex: 1, padding: '6px 10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 13, background: '#fff', color: 'var(--color-text-primary)' }}>
-                <option value="">すべて</option>
-                {orgOptions.map((opt) => (
-                  <option key={opt.id} value={opt.id}>{opt.name}</option>
-                ))}
-              </select>
+            {/* Organization dropdown */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, position: 'relative' }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>所属</span>
+              <button type="button" onClick={() => setShowOrgDropdown(v => !v)}
+                style={{
+                  padding: '4px 10px', borderRadius: 999,
+                  border: organizationId ? '2px solid var(--color-accent)' : '1px solid var(--color-border)',
+                  background: organizationId ? 'var(--color-accent)' : '#fff',
+                  color: organizationId ? '#fff' : 'var(--color-text-secondary)',
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', transition: 'all 0.15s',
+                }}>
+                {organizationId ? (orgOptions.find(o => o.id === organizationId)?.name || '選択中') : 'すべて'}
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: showOrgDropdown ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+                  <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              {showOrgDropdown && (
+                <>
+                  <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setShowOrgDropdown(false)} />
+                  <div style={{
+                    position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 100,
+                    background: '#fff', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
+                    minWidth: 180, maxHeight: 240, overflowY: 'auto',
+                    animation: 'yearDropIn 0.12s ease',
+                  }}>
+                    <button type="button" onClick={() => { setOrganizationId(''); setShowOrgDropdown(false); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 14px', border: 'none', background: !organizationId ? 'var(--color-accent-light)' : 'transparent', color: !organizationId ? 'var(--color-accent)' : 'var(--color-text-primary)', fontSize: 12, fontWeight: !organizationId ? 600 : 400, textAlign: 'left', cursor: 'pointer', transition: 'background 0.1s' }}
+                      onMouseEnter={e => { if (organizationId) e.currentTarget.style.background = 'var(--color-bg-sub)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = !organizationId ? 'var(--color-accent-light)' : 'transparent'; }}
+                    >
+                      <span style={{ flex: 1 }}>すべて</span>
+                      {!organizationId && <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                      {organizationId && <span style={{ width: 14 }} />}
+                    </button>
+                    {orgOptions.map(opt => {
+                      const isActive = organizationId === opt.id;
+                      return (
+                        <button key={opt.id} type="button" onClick={() => { setOrganizationId(opt.id); setShowOrgDropdown(false); }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 14px', border: 'none', background: isActive ? 'var(--color-accent-light)' : 'transparent', color: isActive ? 'var(--color-accent)' : 'var(--color-text-primary)', fontSize: 12, fontWeight: isActive ? 600 : 400, textAlign: 'left', cursor: 'pointer', transition: 'background 0.1s' }}
+                          onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--color-bg-sub)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = isActive ? 'var(--color-accent-light)' : 'transparent'; }}
+                        >
+                          <span style={{ flex: 1 }}>{opt.name}</span>
+                          {isActive ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span style={{ width: 14 }} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
             {/* Reset button */}
             {(memberType !== "すべて" || status !== "すべて" || organizationId || q) && (
@@ -700,20 +743,31 @@ export default function MemberList() {
                     <div style={{
                       position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100,
                       background: "#fff", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
-                      boxShadow: "var(--shadow-hover)", minWidth: 180, maxHeight: 240, overflowY: "auto", padding: "4px 0",
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
+                      minWidth: 180, maxHeight: 240, overflowY: "auto",
+                      animation: "yearDropIn 0.12s ease",
                     }}>
                       <button type="button" onClick={() => { setOrganizationId(''); setShowOrgDropdown(false); }}
-                        style={{ width: "100%", padding: "7px 14px", border: "none", background: !organizationId ? "var(--color-accent-light)" : "transparent", color: !organizationId ? "var(--color-accent)" : "var(--color-text-primary)", fontSize: "12px", fontWeight: !organizationId ? 700 : 500, textAlign: "left", cursor: "pointer", transition: "background 0.1s" }}
+                        style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", border: "none", background: !organizationId ? "var(--color-accent-light)" : "transparent", color: !organizationId ? "var(--color-accent)" : "var(--color-text-primary)", fontSize: "12px", fontWeight: !organizationId ? 600 : 400, textAlign: "left", cursor: "pointer", transition: "background 0.1s" }}
                         onMouseEnter={e => { if (organizationId) e.currentTarget.style.background = "var(--color-bg-sub)"; }}
-                        onMouseLeave={e => { if (organizationId) e.currentTarget.style.background = "transparent"; }}
-                      >すべて</button>
-                      {orgOptions.map(opt => (
-                        <button key={opt.id} type="button" onClick={() => { setOrganizationId(opt.id); setShowOrgDropdown(false); }}
-                          style={{ width: "100%", padding: "7px 14px", border: "none", background: organizationId === opt.id ? "var(--color-accent-light)" : "transparent", color: organizationId === opt.id ? "var(--color-accent)" : "var(--color-text-primary)", fontSize: "12px", fontWeight: organizationId === opt.id ? 700 : 500, textAlign: "left", cursor: "pointer", transition: "background 0.1s" }}
-                          onMouseEnter={e => { if (organizationId !== opt.id) e.currentTarget.style.background = "var(--color-bg-sub)"; }}
-                          onMouseLeave={e => { if (organizationId !== opt.id) e.currentTarget.style.background = "transparent"; }}
-                        >{opt.name}</button>
-                      ))}
+                        onMouseLeave={e => { e.currentTarget.style.background = !organizationId ? "var(--color-accent-light)" : "transparent"; }}
+                      >
+                        <span style={{ flex: 1 }}>すべて</span>
+                        {!organizationId ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span style={{ width: 14 }} />}
+                      </button>
+                      {orgOptions.map(opt => {
+                        const isActive = organizationId === opt.id;
+                        return (
+                          <button key={opt.id} type="button" onClick={() => { setOrganizationId(opt.id); setShowOrgDropdown(false); }}
+                            style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", border: "none", background: isActive ? "var(--color-accent-light)" : "transparent", color: isActive ? "var(--color-accent)" : "var(--color-text-primary)", fontSize: "12px", fontWeight: isActive ? 600 : 400, textAlign: "left", cursor: "pointer", transition: "background 0.1s" }}
+                            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--color-bg-sub)"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = isActive ? "var(--color-accent-light)" : "transparent"; }}
+                          >
+                            <span style={{ flex: 1 }}>{opt.name}</span>
+                            {isActive ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span style={{ width: 14 }} />}
+                          </button>
+                        );
+                      })}
                     </div>
                   </>
                 )}
