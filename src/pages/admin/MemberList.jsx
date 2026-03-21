@@ -814,13 +814,13 @@ export default function MemberList() {
                 <thead>
                   <tr>
                     <th style={{ width: "80px", whiteSpace: "nowrap" }}>会員番号</th>
-                    <th style={{ minWidth: "120px" }}>氏名</th>
-                    <th style={{ minWidth: "160px" }}>会社名・役職</th>
-                    <th style={{ width: "90px" }}>種別</th>
-                    <th style={{ width: "80px" }}>ステータス</th>
-                    <th style={{ minWidth: "140px" }}>所属・役職</th>
-                    <th style={{ minWidth: "160px" }}>メール</th>
-                    {editMode && <th style={{ minWidth: "120px" }}>携帯</th>}
+                    <th style={{ minWidth: "120px", whiteSpace: "nowrap" }}>氏名</th>
+                    <th style={{ minWidth: "160px", whiteSpace: "nowrap" }}>会社名・役職</th>
+                    <th style={{ width: "90px", whiteSpace: "nowrap" }}>種別</th>
+                    <th style={{ width: "80px", whiteSpace: "nowrap" }}>ステータス</th>
+                    <th style={{ minWidth: "140px", whiteSpace: "nowrap" }}>所属・役職</th>
+                    <th style={{ minWidth: "160px", whiteSpace: "nowrap" }}>メール</th>
+                    {editMode && <th style={{ minWidth: "120px", whiteSpace: "nowrap" }}>携帯</th>}
                   </tr>
                 </thead>
                 <tbody>
