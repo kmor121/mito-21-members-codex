@@ -530,11 +530,11 @@ export default function Meetings() {
         .mtg-label { display: block; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 6px; }
         .mtg-input {
           width: 100%; box-sizing: border-box; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);
-          border: 1px solid var(--color-border); background: var(--color-bg-sub); font-size: 14px; color: var(--color-text-primary);
+          border: 1px solid var(--color-border); background: var(--color-bg); font-size: 0.875rem; color: var(--color-text-primary);
           line-height: 1.5; min-height: 38px;
-          outline: none; transition: border-color 0.15s, background 0.15s;
+          outline: none; transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
-        .mtg-input:focus { border-color: var(--color-accent); background: #fff; }
+        .mtg-input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
         .mtg-form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .mtg-copy-source-btn {
           width: 100%; padding: 12px; border: 2px dashed var(--color-border);
