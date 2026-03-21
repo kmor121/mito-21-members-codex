@@ -520,24 +520,36 @@ export default function MeetingDetailView() {
                       )}
 
                       {/* Link */}
-                      {item.link_url && (
-                        <div style={{ marginBottom: 8, paddingLeft: 2 }}>
-                          {item.link_url.startsWith('/') ? (
-                            <Link to={item.link_url} style={{
-                              fontSize: 13, color: 'var(--color-accent)', textDecoration: 'none',
-                              fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6,
-                            }}>
-                              {item.link_label || '資料を見る'} →
-                            </Link>
-                          ) : (
-                            <a href={item.link_url} target="_blank" rel="noopener noreferrer" style={{
-                              fontSize: 13, color: 'var(--color-accent)', textDecoration: 'none',
-                              fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6,
-                            }}>
-                              {item.link_label || '資料を見る'} →
-                            </a>
-                          )}
-                        </div>
+                      {item.link_url && (() => {
+                        // Map admin URLs to member-accessible URLs
+                        const ADMIN_TO_MEMBER = {
+                          '/admin/applications': '/member/applications',
+                          '/admin/dues': '/member/dues-overview',
+                          '/admin/dues-management': '/member/dues-overview',
+                          '/admin/organization': '/organization',
+                          '/admin/organization-chart': '/organization',
+                          '/admin/members': '/directory',
+                        };
+                        let url = item.link_url;
+                        if (url.startsWith('/admin/')) {
+                          url = ADMIN_TO_MEMBER[url] || null;
+                        }
+                        if (!url) return null;
+                        const linkStyle = { fontSize: 13, color: 'var(--color-accent)', textDecoration: 'none', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6 };
+                        return (
+                          <div style={{ marginBottom: 8, paddingLeft: 2 }}>
+                            {url.startsWith('/') ? (
+                              <Link to={url} style={linkStyle}>
+                                {item.link_label || '資料を見る'} →
+                              </Link>
+                            ) : (
+                              <a href={url} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+                                {item.link_label || '資料を見る'} →
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })()}
                       )}
 
                       {/* Decision details (completed only) */}
