@@ -1347,7 +1347,7 @@ export default function MeetingDetail() {
                             padding: "10px 14px", minHeight: 48,
                             cursor: canEditAttendance ? "pointer" : "default", userSelect: "none",
                             background: isPresent ? "#fff" : "#f9fafb",
-                            borderBottom: idx < boardMembers.length - 1 ? "1px solid var(--line-light, var(--color-bg-sub))" : "none",
+                            borderBottom: idx < boardMembers.length - 1 ? "1px solid var(--color-bg-sub)" : "none",
                             transition: "background 0.1s",
                             opacity: isPresent ? 1 : 0.55,
                           }}
@@ -1410,7 +1410,7 @@ export default function MeetingDetail() {
                           <div key={oid} style={{
                             display: "flex", alignItems: "center", gap: 12,
                             padding: "10px 14px", minHeight: 48,
-                            borderBottom: idx < observerIds.length - 1 ? "1px solid var(--line-light, var(--color-bg-sub))" : "none",
+                            borderBottom: idx < observerIds.length - 1 ? "1px solid var(--color-bg-sub)" : "none",
                           }}>
                             <MemberAvatar member={m} />
                             <span style={{ fontWeight: 600, fontSize: 13, whiteSpace: "nowrap", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{fullName(m)}</span>

@@ -102,9 +102,9 @@ function Badge({ label, styleMap }) {
 
 function SectionHeader({ icon, title }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem", paddingBottom: "0.5rem", borderBottom: "1px solid var(--border, #e5e7eb)" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem", paddingBottom: "0.5rem", borderBottom: "1px solid var(--color-border)" }}>
       <span style={{ fontSize: "1.15rem" }}>{icon}</span>
-      <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 600, color: "var(--text-primary, var(--color-text-primary))" }}>{title}</h3>
+      <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 600, color: "var(--color-text-primary)" }}>{title}</h3>
     </div>
   );
 }
@@ -114,8 +114,8 @@ function InfoRow({ label, value }) {
   const isEmpty = v === "-";
   return (
     <div style={{ display: "flex", gap: "1rem", padding: "0.4rem 0.5rem", minWidth: 0 }}>
-      <dt style={{ minWidth: "8rem", flexShrink: 0, color: "var(--text-secondary, var(--color-text-secondary))", fontSize: "0.875rem", fontWeight: 500 }}>{label}</dt>
-      <dd style={{ margin: 0, color: isEmpty ? "var(--text-tertiary, var(--color-text-tertiary))" : "var(--text-primary, var(--color-text-primary))", fontSize: "0.875rem", wordBreak: "break-word" }}>{v}</dd>
+      <dt style={{ minWidth: "8rem", flexShrink: 0, color: "var(--color-text-secondary)", fontSize: "0.875rem", fontWeight: 500 }}>{label}</dt>
+      <dd style={{ margin: 0, color: isEmpty ? "var(--color-text-tertiary)" : "var(--color-text-primary)", fontSize: "0.875rem", wordBreak: "break-word" }}>{v}</dd>
     </div>
   );
 }
@@ -517,14 +517,14 @@ export default function MemberDetail() {
             </ul>
           </div>
         )}
-        <p style={{ fontSize: 13, color: "var(--error, #dc2626)", margin: "12px 0 0 0", fontWeight: 500 }}>
+        <p style={{ fontSize: 13, color: "var(--color-danger)", margin: "12px 0 0 0", fontWeight: 500 }}>
           この操作は取り消せません。
         </p>
       </Modal>
 
       {/* Back link */}
       <div style={{ marginBottom: "0.75rem" }}>
-        <Link className="text-link" to="/admin/members" style={{ fontSize: "0.875rem", textDecoration: "none", color: "var(--primary, #2563eb)" }}>
+        <Link className="text-link" to="/admin/members" style={{ fontSize: "0.875rem", textDecoration: "none", color: "var(--color-accent)" }}>
           &larr; 会員一覧に戻る
         </Link>
       </div>
@@ -752,7 +752,7 @@ export default function MemberDetail() {
               <form className="editor-form" noValidate onSubmit={handleEditSubmit}>
                 <SectionHeader icon="✏️" title="基本情報を編集" />
 
-                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, var(--color-text-primary))" }}>基本情報</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--color-text-primary)" }}>基本情報</h4>
                 <div className="editor-grid">
                   <div className="field">
                     <label htmlFor="md-last-name">姓 *</label>
@@ -784,7 +784,7 @@ export default function MemberDetail() {
                   </div>
                 </div>
 
-                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, var(--color-text-primary))" }}>会社情報</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--color-text-primary)" }}>会社情報</h4>
                 <div className="editor-grid">
                   <div className="field">
                     <label htmlFor="md-company-name">会社名</label>
@@ -820,7 +820,7 @@ export default function MemberDetail() {
                   </div>
                 </div>
 
-                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, var(--color-text-primary))" }}>自宅情報</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--color-text-primary)" }}>自宅情報</h4>
                 <div className="editor-grid">
                   <div className="field">
                     <label htmlFor="md-home-postal-code">自宅郵便番号</label>
@@ -840,7 +840,7 @@ export default function MemberDetail() {
                   </div>
                 </div>
 
-                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, var(--color-text-primary))" }}>その他</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--color-text-primary)" }}>その他</h4>
                 <div className="editor-grid">
                   <div className="field field-span-2">
                     <label htmlFor="md-hobbies">趣味・信条</label>
@@ -848,7 +848,7 @@ export default function MemberDetail() {
                   </div>
                 </div>
 
-                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary, var(--color-text-primary))" }}>管理情報</h4>
+                <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.9rem", fontWeight: 600, color: "var(--color-text-primary)" }}>管理情報</h4>
                 <div className="editor-grid">
                   <div className="field">
                     <label htmlFor="md-member-number">会員番号</label>
@@ -888,7 +888,7 @@ export default function MemberDetail() {
               position: "sticky",
               bottom: 0,
               backgroundColor: "var(--surface, #fff)",
-              borderTop: "1px solid var(--border, #e5e7eb)",
+              borderTop: "1px solid var(--color-border)",
               padding: "0.75rem 1.25rem",
               display: "flex",
               justifyContent: "flex-end",
@@ -912,7 +912,7 @@ export default function MemberDetail() {
           <div className="card-body" style={{ padding: "1.25rem" }}>
             <SectionHeader icon="🏛️" title="組織履歴" />
             {orgYears.length === 0 ? (
-              <p style={{ color: "var(--text-tertiary, var(--color-text-tertiary))", fontSize: "0.875rem" }}>組織履歴はありません。</p>
+              <p style={{ color: "var(--color-text-tertiary)", fontSize: "0.875rem" }}>組織履歴はありません。</p>
             ) : (
               <div style={{ position: "relative", paddingLeft: "1.5rem" }}>
                 {/* Vertical timeline line */}
@@ -922,7 +922,7 @@ export default function MemberDetail() {
                   top: "0.25rem",
                   bottom: "0.25rem",
                   width: "2px",
-                  backgroundColor: "var(--border, #e5e7eb)",
+                  backgroundColor: "var(--color-border)",
                 }} />
                 {orgYears.map((year, yi) => (
                   <div key={year} style={{ position: "relative", marginBottom: yi < orgYears.length - 1 ? "1.5rem" : 0 }}>
@@ -934,13 +934,13 @@ export default function MemberDetail() {
                       width: "0.75rem",
                       height: "0.75rem",
                       borderRadius: "50%",
-                      backgroundColor: "var(--primary, #2563eb)",
+                      backgroundColor: "var(--color-accent)",
                       border: "2px solid var(--surface, #fff)",
-                      boxShadow: "0 0 0 2px var(--primary, #2563eb)",
+                      boxShadow: "0 0 0 2px var(--color-accent)",
                       transform: "translateX(0.075rem)",
                     }} />
                     <div>
-                      <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary, var(--color-text-primary))" }}>
+                      <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.95rem", fontWeight: 700, color: "var(--color-text-primary)" }}>
                         {year}
                       </h4>
                       {orgByYear[year].map((item, idx) => (
@@ -951,8 +951,8 @@ export default function MemberDetail() {
                           padding: "0.35rem 0",
                           fontSize: "0.875rem",
                         }}>
-                          <span style={{ color: "var(--text-primary, var(--color-text-primary))", fontWeight: 500 }}>{item.org_name || "-"}</span>
-                          <span style={{ color: "var(--text-secondary, var(--color-text-secondary))" }}>{item.role || "-"}</span>
+                          <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{item.org_name || "-"}</span>
+                          <span style={{ color: "var(--color-text-secondary)" }}>{item.role || "-"}</span>
                         </div>
                       ))}
                     </div>
@@ -1052,7 +1052,7 @@ export default function MemberDetail() {
           <div className="card-body" style={{ padding: "1.25rem" }}>
             <SectionHeader icon="📖" title="名簿設定" />
             <form className="editor-form" noValidate onSubmit={handleDirSubmit}>
-              <section style={{ padding: "1rem", backgroundColor: "var(--bg-subtle, #f8fafc)", borderRadius: "0.5rem", border: "1px solid var(--border, #e5e7eb)" }}>
+              <section style={{ padding: "1rem", backgroundColor: "var(--color-bg-sub)", borderRadius: "0.5rem", border: "1px solid var(--color-border)" }}>
                 <h4 style={{ margin: "0 0 0.75rem 0", fontSize: "0.9rem", fontWeight: 600 }}>名簿公開設定</h4>
                 <label className="checkbox-row" style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.4rem 0", cursor: "pointer" }}>
                   <input type="checkbox" checked={dirForm.show_email_in_directory}
@@ -1163,22 +1163,22 @@ export default function MemberDetail() {
 
       {/* ========== Danger zone ========== */}
       {!isEditing && (
-        <div style={{ marginTop: "2rem", paddingTop: "1.5rem", borderTop: "1px solid var(--border, #e5e7eb)" }}>
+        <div style={{ marginTop: "2rem", paddingTop: "1.5rem", borderTop: "1px solid var(--color-border)" }}>
           <button
             type="button"
             onClick={prepareDelete}
             style={{
               background: "none",
               border: "none",
-              color: "var(--text-tertiary, var(--color-text-tertiary))",
+              color: "var(--color-text-tertiary)",
               fontSize: "0.8rem",
               cursor: "pointer",
               padding: "0.25rem 0",
               textDecoration: "underline",
               transition: "color 0.15s",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--error, #dc2626)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-tertiary, var(--color-text-tertiary))"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-danger)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--color-text-tertiary)"; }}
           >
             会員を削除
           </button>
