@@ -506,10 +506,11 @@ textarea { resize: vertical; }
 
 /* ===== Basic Info (M4) ===== */
 .basic-info-filter { display: grid; gap: 12px; }
-.basic-info-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-.basic-info-tab { appearance: none; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 8px 16px; background: var(--color-bg); color: var(--color-text-secondary); font-weight: 600; font-size: 13px; cursor: pointer; transition: all var(--transition-fast); }
-.basic-info-tab:hover { border-color: var(--color-accent-light); color: var(--color-accent); }
-.basic-info-tab.is-active { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+.basic-info-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--color-border); overflow-x: auto; scrollbar-width: none; }
+.basic-info-tabs::-webkit-scrollbar { display: none; }
+.basic-info-tab { appearance: none; border: none; border-bottom: 2px solid transparent; border-radius: 0; padding: 8px 14px; background: none; color: var(--color-text-tertiary); font-weight: var(--font-weight-medium); font-size: 14px; cursor: pointer; white-space: nowrap; transition: color var(--transition-fast), border-color var(--transition-fast); }
+.basic-info-tab:hover { color: var(--color-text-secondary); }
+.basic-info-tab.is-active { background: none; color: var(--color-accent); border-bottom-color: var(--color-accent); font-weight: var(--font-weight-semibold); }
 .basic-info-panel { display: none; }
 .basic-info-panel.is-active { display: grid; }
 .basic-info-document { display: grid; gap: 12px; padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--color-border); background: var(--color-bg); }
@@ -692,37 +693,47 @@ textarea { resize: vertical; }
 /* Pill tabs */
 .nl2-pill-tabs {
   display: flex;
-  gap: 6px;
-  padding: 0 16px 12px;
-  flex-wrap: wrap;
+  gap: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.nl2-pill-tabs::-webkit-scrollbar { display: none; }
 .nl2-pill-tab {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 5px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
+  padding: 8px 14px;
+  border-radius: 0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
   cursor: pointer;
-  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
 }
-.nl2-pill-tab:hover { border-color: var(--color-accent-light); color: var(--color-text-primary); }
+.nl2-pill-tab:hover { color: var(--color-text-secondary); }
 .nl2-pill-tab.active {
-  background: var(--color-accent);
-  color: #fff;
-  border-color: var(--color-accent);
+  background: none;
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
 }
 .nl2-pill-tab-count {
-  font-size: 10px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: rgba(0,0,0,0.08);
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-sub);
+  color: var(--color-text-tertiary);
+  font-weight: 600;
 }
-.nl2-pill-tab.active .nl2-pill-tab-count { background: rgba(255,255,255,0.25); }
+.nl2-pill-tab.active .nl2-pill-tab-count { background: var(--color-accent); color: #fff; }
 
 /* Card list */
 .nl2-card-list {
@@ -1456,24 +1467,26 @@ textarea { resize: vertical; }
   .nl2-mobile-tabs {
     display: flex;
     gap: 0;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
     overflow: hidden;
     margin-bottom: 12px;
   }
   .nl2-mobile-tab {
     flex: 1;
-    padding: 10px;
+    padding: 8px 14px;
     border: none;
-    background: var(--color-bg);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--color-text-secondary);
+    border-bottom: 2px solid transparent;
+    background: none;
+    font-size: 14px;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-tertiary);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: color var(--transition-fast), border-color var(--transition-fast);
   }
-  .nl2-mobile-tab:first-child { border-right: 1px solid var(--color-border); }
-  .nl2-mobile-tab.active { background: var(--color-accent); color: #fff; }
+  .nl2-mobile-tab:first-child { border-right: none; }
+  .nl2-mobile-tab.active { background: none; color: var(--color-accent); border-bottom-color: var(--color-accent); font-weight: var(--font-weight-semibold); }
   .nl2-fab { position: fixed; bottom: 20px; right: 20px; left: auto; transform: none; }
   .nl2-fab:hover { transform: scale(1.05); }
   .nl2-sent-meta { grid-template-columns: 1fr; }
@@ -2567,24 +2580,26 @@ textarea { resize: vertical; }
 
 .mobile-chip {
   appearance: none;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 0 14px;
-  height: 32px;
-  font-size: 13px;
-  font-weight: 500;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 8px 14px;
+  height: auto;
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
   white-space: nowrap;
   cursor: pointer;
-  background: var(--color-bg);
-  color: var(--color-text-secondary);
-  transition: all var(--transition-fast);
+  background: none;
+  color: var(--color-text-tertiary);
+  transition: color var(--transition-fast), border-color var(--transition-fast);
   flex-shrink: 0;
 }
-.mobile-chip:hover { border-color: var(--color-accent-light); color: var(--color-accent); }
+.mobile-chip:hover { color: var(--color-text-secondary); }
 .mobile-chip.is-active {
-  background: var(--color-accent);
-  color: #fff;
-  border-color: var(--color-accent);
+  background: none;
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
 }
 
 .mobile-result-count {
