@@ -454,20 +454,22 @@ export default function MeetingsView() {
 
   return (
     <section className="admin-shell">
-      {/* ── Header ── */}
-      <PageHeader title="幹事会" subtitle="幹事会の次第・議事録を確認" />
-
-      {/* ── FY navigation ── */}
-      {fiscalYears.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
+      {/* ── Header with YearPillNav ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-4)' }}>
+        <div style={{ flex: 'none' }}>
+          <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 22, fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>幹事会</h1>
+          {!isMobile && <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--color-text-tertiary)' }}>幹事会の次第・議事録を確認</p>}
+        </div>
+        <div style={{ flex: 1 }} />
+        {fiscalYears.length > 0 && (
           <YearPillNav
             fiscalYears={fiscalYears}
             activeFyId={selectedFYId}
             currentFyId={fiscalYears.find(fy => fy.is_current)?.id || ''}
             onChange={setSelectedFYId}
           />
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── Summary stats ── */}
       {isMobile ? (

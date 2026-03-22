@@ -3,12 +3,8 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { base44 } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Card } from '../../components/ui';
+import YearPillNav from '../../components/ui/YearPillNav';
 import { useIsMobile } from '../../hooks/useIsMobile';
-
-function formatFiscalYearLabel(fiscalYear) {
-  if (!fiscalYear || !fiscalYear.year) return "年度未設定";
-  return `${fiscalYear.year}年度`;
-}
 
 function BasicInfoDocument({ doc }) {
   const content = doc.content
@@ -98,14 +94,15 @@ export default function BasicInfo() {
     })();
   }, [fiscalYearIdParam]);
 
-  function handleFiscalYearChange(e) {
-    const value = String(e.target.value || "").trim();
-    if (value) {
-      setSearchParams({ fiscalYearId: value });
+  function handleFiscalYearChange(fyId) {
+    if (fyId) {
+      setSearchParams({ fiscalYearId: fyId });
     } else {
       setSearchParams({});
     }
   }
+
+  const currentFyId = years.find(fy => fy.is_current)?.id || "";
 
   function handleTabClick(key) {
     setActiveTab(key);
@@ -146,26 +143,20 @@ export default function BasicInfo() {
 
   return (
     <section className="admin-shell">
-      {/* Header: title + compact year select */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-5)' }}>
-        <div>
+      {/* Header: title + YearPillNav */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-5)' }}>
+        <div style={{ flex: 'none' }}>
           <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 22, fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>基本情報</h1>
           {!isMobile && <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--color-text-tertiary)' }}>年度ごとの事業計画・理念・会則・年間スケジュール</p>}
         </div>
+        <div style={{ flex: 1 }} />
         {years.length > 0 && (
-          <div className="binfo-select-wrap">
-            <select
-              value={selectedFiscalYearId}
-              onChange={handleFiscalYearChange}
-              className="binfo-fy-select"
-            >
-              {years.map((fy) => (
-                <option key={fy.id} value={fy.id}>
-                  {formatFiscalYearLabel(fy)}{fy.is_current ? " ●" : ""}
-                </option>
-              ))}
-            </select>
-          </div>
+          <YearPillNav
+            fiscalYears={years}
+            activeFyId={selectedFiscalYearId}
+            currentFyId={currentFyId}
+            onChange={handleFiscalYearChange}
+          />
         )}
       </div>
 
@@ -250,33 +241,6 @@ export default function BasicInfo() {
         </div>
       )}
 
-      {/* Scoped styles */}
-      <style>{`
-        .binfo-select-wrap {
-          position: relative; display: inline-flex; flex-shrink: 0;
-        }
-        .binfo-fy-select {
-          appearance: none; -webkit-appearance: none;
-          width: auto; height: 34px;
-          padding: 6px 28px 6px 12px;
-          border: 1px solid var(--color-border);
-          border-radius: var(--radius-full);
-          background: var(--color-bg) url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239ca3af' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;
-          font-size: 13px; font-weight: var(--font-weight-medium);
-          color: var(--color-text-primary);
-          cursor: pointer;
-          transition: border-color var(--transition-fast);
-          font-family: inherit;
-        }
-        .binfo-fy-select:focus {
-          outline: none;
-          border-color: var(--color-accent);
-          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
-        }
-        @media (max-width: 768px) {
-          .binfo-fy-select { font-size: 12px; height: 32px; padding: 4px 26px 4px 10px; }
-        }
-      `}</style>
     </section>
   );
 }

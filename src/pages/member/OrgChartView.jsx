@@ -460,36 +460,34 @@ export default function OrgChartView() {
 
   return (
     <section className="admin-shell">
-      {/* ── Page header ── */}
-      <PageHeader title="組織図" />
-
-      {/* ── Year navigator ── */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        gap: 12, marginBottom: 20, flexWrap: "wrap",
-      }}>
+      {/* ── Page header with YearPillNav ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-4)' }}>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 22, fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)', flex: 'none' }}>組織図</h1>
+        <div style={{ flex: 1 }} />
         <YearPillNav
           fiscalYears={years}
           activeFyId={activeFiscalYearId}
           currentFyId={years.find(fy => fy.is_current)?.id || ""}
           onChange={(id) => setSearchParams({ fiscalYearId: id })}
         />
-        <div style={{ display: "flex", gap: 6 }}>
-          <button type="button" onClick={expandAll}
-            style={{
-              background: "none", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
-              padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--color-text-secondary)",
-              fontWeight: 500,
-            }}
-          >展開</button>
-          <button type="button" onClick={collapseAll}
-            style={{
-              background: "none", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
-              padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--color-text-secondary)",
-              fontWeight: 500,
-            }}
-          >閉じる</button>
-        </div>
+      </div>
+
+      {/* ── Expand/Collapse buttons ── */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+        <button type="button" onClick={expandAll}
+          style={{
+            background: "none", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
+            padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--color-text-secondary)",
+            fontWeight: 500,
+          }}
+        >展開</button>
+        <button type="button" onClick={collapseAll}
+          style={{
+            background: "none", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
+            padding: "5px 12px", cursor: "pointer", fontSize: 12, color: "var(--color-text-secondary)",
+            fontWeight: 500,
+          }}
+        >閉じる</button>
       </div>
 
       {/* ── Empty state ── */}
