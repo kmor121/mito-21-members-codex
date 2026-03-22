@@ -3,14 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { base44 } from '../../api/base44Client';
 import { Phone, Mail, ArrowLeft } from 'lucide-react';
 import { MemberDetailSkeleton } from '../../components/ui/Skeleton';
+import { Card } from '../../components/ui';
 import { fullName, fullNameKana, nameInitial } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
-
-function displayValue(value) {
-  if (value === null || value === undefined || value === "") return "-";
-  if (typeof value === "boolean") return value ? "はい" : "いいえ";
-  return String(value);
-}
 
 const MEMBER_TYPE_COLORS = {
   "正会員":   { bg: "var(--color-accent-light)", color: "var(--color-accent)", border: "#c7d2fe" },
@@ -19,22 +14,49 @@ const MEMBER_TYPE_COLORS = {
   "名誉顧問": { bg: "var(--color-warning-light)", color: "#92400e", border: "#fde68a" },
 };
 
-function MemberImage({ src, name, initial: initialOverride, size = "detail", memberType }) {
+function MemberImage({ src, name, initial: initialOverride, memberType }) {
   const initial = initialOverride || (name || "M").charAt(0);
   if (src) {
     return (
-      <div className={`member-image member-image-${size}`}>
-        <img src={src} alt={name || "会員プロフィール画像"} loading="lazy" />
+      <div style={{
+        width: 48, height: 48, borderRadius: 'var(--radius-full)', overflow: 'hidden', flexShrink: 0,
+        border: '2px solid var(--color-border)',
+      }}>
+        <img src={src} alt={name || "プロフィール画像"} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
     );
   }
   const typeColor = MEMBER_TYPE_COLORS[memberType];
   const bgStyle = typeColor
     ? { background: `linear-gradient(135deg, ${typeColor.bg}, ${typeColor.border})`, color: typeColor.color }
-    : {};
+    : { background: 'var(--color-bg-sub)', color: 'var(--color-text-secondary)' };
   return (
-    <div className={`member-image member-image-${size} is-placeholder`} style={bgStyle} aria-label="プロフィール画像未設定">
-      <span>{initial}</span>
+    <div style={{
+      width: 48, height: 48, borderRadius: 'var(--radius-full)', flexShrink: 0,
+      border: '2px solid var(--color-border)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 18, fontWeight: 'var(--font-weight-semibold)', ...bgStyle,
+    }}>
+      {initial}
+    </div>
+  );
+}
+
+function InfoRow({ label, value, isMobile, isLast }) {
+  const isEmpty = value === null || value === undefined || value === "";
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '100px 1fr' : '120px 1fr',
+      padding: '12px 16px',
+      borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
+    }}>
+      <span style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>{label}</span>
+      {isEmpty ? (
+        <span style={{ fontSize: 14, color: 'var(--color-text-tertiary)', fontStyle: 'italic' }}>未設定</span>
+      ) : (
+        <span style={{ fontSize: 14, color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>{String(value)}</span>
+      )}
     </div>
   );
 }
@@ -47,8 +69,6 @@ export default function MemberProfile() {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("basic");
 
-  // Dues and org data
-  const [dues, setDues] = useState([]);
   const [orgAssignments, setOrgAssignments] = useState([]);
   const [organizations, setOrganizations] = useState([]);
   const [fiscalYears, setFiscalYears] = useState([]);
@@ -56,7 +76,6 @@ export default function MemberProfile() {
   useEffect(() => { try { base44.appLogs?.logUserInApp?.('M2-会員詳細'); } catch (e) { /* analytics */ } }, []);
   useEffect(() => {
     if (!memberId) return;
-
     setLoading(true);
     setError("");
 
@@ -67,7 +86,6 @@ export default function MemberProfile() {
       base44.entities.OrgAssignment.filter({ member_id: memberId }).catch(() => []),
     ])
       .then(([m, fyList, orgList, assignList]) => {
-        // Apply directory visibility rules
         if (!m.show_email_in_directory) m.email = "";
         if (!m.show_mobile_in_directory) m.mobile_phone = "";
         if (!m.show_company_in_directory) {
@@ -79,46 +97,38 @@ export default function MemberProfile() {
         setOrganizations(orgList || []);
         setOrgAssignments(assignList || []);
       })
-      .catch((err) => {
-        setError(err.message || "会員情報の取得に失敗しました。");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      .catch((err) => setError(err.message || "会員情報の取得に失敗しました。"))
+      .finally(() => setLoading(false));
   }, [memberId]);
 
   if (loading) {
     return (
       <section className="admin-shell">
-        <div className="page-header">
-          <h1 className="page-title">会員詳細</h1>
-        </div>
+        <Link to="/directory" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          fontSize: 13, color: 'var(--color-text-secondary)', textDecoration: 'none', marginBottom: 16,
+        }}>
+          <ArrowLeft size={16} /> 名簿に戻る
+        </Link>
         <MemberDetailSkeleton />
       </section>
     );
   }
 
-  if (error) {
+  if (error || !member) {
     return (
       <section className="admin-shell">
-        <div className="page-header">
-          <h1 className="page-title">会員詳細</h1>
-        </div>
-        <section className="card panel-card single-panel">
-          <div className="card-body stack">
-            <p className="message error">{error}</p>
-            <div className="actions">
-              <Link className="text-link" to="/directory">会員名簿へ戻る</Link>
-            </div>
-          </div>
-        </section>
+        <Link to="/directory" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          fontSize: 13, color: 'var(--color-text-secondary)', textDecoration: 'none', marginBottom: 16,
+        }}>
+          <ArrowLeft size={16} /> 名簿に戻る
+        </Link>
+        <Card><p style={{ color: 'var(--color-danger)', fontSize: 14 }}>{error || "会員が見つかりませんでした"}</p></Card>
       </section>
     );
   }
 
-  if (!member) return null;
-
-  // Build org data
   const orgMap = {};
   organizations.forEach((o) => { orgMap[o.id || o._id] = o; });
   const currentFY = fiscalYears.find((fy) => fy.is_current);
@@ -143,117 +153,158 @@ export default function MemberProfile() {
     { id: "org", label: "組織" },
   ];
 
+  // Build basic info rows
+  const basicRows = [
+    { label: "氏名", value: fullName(member) },
+    { label: "フリガナ", value: fullNameKana(member) },
+    { label: "生年月日", value: member.birthday },
+    ...(joinYear ? [{ label: "入会年", value: joinYear }] : []),
+    { label: "会員種別", value: member.member_type },
+    ...(member.email ? [{ label: "メール", value: member.email }] : []),
+    ...(member.mobile_phone ? [{ label: "携帯番号", value: member.mobile_phone }] : []),
+    ...(member.company_name ? [{ label: "会社名", value: member.company_name }] : []),
+    ...(member.company_position ? [{ label: "役職", value: member.company_position }] : []),
+    ...(member.company_postal_code ? [{ label: "会社〒", value: member.company_postal_code }] : []),
+    ...(member.company_address ? [{ label: "会社住所", value: member.company_address }] : []),
+    ...(member.company_phone ? [{ label: "会社電話", value: member.company_phone }] : []),
+    ...(member.company_fax ? [{ label: "会社FAX", value: member.company_fax }] : []),
+    ...(member.industry ? [{ label: "業種", value: member.industry }] : []),
+  ];
+
   return (
-    <section className="admin-shell profile-page">
-      {/* Back button */}
-      <Link to="/directory" className="profile-back-link">
-        <ArrowLeft size={16} />
-        <span>名簿に戻る</span>
+    <section className="admin-shell">
+      {/* Back link */}
+      <Link to="/directory" style={{
+        display: 'inline-flex', alignItems: 'center', gap: 4,
+        fontSize: 13, color: 'var(--color-text-secondary)', textDecoration: 'none', marginBottom: 16,
+      }}>
+        <ArrowLeft size={16} /> 名簿に戻る
       </Link>
 
-      {/* Hero card */}
-      <section className="profile-hero card">
-        <div className="profile-hero-inner">
-          <MemberImage src={member.profile_image} name={fullName(member)} initial={nameInitial(member)} size="detail" memberType={member.member_type} />
-          <div className="profile-hero-info">
-            <h1 className="profile-hero-name">{displayValue(fullName(member))}</h1>
-            <div className="profile-hero-badges">
-              <span className="pill">{displayValue(member.member_type)}</span>
-              {orgText && <span className="profile-hero-org">{orgText}</span>}
+      {/* Profile header card */}
+      <Card padding="var(--space-4)" style={{ marginBottom: 'var(--space-4)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <MemberImage src={member.profile_image} name={fullName(member)} initial={nameInitial(member)} memberType={member.member_type} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 18, fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+              {fullName(member)}
             </div>
-            {/* Action buttons */}
-            <div className="profile-hero-actions">
-              {member.mobile_phone && (
-                <a href={`tel:${member.mobile_phone}`} className="profile-action-btn">
-                  <Phone size={16} />
-                  <span>電話する</span>
-                </a>
-              )}
-              {member.email && (
-                <a href={`mailto:${member.email}`} className="profile-action-btn">
-                  <Mail size={16} />
-                  <span>メール</span>
-                </a>
-              )}
+            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+              <span style={{
+                fontSize: 12, padding: '1px 8px', borderRadius: 'var(--radius-full)',
+                background: 'var(--color-accent-light)', color: 'var(--color-accent)', fontWeight: 600,
+              }}>{member.member_type}</span>
+              {orgText && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{orgText}</span>}
             </div>
           </div>
         </div>
-      </section>
+        {/* Action buttons */}
+        {(member.mobile_phone || member.email) && (
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            {member.mobile_phone && (
+              <a href={`tel:${member.mobile_phone}`} style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: '8px 12px', borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)', background: 'var(--color-bg)',
+                fontSize: 13, fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)',
+                textDecoration: 'none', cursor: 'pointer',
+              }}>
+                <Phone size={15} /> 電話する
+              </a>
+            )}
+            {member.email && (
+              <a href={`mailto:${member.email}`} style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: '8px 12px', borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)', background: 'var(--color-bg)',
+                fontSize: 13, fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)',
+                textDecoration: 'none', cursor: 'pointer',
+              }}>
+                <Mail size={15} /> メール
+              </a>
+            )}
+          </div>
+        )}
+      </Card>
 
-      {/* Tabs */}
-      <div className="tab-bar">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={`tab-button${activeTab === tab.id ? " is-active" : ""}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Tabs (flat underline) */}
+      <div style={{
+        display: 'flex', borderBottom: '1px solid var(--color-border)',
+        marginBottom: 'var(--space-3)',
+      }}>
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                padding: '8px 14px', fontSize: 14, whiteSpace: 'nowrap', cursor: 'pointer',
+                background: 'none', border: 'none',
+                borderBottom: isActive ? '2px solid var(--color-accent)' : '2px solid transparent',
+                color: isActive ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+                fontWeight: isActive ? 'var(--font-weight-semibold)' : 'var(--font-weight-medium)',
+                transition: 'color var(--transition-fast), border-color var(--transition-fast)',
+              }}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Tab content */}
       {activeTab === "basic" && (
-        <section className="card panel-card fade-slide-in">
-          <div className="card-body stack">
-            <dl className="detail-grid">
-              <div><dt>氏名</dt><dd>{displayValue(fullName(member))}</dd></div>
-              <div><dt>フリガナ</dt><dd>{displayValue(fullNameKana(member))}</dd></div>
-              <div><dt>生年月日</dt><dd>{displayValue(member.birthday)}</dd></div>
-              {joinYear && <div><dt>入会年</dt><dd>{joinYear}</dd></div>}
-              <div><dt>会員種別</dt><dd>{displayValue(member.member_type)}</dd></div>
-              {member.email && <div><dt>メール</dt><dd>{member.email}</dd></div>}
-              {member.mobile_phone && <div><dt>携帯番号</dt><dd>{member.mobile_phone}</dd></div>}
-              {member.company_name && <div><dt>会社名</dt><dd>{member.company_name}</dd></div>}
-              {member.company_position && <div><dt>役職</dt><dd>{member.company_position}</dd></div>}
-              {member.company_postal_code && <div><dt>会社郵便番号</dt><dd>{member.company_postal_code}</dd></div>}
-              {member.company_address && <div><dt>会社住所</dt><dd>{member.company_address}</dd></div>}
-              {member.company_phone && <div><dt>会社電話</dt><dd>{member.company_phone}</dd></div>}
-              {member.company_fax && <div><dt>会社FAX</dt><dd>{member.company_fax}</dd></div>}
-              {member.industry && <div><dt>業種</dt><dd>{member.industry}</dd></div>}
-            </dl>
-          </div>
-        </section>
+        <Card padding="0" style={{ overflow: 'hidden' }}>
+          {basicRows.map((row, idx) => (
+            <InfoRow
+              key={row.label}
+              label={row.label}
+              value={row.value}
+              isMobile={isMobile}
+              isLast={idx === basicRows.length - 1}
+            />
+          ))}
+        </Card>
       )}
 
       {activeTab === "org" && (
-        <section className="card panel-card fade-slide-in">
-          <div className="card-body stack">
-            <div className="panel-heading"><div><h2>所属組織 {currentFY ? `(${currentFY.year}年度)` : ""}</h2></div></div>
-            {currentAssignments.length === 0 ? (
-              <p className="muted">組織配属情報はありません。</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {currentAssignments.map((a) => {
-                  const aId = a.id || a._id;
-                  const org = orgMap[a.organization_id];
-                  return (
-                    <div key={aId} style={{
-                      display: "flex", justifyContent: "space-between", alignItems: "center",
-                      padding: "0.6rem 1rem", borderRadius: 8,
-                      background: "var(--color-bg-sub)", border: "1px solid var(--color-border)",
-                    }}>
-                      <span style={{ fontWeight: 600, fontSize: 14 }}>
-                        {org?.org_name || "不明な組織"}
-                      </span>
-                      <span className="pill" style={{ background: "var(--color-accent-light)", color: "var(--color-accent)", border: "1px solid var(--color-accent-light)" }}>
-                        {a.role || "メンバー"}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+        <Card padding="0" style={{ overflow: 'hidden' }}>
+          <div style={{
+            fontSize: 15, fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)',
+            padding: '12px 16px', background: 'var(--color-bg-sub)',
+            borderBottom: '1px solid var(--color-border)',
+          }}>
+            所属組織 {currentFY ? `(${currentFY.year}年度)` : ""}
           </div>
-        </section>
-      )}
-      {isMobile && (
-        <style>{`
-          .detail-grid { grid-template-columns: 1fr !important; }
-          .card-body { padding: 12px !important; }
-        `}</style>
+          {currentAssignments.length === 0 ? (
+            <div style={{ padding: '24px 16px', textAlign: 'center' }}>
+              <p style={{ fontSize: 14, color: 'var(--color-text-tertiary)', margin: 0 }}>組織配属情報はありません</p>
+            </div>
+          ) : (
+            currentAssignments.map((a, idx) => {
+              const org = orgMap[a.organization_id];
+              return (
+                <div key={a.id || a._id} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '12px 16px',
+                  borderBottom: idx < currentAssignments.length - 1 ? '1px solid var(--color-border)' : 'none',
+                }}>
+                  <span style={{ fontWeight: 'var(--font-weight-semibold)', fontSize: 14, color: 'var(--color-text-primary)' }}>
+                    {org?.org_name || "不明な組織"}
+                  </span>
+                  <span style={{
+                    fontSize: 12, padding: '2px 8px', borderRadius: 'var(--radius-full)',
+                    background: 'var(--color-accent-light)', color: 'var(--color-accent)', fontWeight: 600,
+                  }}>
+                    {a.role || "メンバー"}
+                  </span>
+                </div>
+              );
+            })
+          )}
+        </Card>
       )}
     </section>
   );

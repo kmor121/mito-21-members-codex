@@ -281,7 +281,7 @@ export default function Directory() {
     <section className="admin-shell">
       <PageHeader title="会員名簿" subtitle="承認済・活動中の会員名簿を閲覧" />
 
-      {/* Mobile search */}
+      {/* Search area */}
       {isMobile ? (
         <div className="mobile-search-area">
           <div className="mobile-search-bar">
@@ -299,21 +299,8 @@ export default function Directory() {
               </button>
             )}
           </div>
-          <div className="mobile-filter-chips">
-            {MEMBER_TYPE_CHIPS.map((chip) => (
-              <button
-                key={chip}
-                type="button"
-                className={`mobile-chip${typeFilter === chip ? " is-active" : ""}`}
-                onClick={() => setTypeFilter(chip)}
-              >
-                {chip}
-              </button>
-            ))}
-          </div>
         </div>
       ) : (
-        /* Desktop search */
         <section className="card panel-card single-panel">
           <div className="card-body stack">
             <div className="filter-grid directory-filter" style={{ alignItems: "end" }}>
@@ -346,35 +333,47 @@ export default function Directory() {
                 <button className="button ghost" type="button" onClick={() => { setQuery(""); setOrgId(""); setTypeFilter("全員"); }}>リセット</button>
               </div>
             </div>
-
-            {/* Desktop filter chips */}
-            <div className="mobile-filter-chips" style={{ paddingLeft: 0 }}>
-              {MEMBER_TYPE_CHIPS.map((chip) => (
-                <button
-                  key={chip}
-                  type="button"
-                  className={`mobile-chip${typeFilter === chip ? " is-active" : ""}`}
-                  onClick={() => setTypeFilter(chip)}
-                >
-                  {chip}
-                </button>
-              ))}
-            </div>
           </div>
         </section>
       )}
 
+      {/* Filter tabs (flat underline) */}
+      <div style={{
+        display: 'flex', borderBottom: '1px solid var(--color-border)',
+        overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none',
+        marginBottom: 'var(--space-4)',
+      }}>
+        {MEMBER_TYPE_CHIPS.map((chip) => {
+          const isActive = typeFilter === chip;
+          const count = chip === "全員" ? allMembers.length : allMembers.filter(m => m.member_type === chip).length;
+          return (
+            <button
+              key={chip}
+              type="button"
+              onClick={() => setTypeFilter(chip)}
+              style={{
+                padding: '8px 14px', fontSize: 14, whiteSpace: 'nowrap', cursor: 'pointer',
+                background: 'none', border: 'none', borderBottom: isActive ? '2px solid var(--color-accent)' : '2px solid transparent',
+                color: isActive ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+                fontWeight: isActive ? 'var(--font-weight-semibold)' : 'var(--font-weight-medium)',
+                transition: 'color var(--transition-fast), border-color var(--transition-fast)',
+                display: 'flex', alignItems: 'center', gap: 4,
+              }}
+            >
+              {chip}
+              <span style={{
+                fontSize: 11, fontWeight: 600, borderRadius: 'var(--radius-full)', padding: '1px 6px',
+                background: isActive ? 'var(--color-accent)' : 'var(--color-bg-sub)',
+                color: isActive ? '#fff' : 'var(--color-text-tertiary)',
+              }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Results */}
       <section className={isMobile ? "" : "card panel-card single-panel"}>
         <div className={isMobile ? "" : "card-body stack"}>
-          {!isMobile && (
-            <div className="panel-heading compact">
-              <p className={`message${error ? " error" : ""}`} aria-live="polite">
-                {error || `${members.length}件を表示中`}
-              </p>
-            </div>
-          )}
-
           {loading ? (
             <MemberListSkeleton count={6} mobile={isMobile} />
           ) : error ? (
@@ -386,10 +385,7 @@ export default function Directory() {
               <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>検索条件を変更してお試しください</p>
             </div>
           ) : isMobile ? (
-            <>
-              <p className="mobile-result-count">{members.length}件</p>
-              <MemberCardList members={members} />
-            </>
+            <MemberCardList members={members} />
           ) : (
             <MemberGrid members={members} />
           )}
