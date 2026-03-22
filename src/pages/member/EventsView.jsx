@@ -200,12 +200,12 @@ export default function EventsView() {
         <button type="button" className={`nl2-pill-tab${tab === 'upcoming' ? ' active' : ''}`}
           onClick={() => setTab('upcoming')}
           style={isMobile ? { fontSize: 12, padding: '5px 12px' } : {}}>
-          今後のイベント{upcomingEvents.length > 0 && ` (${upcomingEvents.length})`}
+          今後のイベント ({upcomingEvents.length})
         </button>
         <button type="button" className={`nl2-pill-tab${tab === 'past' ? ' active' : ''}`}
           onClick={() => setTab('past')}
           style={isMobile ? { fontSize: 12, padding: '5px 12px' } : {}}>
-          過去のイベント
+          過去のイベント ({pastEvents.length})
         </button>
       </div>
 

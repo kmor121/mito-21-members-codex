@@ -774,7 +774,7 @@ export default function NewsletterList() {
           >
             {t.key === "history" && <HistoryIcon />}
             {t.label}
-            <span className="nl2-pill-tab-count">{tabCounts[t.key] ?? 0}</span>
+            <span className="nl2-pill-tab-count">({tabCounts[t.key] ?? 0})</span>
           </button>
         ))}
       </div>

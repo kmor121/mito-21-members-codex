@@ -55,7 +55,7 @@ function Toast({ message, type = "success" }) {
 }
 
 /* ── Pill Tab Button ── */
-function PillTab({ active, onClick, children, badge, badgeColor }) {
+function PillTab({ active, onClick, children, badge }) {
   return (
     <button
       type="button"
@@ -66,15 +66,11 @@ function PillTab({ active, onClick, children, badge, badgeColor }) {
       {children}
       {badge !== undefined && badge !== null && (
         <span style={{
-          marginLeft: 6,
-          display: "inline-flex", alignItems: "center", justifyContent: "center",
-          minWidth: 20, height: 20, padding: "0 6px",
-          borderRadius: 999,
-          background: active ? "rgba(255,255,255,0.25)" : (badgeColor || "var(--color-danger-light)"),
-          color: active ? "#fff" : (badgeColor ? "#fff" : "var(--color-danger)"),
-          fontSize: "12px", fontWeight: 700,
+          marginLeft: 3,
+          fontSize: "12px", fontWeight: "var(--font-weight-normal)",
+          color: "inherit",
         }}>
-          {badge}
+          ({badge})
         </span>
       )}
     </button>
@@ -1092,12 +1088,7 @@ export default function DuesManagement() {
           </button>
           <button type="button" className={`nl2-pill-tab${activeTab === 'all-unpaid' ? ' active' : ''}`}
             onClick={() => { setActiveTab('all-unpaid'); setSelectedIds(new Set()); }}>
-            未納一覧
-            {allUnpaidSummary.totalCount > 0 && (
-              <span style={{ marginLeft: 4, fontSize: 11, fontWeight: 700, color: activeTab === 'all-unpaid' ? '#fff' : 'var(--color-danger)' }}>
-                {allUnpaidSummary.totalCount}
-              </span>
-            )}
+            未納一覧 <span style={{ fontSize: 12, fontWeight: 'var(--font-weight-normal)' }}>({allUnpaidSummary.totalCount})</span>
           </button>
           {computedSummary.unissuedCount > 0 && activeTab !== 'settings' && (
             <Button variant="primary" size="sm" onClick={() => setConfirmBulkIssue(true)} disabled={saving}

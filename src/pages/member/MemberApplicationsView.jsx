@@ -80,7 +80,7 @@ export default function MemberApplicationsView() {
             onClick={() => setStatusFilter(tab.key)}
           >
             {tab.label}
-            <span className="nl2-pill-tab-count">{statusCounts[tab.key] || 0}</span>
+            <span className="nl2-pill-tab-count">({statusCounts[tab.key] || 0})</span>
           </button>
         ))}
         <span style={{ marginLeft: "auto", fontSize: 13, color: "var(--color-text-secondary)" }}>

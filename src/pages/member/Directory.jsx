@@ -360,7 +360,7 @@ export default function Directory() {
                 display: 'inline-flex', alignItems: 'baseline',
               }}
             >
-              {chip}{count > 0 && <span style={{ fontSize: 12, marginLeft: 3, fontWeight: 'var(--font-weight-normal)' }}>{count}</span>}
+              {chip}<span style={{ fontSize: 12, marginLeft: 3, fontWeight: 'var(--font-weight-normal)' }}>({count})</span>
             </button>
           );
         })}

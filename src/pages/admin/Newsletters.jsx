@@ -851,7 +851,7 @@ export default function Newsletters() {
                       style={{ fontSize: 12, padding: "4px 10px" }}
                     >
                       {tab.label}
-                      {count > 0 && <span className="nl2-pill-tab-count">{count}</span>}
+                      <span className="nl2-pill-tab-count">({count})</span>
                     </button>
                   );
                 })}

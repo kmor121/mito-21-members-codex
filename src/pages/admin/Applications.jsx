@@ -462,7 +462,7 @@ export default function Applications() {
                   onClick={() => setStatusFilter(tab.key)}
                 >
                   {tab.label}
-                  <span className="nl2-pill-tab-count">{statusCounts[tab.key] || 0}</span>
+                  <span className="nl2-pill-tab-count">({statusCounts[tab.key] || 0})</span>
                 </button>
               ))}
             </div>
@@ -507,7 +507,7 @@ export default function Applications() {
                   onClick={() => setStatusFilter(tab.key)}
                 >
                   {tab.label}
-                  <span className="nl2-pill-tab-count">{statusCounts[tab.key] || 0}</span>
+                  <span className="nl2-pill-tab-count">({statusCounts[tab.key] || 0})</span>
                 </button>
               ))}
 

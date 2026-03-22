@@ -726,14 +726,15 @@ textarea { resize: vertical; }
   font-weight: var(--font-weight-semibold);
 }
 .nl2-pill-tab-count {
-  font-size: 11px;
-  padding: 1px 6px;
-  border-radius: var(--radius-full);
-  background: var(--color-bg-sub);
-  color: var(--color-text-tertiary);
-  font-weight: 600;
+  font-size: 12px;
+  margin-left: 3px;
+  font-weight: var(--font-weight-normal);
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
 }
-.nl2-pill-tab.active .nl2-pill-tab-count { background: var(--color-accent); color: #fff; }
+.nl2-pill-tab.active .nl2-pill-tab-count { background: none; color: inherit; }
 
 /* Card list */
 .nl2-card-list {
