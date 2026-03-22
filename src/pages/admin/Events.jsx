@@ -225,8 +225,12 @@ export default function Events() {
       {/* ── Header ── */}
       {isMobile ? (
         <div style={{ padding: '0 0 12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
-            <h1 className="page-title" style={{ margin: 0, fontSize: 18, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>イベント管理</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h1 className="page-title" style={{ margin: 0, fontSize: 18, whiteSpace: 'nowrap', flex: 'none' }}>イベント管理</h1>
+            <div style={{ flex: 1 }} />
+            {fiscalYears.length > 0 && (
+              <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
+            )}
             <button type="button" onClick={() => setShowCreateModal(true)} style={{
               width: 36, height: 36, borderRadius: 'var(--radius-md)', border: 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -237,23 +241,27 @@ export default function Events() {
           </div>
         </div>
       ) : (
-        <PageHeader
-          title="イベント管理"
-          subtitle="イベントの作成・出欠管理"
-          actions={
-            <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-              新規作成
-            </Button>
-          }
-        />
-      )}
-
-      {/* ── Year Nav ── */}
-      {fiscalYears.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
-        </div>
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ flex: 1 }}>
+              <PageHeader
+                title="イベント管理"
+                subtitle="イベントの作成・出欠管理"
+                actions={
+                  <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                    新規作成
+                  </Button>
+                }
+              />
+            </div>
+          </div>
+          {fiscalYears.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
+            </div>
+          )}
+        </>
       )}
 
       {/* ── Stats ── */}

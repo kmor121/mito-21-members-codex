@@ -2054,36 +2054,37 @@ textarea { resize: vertical; }
   flex-wrap: wrap;
   align-items: center;
   gap: 2px;
-  padding: 4px 8px;
-  background: #fff;
+  padding: 6px 8px;
+  background: var(--color-bg-sub);
   border-bottom: 1px solid var(--color-border);
 }
 .tiptap-toolbar button {
-  min-width: 36px;
-  height: 36px;
+  min-width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 0 10px;
-  background: #f3f4f6;
+  padding: 4px 8px;
+  background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text-secondary);
   line-height: 1;
-  transition: all 0.12s;
+  transition: all var(--transition-fast);
   white-space: nowrap;
 }
 .tiptap-toolbar button:hover {
-  background: var(--color-accent-light);
-  color: var(--color-accent);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
 }
 .tiptap-toolbar button.is-active {
-  background: var(--color-accent);
-  color: #fff;
+  background: var(--color-bg);
+  color: var(--color-accent);
+  font-weight: 600;
 }
 .tiptap-separator {
   width: 1px;
@@ -2095,13 +2096,13 @@ textarea { resize: vertical; }
 /* Color picker */
 .tiptap-color-wrap { position: relative; display: inline-flex; }
 .tiptap-color-trigger {
-  min-width: 36px; height: 36px;
+  min-width: 32px; height: 32px;
   display: inline-flex; align-items: center; justify-content: center; gap: 2px;
-  padding: 0 8px; background: #f3f4f6; border: none; border-radius: 6px;
-  cursor: pointer; font-size: 14px; font-weight: 800; color: var(--color-text-secondary);
-  transition: all 0.12s;
+  padding: 4px 8px; background: transparent; border: none; border-radius: var(--radius-sm);
+  cursor: pointer; font-size: 13px; font-weight: 800; color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
 }
-.tiptap-color-trigger:hover { background: var(--color-accent-light); color: var(--color-accent); }
+.tiptap-color-trigger:hover { background: var(--color-bg); color: var(--color-text-primary); }
 .tiptap-color-indicator {
   display: block; width: 14px; height: 3px; border-radius: 2px; margin-top: 1px;
 }

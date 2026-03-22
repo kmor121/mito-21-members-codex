@@ -518,21 +518,7 @@ export default function EventDetail() {
             </Button>
           ))}
           {status === 'draft' && (
-            <button type="button" disabled={saving} onClick={requestDelete}
-              style={{
-                background: 'none',
-                border: '1px solid var(--color-danger)',
-                color: 'var(--color-danger)',
-                fontSize: 13,
-                padding: isMobile ? '4px 10px' : '8px 16px',
-                borderRadius: 'var(--radius-md)',
-                cursor: saving ? 'not-allowed' : 'pointer',
-                opacity: saving ? 0.5 : 1,
-                fontWeight: 'var(--font-weight-semibold)',
-                fontFamily: 'var(--font-family)',
-                transition: 'all var(--transition-fast)',
-                whiteSpace: 'nowrap',
-              }}>削除</button>
+            <Button variant="danger" size={isMobile ? "sm" : "md"} disabled={saving} onClick={requestDelete}>削除</Button>
           )}
         </div>
       </div>
@@ -1135,12 +1121,14 @@ export default function EventDetail() {
           border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden;
           transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
-        .evtd-editor-wrap:focus-within { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-        .evtd-editor-wrap .tiptap-toolbar { border-bottom: 1px solid var(--color-border); }
+        .evtd-editor-wrap:focus-within { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08); }
+        .evtd-editor-wrap .tiptap-editor { border: none; border-radius: 0; }
+        .evtd-editor-wrap .tiptap-editor:focus-within { border-color: transparent; }
+        .evtd-editor-wrap .ProseMirror { padding: 12px 14px; min-height: 120px; font-size: 14px; }
         @media (max-width: 768px) {
           .evtd-input { font-size: 16px !important; padding: 10px 12px !important; height: auto !important; }
           .evtd-label { font-size: 14px !important; margin-bottom: 8px !important; }
-          .evtd-editor-wrap .tiptap-toolbar button { width: 28px; height: 28px; font-size: 12px; }
+          .evtd-editor-wrap .ProseMirror { font-size: 16px; }
         }
       `}</style>
     </section>
