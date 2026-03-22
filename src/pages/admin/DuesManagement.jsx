@@ -61,7 +61,6 @@ function PillTab({ active, onClick, children, badge }) {
       type="button"
       className={`nl2-pill-tab${active ? " active" : ""}`}
       onClick={onClick}
-      style={{ padding: "7px 18px", fontSize: "13px" }}
     >
       {children}
       {badge !== undefined && badge !== null && (

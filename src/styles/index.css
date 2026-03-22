@@ -690,51 +690,50 @@ textarea { resize: vertical; }
 }
 .nl2-master-header h2 { font-size: 16px; font-weight: 700; margin: 0; color: var(--color-text-primary); }
 
-/* Pill tabs */
+/* Filter chips */
 .nl2-pill-tabs {
   display: flex;
-  gap: 0;
+  gap: 6px;
+  flex-wrap: wrap;
   padding: 0;
-  border-bottom: 1px solid var(--color-border);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  margin-bottom: var(--space-3);
+  border-bottom: none;
+  overflow-x: visible;
 }
 .nl2-pill-tabs::-webkit-scrollbar { display: none; }
 .nl2-pill-tab {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 8px 14px;
-  border-radius: 0;
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: none;
-  font-size: 14px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  font-size: 13px;
   font-weight: var(--font-weight-medium);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: color var(--transition-fast), border-color var(--transition-fast);
+  transition: all var(--transition-fast);
 }
-.nl2-pill-tab:hover { color: var(--color-text-secondary); }
+.nl2-pill-tab:hover { border-color: var(--color-accent-light); color: var(--color-accent); }
 .nl2-pill-tab.active {
-  background: none;
+  background: var(--color-accent-light);
   color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
+  border-color: var(--color-accent);
   font-weight: var(--font-weight-semibold);
 }
 .nl2-pill-tab-count {
   font-size: 12px;
-  margin-left: 3px;
+  margin-left: 0;
   font-weight: var(--font-weight-normal);
+  color: inherit;
   background: none;
   padding: 0;
   border-radius: 0;
-  color: inherit;
 }
-.nl2-pill-tab.active .nl2-pill-tab-count { background: none; color: inherit; }
+.nl2-pill-tab.active .nl2-pill-tab-count { color: inherit; }
 
 /* Card list */
 .nl2-card-list {
@@ -1467,27 +1466,29 @@ textarea { resize: vertical; }
   .nl2-mobile-show { display: flex !important; }
   .nl2-mobile-tabs {
     display: flex;
-    gap: 0;
+    gap: 6px;
+    flex-wrap: wrap;
     border: none;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: none;
     border-radius: 0;
-    overflow: hidden;
+    overflow: visible;
     margin-bottom: 12px;
   }
   .nl2-mobile-tab {
-    flex: 1;
-    padding: 8px 14px;
-    border: none;
-    border-bottom: 2px solid transparent;
-    background: none;
-    font-size: 14px;
+    flex: none;
+    padding: 5px 12px;
+    border: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    font-size: 13px;
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-tertiary);
+    color: var(--color-text-secondary);
     cursor: pointer;
-    transition: color var(--transition-fast), border-color var(--transition-fast);
+    transition: all var(--transition-fast);
   }
-  .nl2-mobile-tab:first-child { border-right: none; }
-  .nl2-mobile-tab.active { background: none; color: var(--color-accent); border-bottom-color: var(--color-accent); font-weight: var(--font-weight-semibold); }
+  .nl2-mobile-tab:first-child { border-right: 1px solid var(--color-border); }
+  .nl2-mobile-tab.active { background: var(--color-accent-light); color: var(--color-accent); border-color: var(--color-accent); font-weight: var(--font-weight-semibold); }
   .nl2-fab { position: fixed; bottom: 20px; right: 20px; left: auto; transform: none; }
   .nl2-fab:hover { transform: scale(1.05); }
   .nl2-sent-meta { grid-template-columns: 1fr; }
@@ -2581,25 +2582,24 @@ textarea { resize: vertical; }
 
 .mobile-chip {
   appearance: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 5px 12px;
   height: auto;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
   cursor: pointer;
-  background: none;
-  color: var(--color-text-tertiary);
-  transition: color var(--transition-fast), border-color var(--transition-fast);
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
   flex-shrink: 0;
 }
-.mobile-chip:hover { color: var(--color-text-secondary); }
+.mobile-chip:hover { border-color: var(--color-accent-light); color: var(--color-accent); }
 .mobile-chip.is-active {
-  background: none;
+  background: var(--color-accent-light);
   color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
+  border-color: var(--color-accent);
   font-weight: var(--font-weight-semibold);
 }
 

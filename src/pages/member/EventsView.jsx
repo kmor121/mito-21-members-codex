@@ -195,16 +195,14 @@ export default function EventsView() {
         <p className="page-description">公開中のイベント・出欠回答</p>
       </div>
 
-      {/* Tab */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+      {/* Filter chips */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 'var(--space-3)' }}>
         <button type="button" className={`nl2-pill-tab${tab === 'upcoming' ? ' active' : ''}`}
-          onClick={() => setTab('upcoming')}
-          style={isMobile ? { fontSize: 12, padding: '5px 12px' } : {}}>
+          onClick={() => setTab('upcoming')}>
           今後のイベント ({upcomingEvents.length})
         </button>
         <button type="button" className={`nl2-pill-tab${tab === 'past' ? ' active' : ''}`}
-          onClick={() => setTab('past')}
-          style={isMobile ? { fontSize: 12, padding: '5px 12px' } : {}}>
+          onClick={() => setTab('past')}>
           過去のイベント ({pastEvents.length})
         </button>
       </div>
