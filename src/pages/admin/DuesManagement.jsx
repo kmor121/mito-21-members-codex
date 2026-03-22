@@ -1088,7 +1088,7 @@ export default function DuesManagement() {
         <div style={{ display: "flex", gap: 6, marginBottom: 10, alignItems: 'center' }}>
           <button type="button" className={`nl2-pill-tab${activeTab === 'current' ? ' active' : ''}`}
             onClick={() => { setActiveTab('current'); setSelectedIds(new Set()); }}>
-            当年度
+            すべて
           </button>
           <button type="button" className={`nl2-pill-tab${activeTab === 'all-unpaid' ? ' active' : ''}`}
             onClick={() => { setActiveTab('all-unpaid'); setSelectedIds(new Set()); }}>
@@ -1109,7 +1109,7 @@ export default function DuesManagement() {
       ) : (
         <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
           <PillTab active={activeTab === "current"} onClick={() => { setActiveTab("current"); setSelectedIds(new Set()); }}>
-            当年度
+            すべて
           </PillTab>
           <PillTab
             active={activeTab === "all-unpaid"}
