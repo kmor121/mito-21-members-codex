@@ -224,34 +224,18 @@ export default function Events() {
     <section className="admin-shell">
       {/* ── Header ── */}
       {isMobile ? (
-        <div style={{ padding: '0 0 12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
-            <h1 className="page-title" style={{ margin: 0, fontSize: 18 }}>イベント管理</h1>
-            <button type="button" onClick={() => setShowCreateModal(true)} style={{
-              width: 36, height: 36, borderRadius: 'var(--radius-md)', border: 'none',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'var(--color-accent)', cursor: 'pointer', color: '#fff', flexShrink: 0,
-            }}>
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-            </button>
+        <div style={{ padding: '0 0 var(--space-3)' }}>
+          <h1 className="page-title" style={{ margin: '0 0 var(--space-2)', fontSize: 18 }}>イベント管理</h1>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-2)' }}>
+            <div style={{ flex: 1, minWidth: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {fiscalYears.length > 0 && (
+                <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
+              )}
+            </div>
+            <Button variant="primary" size="sm" onClick={() => setShowCreateModal(true)} style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+              + 新規作成
+            </Button>
           </div>
-          {fiscalYears.length > 0 && (() => {
-            const sortedFYs = [...fiscalYears].sort((a, b) => a.year - b.year);
-            const idx = sortedFYs.findIndex(fy => fy.id === selectedFYId);
-            const canPrev = idx > 0;
-            const canNext = idx < sortedFYs.length - 1;
-            const fy = sortedFYs[idx];
-            const yearLabel = fy ? (fy.year_label || `${fy.year}年度`) : '';
-            return (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <button type="button" disabled={!canPrev} onClick={() => canPrev && setSelectedFYId(sortedFYs[idx - 1].id)}
-                  style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canPrev ? 'var(--color-accent)' : 'var(--color-text-tertiary)', cursor: canPrev ? 'pointer' : 'default' }}>&#9666;</button>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', whiteSpace: 'nowrap' }}>{yearLabel}</span>
-                <button type="button" disabled={!canNext} onClick={() => canNext && setSelectedFYId(sortedFYs[idx + 1].id)}
-                  style={{ background: 'none', border: 'none', padding: '4px', fontSize: 14, color: canNext ? 'var(--color-accent)' : 'var(--color-text-tertiary)', cursor: canNext ? 'pointer' : 'default' }}>&#9656;</button>
-              </div>
-            );
-          })()}
         </div>
       ) : (
         <PageHeader
@@ -266,8 +250,8 @@ export default function Events() {
         />
       )}
 
-      {/* ── Year Nav ── */}
-      {fiscalYears.length > 0 && (
+      {/* ── Year Nav (PC only) ── */}
+      {!isMobile && fiscalYears.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
         </div>
@@ -275,10 +259,17 @@ export default function Events() {
 
       {/* ── Stats ── */}
       {isMobile ? (
-        <div className="stat-chip-bar" style={{ marginBottom: 8 }}>
-          <span className="stat-chip">完了 <span className="stat-chip-value" style={{ color: 'var(--color-success)' }}>{stats.completed}</span></span>
-          <span className="stat-chip">公開中 <span className="stat-chip-value" style={{ color: 'var(--color-accent)' }}>{stats.published}</span></span>
-          <span className="stat-chip">下書き <span className="stat-chip-value">{stats.draft}</span></span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
+          {[
+            { label: '完了', value: stats.completed, color: 'var(--color-success)' },
+            { label: '公開中', value: stats.published, color: 'var(--color-accent)' },
+            { label: '下書き', value: stats.draft, color: 'var(--color-text-secondary)' },
+          ].map(s => (
+            <Card key={s.label} padding="var(--space-3)">
+              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 2 }}>{s.label}</div>
+              <div style={{ fontSize: 20, fontWeight: 'var(--font-weight-semibold)', color: s.color }}>{s.value}</div>
+            </Card>
+          ))}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginBottom: 24 }}>
@@ -290,29 +281,78 @@ export default function Events() {
 
       {/* ── Event List ── */}
       {filteredEvents.length === 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', color: 'var(--color-text-secondary)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '40px 20px' : '60px 20px', color: 'var(--color-text-secondary)' }}>
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="10" width="36" height="32" rx="4" stroke="var(--color-border)" strokeWidth="2" fill="var(--color-bg-sub)"/><path d="M6 18h36" stroke="var(--color-border)" strokeWidth="2"/><line x1="16" y1="6" x2="16" y2="14" stroke="var(--color-border)" strokeWidth="2" strokeLinecap="round"/><line x1="32" y1="6" x2="32" y2="14" stroke="var(--color-border)" strokeWidth="2" strokeLinecap="round"/></svg>
-          <p style={{ fontSize: 14, marginTop: 16 }}>イベントはまだありません。「新規作成」から最初のイベントを作成しましょう。</p>
+          <p style={{ fontSize: 14, marginTop: 16, textAlign: 'center' }}>イベントはまだありません。「新規作成」から最初のイベントを作成しましょう。</p>
+          <Button variant="primary" onClick={() => setShowCreateModal(true)} style={{ marginTop: 12 }}>
+            + 新規作成
+          </Button>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 'var(--space-3)' : 10 }}>
           {filteredEvents.map(evt => {
             const dp = getDayParts(evt.event_date);
             const sb = STATUS_BADGE[evt.status] || STATUS_BADGE.draft;
             const tb = EVENT_TYPE_BADGE[evt.event_type] || EVENT_TYPE_BADGE["その他"];
             const isNext = evt.id === nextEventId;
 
+            /* ── Mobile card: vertical stack ── */
+            if (isMobile) {
+              return (
+                <Card
+                  key={evt.id}
+                  onClick={() => navigate(`/admin/events/${evt.id}`)}
+                  padding="var(--space-4)"
+                  style={isNext ? { border: '1.5px solid var(--color-accent)' } : {}}
+                >
+                  {/* Row 1: badges */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 'var(--space-2)' }}>
+                    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontSize: 11, fontWeight: 'var(--font-weight-medium)', background: tb.bg, color: tb.color, border: `1px solid ${tb.border}` }}>{evt.event_type}</span>
+                    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontSize: 11, fontWeight: 'var(--font-weight-medium)', background: sb.bg, color: sb.color, border: `1px solid ${sb.border}` }}>{sb.label}</span>
+                    {isNext && <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontSize: 11, fontWeight: 'var(--font-weight-semibold)', background: 'var(--color-accent-light)', color: 'var(--color-accent)' }}>次回</span>}
+                    <AttendanceDeadlineBadge deadline={getDeadline(evt)} closed={isAttendanceClosed(evt)} />
+                  </div>
+                  {/* Row 2: title */}
+                  <div style={{ fontSize: 15, fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-2)' }}>{evt.title}</div>
+                  {/* Row 3: date + time */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: evt.location ? 'var(--space-1)' : 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.75" y="2.5" width="10.5" height="9.75" rx="1.5" stroke="currentColor" strokeWidth="1.2"/><path d="M1.75 5.25h10.5" stroke="currentColor" strokeWidth="1.2"/><path d="M4.5 1.75v1.5M9.5 1.75v1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                    <span>{dp.dateMain}({dp.dowLabel.replace('曜日', '')})</span>
+                    {evt.start_time && <span style={{ marginLeft: 4 }}>{evt.start_time}{evt.end_time ? `〜${evt.end_time}` : ''}</span>}
+                  </div>
+                  {/* Row 4: location */}
+                  {evt.location && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: (evt.rsvp_deadline && evt.status !== 'completed') ? 'var(--space-1)' : 0 }}>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.75a3.5 3.5 0 0 0-3.5 3.5C3.5 8.75 7 12.25 7 12.25s3.5-3.5 3.5-7a3.5 3.5 0 0 0-3.5-3.5Zm0 4.75a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z" fill="currentColor"/></svg>
+                      <span>{evt.location}</span>
+                    </div>
+                  )}
+                  {/* Row 5: deadline */}
+                  {evt.rsvp_deadline && evt.status !== 'completed' && (() => {
+                    const dl = new Date(evt.rsvp_deadline);
+                    if (isNaN(dl.getTime())) return null;
+                    return (
+                      <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>
+                        出欠期限: {dl.getMonth() + 1}/{dl.getDate()}
+                      </div>
+                    );
+                  })()}
+                </Card>
+              );
+            }
+
+            /* ── PC card: horizontal layout (unchanged) ── */
             return (
               <Card
                 key={evt.id}
                 onClick={() => navigate(`/admin/events/${evt.id}`)}
-                padding={isMobile ? '10px 12px' : '16px 20px'}
+                padding="16px 20px"
                 style={isNext ? { border: '1.5px solid var(--color-accent)' } : {}}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                   {/* Date */}
                   <div className="evt-date-col">
-                    <div style={{ fontSize: isMobile ? 17 : 20, fontWeight: 500, lineHeight: 1.1, color: 'var(--color-text-primary)' }}>{dp.dateMain}</div>
+                    <div style={{ fontSize: 20, fontWeight: 500, lineHeight: 1.1, color: 'var(--color-text-primary)' }}>{dp.dateMain}</div>
                     <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 2 }}>{dp.dowLabel}</div>
                   </div>
                   <div className="evt-card-divider" />
@@ -505,9 +545,9 @@ export default function Events() {
           {/* After party toggle */}
           {form.event_type !== '懇親会' && (
             <div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)', padding: 'var(--space-3) 0' }}>
                 <input type="checkbox" checked={hasAfterParty} onChange={e => setHasAfterParty(e.target.checked)}
-                  style={{ width: 16, height: 16, accentColor: 'var(--color-accent)' }} />
+                  style={{ width: 18, height: 18, accentColor: 'var(--color-accent)' }} />
                 懇親会あり
               </label>
               {hasAfterParty && (
