@@ -1037,41 +1037,40 @@ export default function OrgChart() {
         </div>
       )}
 
-      {/* ── Unsaved order banner ── */}
-      {unsavedOrder && (
-        <div style={{
-          position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
-          background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-          border: "1px solid var(--color-border)", borderRadius: "var(--radius-xl)",
-          padding: "12px 24px", display: "flex", alignItems: "center", gap: 14,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.12)", zIndex: 100,
-          maxWidth: "calc(100vw - 32px)", flexWrap: "wrap",
-        }}>
-          <span style={{ fontSize: 13, color: "var(--color-text-primary)", fontWeight: 500 }}>未保存の変更があります</span>
-          <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
-            <Button variant="primary" disabled={saving}
-              onClick={async () => {
-                setSaving(true);
-                try {
-                  await apiRequest("batch-update-sort-order", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      entity: "organizations",
-                      items: organizations.map(o => ({ id: o.id, sort_order: o.sort_order })),
-                    }),
-                  });
-                  showToast("並び順を保存しました");
-                  setUnsavedOrder(false);
-                } catch (err) {
-                  showToast("並び順の保存に失敗しました", "error");
-                } finally { setSaving(false); }
-              }}
-            >{saving ? "保存中..." : "並び順を保存"}</Button>
-            <Button variant="secondary" onClick={() => { setUnsavedOrder(false); reloadData(); }}>元に戻す</Button>
-          </div>
+      {/* ── Unsaved order floating bar ── */}
+      <div style={{
+        position: "fixed", bottom: 0, left: 0, right: 0,
+        background: "var(--color-bg)", borderTop: "1px solid var(--color-border)",
+        boxShadow: "0 -2px 8px rgba(0,0,0,0.08)",
+        padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between",
+        gap: 12, zIndex: 100,
+        transform: unsavedOrder ? "translateY(0)" : "translateY(100%)",
+        transition: "transform 0.25s ease",
+      }}>
+        <span style={{ fontSize: 14, color: "var(--color-text-secondary)" }}>並び順が変更されました</span>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Button variant="secondary" onClick={() => { setUnsavedOrder(false); reloadData(); }}>キャンセル</Button>
+          <Button variant="primary" disabled={saving}
+            onClick={async () => {
+              setSaving(true);
+              try {
+                await apiRequest("batch-update-sort-order", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    entity: "organizations",
+                    items: organizations.map(o => ({ id: o.id, sort_order: o.sort_order })),
+                  }),
+                });
+                showToast("並び順を保存しました");
+                setUnsavedOrder(false);
+              } catch (err) {
+                showToast("並び順の保存に失敗しました", "error");
+              } finally { setSaving(false); }
+            }}
+          >{saving ? "保存中..." : "保存"}</Button>
         </div>
-      )}
+      </div>
 
       {/* ═══ Org Edit Modal ═══ */}
       <Modal

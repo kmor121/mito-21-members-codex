@@ -34,26 +34,6 @@ const DECISION_STATUS_BADGE = {
   "了承":     { bg: "var(--color-success-light)", color: "var(--color-success)" },
 };
 
-/* ── Attendance Ring ── */
-function AttendanceRing({ present, total, size = 44 }) {
-  if (!total) return null;
-  const r = (size - 6) / 2;
-  const circ = 2 * Math.PI * r;
-  const pct = total > 0 ? present / total : 0;
-  return (
-    <svg width={size} height={size} style={{ flexShrink: 0 }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--color-border)" strokeWidth={3} />
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--color-success)" strokeWidth={3}
-        strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)}
-        strokeLinecap="round" transform={`rotate(-90 ${size/2} ${size/2})`} />
-      <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="central"
-        style={{ fontSize: 11, fontWeight: 500, fill: 'var(--color-text-primary)' }}>
-        {present}/{total}
-      </text>
-    </svg>
-  );
-}
-
 /* ── Helpers ── */
 function parseDateParts(dateStr) {
   if (!dateStr) return null;
