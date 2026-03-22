@@ -13,7 +13,7 @@ trigger: UI作成、画面修正、コンポーネント作成、スタイル変
 3. **Tailwind CSS は使わない** — CSS変数 + 独自クラスのみ
 4. **window.confirm/alert/prompt 禁止** — カスタムModal を使う
 5. **通知は showToast()** — `if (window.__showToast) window.__showToast('メッセージ', 'success')`
-6. **タブはフラットアンダーライン型のみ** — pill型タブ（青塗りつぶし丸型）は禁止
+6. **タブは用途で2種類を使い分ける** — フィルターチップ型（データ絞り込み）とフラットアンダーライン型（コンテンツ切り替え）
 7. **色のハードコード禁止** — 全ファイルでtokens.cssのCSS変数に移行済み。残存するのはバッジ固有色と白テキスト(#fff)のみ
 
 ---
@@ -101,16 +101,51 @@ trigger: UI作成、画面修正、コンポーネント作成、スタイル変
 
 ## UIパターン
 
-### 1. タブ — フラットアンダーライン型（全ページ統一）
+### 1. タブ — 用途で2種類を使い分ける
 
-**pill型（青塗りつぶし丸型）は禁止。** CSSクラス（`nl2-pill-tab`）もインラインスタイルも全てフラットアンダーライン型に統一済み。
+#### A. フィルターチップ型（データ絞り込み用）
 
-#### インラインスタイル実装（推奨）
+CSSクラス: `nl2-pill-tab` / `nl2-pill-tabs`（index.css定義済み）、またはインラインスタイル。
+丸みボタン、`flexWrap: wrap` で折り返し。アクティブ時は `accent-light` 背景 + `accent` ボーダー。
+
+対象ページ: Directory（会員種別）、Applications（申込ステータス）、DuesManagement（会費ステータス）、NewsletterList/Newsletters（配信ステータス）、EventsView（予定/過去）、MemberDuesView（会費ステータス）、MemberApplicationsView（申込ステータス）
+
+参考: Directory.jsx
+```jsx
+<div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 'var(--space-3)' }}>
+  {chips.map(chip => {
+    const isActive = filter === chip.key;
+    return (
+      <button key={chip.key} type="button" onClick={() => setFilter(chip.key)}
+        style={{
+          display: 'inline-flex', alignItems: 'center', padding: '5px 12px',
+          fontSize: 13, whiteSpace: 'nowrap', cursor: 'pointer',
+          background: isActive ? 'var(--color-accent-light)' : 'var(--color-bg)',
+          border: isActive ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+          borderRadius: 'var(--radius-full)',
+          color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+          fontWeight: isActive ? 'var(--font-weight-semibold)' : 'var(--font-weight-medium)',
+          transition: 'all var(--transition-fast)',
+        }}
+      >{chip.label} ({chip.count})</button>
+    );
+  })}
+</div>
+```
+
+件数は `ラベル (件数)` 形式で常時表示（0件も表示）。独立行の「XX件」テキストは禁止。
+
+#### B. フラットアンダーライン型（コンテンツ切り替え用）
+
+CSSクラス: `tab-bar` / `tab-button`（index.css定義済み）、またはインラインスタイル。
+下線のみ、背景なし。選択肢2〜4個のページ内ナビゲーション向け。
+
+対象ページ: EventDetail（概要/出欠状況）、MeetingDetail（次第/議事録/出欠）、MemberProfile（基本情報/組織）、BasicInfo（事業計画/団体理念/会則等）、MemberDetail（基本情報/組織/会費/変更履歴）
+
 ```jsx
 <div style={{
   display: 'flex', borderBottom: '1px solid var(--color-border)',
-  overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none',
-  marginBottom: 'var(--space-4)',
+  overflowX: 'auto', scrollbarWidth: 'none', marginBottom: 'var(--space-4)',
 }}>
   {tabs.map(tab => {
     const isActive = activeTab === tab.key;
@@ -129,23 +164,6 @@ trigger: UI作成、画面修正、コンポーネント作成、スタイル変
   })}
 </div>
 ```
-
-#### CSSクラス実装（既存ページ）
-- `nl2-pill-tab` / `nl2-pill-tabs` — index.css でフラットアンダーライン型に定義済み
-- `tab-bar` / `tab-button` — 同上
-
-#### 件数バッジ付きタブ
-```jsx
-<button ...>
-  {tab.label}
-  <span style={{
-    fontSize: 11, fontWeight: 600, borderRadius: 'var(--radius-full)', padding: '1px 6px',
-    background: isActive ? 'var(--color-accent)' : 'var(--color-bg-sub)',
-    color: isActive ? '#fff' : 'var(--color-text-tertiary)',
-  }}>{count}</span>
-</button>
-```
-- 独立行の「XX件」テキストは禁止。件数はタブ横のバッジに統合する。
 
 ### 2. YearPillNav — タイトル行に統合
 
@@ -258,9 +276,9 @@ export default function SomePage() {
       <PageHeader title="ページ名" subtitle="説明文"
         actions={<><YearPillNav .../><Button variant="primary">新規作成</Button></>} />
 
-      {/* フラットタブ */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--space-4)' }}>
-        {tabs.map(tab => <button ...>{tab.label}<span className="count-badge">...</span></button>)}
+      {/* フィルターチップ（絞り込み用）or フラットタブ（ナビゲーション用） */}
+      <div className="nl2-pill-tabs">
+        {chips.map(c => <button className={`nl2-pill-tab${...}`}>{c.label} ({c.count})</button>)}
       </div>
 
       {/* コンテンツ */}
@@ -300,7 +318,7 @@ export default function SomePage() {
 - **モーダル**: モバイルで自動フルスクリーン
 - **入力フィールド**: モバイルで font-size: 16px（iOS自動ズーム防止）
 - **テーブル**: `overflow-x: auto` でスクロール可能に
-- **タブ**: `overflowX: auto, scrollbarWidth: none` で横スクロール可能
+- **フィルターチップ**: `flexWrap: wrap` で折り返し。**ナビゲーションタブ**: `overflowX: auto` で横スクロール
 - **YearPillNav**: タイトル行に統合、ドロップダウン展開
 
 ---
@@ -313,7 +331,7 @@ export default function SomePage() {
 4. **色をハードコードする** — `#4f46e5` ではなく `var(--color-accent)`
 5. **新しいCSSファイルを作る** — `src/styles/index.css` かページ固有 `<style>` で
 6. **window.confirm/alert/prompt を使う** — Modal を使う
-7. **pill型タブを作る** — 丸い背景付きタブは全て禁止。フラットアンダーライン型のみ
+7. **タブの種類を間違える** — フィルター用途にフラットアンダーラインを使う / ナビゲーション用途にチップ型を使う
 8. **独立行の件数表示** — 「XX件」はタブ横バッジに統合
 9. **フィールドを個別カードで囲む** — InfoRowリスト形式を使う
 10. **YearPillNavを独立行に配置** — タイトル行に統合
