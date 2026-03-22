@@ -224,17 +224,16 @@ export default function Events() {
     <section className="admin-shell">
       {/* ── Header ── */}
       {isMobile ? (
-        <div style={{ padding: '0 0 var(--space-3)' }}>
-          <h1 className="page-title" style={{ margin: '0 0 var(--space-2)', fontSize: 18 }}>イベント管理</h1>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-2)' }}>
-            <div style={{ flex: 1, minWidth: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              {fiscalYears.length > 0 && (
-                <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
-              )}
-            </div>
-            <Button variant="primary" size="sm" onClick={() => setShowCreateModal(true)} style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
-              + 新規作成
-            </Button>
+        <div style={{ padding: '0 0 12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+            <h1 className="page-title" style={{ margin: 0, fontSize: 18, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>イベント管理</h1>
+            <button type="button" onClick={() => setShowCreateModal(true)} style={{
+              width: 36, height: 36, borderRadius: 'var(--radius-md)', border: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'var(--color-accent)', cursor: 'pointer', color: '#fff', flexShrink: 0,
+            }}>
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+            </button>
           </div>
         </div>
       ) : (
@@ -250,8 +249,8 @@ export default function Events() {
         />
       )}
 
-      {/* ── Year Nav (PC only) ── */}
-      {!isMobile && fiscalYears.length > 0 && (
+      {/* ── Year Nav ── */}
+      {fiscalYears.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
         </div>
@@ -259,17 +258,10 @@ export default function Events() {
 
       {/* ── Stats ── */}
       {isMobile ? (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
-          {[
-            { label: '完了', value: stats.completed, color: 'var(--color-success)' },
-            { label: '公開中', value: stats.published, color: 'var(--color-accent)' },
-            { label: '下書き', value: stats.draft, color: 'var(--color-text-secondary)' },
-          ].map(s => (
-            <Card key={s.label} padding="var(--space-3)">
-              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 2 }}>{s.label}</div>
-              <div style={{ fontSize: 20, fontWeight: 'var(--font-weight-semibold)', color: s.color }}>{s.value}</div>
-            </Card>
-          ))}
+        <div className="stat-chip-bar" style={{ marginBottom: 8 }}>
+          <span className="stat-chip">完了 <span className="stat-chip-value" style={{ color: 'var(--color-success)' }}>{stats.completed}</span></span>
+          <span className="stat-chip">公開中 <span className="stat-chip-value" style={{ color: 'var(--color-accent)' }}>{stats.published}</span></span>
+          <span className="stat-chip">下書き <span className="stat-chip-value">{stats.draft}</span></span>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginBottom: 24 }}>
@@ -289,86 +281,40 @@ export default function Events() {
           </Button>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 'var(--space-3)' : 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {filteredEvents.map(evt => {
             const dp = getDayParts(evt.event_date);
             const sb = STATUS_BADGE[evt.status] || STATUS_BADGE.draft;
             const tb = EVENT_TYPE_BADGE[evt.event_type] || EVENT_TYPE_BADGE["その他"];
             const isNext = evt.id === nextEventId;
 
-            /* ── Mobile card: vertical stack ── */
-            if (isMobile) {
-              return (
-                <Card
-                  key={evt.id}
-                  onClick={() => navigate(`/admin/events/${evt.id}`)}
-                  padding="var(--space-4)"
-                  style={isNext ? { border: '1.5px solid var(--color-accent)' } : {}}
-                >
-                  {/* Row 1: badges */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 'var(--space-2)' }}>
-                    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontSize: 11, fontWeight: 'var(--font-weight-medium)', background: tb.bg, color: tb.color, border: `1px solid ${tb.border}` }}>{evt.event_type}</span>
-                    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontSize: 11, fontWeight: 'var(--font-weight-medium)', background: sb.bg, color: sb.color, border: `1px solid ${sb.border}` }}>{sb.label}</span>
-                    {isNext && <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontSize: 11, fontWeight: 'var(--font-weight-semibold)', background: 'var(--color-accent-light)', color: 'var(--color-accent)' }}>次回</span>}
-                    <AttendanceDeadlineBadge deadline={getDeadline(evt)} closed={isAttendanceClosed(evt)} />
-                  </div>
-                  {/* Row 2: title */}
-                  <div style={{ fontSize: 15, fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-2)' }}>{evt.title}</div>
-                  {/* Row 3: date + time */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: evt.location ? 'var(--space-1)' : 0 }}>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.75" y="2.5" width="10.5" height="9.75" rx="1.5" stroke="currentColor" strokeWidth="1.2"/><path d="M1.75 5.25h10.5" stroke="currentColor" strokeWidth="1.2"/><path d="M4.5 1.75v1.5M9.5 1.75v1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
-                    <span>{dp.dateMain}({dp.dowLabel.replace('曜日', '')})</span>
-                    {evt.start_time && <span style={{ marginLeft: 4 }}>{evt.start_time}{evt.end_time ? `〜${evt.end_time}` : ''}</span>}
-                  </div>
-                  {/* Row 4: location */}
-                  {evt.location && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: (evt.rsvp_deadline && evt.status !== 'completed') ? 'var(--space-1)' : 0 }}>
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.75a3.5 3.5 0 0 0-3.5 3.5C3.5 8.75 7 12.25 7 12.25s3.5-3.5 3.5-7a3.5 3.5 0 0 0-3.5-3.5Zm0 4.75a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z" fill="currentColor"/></svg>
-                      <span>{evt.location}</span>
-                    </div>
-                  )}
-                  {/* Row 5: deadline */}
-                  {evt.rsvp_deadline && evt.status !== 'completed' && (() => {
-                    const dl = new Date(evt.rsvp_deadline);
-                    if (isNaN(dl.getTime())) return null;
-                    return (
-                      <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>
-                        出欠期限: {dl.getMonth() + 1}/{dl.getDate()}
-                      </div>
-                    );
-                  })()}
-                </Card>
-              );
-            }
-
-            /* ── PC card: horizontal layout (unchanged) ── */
             return (
               <Card
                 key={evt.id}
                 onClick={() => navigate(`/admin/events/${evt.id}`)}
-                padding="16px 20px"
+                padding={isMobile ? '10px 12px' : '16px 20px'}
                 style={isNext ? { border: '1.5px solid var(--color-accent)' } : {}}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 16 }}>
                   {/* Date */}
-                  <div className="evt-date-col">
-                    <div style={{ fontSize: 20, fontWeight: 500, lineHeight: 1.1, color: 'var(--color-text-primary)' }}>{dp.dateMain}</div>
+                  <div style={{ minWidth: isMobile ? 44 : 52, textAlign: 'center', flexShrink: 0 }}>
+                    <div style={{ fontSize: isMobile ? 17 : 20, fontWeight: 500, color: 'var(--color-text-primary)', lineHeight: 1.1 }}>{dp.dateMain}</div>
                     <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 2 }}>{dp.dowLabel}</div>
                   </div>
-                  <div className="evt-card-divider" />
+                  <div style={{ width: 1, height: isMobile ? 32 : 40, background: 'var(--color-border)', flexShrink: 0 }} />
                   {/* Center */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                      <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)' }}>{evt.title}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text-primary)' }}>{evt.title}</span>
                       <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: 6, fontSize: 11, fontWeight: 500, background: tb.bg, color: tb.color, border: `1px solid ${tb.border}` }}>{evt.event_type}</span>
                       <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: 6, fontSize: 11, fontWeight: 500, background: sb.bg, color: sb.color, border: `1px solid ${sb.border}` }}>{sb.label}</span>
-                      {isNext && <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: '#EEEDFE', color: '#534AB7' }}>次回</span>}
+                      {isNext && <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 999, fontSize: 12, fontWeight: 600, background: 'var(--color-accent-light)', color: 'var(--color-accent)', whiteSpace: 'nowrap' }}>次回</span>}
                       <AttendanceDeadlineBadge deadline={getDeadline(evt)} closed={isAttendanceClosed(evt)} />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', fontSize: 13, color: 'var(--color-text-secondary)' }}>
-                      {evt.location && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.75a3.5 3.5 0 0 0-3.5 3.5C3.5 8.75 7 12.25 7 12.25s3.5-3.5 3.5-7a3.5 3.5 0 0 0-3.5-3.5Zm0 4.75a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z" fill="currentColor"/></svg>{evt.location}</span>}
-                      {evt.start_time && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.25" stroke="currentColor" strokeWidth="1.2"/><path d="M7 4.25V7l2.25 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>{evt.start_time}{evt.end_time ? `〜${evt.end_time}` : ''}</span>}
-                      {evt.fee > 0 && <span>¥{Number(evt.fee).toLocaleString()}</span>}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 6, flexWrap: 'wrap', color: 'var(--color-text-secondary)' }}>
+                      {evt.location && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13 }}><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.75a3.5 3.5 0 0 0-3.5 3.5C3.5 8.75 7 12.25 7 12.25s3.5-3.5 3.5-7A3.5 3.5 0 0 0 7 1.75Zm0 4.75a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z"/></svg>{evt.location}</span>}
+                      {evt.start_time && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13 }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="7" cy="7" r="5.25"/><path d="M7 4v3.5l2.25 1.25" strokeLinecap="round" strokeLinejoin="round"/></svg>{evt.start_time}{evt.end_time ? `〜${evt.end_time}` : ''}</span>}
+                      {evt.fee > 0 && <span style={{ fontSize: 13 }}>¥{Number(evt.fee).toLocaleString()}</span>}
                     </div>
                   </div>
                 </div>
@@ -578,8 +524,6 @@ export default function Events() {
 
       {/* ── Scoped styles ── */}
       <style>{`
-        .evt-date-col { min-width: 52px; text-align: center; flex-shrink: 0; }
-        .evt-card-divider { width: 1px; height: 40px; background: var(--color-border); flex-shrink: 0; }
         .evt-label { display: block; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 6px; }
         .evt-input {
           width: 100%; box-sizing: border-box; height: 38px; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);
@@ -591,8 +535,6 @@ export default function Events() {
 
         .evt-form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 768px) {
-          .evt-date-col { min-width: 44px; }
-          .evt-card-divider { height: 32px; }
           .evt-form-2col { grid-template-columns: 1fr !important; }
           .evt-input { font-size: 16px !important; padding: 10px 12px !important; height: auto !important; }
           .evt-label { font-size: 14px !important; margin-bottom: 8px !important; }

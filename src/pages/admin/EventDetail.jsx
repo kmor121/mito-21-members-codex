@@ -526,11 +526,11 @@ export default function EventDetail() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: isMobile ? 12 : 20, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: isMobile ? 12 : 20, alignItems: 'center', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {[{ key: 'overview', label: '概要' }, { key: 'attendance', label: `出欠状況（${attendances.length}/${targetMembers.length}）` }].map(tab => (
           <button key={tab.key} type="button" onClick={() => { setActiveTab(tab.key); setIsEditing(false); }}
             className={`nl2-pill-tab${activeTab === tab.key ? ' active' : ''}`}
-            style={isMobile ? { fontSize: 12, padding: '5px 10px' } : {}}>
+            style={{ ...(isMobile ? { fontSize: 12, padding: '5px 10px' } : {}), whiteSpace: 'nowrap', flexShrink: 0 }}>
             {tab.label}
           </button>
         ))}
@@ -542,7 +542,7 @@ export default function EventDetail() {
           <div className="card-body stack">
             {isEditing ? (
               /* Edit form */
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {canEdit && (
                   <>
                     <div><label className="evtd-label">イベント名</label><input className="evtd-input" value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} /></div>
@@ -1083,6 +1083,8 @@ export default function EventDetail() {
         .evtd-info-grid dd { font-size: 14px; color: var(--color-text-primary); margin: 0; }
         @media (max-width: 768px) {
           .evtd-info-grid { grid-template-columns: 1fr 1fr; }
+          .evtd-input { font-size: 16px !important; padding: 10px 12px !important; height: auto !important; }
+          .evtd-label { font-size: 14px !important; margin-bottom: 8px !important; }
         }
       `}</style>
     </section>
