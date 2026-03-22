@@ -3,8 +3,37 @@ import { Link } from 'react-router-dom';
 import { apiRequest, base44 } from '../../api/base44Client';
 import { useAuth } from '../../contexts/AuthContext';
 import { MyPageSkeleton } from '../../components/ui/Skeleton';
+import { Card } from '../../components/ui';
 import { fullName, fullNameKana, greetingName, nameInitial } from '../../utils/formatName';
 import { useIsMobile } from '../../hooks/useIsMobile';
+
+function InfoRow({ label, value, isMobile, isLast }) {
+  const isEmpty = value === null || value === undefined || value === "";
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '100px 1fr' : '120px 1fr',
+      padding: '12px 16px',
+      borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
+    }}>
+      <span style={{ fontSize: 13, color: 'var(--color-text-tertiary)', fontWeight: 'var(--font-weight-normal)' }}>{label}</span>
+      {isEmpty ? (
+        <span style={{ fontSize: 14, color: 'var(--color-text-tertiary)', fontStyle: 'italic' }}>未設定</span>
+      ) : (
+        <span style={{ fontSize: 14, color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>{String(value)}</span>
+      )}
+    </div>
+  );
+}
+
+const sectionHeaderStyle = {
+  fontSize: 13,
+  fontWeight: 'var(--font-weight-semibold)',
+  color: 'var(--color-text-primary)',
+  padding: '12px 16px',
+  background: 'var(--color-bg-sub)',
+  borderBottom: '1px solid var(--color-border)',
+};
 
 function displayValue(value) {
   if (value === null || value === undefined || value === "") return "-";
@@ -575,13 +604,39 @@ export default function MyPage() {
   return (
     <section className="admin-shell">
       {/* Greeting header */}
-      <div className="page-header" style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+      <div style={{
+        display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
+        justifyContent: 'space-between', gap: 8, marginBottom: 'var(--space-6)',
+      }}>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <h1 className="page-title" style={{ fontSize: isMobile ? 18 : undefined }}>{getGreeting()}、{greetingName(member) || "会員さん"}</h1>
-          <p className="page-description">マイページ</p>
+          <h1 style={{
+            margin: 0, fontSize: isMobile ? 18 : 20,
+            fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)',
+            letterSpacing: '-0.02em', lineHeight: 1.2,
+          }}>
+            {getGreeting()}、{greetingName(member) || "会員さん"}
+          </h1>
+          <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--color-text-tertiary)' }}>マイページ</p>
         </div>
-        <button className="button" type="button" onClick={handleStartEdit} style={isMobile ? { fontSize: 12, padding: "6px 12px" } : {}}>
-          {isMobile ? "編集" : "プロフィールを編集"}
+        <button
+          type="button"
+          onClick={handleStartEdit}
+          style={{
+            fontSize: 13, padding: '6px 16px',
+            borderRadius: 'var(--radius-full)',
+            border: '1px solid var(--color-accent)',
+            color: 'var(--color-accent)',
+            background: 'transparent',
+            fontWeight: 'var(--font-weight-semibold)',
+            fontFamily: 'var(--font-family)',
+            cursor: 'pointer',
+            transition: 'all var(--transition-fast)',
+            whiteSpace: 'nowrap',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-accent)'; e.currentTarget.style.color = '#fff'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-accent)'; }}
+        >
+          編集
         </button>
       </div>
 
@@ -589,199 +644,217 @@ export default function MyPage() {
         <p className={`message ${formMessageType}`} aria-live="polite">{formMessage}</p>
       )}
 
-      {/* Dashboard grid */}
-      <div className="settings-grid">
-        {/* Basic info card */}
-        <section className="card detail-card">
-          <div className="card-body stack">
-            <div className="panel-heading"><div><h2>基本情報</h2></div></div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png"
-              style={{ display: "none" }}
-              onChange={handleImageSelect}
-            />
-            <div style={{ display: "flex", gap: "1.5rem", alignItems: "flex-start", flexWrap: "wrap" }}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}>
-                <MemberImage
-                  src={imagePreview || member.profile_image}
-                  name={fullName(member)}
-                  initial={nameInitial(member)}
-                  size="detail"
-                  editable
-                  onImageClick={handleImageClick}
-                />
-                {imageFile && (
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <button
-                      className="button"
-                      type="button"
-                      disabled={uploadingImage}
-                      onClick={handleImageUpload}
-                      style={{ fontSize: 12, padding: "4px 12px" }}
-                    >
-                      {uploadingImage ? "保存中..." : "写真を保存"}
-                    </button>
-                    <button
-                      className="button button-secondary"
-                      type="button"
-                      disabled={uploadingImage}
-                      onClick={() => { setImageFile(null); setImagePreview(null); }}
-                      style={{ fontSize: 12, padding: "4px 12px" }}
-                    >
-                      取消
-                    </button>
-                  </div>
-                )}
-              </div>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <dl className="detail-grid">
-                  <div><dt>氏名</dt><dd>{displayValue(fullName(member))}</dd></div>
-                  <div><dt>フリガナ</dt><dd>{displayValue(fullNameKana(member))}</dd></div>
-                  <div><dt>会員番号</dt><dd>{displayValue(member.member_number)}</dd></div>
-                  <div><dt>会員種別</dt><dd><span className="pill">{displayValue(member.member_type)}</span></dd></div>
-                  <div><dt>ステータス</dt><dd><span className="pill">{displayValue(normalizeMemberStatus(member.status))}</span></dd></div>
-                  <div><dt>入会日</dt><dd>{displayValue(member.join_date)}</dd></div>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Dues status card */}
-        <section className="card detail-card">
-          <div className="card-body stack">
-            <div className="panel-heading">
-              <div><h2>会費状況 {currentFY ? `(${currentFY.year}年度)` : ""}</h2></div>
-            </div>
-            {currentDues.length === 0 ? (
-              <p className="muted">今年度の会費データはありません。</p>
+      {/* Profile card */}
+      <Card padding="var(--space-4)">
+        <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" style={{ display: 'none' }} onChange={handleImageSelect} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div
+            onClick={handleImageClick}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleImageClick(); } }}
+            style={{
+              width: 48, height: 48, borderRadius: 'var(--radius-full)',
+              background: 'var(--color-bg-sub)', border: '2px solid var(--color-border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 18, fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)',
+              cursor: 'pointer', flexShrink: 0, overflow: 'hidden',
+            }}
+          >
+            {(imagePreview || member.profile_image) ? (
+              <img src={imagePreview || member.profile_image} alt={fullName(member)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                {currentDues.map((d) => {
-                  const dueId = d.id || d._id;
-                  const isPaid = d.status === "納入済";
-                  return (
-                    <div key={dueId} style={{
-                      display: "flex", justifyContent: "space-between", alignItems: "center",
-                      flexWrap: "wrap", gap: 8,
-                      padding: "0.75rem 1rem", borderRadius: 8,
-                      background: isPaid ? "#f0fdf4" : "#fef2f2",
-                      border: isPaid ? "1px solid #bbf7d0" : "1px solid #fecaca",
-                    }}>
-                      <div>
-                        <span style={{ fontWeight: 600, fontSize: 14 }}>{d.due_type || "年会費"}</span>
-                        <span style={{ marginLeft: 12, fontSize: 14, color: "var(--color-text-secondary)" }}>
-                          {d.amount != null ? `¥${Number(d.amount).toLocaleString()}` : "-"}
-                        </span>
-                      </div>
-                      <span className="pill" style={{
-                        background: isPaid ? "#dcfce7" : "#fee2e2",
-                        color: isPaid ? "#16a34a" : "#dc2626",
-                        border: isPaid ? "1px solid #86efac" : "1px solid #fca5a5",
-                      }}>
-                        {d.status}
-                      </span>
-                    </div>
-                  );
-                })}
-                {unpaidDues.length > 0 && (
-                  <p style={{ fontSize: 13, color: "#dc2626", marginTop: 4 }}>
-                    未納の会費が{unpaidDues.length}件あります。
-                  </p>
-                )}
-                {unpaidDues.length === 0 && paidDues.length > 0 && (
-                  <p style={{ fontSize: 13, color: "#16a34a", marginTop: 4 }}>
-                    今年度の会費はすべて納入済みです。
-                  </p>
-                )}
-              </div>
+              nameInitial(member)
             )}
           </div>
-        </section>
-
-        {/* Org assignments card */}
-        <section className="card detail-card">
-          <div className="card-body stack">
-            <div className="panel-heading">
-              <div><h2>所属組織 {currentFY ? `(${currentFY.year}年度)` : ""}</h2></div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: 18, fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+              {fullName(member) || '-'}
             </div>
-            {currentAssignments.length === 0 ? (
-              <p className="muted">今年度の組織配属はありません。</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {currentAssignments.map((a) => {
-                  const aId = a.id || a._id;
-                  const org = orgMap[a.organization_id];
-                  return (
-                    <div key={aId} style={{
-                      display: "flex", justifyContent: "space-between", alignItems: "center",
-                      flexWrap: "wrap", gap: 6,
-                      padding: "0.6rem 1rem", borderRadius: 8,
-                      background: "#f8fafc", border: "1px solid var(--color-border)",
-                    }}>
-                      <span style={{ fontWeight: 600, fontSize: 14, minWidth: 0 }}>
-                        {org?.org_name || "不明な組織"}
-                      </span>
-                      <span className="pill" style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe" }}>
-                        {a.role || "メンバー"}
-                      </span>
-                    </div>
-                  );
-                })}
+            {fullNameKana(member) && (
+              <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginTop: 2 }}>
+                {fullNameKana(member)}
               </div>
             )}
-          </div>
-        </section>
-
-        {/* Contact info card */}
-        <section className="card detail-card">
-          <div className="card-body stack">
-            <div className="panel-heading"><div><h2>連絡先</h2></div></div>
-            <dl className="detail-grid">
-              <div><dt>メール</dt><dd>{displayValue(member.email)}</dd></div>
-              <div><dt>携帯番号</dt><dd>{displayValue(member.mobile_phone)}</dd></div>
-              <div><dt>会社名</dt><dd>{displayValue(member.company_name)}</dd></div>
-              <div><dt>役職</dt><dd>{displayValue(member.company_position)}</dd></div>
-            </dl>
-          </div>
-        </section>
-
-        {/* Directory visibility card */}
-        <section className="card detail-card">
-          <div className="card-body stack">
-            <div className="panel-heading"><div><h2>名簿公開設定</h2></div></div>
-            <dl className="detail-grid">
-              <div>
-                <dt>メール公開</dt>
-                <dd><span className={`pill ${member.show_email_in_directory ? "pill-success" : ""}`}>{member.show_email_in_directory ? "公開" : "非公開"}</span></dd>
-              </div>
-              <div>
-                <dt>会社情報公開</dt>
-                <dd><span className={`pill ${member.show_company_in_directory ? "pill-success" : ""}`}>{member.show_company_in_directory ? "公開" : "非公開"}</span></dd>
-              </div>
-              <div>
-                <dt>携帯番号公開</dt>
-                <dd><span className={`pill ${member.show_mobile_in_directory ? "pill-success" : ""}`}>{member.show_mobile_in_directory ? "公開" : "非公開"}</span></dd>
-              </div>
-            </dl>
-          </div>
-        </section>
-      </div>
-
-      {/* Quick links */}
-      <section className="card detail-card" style={{ marginTop: "1.5rem" }}>
-        <div className="card-body stack">
-          <div className="panel-heading"><div><h2>クイックリンク</h2></div></div>
-          <div className="dashboard-metrics">
-            <Link className="metric-card" to="/directory">会員名簿</Link>
-            <Link className="metric-card" to="/organization">組織図</Link>
-            <Link className="metric-card" to="/info">基本情報</Link>
-            <Link className="metric-card" to="/manual">運用マニュアル</Link>
+            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+              {[
+                member.member_type,
+                normalizeMemberStatus(member.status),
+                member.member_number ? `#${member.member_number}` : '',
+              ].filter(Boolean).join(' \u30FB ')}
+            </div>
           </div>
         </div>
-      </section>
+        {imageFile && (
+          <div style={{ display: 'flex', gap: 8, marginTop: 12, paddingLeft: 62 }}>
+            <button
+              type="button"
+              disabled={uploadingImage}
+              onClick={handleImageUpload}
+              style={{
+                fontSize: 12, padding: '4px 12px', borderRadius: 'var(--radius-md)',
+                border: 'none', background: 'var(--color-accent)', color: '#fff',
+                cursor: 'pointer', fontWeight: 'var(--font-weight-semibold)',
+                fontFamily: 'var(--font-family)',
+              }}
+            >
+              {uploadingImage ? "保存中..." : "写真を保存"}
+            </button>
+            <button
+              type="button"
+              disabled={uploadingImage}
+              onClick={() => { setImageFile(null); setImagePreview(null); }}
+              style={{
+                fontSize: 12, padding: '4px 12px', borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)', background: 'var(--color-bg)',
+                color: 'var(--color-text-primary)', cursor: 'pointer',
+                fontFamily: 'var(--font-family)',
+              }}
+            >
+              取消
+            </button>
+          </div>
+        )}
+      </Card>
+
+      {/* 個人情報 */}
+      <Card padding="0" style={{ overflow: 'hidden', marginTop: 'var(--space-4)' }}>
+        <div style={sectionHeaderStyle}>個人情報</div>
+        <InfoRow label="入会日" value={member.join_date} isMobile={isMobile} />
+        <InfoRow label="メール" value={member.email} isMobile={isMobile} />
+        <InfoRow label="携帯番号" value={member.mobile_phone} isMobile={isMobile} isLast />
+      </Card>
+
+      {/* 会社情報 */}
+      <Card padding="0" style={{ overflow: 'hidden', marginTop: 'var(--space-4)' }}>
+        <div style={sectionHeaderStyle}>会社情報</div>
+        <InfoRow label="会社名" value={member.company_name} isMobile={isMobile} />
+        <InfoRow label="役職" value={member.company_position} isMobile={isMobile} isLast />
+      </Card>
+
+      {/* 所属・役職 */}
+      <Card padding="0" style={{ overflow: 'hidden', marginTop: 'var(--space-4)' }}>
+        <div style={sectionHeaderStyle}>所属組織 {currentFY ? `(${currentFY.year}年度)` : ""}</div>
+        {currentAssignments.length === 0 ? (
+          <div style={{ padding: '16px', fontSize: 14, color: 'var(--color-text-tertiary)' }}>
+            今年度の組織配属はありません。
+          </div>
+        ) : (
+          <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {currentAssignments.map((a) => {
+              const aId = a.id || a._id;
+              const org = orgMap[a.organization_id];
+              return (
+                <div key={aId} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  flexWrap: 'wrap', gap: 6,
+                  padding: '10px 12px', borderRadius: 'var(--radius-md)',
+                  background: 'var(--color-bg-sub)', border: '1px solid var(--color-border)',
+                }}>
+                  <span style={{ fontWeight: 'var(--font-weight-semibold)', fontSize: 14, minWidth: 0 }}>
+                    {org?.org_name || "不明な組織"}
+                  </span>
+                  <span style={{
+                    fontSize: 12, padding: '2px 10px', borderRadius: 'var(--radius-full)',
+                    background: 'var(--color-accent-light)', color: 'var(--color-accent)',
+                    fontWeight: 'var(--font-weight-medium)',
+                  }}>
+                    {a.role || "メンバー"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+
+      {/* 会費状況 */}
+      <Card padding="0" style={{ overflow: 'hidden', marginTop: 'var(--space-4)' }}>
+        <div style={sectionHeaderStyle}>会費状況 {currentFY ? `(${currentFY.year}年度)` : ""}</div>
+        {currentDues.length === 0 ? (
+          <div style={{ padding: '16px', fontSize: 14, color: 'var(--color-text-tertiary)' }}>
+            今年度の会費データはありません。
+          </div>
+        ) : (
+          <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {currentDues.map((d) => {
+              const dueId = d.id || d._id;
+              const isPaid = d.status === "納入済";
+              return (
+                <div key={dueId} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  flexWrap: 'wrap', gap: 8,
+                  padding: '10px 12px', borderRadius: 'var(--radius-md)',
+                  background: isPaid ? 'var(--color-success-light)' : 'var(--color-danger-light)',
+                  border: isPaid ? '1px solid #bbf7d0' : '1px solid #fecaca',
+                }}>
+                  <div>
+                    <span style={{ fontWeight: 'var(--font-weight-semibold)', fontSize: 14 }}>{d.due_type || "年会費"}</span>
+                    <span style={{ marginLeft: 12, fontSize: 14, color: 'var(--color-text-secondary)' }}>
+                      {d.amount != null ? `¥${Number(d.amount).toLocaleString()}` : "-"}
+                    </span>
+                  </div>
+                  <span style={{
+                    fontSize: 12, padding: '2px 10px', borderRadius: 'var(--radius-full)',
+                    background: isPaid ? '#dcfce7' : '#fee2e2',
+                    color: isPaid ? 'var(--color-success)' : 'var(--color-danger)',
+                    fontWeight: 'var(--font-weight-medium)',
+                  }}>
+                    {d.status}
+                  </span>
+                </div>
+              );
+            })}
+            {unpaidDues.length > 0 && (
+              <p style={{ fontSize: 13, color: 'var(--color-danger)', margin: '4px 0 0' }}>
+                未納の会費が{unpaidDues.length}件あります。
+              </p>
+            )}
+            {unpaidDues.length === 0 && paidDues.length > 0 && (
+              <p style={{ fontSize: 13, color: 'var(--color-success)', margin: '4px 0 0' }}>
+                今年度の会費はすべて納入済みです。
+              </p>
+            )}
+          </div>
+        )}
+      </Card>
+
+      {/* 名簿公開設定 */}
+      <Card padding="0" style={{ overflow: 'hidden', marginTop: 'var(--space-4)' }}>
+        <div style={sectionHeaderStyle}>名簿公開設定</div>
+        <InfoRow label="メール" value={member.show_email_in_directory ? "公開" : "非公開"} isMobile={isMobile} />
+        <InfoRow label="会社情報" value={member.show_company_in_directory ? "公開" : "非公開"} isMobile={isMobile} />
+        <InfoRow label="携帯番号" value={member.show_mobile_in_directory ? "公開" : "非公開"} isMobile={isMobile} isLast />
+      </Card>
+
+      {/* クイックリンク */}
+      <Card padding="0" style={{ overflow: 'hidden', marginTop: 'var(--space-4)' }}>
+        <div style={sectionHeaderStyle}>クイックリンク</div>
+        <div style={{ padding: 12, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+          {[
+            { to: '/directory', label: '会員名簿' },
+            { to: '/organization', label: '組織図' },
+            { to: '/info', label: '基本情報' },
+            { to: '/manual', label: '運用マニュアル' },
+          ].map(link => (
+            <Link
+              key={link.to}
+              to={link.to}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '12px', borderRadius: 'var(--radius-md)',
+                background: 'var(--color-bg-sub)', border: '1px solid var(--color-border)',
+                fontSize: 13, fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)',
+                textDecoration: 'none', transition: 'all var(--transition-fast)',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.color = 'var(--color-accent)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </Card>
     </section>
   );
 }
