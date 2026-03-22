@@ -156,7 +156,7 @@ export default function Manual() {
               }}>
                 目次
               </div>
-              {allSections.map((section, idx) => (
+              {allSections.map((section) => (
                 <div
                   key={section.key}
                   onClick={() => scrollToSection(section.key)}
@@ -169,7 +169,7 @@ export default function Manual() {
                   onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; }}
                   onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none'; }}
                 >
-                  {idx + 1}. {section.title}
+                  {section.title}
                 </div>
               ))}
             </Card>
@@ -177,7 +177,7 @@ export default function Manual() {
 
           {/* Sections */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-            {allSections.map((section, idx) => {
+            {allSections.map((section) => {
               const isOpen = !!openSections[section.key];
               return (
                 <Card key={section.key} padding="0" style={{ overflow: 'hidden' }}>
@@ -202,10 +202,7 @@ export default function Manual() {
                       textAlign: 'left',
                     }}
                   >
-                    <span>
-                      <span style={{ color: 'var(--color-accent)' }}>{idx + 1}.</span>
-                      {' '}{section.title}
-                    </span>
+                    <span>{section.title}</span>
                     <ChevronDown
                       size={18}
                       style={{
