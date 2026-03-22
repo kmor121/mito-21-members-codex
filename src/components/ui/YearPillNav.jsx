@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function YearPillNav({ fiscalYears, activeFyId, currentFyId, onChange }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const isMobile = useIsMobile();
 
   const sorted = useMemo(() =>
     [...(fiscalYears || [])].sort((a, b) => (a.year || 0) - (b.year || 0)),
@@ -30,8 +32,8 @@ export default function YearPillNav({ fiscalYears, activeFyId, currentFyId, onCh
   if (sorted.length === 1) {
     return (
       <span style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6,
-        fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)',
+        display: 'inline-flex', alignItems: 'center', gap: isMobile ? 4 : 6,
+        fontSize: isMobile ? 12 : 13, fontWeight: 600, color: 'var(--color-text-secondary)',
       }}>
         {label}
         {activeFyId === currentFyId && (
@@ -47,12 +49,12 @@ export default function YearPillNav({ fiscalYears, activeFyId, currentFyId, onCh
         type="button"
         onClick={() => setOpen(!open)}
         style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-          padding: '6px 12px',
+          display: 'inline-flex', alignItems: 'center', gap: isMobile ? 4 : 6,
+          padding: isMobile ? '4px 10px' : '6px 12px',
           background: open ? 'var(--color-bg-sub)' : 'transparent',
           border: '1px solid var(--color-border)',
           borderRadius: 'var(--radius-md)',
-          fontSize: 13, fontWeight: 600,
+          fontSize: isMobile ? 12 : 13, fontWeight: 600,
           color: 'var(--color-text-primary)',
           cursor: 'pointer',
           transition: 'all 0.15s ease',
@@ -92,7 +94,7 @@ export default function YearPillNav({ fiscalYears, activeFyId, currentFyId, onCh
                 onClick={() => { onChange(fy.id); setOpen(false); }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
-                  width: '100%', padding: '10px 14px',
+                  width: '100%', padding: isMobile ? '8px 12px' : '10px 14px',
                   border: 'none', background: isActive ? 'var(--color-accent-light)' : 'transparent',
                   fontSize: 13, fontWeight: isActive ? 600 : 400,
                   color: isActive ? 'var(--color-accent)' : 'var(--color-text-primary)',

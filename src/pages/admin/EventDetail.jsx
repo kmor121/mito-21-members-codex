@@ -507,33 +507,63 @@ export default function EventDetail() {
             </p>
           )}
         </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', width: isMobile ? '100%' : 'auto', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flexShrink: 0 }}>
           {(canEdit || canEditPartial) && !isEditing && (
-            <Button variant="secondary" size={isMobile ? "sm" : "md"} onClick={startEdit}
-              style={isMobile ? { flex: 1 } : {}}>編集</Button>
+            <Button variant="secondary" size={isMobile ? "sm" : "md"} onClick={startEdit}>編集</Button>
           )}
           {transitions.map(t => (
             <Button key={t.to} variant={t.secondary ? 'secondary' : 'primary'} size={isMobile ? "sm" : "md"} disabled={saving}
-              onClick={() => requestStatusChange(t.to, t.msg, t.label)}
-              style={isMobile ? { flex: 1 } : {}}>
+              onClick={() => requestStatusChange(t.to, t.msg, t.label)}>
               {t.label}
             </Button>
           ))}
           {status === 'draft' && (
-            <Button variant="danger" size={isMobile ? "sm" : "md"} disabled={saving} onClick={requestDelete}>削除</Button>
+            <button type="button" disabled={saving} onClick={requestDelete}
+              style={{
+                background: 'none',
+                border: '1px solid var(--color-danger)',
+                color: 'var(--color-danger)',
+                fontSize: 13,
+                padding: isMobile ? '4px 10px' : '8px 16px',
+                borderRadius: 'var(--radius-md)',
+                cursor: saving ? 'not-allowed' : 'pointer',
+                opacity: saving ? 0.5 : 1,
+                fontWeight: 'var(--font-weight-semibold)',
+                fontFamily: 'var(--font-family)',
+                transition: 'all var(--transition-fast)',
+                whiteSpace: 'nowrap',
+              }}>削除</button>
           )}
         </div>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: isMobile ? 12 : 20, alignItems: 'center', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        {[{ key: 'overview', label: '概要' }, { key: 'attendance', label: `出欠状況（${attendances.length}/${targetMembers.length}）` }].map(tab => (
-          <button key={tab.key} type="button" onClick={() => { setActiveTab(tab.key); setIsEditing(false); }}
-            className={`nl2-pill-tab${activeTab === tab.key ? ' active' : ''}`}
-            style={{ ...(isMobile ? { fontSize: 12, padding: '5px 10px' } : {}), whiteSpace: 'nowrap', flexShrink: 0 }}>
-            {tab.label}
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: 0, marginBottom: isMobile ? 12 : 20, borderBottom: '1px solid var(--color-border)', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {[{ key: 'overview', label: '概要' }, { key: 'attendance', label: `出欠状況（${attendances.length}/${targetMembers.length}）` }].map(tab => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button key={tab.key} type="button" onClick={() => { setActiveTab(tab.key); setIsEditing(false); }}
+              style={{
+                padding: isMobile ? '8px 12px' : '10px 16px',
+                fontSize: 14,
+                fontWeight: isActive ? 'var(--font-weight-semibold)' : 'var(--font-weight-medium)',
+                color: isActive ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+                background: 'none',
+                border: 'none',
+                borderBottom: isActive ? '2px solid var(--color-accent)' : '2px solid transparent',
+                borderRadius: 0,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                transition: 'color var(--transition-fast), border-color var(--transition-fast)',
+              }}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
+              onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = 'var(--color-text-tertiary)'; }}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Overview Tab ── */}
@@ -542,75 +572,102 @@ export default function EventDetail() {
           <div className="card-body stack">
             {isEditing ? (
               /* Edit form */
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                {/* Section: 基本情報 */}
                 {canEdit && (
                   <>
-                    <div><label className="evtd-label">イベント名</label><input className="evtd-input" value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} /></div>
-                    <div><label className="evtd-label">イベント種別</label>
-                      <div ref={typeDdRef} style={{ position: 'relative' }}>
-                        <button type="button" onClick={() => setShowTypeDd(v => !v)}
-                          className={`dp-trigger${showTypeDd ? ' dp-trigger--open' : ''}`} style={{ height: 38 }}>
-                          <span className="dp-trigger-text">{editForm.event_type}</span>
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, color: 'var(--color-text-tertiary)', transition: 'transform 0.15s', transform: showTypeDd ? 'rotate(180deg)' : 'none' }}>
-                            <path d="M3 5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                          </svg>
-                        </button>
-                        {showTypeDd && (
-                          <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 100, background: '#fff', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', overflow: 'hidden', animation: 'yearDropIn 0.12s ease' }}>
-                            {["例会","セミナー","総会","懇親会","その他"].map(t => {
-                              const act = editForm.event_type === t;
-                              return (
-                                <button key={t} type="button" onClick={() => { setEditForm(f => ({ ...f, event_type: t })); setShowTypeDd(false); }}
-                                  style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 14px', border: 'none', background: act ? 'var(--color-accent-light)' : 'transparent', color: act ? 'var(--color-accent)' : 'var(--color-text-primary)', fontSize: 13, fontWeight: act ? 600 : 400, textAlign: 'left', cursor: 'pointer', transition: 'background 0.1s' }}
-                                  onMouseEnter={e => { if (!act) e.currentTarget.style.background = 'var(--color-bg-sub)'; }}
-                                  onMouseLeave={e => { e.currentTarget.style.background = act ? 'var(--color-accent-light)' : 'transparent'; }}>
-                                  <span style={{ flex: 1 }}>{t}</span>
-                                  {act ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span style={{ width: 14 }} />}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
+                    <div style={{ fontSize: 13, fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-3)' }}>基本情報</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      <div><label className="evtd-label">イベント名</label><input className="evtd-input" value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} /></div>
+                      <div><label className="evtd-label">イベント種別</label>
+                        <div ref={typeDdRef} style={{ position: 'relative' }}>
+                          <button type="button" onClick={() => setShowTypeDd(v => !v)}
+                            className={`dp-trigger${showTypeDd ? ' dp-trigger--open' : ''}`} style={{ height: 38 }}>
+                            <span className="dp-trigger-text">{editForm.event_type}</span>
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, color: 'var(--color-text-tertiary)', transition: 'transform 0.15s', transform: showTypeDd ? 'rotate(180deg)' : 'none' }}>
+                              <path d="M3 5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                            </svg>
+                          </button>
+                          {showTypeDd && (
+                            <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 100, background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', overflow: 'hidden', animation: 'yearDropIn 0.12s ease' }}>
+                              {["例会","セミナー","総会","懇親会","その他"].map(t => {
+                                const act = editForm.event_type === t;
+                                return (
+                                  <button key={t} type="button" onClick={() => { setEditForm(f => ({ ...f, event_type: t })); setShowTypeDd(false); }}
+                                    style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 14px', border: 'none', background: act ? 'var(--color-accent-light)' : 'transparent', color: act ? 'var(--color-accent)' : 'var(--color-text-primary)', fontSize: 13, fontWeight: act ? 600 : 400, textAlign: 'left', cursor: 'pointer', transition: 'background 0.1s' }}
+                                    onMouseEnter={e => { if (!act) e.currentTarget.style.background = 'var(--color-bg-sub)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = act ? 'var(--color-accent-light)' : 'transparent'; }}>
+                                    <span style={{ flex: 1 }}>{t}</span>
+                                    {act ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 4" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span style={{ width: 14 }} />}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div><label className="evtd-label">開催日</label><DatePicker value={editForm.event_date} onChange={v => setEditForm(f => ({ ...f, event_date: v }))} /></div>
                   </>
                 )}
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
-                  <div><label className="evtd-label">開始時刻</label><TimeSelect value={editForm.start_time} onChange={v => setEditForm(f => ({ ...f, start_time: v }))} /></div>
-                  <div><label className="evtd-label">終了時刻</label><TimeSelect value={editForm.end_time} onChange={v => setEditForm(f => ({ ...f, end_time: v }))} /></div>
-                </div>
-                <div><label className="evtd-label">開催場所</label><input className="evtd-input" value={editForm.location} onChange={e => setEditForm(f => ({ ...f, location: e.target.value }))} /></div>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
-                  <div><label className="evtd-label">定員</label><input className="evtd-input" type="number" min="0" value={editForm.capacity} onChange={e => setEditForm(f => ({ ...f, capacity: e.target.value }))} /></div>
-                  <div><label className="evtd-label">参加費</label><input className="evtd-input" type="number" min="0" value={editForm.fee} onChange={e => setEditForm(f => ({ ...f, fee: e.target.value }))} /></div>
-                </div>
-                <div><label className="evtd-label">出欠回答期限</label><DatePicker value={editForm.rsvp_deadline} onChange={v => setEditForm(f => ({ ...f, rsvp_deadline: v }))} /></div>
-                <div>
-                  <label className="evtd-label">イベント説明</label>
-                  <Suspense fallback={<div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><LoadingSpinner /></div>}>
-                    <div className="doc-ed-editor-wrap">
-                      <RichTextEditor content={editForm.description} onChange={v => setEditForm(f => ({ ...f, description: v }))} placeholder="イベントの説明を入力..." />
+
+                {/* Section: 日時・場所 */}
+                <div style={{ marginTop: 'var(--space-6)' }}>
+                  <div style={{ fontSize: 13, fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-3)' }}>日時・場所</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {canEdit && (
+                      <div><label className="evtd-label">開催日</label><DatePicker value={editForm.event_date} onChange={v => setEditForm(f => ({ ...f, event_date: v }))} /></div>
+                    )}
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+                      <div><label className="evtd-label">開始時刻</label><TimeSelect value={editForm.start_time} onChange={v => setEditForm(f => ({ ...f, start_time: v }))} /></div>
+                      <div><label className="evtd-label">終了時刻</label><TimeSelect value={editForm.end_time} onChange={v => setEditForm(f => ({ ...f, end_time: v }))} /></div>
                     </div>
-                  </Suspense>
+                    <div><label className="evtd-label">開催場所</label><input className="evtd-input" value={editForm.location} onChange={e => setEditForm(f => ({ ...f, location: e.target.value }))} /></div>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+
+                {/* Section: 詳細 */}
+                <div style={{ marginTop: 'var(--space-6)' }}>
+                  <div style={{ fontSize: 13, fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-3)' }}>詳細</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+                      <div><label className="evtd-label">参加費</label><input className="evtd-input" type="number" min="0" value={editForm.fee} onChange={e => setEditForm(f => ({ ...f, fee: e.target.value }))} /></div>
+                      <div><label className="evtd-label">定員</label><input className="evtd-input" type="number" min="0" value={editForm.capacity} onChange={e => setEditForm(f => ({ ...f, capacity: e.target.value }))} /></div>
+                    </div>
+                    <div>
+                      <label className="evtd-label">イベント説明</label>
+                      <Suspense fallback={<div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><LoadingSpinner /></div>}>
+                        <div className="evtd-editor-wrap">
+                          <RichTextEditor content={editForm.description} onChange={v => setEditForm(f => ({ ...f, description: v }))} placeholder="イベントの説明を入力..." />
+                        </div>
+                      </Suspense>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section: 出欠設定 */}
+                <div style={{ marginTop: 'var(--space-6)' }}>
+                  <div style={{ fontSize: 13, fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-3)' }}>出欠設定</div>
+                  <div><label className="evtd-label">出欠回答期限</label><DatePicker value={editForm.rsvp_deadline} onChange={v => setEditForm(f => ({ ...f, rsvp_deadline: v }))} /></div>
+                </div>
+
+                {/* Save/Cancel buttons */}
+                <div style={{ display: 'flex', justifyContent: isMobile ? 'center' : 'flex-end', gap: 'var(--space-2)', marginTop: 'var(--space-6)' }}>
                   <Button variant="secondary" onClick={() => setIsEditing(false)}>キャンセル</Button>
                   <Button variant="primary" disabled={saving} onClick={saveEdit}>{saving ? '保存中...' : '保存'}</Button>
                 </div>
               </div>
             ) : (
               /* View mode */
-              <dl className="evtd-info-grid">
-                <div><dt>開催日</dt><dd>{formatDateFull(event.event_date)}</dd></div>
-                <div><dt>時間</dt><dd>{event.start_time || '-'}{event.end_time ? `〜${event.end_time}` : ''}</dd></div>
-                <div><dt>場所</dt><dd>{event.location || '-'}</dd></div>
-                <div><dt>参加費</dt><dd>{event.fee > 0 ? `¥${Number(event.fee).toLocaleString()}` : '無料'}</dd></div>
-                <div><dt>定員</dt><dd>{event.capacity > 0 ? `${event.capacity}名` : '制限なし'}</dd></div>
-                <div><dt>出欠回答期限</dt><dd>{event.rsvp_deadline ? formatDateFull(event.rsvp_deadline) : '未設定'}</dd></div>
-                <div><dt>対象会員</dt><dd>{event.target_member_types?.length > 0 ? event.target_member_types.join('、') : '全員'}</dd></div>
-                <div><dt>回答選択肢</dt><dd style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>{responseOptions.map(o => <span key={o} className="pill" style={{ fontSize: 12 }}>{o}</span>)}</dd></div>
-              </dl>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+                <div><div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>開催日</div><div style={{ fontSize: 14, color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>{formatDateFull(event.event_date)}</div></div>
+                <div><div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>時間</div><div style={{ fontSize: 14, color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>{event.start_time || '-'}{event.end_time ? `〜${event.end_time}` : ''}</div></div>
+                <div><div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>場所</div><div style={{ fontSize: 14, color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>{event.location || '-'}</div></div>
+                <div><div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>参加費</div><div style={{ fontSize: 14, color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>{event.fee > 0 ? `¥${Number(event.fee).toLocaleString()}` : '無料'}</div></div>
+                <div><div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>定員</div><div style={{ fontSize: 14, color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>{event.capacity > 0 ? `${event.capacity}名` : '制限なし'}</div></div>
+                <div><div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>出欠回答期限</div><div style={{ fontSize: 14, color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>{event.rsvp_deadline ? formatDateFull(event.rsvp_deadline) : '未設定'}</div></div>
+                <div><div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>対象会員</div><div style={{ fontSize: 14, color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>{event.target_member_types?.length > 0 ? event.target_member_types.join('、') : '全員'}</div></div>
+                <div><div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginBottom: 2 }}>回答選択肢</div><div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>{responseOptions.map(o => <span key={o} className="pill" style={{ fontSize: 12 }}>{o}</span>)}</div></div>
+              </div>
             )}
             {!isEditing && event.description && (
               <div style={{ marginTop: 16, padding: 16, background: 'var(--color-bg-sub)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
@@ -1066,25 +1123,24 @@ export default function EventDetail() {
 
       {/* ── Scoped styles ── */}
       <style>{`
-        .evtd-label { display: block; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 6px; }
+        .evtd-label { display: block; font-size: 13px; font-weight: var(--font-weight-medium); color: var(--color-text-secondary); margin-bottom: 6px; }
         .evtd-input {
-          width: 100%; box-sizing: border-box; height: 38px; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);
-          border: 1px solid var(--color-border); background: var(--color-bg); font-size: 0.875rem; color: var(--color-text-primary);
+          width: 100%; box-sizing: border-box; height: 38px; padding: 8px 12px; border-radius: var(--radius-md);
+          border: 1px solid var(--color-border); background: var(--color-bg); font-size: 14px; color: var(--color-text-primary);
           font-family: inherit; line-height: 1.5;
           outline: none; transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
-        .evtd-input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
-        .evtd-info-grid {
-          display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 12px; margin: 0;
+        .evtd-input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        .evtd-editor-wrap {
+          border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden;
+          transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
-        .evtd-info-grid div { display: flex; flex-direction: column; gap: 2px; }
-        .evtd-info-grid dt { font-size: 12px; font-weight: 600; color: var(--color-text-secondary); }
-        .evtd-info-grid dd { font-size: 14px; color: var(--color-text-primary); margin: 0; }
+        .evtd-editor-wrap:focus-within { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        .evtd-editor-wrap .tiptap-toolbar { border-bottom: 1px solid var(--color-border); }
         @media (max-width: 768px) {
-          .evtd-info-grid { grid-template-columns: 1fr 1fr; }
           .evtd-input { font-size: 16px !important; padding: 10px 12px !important; height: auto !important; }
           .evtd-label { font-size: 14px !important; margin-bottom: 8px !important; }
+          .evtd-editor-wrap .tiptap-toolbar button { width: 28px; height: 28px; font-size: 12px; }
         }
       `}</style>
     </section>

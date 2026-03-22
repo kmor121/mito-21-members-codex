@@ -1010,13 +1010,30 @@ export default function MeetingDetail() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 6, marginBottom: isMobile ? 12 : 20, alignItems: "center", flexWrap: "wrap" }}>
-        {tabs.map((tab) => (
-          <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key)}
-            className={`nl2-pill-tab${activeTab === tab.key ? " active" : ""}`}
-            style={isMobile ? { fontSize: 12, padding: "5px 10px" } : {}}
-          >{tab.label}</button>
-        ))}
+      <div style={{ display: "flex", gap: 0, marginBottom: isMobile ? 12 : 20, borderBottom: "1px solid var(--color-border)", flexWrap: "wrap" }}>
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: isMobile ? "8px 12px" : "10px 16px",
+                fontSize: 14,
+                fontWeight: isActive ? "var(--font-weight-semibold)" : "var(--font-weight-medium)",
+                color: isActive ? "var(--color-accent)" : "var(--color-text-tertiary)",
+                background: "none",
+                border: "none",
+                borderBottom: isActive ? "2px solid var(--color-accent)" : "2px solid transparent",
+                borderRadius: 0,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+                transition: "color var(--transition-fast), border-color var(--transition-fast)",
+              }}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "var(--color-text-secondary)"; }}
+              onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "var(--color-text-tertiary)"; }}
+            >{tab.label}</button>
+          );
+        })}
         {activeTab === "agenda" && (
           <div style={{ marginLeft: isMobile ? 0 : "auto", display: "flex", gap: 6, width: isMobile ? "100%" : "auto", marginTop: isMobile ? 4 : 0 }}>
             <Button variant="secondary" onClick={() => {

@@ -360,7 +360,16 @@ export default function Meetings() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
                     {m.status === '下書き' && (
-                      <Button variant="danger" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(m.id); }}>削除</Button>
+                      <button type="button" onClick={(e) => { e.stopPropagation(); handleDelete(m.id); }}
+                        style={{
+                          border: 'none', background: 'none', color: 'var(--color-danger)',
+                          fontSize: 12, padding: '4px 8px', cursor: 'pointer', opacity: 0.7,
+                          fontWeight: 'var(--font-weight-medium)', fontFamily: 'var(--font-family)',
+                          transition: 'opacity var(--transition-fast)',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
+                        onMouseLeave={e => { e.currentTarget.style.opacity = '0.7'; }}
+                      >削除</button>
                     )}
                   </div>
                 </div>
