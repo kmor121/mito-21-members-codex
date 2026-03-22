@@ -357,15 +357,10 @@ export default function Directory() {
                 color: isActive ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
                 fontWeight: isActive ? 'var(--font-weight-semibold)' : 'var(--font-weight-medium)',
                 transition: 'color var(--transition-fast), border-color var(--transition-fast)',
-                display: 'flex', alignItems: 'center', gap: 4,
+                display: 'inline-flex', alignItems: 'baseline',
               }}
             >
-              {chip}
-              <span style={{
-                fontSize: 11, fontWeight: 600, borderRadius: 'var(--radius-full)', padding: '1px 6px',
-                background: isActive ? 'var(--color-accent)' : 'var(--color-bg-sub)',
-                color: isActive ? '#fff' : 'var(--color-text-tertiary)',
-              }}>{count}</span>
+              {chip}{count > 0 && <span style={{ fontSize: 12, marginLeft: 3, fontWeight: 'var(--font-weight-normal)' }}>{count}</span>}
             </button>
           );
         })}
