@@ -53,7 +53,15 @@
       "Bash(git add:*)",
       "Bash(git push:*)",
       "Bash(git stash:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(powershell.exe -Command \"base44 deploy\" 2>&1)",
+      "Bash(powershell.exe -Command \"& base44 deploy 2>&1 | Out-String\" 2>&1)",
+      "Bash(powershell.exe -Command \"try { base44 deploy } catch { Write-Output $_.Exception.Message }\" 2>&1)",
+      "Read(//c/Users/松本圭一郎/AppData/Roaming/npm/**)",
+      "Bash(cmd.exe /c \"C:\\\\Users\\\\松本圭一郎\\\\AppData\\\\Roaming\\\\npm\\\\base44.cmd deploy\" 2>&1)",
+      "Bash(cmd.exe /c \"C:\\\\Users\\\\松本圭一郎\\\\AppData\\\\Roaming\\\\npm\\\\base44.cmd deploy 2>&1 && echo DEPLOY_SUCCESS || echo DEPLOY_FAILED\")",
+      "Bash(npx:*)",
+      "Bash(node:*)"
     ]
   }
 }
