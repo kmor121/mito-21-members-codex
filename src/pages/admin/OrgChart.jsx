@@ -850,11 +850,18 @@ export default function OrgChart() {
 
       {/* ── Page header ── */}
       {isMobile ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0 12px' }}>
-          <h1 className="page-title" style={{ margin: 0 }}>組織図管理</h1>
-          <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ padding: '0 0 12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h1 className="page-title" style={{ margin: 0, fontSize: 18, whiteSpace: 'nowrap', flex: 'none' }}>組織図管理</h1>
+            <div style={{ flex: 1 }} />
+            <YearPillNav
+              fiscalYears={fiscalYears}
+              activeFyId={activeFiscalYearId}
+              currentFyId={fiscalYears.find(fy => fy.is_current)?.id || ""}
+              onChange={(id) => setSearchParams({ fiscalYearId: id })}
+            />
             <Button variant="secondary" onClick={() => setShowCopyModal(true)}
-              style={{ width: 36, height: 36, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+              style={{ width: 36, height: 36, padding: 0, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="5" y="5" width="9" height="9" rx="1.5"/>
@@ -862,7 +869,7 @@ export default function OrgChart() {
               </svg>
             </Button>
             <Button variant="primary" onClick={openNewOrg}
-              style={{ width: 36, height: 36, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+              style={{ width: 36, height: 36, padding: 0, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M8 3v10M3 8h10"/>
@@ -897,10 +904,10 @@ export default function OrgChart() {
         />
       )}
 
-      {/* ── Year navigator ── */}
+      {/* ── Year navigator (PC only — mobile is in header row) ── */}
       <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        gap: 12, marginBottom: isMobile ? 16 : 20,
+        display: isMobile ? "none" : "flex", alignItems: "center", justifyContent: "space-between",
+        gap: 12, marginBottom: 20,
         flexWrap: "wrap",
       }}>
         <YearPillNav
