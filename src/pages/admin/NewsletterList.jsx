@@ -99,7 +99,7 @@ function DeleteConfirmModal({ label, onConfirm, onCancel }) {
       <div
         style={{
           position: "relative", zIndex: 1, width: "100%", maxWidth: 420,
-          background: "#fff", borderRadius: 16,
+          background: "var(--color-bg)", borderRadius: 16,
           boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
           animation: "nlModalScale 0.2s ease",
         }}
@@ -109,7 +109,7 @@ function DeleteConfirmModal({ label, onConfirm, onCancel }) {
           <h3 style={{ margin: "0 0 8px", fontSize: 17, fontWeight: 700, color: "var(--color-text-primary)" }}>
             {label}を削除しますか？
           </h3>
-          <p style={{ margin: 0, fontSize: 14, color: "#dc2626", fontWeight: 500 }}>
+          <p style={{ margin: 0, fontSize: 14, color: "var(--color-danger)", fontWeight: 500 }}>
             削除すると元に戻せません。
           </p>
         </div>
@@ -122,7 +122,7 @@ function DeleteConfirmModal({ label, onConfirm, onCancel }) {
             style={{
               padding: "9px 20px", borderRadius: 8,
               border: "1px solid var(--line, var(--color-border))",
-              background: "#fff", color: "var(--color-text-primary)",
+              background: "var(--color-bg)", color: "var(--color-text-primary)",
               fontSize: 14, fontWeight: 600, cursor: "pointer",
             }}
           >
@@ -132,7 +132,7 @@ function DeleteConfirmModal({ label, onConfirm, onCancel }) {
             onClick={onConfirm}
             style={{
               padding: "9px 20px", borderRadius: 8, border: "none",
-              background: "#dc2626", color: "#fff",
+              background: "var(--color-danger)", color: "#fff",
               fontSize: 14, fontWeight: 600, cursor: "pointer",
             }}
           >
@@ -152,9 +152,9 @@ function statusLabel(s) {
 function statusColor(s) {
   return {
     draft: { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)" },
-    scheduled: { bg: "#fffbeb", text: "#92400e" },
-    sent: { bg: "#ecfdf5", text: "#065f46" },
-    failed: { bg: "#fef2f2", text: "#991b1b" },
+    scheduled: { bg: "var(--color-warning-light)", text: "#92400e" },
+    sent: { bg: "var(--color-success-light)", text: "#065f46" },
+    failed: { bg: "var(--color-danger-light)", text: "#991b1b" },
   }[s] || { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)" };
 }
 
@@ -299,7 +299,7 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
         style={{
           position: "relative", zIndex: 1,
           width: "100%", maxWidth: 600,
-          background: "#fff",
+          background: "var(--color-bg)",
           borderRadius: 16,
           boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
           maxHeight: "90vh", overflow: "hidden",
@@ -337,7 +337,7 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
         <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
           {/* Info Card */}
           <div style={{
-            background: "var(--bg, #f8fafc)", borderRadius: 12,
+            background: "var(--bg, var(--color-bg-sub))", borderRadius: 12,
             padding: 20, marginBottom: 20,
           }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 24px" }}>
@@ -370,7 +370,7 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
               </div>
             </div>
             {newsletter.error_message && (
-              <div style={{ marginTop: 16, padding: "10px 14px", borderRadius: 8, background: "#fef2f2", color: "#991b1b", fontSize: 13 }}>
+              <div style={{ marginTop: 16, padding: "10px 14px", borderRadius: 8, background: "var(--color-danger-light)", color: "#991b1b", fontSize: 13 }}>
                 {newsletter.error_message}
               </div>
             )}
@@ -383,7 +383,7 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
               border: "1px solid var(--line, var(--color-border))", borderRadius: 10,
               padding: 16, maxHeight: 300, overflowY: "auto",
               fontSize: 14, lineHeight: 1.7, color: "var(--color-text-primary)",
-              background: "#fff",
+              background: "var(--color-bg)",
             }}>
               {newsletter.body_html ? (
                 <div dangerouslySetInnerHTML={{ __html: newsletter.body_html }} />
@@ -402,7 +402,7 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
                   <div key={i} style={{
                     display: "flex", alignItems: "center", gap: 8,
                     padding: "8px 12px", borderRadius: 8,
-                    background: "var(--bg, #f8fafc)", fontSize: 13,
+                    background: "var(--bg, var(--color-bg-sub))", fontSize: 13,
                   }}>
                     <ClipIcon />
                     <span style={{ fontWeight: 500 }}>{att.filename}</span>
@@ -459,14 +459,14 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
         <div style={{
           display: "flex", justifyContent: "flex-end", gap: 10,
           padding: "16px 24px", borderTop: "1px solid var(--line, var(--color-border))",
-          background: "var(--bg, #f8fafc)", borderRadius: "0 0 16px 16px",
+          background: "var(--bg, var(--color-bg-sub))", borderRadius: "0 0 16px 16px",
         }}>
           <button
             onClick={() => onResend(newsletter)}
             style={{
               padding: "9px 20px", borderRadius: 8,
               border: "1px solid var(--color-accent)",
-              background: "#fff", color: "var(--color-accent)",
+              background: "var(--color-bg)", color: "var(--color-accent)",
               fontSize: 14, fontWeight: 600, cursor: "pointer",
             }}
           >
@@ -664,7 +664,7 @@ export default function NewsletterList() {
                 width: 80,
                 height: 34,
                 borderRadius: 999,
-                background: "var(--line, #e5e7eb)",
+                background: "var(--line, var(--color-border))",
                 opacity: 0.5,
               }}
             />
@@ -673,14 +673,14 @@ export default function NewsletterList() {
         <div style={{
           height: 44,
           borderRadius: 8,
-          background: "var(--line, #e5e7eb)",
+          background: "var(--line, var(--color-border))",
           opacity: 0.4,
           marginBottom: 16,
         }} />
         <div style={{
           height: 200,
           borderRadius: 8,
-          background: "var(--line, #e5e7eb)",
+          background: "var(--line, var(--color-border))",
           opacity: 0.3,
         }} />
         <div style={{ marginTop: 32, display: "flex", justifyContent: "center" }}>
@@ -725,7 +725,7 @@ export default function NewsletterList() {
         <div
           className="nl2-toast"
           style={{
-            background: toast.type === "error" ? "#fef2f2" : "#ecfdf5",
+            background: toast.type === "error" ? "var(--color-danger-light)" : "var(--color-success-light)",
             color: toast.type === "error" ? "#991b1b" : "#065f46",
           }}
         >
@@ -785,7 +785,7 @@ export default function NewsletterList() {
           {/* Summary Cards */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>
             <div style={{
-              background: "#fff", borderRadius: 12, padding: "20px 24px",
+              background: "var(--color-bg)", borderRadius: 12, padding: "20px 24px",
               border: "1px solid var(--line, var(--color-border))",
               boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
             }}>
@@ -795,7 +795,7 @@ export default function NewsletterList() {
               </div>
             </div>
             <div style={{
-              background: "#fff", borderRadius: 12, padding: "20px 24px",
+              background: "var(--color-bg)", borderRadius: 12, padding: "20px 24px",
               border: "1px solid var(--line, var(--color-border))",
               boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
             }}>
@@ -805,7 +805,7 @@ export default function NewsletterList() {
               </div>
             </div>
             <div style={{
-              background: "#fff", borderRadius: 12, padding: "20px 24px",
+              background: "var(--color-bg)", borderRadius: 12, padding: "20px 24px",
               border: "1px solid var(--line, var(--color-border))",
               boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
             }}>
@@ -843,7 +843,7 @@ export default function NewsletterList() {
                 style={{
                   width: "100%", padding: "10px 12px 10px 38px",
                   border: "1px solid var(--line, var(--color-border))", borderRadius: 8,
-                  fontSize: 14, outline: "none", background: "var(--bg, #fff)",
+                  fontSize: 14, outline: "none", background: "var(--bg, var(--color-bg))",
                   color: "var(--color-text-primary)", boxSizing: "border-box",
                 }}
               />
@@ -858,7 +858,7 @@ export default function NewsletterList() {
                   style={{
                     padding: "6px 14px", border: "none", borderRadius: 6,
                     fontSize: 13, fontWeight: 500, cursor: "pointer",
-                    background: historyPeriod === pf.key ? "#fff" : "transparent",
+                    background: historyPeriod === pf.key ? "var(--color-bg)" : "transparent",
                     color: historyPeriod === pf.key ? "var(--color-text-primary)" : "var(--color-text-secondary)",
                     boxShadow: historyPeriod === pf.key ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
                     transition: "all 0.15s ease",
@@ -948,7 +948,7 @@ export default function NewsletterList() {
                                 <span style={{
                                   display: "inline-block", padding: "2px 10px", borderRadius: 999,
                                   fontSize: 12, fontWeight: 600,
-                                  background: "#eff6ff", color: "#1d4ed8",
+                                  background: "var(--color-accent-light)", color: "var(--color-accent-dark)",
                                 }}>
                                   {nl.sent_count}
                                 </span>
@@ -956,7 +956,7 @@ export default function NewsletterList() {
                                   <span style={{
                                     display: "inline-block", padding: "1px 8px", borderRadius: 999,
                                     fontSize: 11, fontWeight: 600,
-                                    background: "#fef2f2", color: "#dc2626",
+                                    background: "var(--color-danger-light)", color: "var(--color-danger)",
                                   }}>
                                     失敗{nl.failed_count}
                                   </span>
@@ -1014,7 +1014,7 @@ export default function NewsletterList() {
               style={{
                 width: "100%", padding: "10px 12px 10px 38px",
                 border: "1px solid var(--line, var(--color-border))", borderRadius: 8,
-                fontSize: 14, outline: "none", background: "var(--bg, #fff)",
+                fontSize: 14, outline: "none", background: "var(--bg, var(--color-bg))",
                 color: "var(--color-text-primary)", boxSizing: "border-box",
               }}
             />
@@ -1080,7 +1080,7 @@ export default function NewsletterList() {
                               }}
                               style={{
                                 whiteSpace: "nowrap", padding: "5px 12px",
-                                background: "#ecfdf5", color: "#065f46",
+                                background: "var(--color-success-light)", color: "#065f46",
                                 border: "1px solid #a7f3d0", borderRadius: 6,
                                 fontSize: 12, fontWeight: 600, cursor: "pointer",
                               }}
@@ -1099,7 +1099,7 @@ export default function NewsletterList() {
                                 border: "none", background: "transparent", color: "var(--color-text-tertiary)",
                                 cursor: "pointer", transition: "all 0.15s",
                               }}
-                              onMouseEnter={e => { e.currentTarget.style.background = "#fef2f2"; e.currentTarget.style.color = "#dc2626"; }}
+                              onMouseEnter={e => { e.currentTarget.style.background = "var(--color-danger-light)"; e.currentTarget.style.color = "var(--color-danger)"; }}
                               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--color-text-tertiary)"; }}
                             >
                               <TrashIcon />
@@ -1166,7 +1166,7 @@ export default function NewsletterList() {
                                   border: "none", background: "transparent", color: "var(--color-text-tertiary)",
                                   cursor: "pointer", transition: "all 0.15s",
                                 }}
-                                onMouseEnter={e => { e.currentTarget.style.background = "#fef2f2"; e.currentTarget.style.color = "#dc2626"; }}
+                                onMouseEnter={e => { e.currentTarget.style.background = "var(--color-danger-light)"; e.currentTarget.style.color = "var(--color-danger)"; }}
                                 onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--color-text-tertiary)"; }}
                               >
                                 <TrashIcon />

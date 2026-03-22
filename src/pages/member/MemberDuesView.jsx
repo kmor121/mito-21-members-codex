@@ -7,15 +7,15 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import YearPillNav from '../../components/ui/YearPillNav';
 
 const DUE_STATUS_BADGE = {
-  "納入済": { bg: "#ecfdf5", color: "#065f46", border: "#a7f3d0" },
-  "未納":   { bg: "#fef2f2", color: "#991b1b", border: "#fecaca" },
+  "納入済": { bg: "var(--color-success-light)", color: "#065f46", border: "#a7f3d0" },
+  "未納":   { bg: "var(--color-danger-light)", color: "#991b1b", border: "#fecaca" },
   "未発行": { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)", border: "var(--color-border)" },
 };
 
 const DUE_TYPE_BADGE = {
   "年会費":       { color: "var(--color-accent)", bg: "var(--color-accent-light)" },
-  "入会金":       { color: "#b45309", bg: "#fffbeb" },
-  "後期入会会費": { color: "#059669", bg: "#ecfdf5" },
+  "入会金":       { color: "var(--color-warning)", bg: "var(--color-warning-light)" },
+  "後期入会会費": { color: "var(--color-success)", bg: "var(--color-success-light)" },
   "前期入会会費": { color: "var(--color-accent)", bg: "var(--color-accent-light)" },
 };
 
@@ -208,7 +208,7 @@ export default function MemberDuesView() {
       <button type="button" onClick={() => setOpen(v => !v)} style={{
         padding: '5px 14px', borderRadius: 999,
         border: value !== 'all' ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-        background: value !== 'all' ? 'var(--color-accent)' : '#fff',
+        background: value !== 'all' ? 'var(--color-accent)' : 'var(--color-bg)',
         color: value !== 'all' ? '#fff' : 'var(--color-text-secondary)',
         fontSize: 12, fontWeight: 600, cursor: 'pointer',
         display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', transition: 'all 0.15s',
@@ -221,7 +221,7 @@ export default function MemberDuesView() {
       {open && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 100,
-          background: '#fff', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
+          background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
           boxShadow: '0 4px 16px rgba(0,0,0,0.08)', minWidth: 240, maxHeight: 240, overflowY: 'auto',
           animation: 'yearDropIn 0.12s ease',
         }}>
@@ -274,7 +274,7 @@ export default function MemberDuesView() {
             style={{
               width: 36, height: 36, borderRadius: 8,
               border: showFilters ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
-              background: showFilters ? "var(--color-accent)" : "#fff",
+              background: showFilters ? "var(--color-accent)" : "var(--color-bg)",
               color: showFilters ? "#fff" : "var(--color-text-secondary)",
               display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0,
             }}
@@ -300,16 +300,16 @@ export default function MemberDuesView() {
       {isMobile ? (
         <div className="stat-chip-bar" style={{ marginBottom: 8 }}>
           <div className="stat-chip"><span className="stat-chip-label">全体</span><span className="stat-chip-value">{filteredList.length}</span></div>
-          <div className="stat-chip"><span className="stat-chip-label">納入済</span><span className="stat-chip-value" style={{ color: "#059669" }}>{paidCount}</span></div>
-          <div className="stat-chip"><span className="stat-chip-label">未納</span><span className="stat-chip-value" style={{ color: unpaidCount > 0 ? "#dc2626" : "var(--color-text-secondary)" }}>{unpaidCount}</span></div>
+          <div className="stat-chip"><span className="stat-chip-label">納入済</span><span className="stat-chip-value" style={{ color: "var(--color-success)" }}>{paidCount}</span></div>
+          <div className="stat-chip"><span className="stat-chip-label">未納</span><span className="stat-chip-value" style={{ color: unpaidCount > 0 ? "var(--color-danger)" : "var(--color-text-secondary)" }}>{unpaidCount}</span></div>
           <div className="stat-chip"><span className="stat-chip-label">未発行</span><span className="stat-chip-value" style={{ color: "var(--color-text-secondary)" }}>{unissuedCount}</span></div>
           <div className="stat-chip"><span className="stat-chip-label">納入率</span><span className="stat-chip-value">{paymentRate != null ? `${paymentRate}%` : "-"}</span></div>
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12, marginBottom: 20 }}>
           <SummaryCard label="対象者数" value={`${filteredList.length}名`} />
-          <SummaryCard label="納入済" value={`${paidCount}件`} color="#059669" />
-          <SummaryCard label="未納" value={`${unpaidCount}件`} color={unpaidCount > 0 ? "#dc2626" : "var(--color-text-secondary)"} />
+          <SummaryCard label="納入済" value={`${paidCount}件`} color="var(--color-success)" />
+          <SummaryCard label="未納" value={`${unpaidCount}件`} color={unpaidCount > 0 ? "var(--color-danger)" : "var(--color-text-secondary)"} />
           <SummaryCard label="未発行" value={`${unissuedCount}件`} color="var(--color-text-secondary)" />
           <SummaryCard label="納入率" value={paymentRate != null ? `${paymentRate}%` : "-"} />
         </div>
@@ -382,7 +382,7 @@ export default function MemberDuesView() {
               const amountText = r.amount != null ? `¥${r.amount.toLocaleString()}` : "";
               return (
                 <div key={r.id} style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: 10, borderBottom: "1px solid var(--color-border)" }}>
-                  <div style={{ width: 28, height: 28, borderRadius: "50%", flexShrink: 0, background: "linear-gradient(135deg, var(--color-border), var(--color-bg-sub))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#475467" }}>{initial}</div>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", flexShrink: 0, background: "linear-gradient(135deg, var(--color-border), var(--color-bg-sub))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)" }}>{initial}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, fontSize: 14, color: "var(--color-text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.member_name}</div>
                     <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 1 }}>{r.member_type} · {r.due_type || "-"}{amountText ? ` ${amountText}` : ""}</div>
@@ -448,7 +448,7 @@ export default function MemberDuesView() {
 
 function SummaryCard({ label, value, color }) {
   return (
-    <div style={{ padding: "14px 16px", background: "#fff", borderRadius: 8, border: "1px solid var(--color-border)", textAlign: "center" }}>
+    <div style={{ padding: "14px 16px", background: "var(--color-bg)", borderRadius: 8, border: "1px solid var(--color-border)", textAlign: "center" }}>
       <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: 20, fontWeight: 700, color: color || "var(--color-text-primary)" }}>{value}</div>
     </div>

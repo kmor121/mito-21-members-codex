@@ -34,14 +34,14 @@ function ApplyUrlCopyButton() {
 
   return (
     <div style={{ padding: "8px 16px" }}>
-      <p style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>入会申込フォームURL</p>
+      <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 6 }}>入会申込フォームURL</p>
       <div style={{
         display: "flex", alignItems: "center", gap: 6,
-        background: "#f8fafc", border: "1px solid var(--color-border)", borderRadius: 8,
+        background: "var(--color-bg-sub)", border: "1px solid var(--color-border)", borderRadius: 8,
         padding: "6px 8px 6px 12px",
       }}>
         <span style={{
-          flex: 1, fontSize: 12, color: "#334155", overflow: "hidden",
+          flex: 1, fontSize: 12, color: "var(--color-text-secondary)", overflow: "hidden",
           textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>
           {applyUrl}
@@ -52,9 +52,9 @@ function ApplyUrlCopyButton() {
           style={{
             flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4,
             padding: "4px 10px", borderRadius: 6,
-            border: copied ? "1px solid #a7f3d0" : "1px solid var(--color-border)",
-            background: copied ? "#ecfdf5" : "#fff",
-            color: copied ? "#059669" : "#475569",
+            border: copied ? "1px solid var(--color-success)" : "1px solid var(--color-border)",
+            background: copied ? "var(--color-success-light)" : "var(--color-bg)",
+            color: copied ? "var(--color-success)" : "var(--color-text-secondary)",
             fontSize: 12, fontWeight: 500, cursor: "pointer",
             transition: "all 0.15s",
           }}
@@ -83,9 +83,9 @@ const MEMBER_NAV_ITEMS = [
 ];
 
 const ROLE_BADGE = {
-  admin:        { label: "Admin",   bg: "#fef2f2", color: "#dc2626", border: "#fecaca" },
+  admin:        { label: "Admin",   bg: "var(--color-danger-light)", color: "var(--color-danger)", border: "#fecaca" },
   admin_member: { label: "管理者",  bg: "#fff7ed", color: "#ea580c", border: "#fed7aa" },
-  manager:      { label: "幹事",    bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe" },
+  manager:      { label: "幹事",    bg: "var(--color-accent-light)", color: "var(--color-accent)", border: "#bfdbfe" },
   member:       { label: "会員",    bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)", border: "var(--color-border)" },
 };
 

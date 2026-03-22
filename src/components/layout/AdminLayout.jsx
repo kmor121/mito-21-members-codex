@@ -29,9 +29,9 @@ const MEMBER_NAV_ITEMS = [
 ];
 
 const ROLE_BADGE = {
-  admin:        { label: "Admin",   bg: "#fef2f2", color: "#dc2626", border: "#fecaca" },
+  admin:        { label: "Admin",   bg: "var(--color-danger-light)", color: "var(--color-danger)", border: "#fecaca" },
   admin_member: { label: "管理者",  bg: "#fff7ed", color: "#ea580c", border: "#fed7aa" },
-  manager:      { label: "幹事",    bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe" },
+  manager:      { label: "幹事",    bg: "var(--color-accent-light)", color: "var(--color-accent)", border: "#bfdbfe" },
   member:       { label: "会員",    bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)", border: "var(--color-border)" },
 };
 

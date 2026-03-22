@@ -97,9 +97,9 @@ function statusLabel(s) {
 function statusColor(s) {
   return {
     draft: { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)" },
-    scheduled: { bg: "#fffbeb", text: "#92400e" },
-    sent: { bg: "#ecfdf5", text: "#065f46" },
-    failed: { bg: "#fef2f2", text: "#991b1b" },
+    scheduled: { bg: "var(--color-warning-light)", text: "#92400e" },
+    sent: { bg: "var(--color-success-light)", text: "#065f46" },
+    failed: { bg: "var(--color-danger-light)", text: "#991b1b" },
   }[s] || { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)" };
 }
 
@@ -894,7 +894,7 @@ export default function NewsletterEdit() {
       <div style={{ minHeight: "100vh", background: "var(--color-bg-sub)" }}>
         <style>{ANIMATIONS}</style>
         <div style={{
-          position: "sticky", top: 0, zIndex: 20, background: "#fff",
+          position: "sticky", top: 0, zIndex: 20, background: "var(--color-bg)",
           borderBottom: "1px solid var(--color-border)", padding: isMobile ? "12px 12px" : "12px 28px",
           display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap",
         }}>
@@ -938,8 +938,8 @@ export default function NewsletterEdit() {
               )}
             </div>
           </div>
-          <div className="nl-edit-sidebar" style={{ background: "#f8f9fa", padding: 24, borderLeft: "1px solid var(--color-border)" }}>
-            <div style={{ background: "#fff", borderRadius: "var(--radius-md)", padding: 20, border: "1px solid var(--color-border)" }}>
+          <div className="nl-edit-sidebar" style={{ background: "var(--color-bg-sub)", padding: 24, borderLeft: "1px solid var(--color-border)" }}>
+            <div style={{ background: "var(--color-bg)", borderRadius: "var(--radius-md)", padding: 20, border: "1px solid var(--color-border)" }}>
               <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 4 }}>送信日時</div>
                 <div style={{ fontSize: 14, color: "var(--color-text-primary)" }}>{formatDateJa(form.sent_at)}</div>
@@ -970,10 +970,10 @@ export default function NewsletterEdit() {
                     <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-danger)', marginBottom: 8 }}>送信失敗</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {failedList.map((f, i) => (
-                        <div key={i} style={{ padding: '10px 12px', background: '#fef2f2', borderRadius: 'var(--radius-md)', border: '1px solid #fecaca' }}>
+                        <div key={i} style={{ padding: '10px 12px', background: 'var(--color-danger-light)', borderRadius: 'var(--radius-md)', border: '1px solid #fecaca' }}>
                           <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--color-text-primary)', marginBottom: 2 }}>{f.member_name}</div>
                           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4, wordBreak: 'break-all' }}>{f.email}</div>
-                          <div style={{ fontSize: 11, color: '#dc2626', wordBreak: 'break-all' }}>{f.error}</div>
+                          <div style={{ fontSize: 11, color: 'var(--color-danger)', wordBreak: 'break-all' }}>{f.error}</div>
                           {f.member_id && (
                             <a href={`/admin/members/${f.member_id}`} style={{ fontSize: 11, color: 'var(--color-accent)', marginTop: 4, display: 'inline-block' }}>会員詳細を表示 →</a>
                           )}
@@ -1026,7 +1026,7 @@ export default function NewsletterEdit() {
 
       {/* ── Top Header Bar ── */}
       <div style={{
-        position: "sticky", top: 0, zIndex: 20, background: "#fff",
+        position: "sticky", top: 0, zIndex: 20, background: "var(--color-bg)",
         borderBottom: "1px solid var(--color-border)", padding: isMobile ? "12px 12px" : "12px 28px",
         display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap",
       }}>
@@ -1063,7 +1063,7 @@ export default function NewsletterEdit() {
           {!isTemplate && (
             <button
               className="button ghost"
-              style={{ fontSize: isMobile ? 11 : 13, padding: isMobile ? "4px 8px" : "6px 14px", border: "1px solid #10b981", color: "#10b981", whiteSpace: "nowrap" }}
+              style={{ fontSize: isMobile ? 11 : 13, padding: isMobile ? "4px 8px" : "6px 14px", border: "1px solid var(--color-success)", color: "var(--color-success)", whiteSpace: "nowrap" }}
               onClick={async () => {
                 if (!form.title.trim()) { setErrorDialog("件名を入力してください"); return; }
                 if (!form.id) {
@@ -1094,7 +1094,7 @@ export default function NewsletterEdit() {
                 className="button"
                 style={{
                   fontSize: isMobile ? 12 : 14, padding: isMobile ? "6px 12px" : "8px 22px",
-                  background: scheduled ? "#f59e0b" : "var(--color-accent)",
+                  background: scheduled ? "var(--color-warning)" : "var(--color-accent)",
                   color: "#fff", border: "none", borderRadius: "var(--radius-md)",
                   display: "flex", alignItems: "center", gap: 6, fontWeight: 600, whiteSpace: "nowrap",
                 }}
@@ -1132,7 +1132,7 @@ export default function NewsletterEdit() {
                 border: "1px solid #fecaca", background: "transparent", color: "var(--color-text-tertiary)",
                 cursor: "pointer", transition: "all 0.15s",
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = "#fef2f2"; e.currentTarget.style.color = "#dc2626"; e.currentTarget.style.borderColor = "#fca5a5"; }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--color-danger-light)"; e.currentTarget.style.color = "var(--color-danger)"; e.currentTarget.style.borderColor = "#fca5a5"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--color-text-tertiary)"; e.currentTarget.style.borderColor = "#fecaca"; }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1150,7 +1150,7 @@ export default function NewsletterEdit() {
         <div style={{ padding: isMobile ? 12 : 32 }}>
           {isTemplate && (
             <div style={{
-              background: "#fffbeb", border: "1px solid #fbbf24", borderRadius: "var(--radius-md)",
+              background: "var(--color-warning-light)", border: "1px solid #fbbf24", borderRadius: "var(--radius-md)",
               padding: "10px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 8,
               fontSize: 14, color: "#92400e",
             }}>
@@ -1161,7 +1161,7 @@ export default function NewsletterEdit() {
 
           {fromTemplateId && fromTemplateName && !isTemplate && (
             <div style={{
-              background: "#ecfdf5", border: "1px solid #6ee7b7", borderRadius: "var(--radius-md)",
+              background: "var(--color-success-light)", border: "1px solid #6ee7b7", borderRadius: "var(--radius-md)",
               padding: "10px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 8,
               fontSize: 14, color: "#065f46",
             }}>
@@ -1194,7 +1194,7 @@ export default function NewsletterEdit() {
                 padding: "6px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
                 border: "1px solid var(--color-border)", borderRight: "none",
                 borderRadius: "var(--radius-md) 0 0 var(--radius-md)",
-                background: editorMode === "text" ? "var(--color-accent)" : "#fff",
+                background: editorMode === "text" ? "var(--color-accent)" : "var(--color-bg)",
                 color: editorMode === "text" ? "#fff" : "var(--color-text-secondary)",
               }}
               onClick={() => setEditorMode("text")}
@@ -1207,7 +1207,7 @@ export default function NewsletterEdit() {
                 padding: "6px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
                 border: "1px solid var(--color-border)",
                 borderRadius: "0 var(--radius-md) var(--radius-md) 0",
-                background: editorMode === "rich" ? "var(--color-accent)" : "#fff",
+                background: editorMode === "rich" ? "var(--color-accent)" : "var(--color-bg)",
                 color: editorMode === "rich" ? "#fff" : "var(--color-text-secondary)",
               }}
               onClick={() => setEditorMode("rich")}
@@ -1229,7 +1229,7 @@ export default function NewsletterEdit() {
                   border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
                   padding: 16, fontSize: 14, lineHeight: 1.8, outline: "none",
                   fontFamily: "inherit", color: "var(--color-text-primary)", boxSizing: "border-box",
-                  background: "#fff",
+                  background: "var(--color-bg)",
                 }}
               />
               <div style={{
@@ -1255,7 +1255,7 @@ export default function NewsletterEdit() {
 
         {/* ── Right Column: Settings Panel ── */}
         <div className="nl-edit-sidebar" style={{
-          background: "#f8f9fa", padding: 24, borderLeft: "1px solid var(--color-border)",
+          background: "var(--color-bg-sub)", padding: 24, borderLeft: "1px solid var(--color-border)",
         }}>
           {/* チャネル section */}
           <div style={{ marginBottom: 28 }}>
@@ -1271,7 +1271,7 @@ export default function NewsletterEdit() {
                   padding: "10px 14px", borderRadius: "var(--radius-md)", cursor: "pointer",
                   border: form.channel === "email" ? "none" : "1px solid var(--color-border)",
                   borderLeft: form.channel === "email" ? "3px solid var(--color-accent)" : "1px solid var(--color-border)",
-                  background: form.channel === "email" ? "var(--color-accent-light)" : "#fff",
+                  background: form.channel === "email" ? "var(--color-accent-light)" : "var(--color-bg)",
                   color: form.channel === "email" ? "var(--color-accent)" : "var(--color-text-primary)",
                   fontSize: 14, fontWeight: form.channel === "email" ? 600 : 400,
                   textAlign: "left",
@@ -1282,7 +1282,7 @@ export default function NewsletterEdit() {
               <div style={{
                 display: "flex", alignItems: "center", gap: 8,
                 padding: "10px 14px", borderRadius: "var(--radius-md)",
-                border: "1px solid var(--color-border)", background: "#f9fafb",
+                border: "1px solid var(--color-border)", background: "var(--color-bg-sub)",
                 color: "var(--color-text-tertiary)", fontSize: 14, cursor: "not-allowed",
               }}>
                 <span>LINE</span>
@@ -1347,7 +1347,7 @@ export default function NewsletterEdit() {
                   style={{
                     display: "flex", alignItems: "center", gap: 6, width: "100%",
                     padding: "10px 14px", borderRadius: "var(--radius-md)",
-                    border: "1px dashed var(--color-accent)", background: "#fff",
+                    border: "1px dashed var(--color-accent)", background: "var(--color-bg)",
                     cursor: "pointer", fontSize: 13, color: "var(--color-accent)", fontWeight: 600,
                     justifyContent: "center",
                   }}
@@ -1369,7 +1369,7 @@ export default function NewsletterEdit() {
                         padding: "6px 14px", borderRadius: 99, fontSize: 13, fontWeight: 600,
                         cursor: "pointer", border: "1px solid",
                         borderColor: selectedSegment === opt.key ? "var(--color-accent)" : "var(--color-border)",
-                        background: selectedSegment === opt.key ? "var(--color-accent-light)" : "#fff",
+                        background: selectedSegment === opt.key ? "var(--color-accent-light)" : "var(--color-bg)",
                         color: selectedSegment === opt.key ? "var(--color-accent)" : "var(--color-text-secondary)",
                       }}
                     >
@@ -1393,7 +1393,7 @@ export default function NewsletterEdit() {
                   </button>
                 ) : (
                   <div style={{
-                    marginTop: 10, padding: 12, background: "#fff", borderRadius: "var(--radius-md)",
+                    marginTop: 10, padding: 12, background: "var(--color-bg)", borderRadius: "var(--radius-md)",
                     border: "1px solid var(--color-border)", animation: "nlSlide 0.3s ease",
                   }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 8 }}>
@@ -1501,7 +1501,7 @@ export default function NewsletterEdit() {
                   onChange={e => { if (e.target.value) updateForm("linked_event_id", e.target.value); }}
                   style={{
                     width: "100%", padding: "10px 14px", borderRadius: "var(--radius-md)",
-                    border: "1px solid var(--color-border)", background: "#fff", fontSize: 13,
+                    border: "1px solid var(--color-border)", background: "var(--color-bg)", fontSize: 13,
                     color: "var(--color-text-secondary)",
                   }}
                 >
@@ -1551,7 +1551,7 @@ export default function NewsletterEdit() {
                         style={{
                           padding: "4px 10px", fontSize: 12, borderRadius: "var(--radius-md)",
                           border: "1px solid var(--color-border)", cursor: "pointer",
-                          background: schedHour === qt.h && schedMin === qt.m ? "var(--color-accent)" : "#fff",
+                          background: schedHour === qt.h && schedMin === qt.m ? "var(--color-accent)" : "var(--color-bg)",
                           color: schedHour === qt.h && schedMin === qt.m ? "#fff" : "var(--color-text-primary)",
                         }}
                       >
@@ -1603,8 +1603,8 @@ export default function NewsletterEdit() {
                   {attachments.map((att, idx) => (
                     <div key={idx} style={{
                       display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
-                      background: att.needsReselect ? "#fffbeb" : "#fff",
-                      border: `1px solid ${att.needsReselect ? "#f59e0b" : "var(--color-border)"}`,
+                      background: att.needsReselect ? "var(--color-warning-light)" : "var(--color-bg)",
+                      border: `1px solid ${att.needsReselect ? "var(--color-warning)" : "var(--color-border)"}`,
                       borderRadius: "var(--radius-md)",
                       marginBottom: 4,
                     }}>
@@ -1613,7 +1613,7 @@ export default function NewsletterEdit() {
                         <div style={{ fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {att.filename}
                         </div>
-                        <div style={{ fontSize: 12, color: att.needsReselect ? "#d97706" : "var(--color-text-tertiary)" }}>
+                        <div style={{ fontSize: 12, color: att.needsReselect ? "var(--color-warning)" : "var(--color-text-tertiary)" }}>
                           {att.needsReselect ? "2MB超のため再選択が必要です" : formatFileSize(att.size)}
                         </div>
                       </div>
@@ -1637,7 +1637,7 @@ export default function NewsletterEdit() {
                     borderRadius: "var(--radius-md)",
                     padding: "16px 12px",
                     textAlign: "center",
-                    background: fileDragging ? "var(--color-accent-light)" : "#fff",
+                    background: fileDragging ? "var(--color-accent-light)" : "var(--color-bg)",
                     transition: "all 0.15s",
                     cursor: "pointer",
                   }}
@@ -1705,7 +1705,7 @@ export default function NewsletterEdit() {
                           style={{
                             width: "100%", padding: "6px 10px", fontSize: 13,
                             border: "1px solid var(--color-border)", borderRadius: "var(--radius-sm)",
-                            boxSizing: "border-box", background: "#fff",
+                            boxSizing: "border-box", background: "var(--color-bg)",
                           }}
                         />
                       </div>
@@ -1722,7 +1722,7 @@ export default function NewsletterEdit() {
                           style={{
                             width: "100%", padding: "6px 10px", fontSize: 13,
                             border: "1px solid var(--color-border)", borderRadius: "var(--radius-sm)",
-                            boxSizing: "border-box", background: "#fff",
+                            boxSizing: "border-box", background: "var(--color-bg)",
                           }}
                         />
                       </div>
@@ -1801,7 +1801,7 @@ export default function NewsletterEdit() {
           overflow: "hidden",
         }}>
           <div style={{
-            background: "#f8f9fa", padding: "14px 20px",
+            background: "var(--color-bg-sub)", padding: "14px 20px",
             borderBottom: "1px solid var(--color-border)",
           }}>
             <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 4 }}>
@@ -1837,33 +1837,33 @@ export default function NewsletterEdit() {
         const bodyPreview = getBodyPreview();
         const schedDisplay = scheduled ? formatScheduleDisplay(schedDate, schedHour, schedMin) : "";
         const modalItemStyle = { marginBottom: 14 };
-        const labelStyle = { fontSize: 12, color: "#6b7280", marginBottom: 3 };
-        const valueStyle = { fontSize: 14, color: "#111827" };
-        const dividerStyle = { borderTop: "1px solid #e5e7eb", margin: "16px 0" };
+        const labelStyle = { fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 3 };
+        const valueStyle = { fontSize: 14, color: "var(--color-text-primary)" };
+        const dividerStyle = { borderTop: "1px solid var(--color-border)", margin: "16px 0" };
 
         return (
           <div className="confirm-overlay" onClick={() => { if (!sending) setConfirmSend(false); }}>
             <div style={{
-              background: "#fff", borderRadius: 16, maxWidth: 520, width: "90%",
+              background: "var(--color-bg)", borderRadius: 16, maxWidth: 520, width: "90%",
               boxShadow: "0 20px 60px rgba(0,0,0,0.15)", animation: "nlFade 0.2s ease",
             }} onClick={(e) => e.stopPropagation()}>
               {sendComplete ? (
                 <div style={{ textAlign: "center", padding: "48px 20px" }}>
                   <svg width="64" height="64" viewBox="0 0 64 64" style={{ margin: "0 auto 16px" }}>
-                    <circle cx="32" cy="32" r="30" fill="#ecfdf5" stroke="#10b981" strokeWidth="2" />
-                    <path d="M20 32l8 8 16-16" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="32" cy="32" r="30" fill="var(--color-success-light)" stroke="var(--color-success)" strokeWidth="2" />
+                    <path d="M20 32l8 8 16-16" fill="none" stroke="var(--color-success)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <animate attributeName="stroke-dasharray" from="0 50" to="50 0" dur="0.5s" fill="freeze" />
                     </path>
                   </svg>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#111827" }}>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "var(--color-text-primary)" }}>
                     {scheduled ? "予約しました" : "送信しました"}
                   </div>
-                  <div style={{ fontSize: 14, color: "#6b7280", marginTop: 8 }}>配信一覧に戻ります...</div>
+                  <div style={{ fontSize: 14, color: "var(--color-text-secondary)", marginTop: 8 }}>配信一覧に戻ります...</div>
                 </div>
               ) : (
                 <div style={{ padding: "24px 28px" }}>
                   {/* 件名 */}
-                  <div style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 20, lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 20, lineHeight: 1.4 }}>
                     {form.title}
                   </div>
 
@@ -1891,7 +1891,7 @@ export default function NewsletterEdit() {
                         {attachments.length > 0 && (
                           <div>
                             <span style={valueStyle}>ファイル {attachments.length}件: </span>
-                            <span style={{ fontSize: 13, color: "#6b7280" }}>
+                            <span style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
                               {attachments.map((a) => a.filename).join("、")}
                             </span>
                           </div>
@@ -1899,7 +1899,7 @@ export default function NewsletterEdit() {
                         {attachLinks.filter((l) => l.url).length > 0 && (
                           <div>
                             <span style={valueStyle}>リンク {attachLinks.filter((l) => l.url).length}件: </span>
-                            <span style={{ fontSize: 13, color: "#6b7280" }}>
+                            <span style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
                               {attachLinks.filter((l) => l.url).map((l) => l.name || l.url).join("、")}
                             </span>
                           </div>
@@ -1938,7 +1938,7 @@ export default function NewsletterEdit() {
                   <div style={dividerStyle} />
 
                   {/* 注意文 */}
-                  <div style={{ fontSize: 14, color: "#dc2626", fontWeight: 600, marginBottom: 20, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 14, color: "var(--color-danger)", fontWeight: 600, marginBottom: 20, lineHeight: 1.5 }}>
                     {scheduled
                       ? `${countStr}に ${schedDisplay} に${channelLabel(form.channel) === "メール" ? "メール" : ""}送信を予約します。`
                       : `${countStr}に${channelLabel(form.channel) === "メール" ? "メール" : ""}を配信します。この操作は取り消せません。`}
@@ -1950,7 +1950,7 @@ export default function NewsletterEdit() {
                       onClick={() => setConfirmSend(false)} disabled={sending}
                       style={{
                         padding: "10px 20px", fontSize: 14, borderRadius: 8, cursor: "pointer",
-                        background: "#fff", border: "1px solid var(--color-border)", color: "var(--color-text-primary)",
+                        background: "var(--color-bg)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)",
                       }}
                     >
                       キャンセル
@@ -1959,7 +1959,7 @@ export default function NewsletterEdit() {
                       onClick={executeSend} disabled={sending}
                       style={{
                         padding: "10px 28px", fontSize: 15, fontWeight: 700, borderRadius: 8, cursor: "pointer",
-                        background: scheduled ? "#f59e0b" : "var(--color-accent)",
+                        background: scheduled ? "var(--color-warning)" : "var(--color-accent)",
                         color: "#fff", border: "none",
                         display: "flex", alignItems: "center", gap: 6,
                         opacity: sending ? 0.7 : 1,
@@ -1977,19 +1977,19 @@ export default function NewsletterEdit() {
 
       {/* ── Test Send Modal ── */}
       {showTestSend && (() => {
-        const labelStyle = { fontSize: 12, color: "#6b7280", marginBottom: 3 };
-        const valueStyle = { fontSize: 14, color: "#111827" };
-        const dividerStyle = { borderTop: "1px solid #e5e7eb", margin: "16px 0" };
+        const labelStyle = { fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 3 };
+        const valueStyle = { fontSize: 14, color: "var(--color-text-primary)" };
+        const dividerStyle = { borderTop: "1px solid var(--color-border)", margin: "16px 0" };
 
         return (
           <div className="confirm-overlay" onClick={() => { if (!testSending) setShowTestSend(false); }}>
             <div style={{
-              background: "#fff", borderRadius: 16, maxWidth: 520, width: "90%",
+              background: "var(--color-bg)", borderRadius: 16, maxWidth: 520, width: "90%",
               boxShadow: "0 20px 60px rgba(0,0,0,0.15)", animation: "nlFade 0.2s ease",
               padding: "24px 28px",
             }} onClick={(e) => e.stopPropagation()}>
               {/* 件名 */}
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 20, lineHeight: 1.4 }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 20, lineHeight: 1.4 }}>
                 {"【テスト】" + form.title}
               </div>
 
@@ -2036,7 +2036,7 @@ export default function NewsletterEdit() {
                   onClick={() => setShowTestSend(false)} disabled={testSending}
                   style={{
                     padding: "10px 20px", fontSize: 14, borderRadius: 8, cursor: "pointer",
-                    background: "#fff", border: "1px solid var(--color-border)", color: "var(--color-text-primary)",
+                    background: "var(--color-bg)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)",
                   }}
                 >
                   キャンセル
@@ -2045,7 +2045,7 @@ export default function NewsletterEdit() {
                   onClick={handleTestSend} disabled={testSending || !testEmail.trim()}
                   style={{
                     padding: "10px 28px", fontSize: 15, fontWeight: 700, borderRadius: 8, cursor: "pointer",
-                    background: "#10b981", color: "#fff", border: "none",
+                    background: "var(--color-success)", color: "#fff", border: "none",
                     opacity: (testSending || !testEmail.trim()) ? 0.7 : 1,
                   }}
                 >

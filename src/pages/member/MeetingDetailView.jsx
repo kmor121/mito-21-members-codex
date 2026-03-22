@@ -11,23 +11,23 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 /* ── Constants ── */
 
 const STATUS_BADGE = {
-  "公開": { label: "公開", bg: "#eff6ff", color: "#2563eb" },
+  "公開": { label: "公開", bg: "var(--color-accent-light)", color: "var(--color-accent)" },
   "完了": { label: "完了", bg: "var(--color-bg-sub)", color: "var(--color-text-tertiary)" },
 };
 
 const TAG_COLORS = {
   "審議": { bg: "#EEF2FF", color: "#4338CA", border: "#C7D2FE" },
-  "協議": { bg: "#FFFBEB", color: "#92400E", border: "#FDE68A" },
-  "討議": { bg: "#FEF3C7", color: "#92400E", border: "#FDE68A" },
-  "報告": { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
+  "協議": { bg: "var(--color-warning-light)", color: "#92400E", border: "#FDE68A" },
+  "討議": { bg: "var(--color-warning-light)", color: "#92400E", border: "#FDE68A" },
+  "報告": { bg: "var(--color-success-light)", color: "var(--color-success)", border: "#A7F3D0" },
   "議案": { bg: "#EEF2FF", color: "#4338CA", border: "#C7D2FE" },
 };
 
 const DECISION_COLORS = {
-  "承認":   { bg: "#ECFDF5", color: "#059669" },
-  "了承":   { bg: "#ECFDF5", color: "#059669" },
-  "否決":   { bg: "#FEF2F2", color: "#DC2626" },
-  "継続審議": { bg: "#FFFBEB", color: "#D97706" },
+  "承認":   { bg: "var(--color-success-light)", color: "var(--color-success)" },
+  "了承":   { bg: "var(--color-success-light)", color: "var(--color-success)" },
+  "否決":   { bg: "var(--color-danger-light)", color: "var(--color-danger)" },
+  "継続審議": { bg: "var(--color-warning-light)", color: "var(--color-warning)" },
 };
 
 function formatDate(dateStr, startTime, endTime) {
@@ -247,7 +247,7 @@ export default function MeetingDetailView() {
   const hasAgenda = ceremonyAll.length > 0 || agendaItems.length > 0;
 
   const cardStyle = {
-    background: '#fff',
+    background: 'var(--color-bg)',
     borderRadius: 16,
     border: '1px solid var(--color-border)',
     padding: isMobile ? 20 : '28px 32px',
@@ -336,7 +336,7 @@ export default function MeetingDetailView() {
                         fontSize: 13, fontWeight: 600,
                         cursor: (closed || saving) ? 'default' : 'pointer',
                         border: sel ? 'none' : '1px solid var(--color-border)',
-                        background: sel ? (attend ? 'var(--color-success)' : 'var(--color-danger)') : '#fff',
+                        background: sel ? (attend ? 'var(--color-success)' : 'var(--color-danger)') : 'var(--color-bg)',
                         color: sel ? '#fff' : 'var(--color-text-secondary)',
                         transition: 'all 0.15s',
                         opacity: (closed || saving) && !sel ? 0.5 : 1,
@@ -465,7 +465,7 @@ export default function MeetingDetailView() {
                       borderRadius: 12,
                       padding: isMobile ? '16px 14px' : '20px 24px',
                       marginBottom: 12,
-                      background: '#fff',
+                      background: 'var(--color-bg)',
                     }}>
                       {/* Decision result badge at top (completed only) */}
                       {hasDecision && (
@@ -791,7 +791,7 @@ export default function MeetingDetailView() {
       {/* ━━━━━━━━━━ 懇親会 (bottom, warm) ━━━━━━━━━━ */}
       {afterParty && (
         <div style={{
-          background: '#FFFBEB',
+          background: 'var(--color-warning-light)',
           borderRadius: 16,
           border: '1px solid #FDE68A',
           padding: isMobile ? 20 : '28px 32px',

@@ -13,16 +13,16 @@ const RichTextEditor = lazy(() => import('../../components/common/RichTextEditor
 const EVENT_TYPE_BADGE = {
   "懇親会": { color: "#ea580c", bg: "#fff7ed", border: "#fed7aa" },
   "総会":   { color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
-  "例会":   { color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
-  "セミナー": { color: "#059669", bg: "#ecfdf5", border: "#a7f3d0" },
+  "例会":   { color: "var(--color-accent)", bg: "var(--color-accent-light)", border: "#bfdbfe" },
+  "セミナー": { color: "var(--color-success)", bg: "var(--color-success-light)", border: "#a7f3d0" },
   "その他": { color: "var(--color-text-secondary)", bg: "var(--color-bg-sub)", border: "var(--color-border)" },
 };
 
 const STATUS_CONF = {
   draft:     { label: "下書き", color: "var(--color-text-secondary)", bg: "var(--color-bg-sub)", border: "var(--color-border)" },
-  published: { label: "公開", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
-  closed:    { label: "公開", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" }, // legacy: closedもpublished扱い
-  completed: { label: "完了", color: "#059669", bg: "#ecfdf5", border: "#bbf7d0" },
+  published: { label: "公開", color: "var(--color-accent)", bg: "var(--color-accent-light)", border: "#bfdbfe" },
+  closed:    { label: "公開", color: "var(--color-accent)", bg: "var(--color-accent-light)", border: "#bfdbfe" }, // legacy: closedもpublished扱い
+  completed: { label: "完了", color: "var(--color-success)", bg: "var(--color-success-light)", border: "#bbf7d0" },
 };
 
 function formatDateFull(d) {
@@ -669,11 +669,11 @@ export default function EventDetail() {
         <div style={{ marginBottom: 16 }}>
           {childAfterParty ? (
             /* Has after-party: show info + edit/delete */
-            <div style={{ padding: 16, background: '#fffbeb', borderRadius: 'var(--radius-lg)', border: '1px solid #fde68a' }}>
+            <div style={{ padding: 16, background: 'var(--color-warning-light)', borderRadius: 'var(--radius-lg)', border: '1px solid #fde68a' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 16 }}>🍻</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#92400e' }}>懇親会</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-warning)' }}>懇親会</span>
                 </div>
                 {status !== 'completed' && !apEditing && (
                   <div style={{ display: 'flex', gap: 6 }}>
@@ -703,12 +703,12 @@ export default function EventDetail() {
                 </div>
               ) : (
                 <>
-                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#78350f', marginBottom: 6 }}>
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13, color: 'var(--color-warning)', marginBottom: 6 }}>
                     {childAfterParty.location && <span>📍 {childAfterParty.location}</span>}
                     {childAfterParty.start_time && <span>🕐 {childAfterParty.start_time}{childAfterParty.end_time ? `〜${childAfterParty.end_time}` : ''}</span>}
                     {childAfterParty.fee > 0 && <span>¥{Number(childAfterParty.fee).toLocaleString()}</span>}
                   </div>
-                  <div style={{ fontSize: 12, color: '#92400e' }}>
+                  <div style={{ fontSize: 12, color: 'var(--color-warning)' }}>
                     出欠: 出席 <strong>{childApAtts.filter(a => a.response === '出席').length}</strong> / 欠席 <strong>{childApAtts.filter(a => a.response === '欠席').length}</strong>
                   </div>
                 </>
@@ -830,11 +830,11 @@ export default function EventDetail() {
               <div style={{
                 display: "flex", alignItems: "center", justifyContent: "space-between",
                 padding: "10px 14px", marginBottom: 12,
-                background: event.attendance_closed ? "var(--color-warning-light, #fffbeb)" : "var(--color-bg-sub)",
+                background: event.attendance_closed ? "var(--color-warning-light)" : "var(--color-bg-sub)",
                 borderRadius: "var(--radius-md)",
-                border: event.attendance_closed ? "1px solid var(--color-warning, #fde68a)" : "1px solid var(--color-border)",
+                border: event.attendance_closed ? "1px solid var(--color-warning)" : "1px solid var(--color-border)",
               }}>
-                <span style={{ fontSize: 13, color: event.attendance_closed ? "var(--color-warning, #92400e)" : "var(--color-text-secondary)" }}>
+                <span style={{ fontSize: 13, color: event.attendance_closed ? "var(--color-warning)" : "var(--color-text-secondary)" }}>
                   {event.attendance_closed ? "出欠の受付は終了しています" : "出欠を受付中です"}
                 </span>
                 {event.attendance_closed ? (
@@ -938,9 +938,9 @@ export default function EventDetail() {
                           if (e.target.value === '__cancel__') handleCancelResponse(m.id);
                           else handleProxyResponse(m.id, e.target.value);
                         }} disabled={saving || !canEditAttendance}
-                          style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
+                          style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                           {responseOptions.map(o => <option key={o} value={o}>{o}</option>)}
-                          <option value="__cancel__" style={{ color: '#999' }}>-- 取消 --</option>
+                          <option value="__cancel__" style={{ color: 'var(--color-text-tertiary)' }}>-- 取消 --</option>
                         </select>
                         {att?.comment && <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{att.comment}</span>}
                       </div>
@@ -965,7 +965,7 @@ export default function EventDetail() {
                     }}>
                       <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80, color: 'var(--color-text-tertiary)' }}>{fullName(m)}</span>
                       <select value="" onChange={e => e.target.value && handleProxyResponse(m.id, e.target.value)} disabled={saving || !canEditAttendance}
-                        style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', color: 'var(--color-text-tertiary)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
+                        style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text-tertiary)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                         <option value="">--</option>
                         {responseOptions.map(o => <option key={o} value={o}>{o}</option>)}
                       </select>
@@ -992,7 +992,7 @@ export default function EventDetail() {
                 <div style={{ marginTop: 24, paddingTop: 20, borderTop: '2px solid var(--color-border)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 18 }}>🍻</span>
-                    <h3 style={{ fontSize: 16, fontWeight: 700, color: '#92400e', margin: 0 }}>懇親会の出欠</h3>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-warning)', margin: 0 }}>懇親会の出欠</h3>
                     <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
                       {childAfterParty.location && `📍 ${childAfterParty.location}`}
                       {childAfterParty.start_time && ` 🕐 ${childAfterParty.start_time}${childAfterParty.end_time ? `〜${childAfterParty.end_time}` : ''}`}
@@ -1054,10 +1054,10 @@ export default function EventDetail() {
                                 if (e.target.value === '__cancel__') handleApCancelResponse(m.id);
                                 else handleApProxyResponse(m.id, e.target.value);
                               }} disabled={saving || !canEditAttendance}
-                                style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
+                                style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                                 <option value="出席">出席</option>
                                 <option value="欠席">欠席</option>
-                                <option value="__cancel__" style={{ color: '#999' }}>-- 取消 --</option>
+                                <option value="__cancel__" style={{ color: 'var(--color-text-tertiary)' }}>-- 取消 --</option>
                               </select>
                             </div>
                           );
@@ -1079,7 +1079,7 @@ export default function EventDetail() {
                           }}>
                             <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80, color: 'var(--color-text-tertiary)' }}>{fullName(m)}</span>
                             <select value="" onChange={e => e.target.value && handleApProxyResponse(m.id, e.target.value)} disabled={saving || !canEditAttendance}
-                              style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', color: 'var(--color-text-tertiary)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
+                              style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text-tertiary)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                               <option value="">--</option>
                               <option value="出席">出席</option>
                               <option value="欠席">欠席</option>

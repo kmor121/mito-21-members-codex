@@ -51,7 +51,7 @@ function displayVal(v) {
 
 function roleBadge(role) {
   if (role === 'admin') return { bg: 'var(--color-accent-light)', color: 'var(--color-accent)' };
-  return { bg: 'var(--color-success-light, #ecfdf5)', color: 'var(--color-success, #059669)' };
+  return { bg: 'var(--color-success-light)', color: 'var(--color-success)' };
 }
 
 export default function ChangeLogs() {
@@ -171,7 +171,7 @@ export default function ChangeLogs() {
             const rb = roleBadge(log.changed_by_role);
             return (
               <div key={log.id || i} style={{
-                background: '#fff', border: '1px solid var(--color-border)',
+                background: 'var(--color-bg)', border: '1px solid var(--color-border)',
                 borderRadius: 'var(--radius-lg)', padding: '12px 14px',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>

@@ -21,9 +21,9 @@ const STATUS_TABS = [
 ];
 
 const STATUS_BADGE = {
-  "申請中": { bg: "#fffbeb", color: "#d97706", border: "#fde68a" },
-  "承認済": { bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" },
-  "却下":   { bg: "#fee2e2", color: "#991b1b", border: "#fecaca" },
+  "申請中": { bg: "var(--color-warning-light)", color: "var(--color-warning)", border: "#fde68a" },
+  "承認済": { bg: "var(--color-success-light)", color: "var(--color-success)", border: "#a7f3d0" },
+  "却下":   { bg: "var(--color-danger-light)", color: "var(--color-danger)", border: "#fecaca" },
 };
 
 function useDebounce(value, delay) {
@@ -58,8 +58,8 @@ function renderStatusBadge(status) {
 /* ── Member type selector pills ── */
 const MEMBER_TYPE_OPTIONS = [
   { value: "正会員", color: "var(--color-accent)", bg: "var(--color-accent-light)" },
-  { value: "賛助会員", color: "#059669", bg: "#ecfdf5" },
-  { value: "名誉顧問", color: "#d97706", bg: "#fffbeb" },
+  { value: "賛助会員", color: "var(--color-success)", bg: "var(--color-success-light)" },
+  { value: "名誉顧問", color: "var(--color-warning)", bg: "var(--color-warning-light)" },
 ];
 
 function MemberTypePills({ value, onChange }) {
@@ -75,7 +75,7 @@ function MemberTypePills({ value, onChange }) {
             style={{
               padding: "8px 20px", borderRadius: "999px", fontSize: 14, fontWeight: 600,
               border: active ? `2px solid ${opt.color}` : "2px solid var(--color-border)",
-              background: active ? opt.bg : "#fff",
+              background: active ? opt.bg : "var(--color-bg)",
               color: active ? opt.color : "var(--color-text-secondary)",
               cursor: "pointer", transition: "all 0.15s",
             }}
@@ -317,7 +317,7 @@ export default function Applications() {
               </p>
 
               {approveError && (
-                <div style={{ padding: "8px 12px", borderRadius: "var(--radius-md)", background: "#fee2e2", color: "#991b1b", fontSize: 13 }}>
+                <div style={{ padding: "8px 12px", borderRadius: "var(--radius-md)", background: "var(--color-danger-light)", color: "var(--color-danger)", fontSize: 13 }}>
                   {approveError}
                 </div>
               )}
@@ -394,7 +394,7 @@ export default function Applications() {
                 <span style={{
                   display: 'inline-flex', alignItems: 'center',
                   padding: '3px 10px', borderRadius: '999px',
-                  background: '#fee2e2', color: '#dc2626',
+                  background: 'var(--color-danger-light)', color: 'var(--color-danger)',
                   fontSize: '12px', fontWeight: 700, flexShrink: 0,
                 }}>
                   {statusCounts["申請中"]}
@@ -404,7 +404,7 @@ export default function Applications() {
             <button type="button" onClick={() => setShowFilters(v => !v)} style={{
               width: 36, height: 36, borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: showFilters ? 'var(--color-accent-light)' : '#fff', cursor: 'pointer',
+              background: showFilters ? 'var(--color-accent-light)' : 'var(--color-bg)', cursor: 'pointer',
               color: showFilters ? 'var(--color-accent)' : 'var(--color-text-secondary)', flexShrink: 0,
             }}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
@@ -419,8 +419,8 @@ export default function Applications() {
                 alignItems: "center",
                 padding: "4px 12px",
                 borderRadius: "999px",
-                background: "#fee2e2",
-                color: "#dc2626",
+                background: "var(--color-danger-light)",
+                color: "var(--color-danger)",
                 fontSize: "13px",
                 fontWeight: 700,
                 marginLeft: 12,
@@ -490,7 +490,7 @@ export default function Applications() {
                   border: "1px solid var(--color-border)",
                   borderRadius: "var(--radius-md)",
                   fontSize: "14px",
-                  background: "#fff",
+                  background: "var(--color-bg)",
                   transition: "border-color 0.15s, box-shadow 0.15s",
                 }}
               />
@@ -529,8 +529,8 @@ export default function Applications() {
         <div style={{
           padding: "12px 16px",
           borderRadius: "var(--radius-md)",
-          background: "#fee2e2",
-          color: "#991b1b",
+          background: "var(--color-danger-light)",
+          color: "var(--color-danger)",
           fontSize: "13px",
           fontWeight: 600,
           marginBottom: "16px",
@@ -600,7 +600,7 @@ export default function Applications() {
                           style={{
                             padding: "6px 16px", borderRadius: "var(--radius-sm)",
                             fontSize: 13, fontWeight: 600,
-                            background: "#ecfdf5", color: "#059669",
+                            background: "var(--color-success-light)", color: "var(--color-success)",
                             border: "1px solid #a7f3d0",
                             cursor: "pointer",
                           }}
@@ -613,7 +613,7 @@ export default function Applications() {
                           style={{
                             padding: "6px 16px", borderRadius: "var(--radius-sm)",
                             fontSize: 13, fontWeight: 600,
-                            background: "#fff", color: "#991b1b",
+                            background: "var(--color-bg)", color: "var(--color-danger)",
                             border: "1px solid #fecaca",
                             cursor: "pointer",
                           }}
@@ -707,13 +707,13 @@ export default function Applications() {
                                 style={{
                                   padding: "4px 12px", height: 30, borderRadius: "var(--radius-sm)",
                                   fontSize: 12, fontWeight: 600,
-                                  background: "#ecfdf5", color: "#059669",
+                                  background: "var(--color-success-light)", color: "var(--color-success)",
                                   border: "1px solid #a7f3d0",
                                   cursor: "pointer", transition: "all 0.15s",
                                   whiteSpace: "nowrap",
                                 }}
-                                onMouseEnter={(e) => { e.currentTarget.style.background = "#d1fae5"; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.background = "#ecfdf5"; }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-success-light)"; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = "var(--color-success-light)"; }}
                               >
                                 承認
                               </button>
@@ -723,13 +723,13 @@ export default function Applications() {
                                 style={{
                                   padding: "4px 12px", height: 30, borderRadius: "var(--radius-sm)",
                                   fontSize: 12, fontWeight: 600,
-                                  background: "#fff", color: "#991b1b",
+                                  background: "var(--color-bg)", color: "var(--color-danger)",
                                   border: "1px solid #fecaca",
                                   cursor: "pointer", transition: "all 0.15s",
                                   whiteSpace: "nowrap",
                                 }}
-                                onMouseEnter={(e) => { e.currentTarget.style.background = "#fee2e2"; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-danger-light)"; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = "var(--color-bg)"; }}
                               >
                                 却下
                               </button>

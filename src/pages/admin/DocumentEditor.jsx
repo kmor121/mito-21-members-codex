@@ -159,7 +159,7 @@ export default function DocumentEditor() {
         title="編集内容の破棄"
         message="未保存の変更があります。破棄しますか？"
         confirmLabel="破棄する"
-        confirmStyle={{ background: "#dc2626", borderColor: "#dc2626" }}
+        confirmStyle={{ background: "var(--color-danger)", borderColor: "var(--color-danger)" }}
         onConfirm={handleConfirmCancel}
         onCancel={() => setConfirmCancel(false)}
       />

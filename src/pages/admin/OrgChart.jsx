@@ -13,8 +13,8 @@ function todayStr() { return new Date().toISOString().slice(0, 10); }
 
 const TYPE_COLORS = {
   "幹事会": { bg: "var(--color-accent-light)", text: "var(--color-accent)", border: "#c7d2fe" },
-  "委員会": { bg: "#ecfdf5", text: "#059669", border: "#a7f3d0" },
-  "部会":   { bg: "#fffbeb", text: "#d97706", border: "#fde68a" },
+  "委員会": { bg: "var(--color-success-light)", text: "var(--color-success)", border: "#a7f3d0" },
+  "部会":   { bg: "var(--color-warning-light)", text: "var(--color-warning)", border: "#fde68a" },
   "室":     { bg: "#fdf2f8", text: "#db2777", border: "#fbcfe8" },
   "その他": { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)", border: "#cbd5e1" },
 };
@@ -68,7 +68,7 @@ function roleBadgeStyle(role) {
       return { background: "transparent", color: "var(--color-accent-dark)", border: "1px solid #a5b4fc" };
     case "exec":
     case "honor":
-      return { background: "transparent", color: "#475569", border: "1px solid #cbd5e1" };
+      return { background: "transparent", color: "var(--color-text-secondary)", border: "1px solid #cbd5e1" };
     case "member":
     default:
       return { background: "var(--color-bg-sub)", color: "var(--color-text-secondary)", border: "1px solid var(--color-bg-sub)" };
@@ -160,7 +160,7 @@ function SkeletonCard() {
   return (
     <div style={{
       borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
-      background: "#fff", overflow: "hidden",
+      background: "var(--color-bg)", overflow: "hidden",
     }}>
       {/* Header skeleton */}
       <div style={{
@@ -217,7 +217,7 @@ function OrgTreeNode({
       {/* Org card */}
       <div
         style={{
-          borderRadius: "var(--radius-lg)", background: "#fff",
+          borderRadius: "var(--radius-lg)", background: "var(--color-bg)",
           border: "1px solid var(--color-border)",
           borderLeft: `4px solid ${tc.text}`,
           transition: "box-shadow var(--transition-fast), border-color var(--transition-fast)",
@@ -231,7 +231,7 @@ function OrgTreeNode({
         <div style={{
           display: "flex", justifyContent: "space-between", alignItems: "center",
           padding: isMobile ? "10px 12px" : "12px 18px", borderBottom: isExpanded ? "1px solid var(--color-border)" : "none",
-          background: "#fff",
+          background: "var(--color-bg)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 10, minWidth: 0, flexWrap: "wrap" }}>
             {/* Drag handle (PC only) */}
@@ -333,7 +333,7 @@ function OrgTreeNode({
                   opacity: isMobile ? 0.6 : 0.4, transition: "all var(--transition-fast)",
                   display: "flex", alignItems: "center",
                 }}
-                onMouseEnter={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.color = "var(--color-danger)"; e.currentTarget.style.background = "#fef2f2"; }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.color = "var(--color-danger)"; e.currentTarget.style.background = "var(--color-danger-light)"; }}
                 onMouseLeave={e => { e.currentTarget.style.opacity = isMobile ? "0.6" : "0.4"; e.currentTarget.style.color = "var(--color-text-secondary)"; e.currentTarget.style.background = "none"; }}
                 title="削除">
                 <svg width={isMobile ? 13 : 14} height={isMobile ? 13 : 14} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -357,7 +357,7 @@ function OrgTreeNode({
                   onClick={() => onEditAssignment(org, a)}
                   style={{
                     display: "flex", alignItems: "center", gap: 5, padding: "3px 8px 3px 3px",
-                    borderRadius: 16, border: "1px solid var(--color-border)", background: "#fff",
+                    borderRadius: 16, border: "1px solid var(--color-border)", background: "var(--color-bg)",
                     cursor: "pointer", transition: "all 0.15s ease", fontSize: 12,
                     animation: "chipEnter 0.2s ease",
                     position: "relative",
@@ -955,7 +955,7 @@ export default function OrgChart() {
       {/* ── Empty state ── */}
       {orgTree.length === 0 ? (
         <div style={{
-          textAlign: "center", padding: "72px 24px", background: "#fff",
+          textAlign: "center", padding: "72px 24px", background: "var(--color-bg)",
           borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
         }}>
           <div style={{
@@ -1136,7 +1136,7 @@ export default function OrgChart() {
                             padding: "7px 18px", borderRadius: 20, fontSize: 13, fontWeight: 600,
                             cursor: "pointer", transition: "all 0.15s",
                             transform: isActive ? "scale(1.02)" : "scale(1)",
-                            background: isActive ? tc.text : "#fff",
+                            background: isActive ? tc.text : "var(--color-bg)",
                             color: isActive ? "#fff" : "var(--color-text-secondary)",
                             border: `1.5px solid ${isActive ? tc.text : "var(--color-border)"}`,
                             boxShadow: isActive ? `0 2px 8px ${tc.text}30` : "none",
@@ -1335,7 +1335,7 @@ export default function OrgChart() {
                             padding: "3px 10px", borderRadius: 16, fontSize: 12, fontWeight: 500,
                             cursor: "pointer", transition: "all 0.15s",
                             transform: isActive ? "scale(1.02)" : "scale(1)",
-                            background: isActive ? "var(--color-accent)" : "#fff",
+                            background: isActive ? "var(--color-accent)" : "var(--color-bg)",
                             color: isActive ? "#fff" : "var(--color-text-secondary)",
                             border: `1px solid ${isActive ? "var(--color-accent)" : "var(--color-border)"}`,
                           }}
@@ -1377,7 +1377,7 @@ export default function OrgChart() {
                     padding: 20, background: "var(--bg)", borderRadius: "var(--radius-lg)", marginBottom: 20,
                   }}>
                     <span style={{
-                      padding: "5px 16px", borderRadius: "var(--radius)", background: "#fff",
+                      padding: "5px 16px", borderRadius: "var(--radius)", background: "var(--color-bg)",
                       border: "1px solid var(--color-border)", fontSize: 14, fontWeight: 600,
                     }}>{prevYearLabel}</span>
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1392,10 +1392,10 @@ export default function OrgChart() {
                   <div style={{ display: "grid", gap: 10, fontSize: 14 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{
-                        width: 20, height: 20, borderRadius: "50%", background: "#ecfdf5",
+                        width: 20, height: 20, borderRadius: "50%", background: "var(--color-success-light)",
                         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
                       }}>
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--color-success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M2 6l3 3 5-5"/>
                         </svg>
                       </div>
@@ -1403,10 +1403,10 @@ export default function OrgChart() {
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{
-                        width: 20, height: 20, borderRadius: "50%", background: "#ecfdf5",
+                        width: 20, height: 20, borderRadius: "50%", background: "var(--color-success-light)",
                         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
                       }}>
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--color-success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M2 6l3 3 5-5"/>
                         </svg>
                       </div>
@@ -1429,13 +1429,13 @@ export default function OrgChart() {
                   {organizations.length > 0 && (
                     <div style={{
                       marginTop: 16, height: 38, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit",
-                      background: "#fffbeb", border: "1px solid #fde68a", fontSize: 13,
+                      background: "var(--color-warning-light)", border: "1px solid #fde68a", fontSize: 13,
                       display: "flex", alignItems: "center", gap: 8,
                     }}>
-                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#d97706" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--color-warning)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M8 1L1 14h14L8 1zM8 6v4M8 12v0"/>
                       </svg>
-                      <span><strong style={{ color: "#b45309" }}>注意:</strong> 現在の年度に既に{organizations.length}件の組織があります。</span>
+                      <span><strong style={{ color: "var(--color-warning)" }}>注意:</strong> 現在の年度に既に{organizations.length}件の組織があります。</span>
                     </div>
                   )}
                 </>
@@ -1452,7 +1452,7 @@ export default function OrgChart() {
           return `「${confirmDeleteOrg?.org_name || ""}」を削除しますか？`;
         })()}
         confirmLabel="削除する"
-        confirmStyle={{ background: "#dc2626", borderColor: "#dc2626" }}
+        confirmStyle={{ background: "var(--color-danger)", borderColor: "var(--color-danger)" }}
         onConfirm={executeDeleteOrg}
         onCancel={() => setConfirmDeleteOrg(null)}
       />
@@ -1461,7 +1461,7 @@ export default function OrgChart() {
         title="配属解除"
         message={`${confirmRemoveAssignment?.assignment?.member_name || "このメンバー"}さんを「${confirmRemoveAssignment?.org?.org_name || "この組織"}」から解除しますか？`}
         confirmLabel="解除する"
-        confirmStyle={{ background: "#dc2626", borderColor: "#dc2626" }}
+        confirmStyle={{ background: "var(--color-danger)", borderColor: "var(--color-danger)" }}
         onConfirm={executeRemoveAssignment}
         onCancel={() => setConfirmRemoveAssignment(null)}
       />

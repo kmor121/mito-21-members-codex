@@ -183,7 +183,7 @@ export default function Login() {
       padding: 16,
     }}>
       <div style={{
-        width: "100%", maxWidth: 420, background: "#fff",
+        width: "100%", maxWidth: 420, background: "var(--color-bg)",
         borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
         boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
         padding: "40px 36px",
@@ -210,8 +210,8 @@ export default function Login() {
         {error && (
           <div style={{
             padding: "10px 14px", borderRadius: "var(--radius-md)", marginBottom: 20,
-            background: "var(--color-danger-light, #fef2f2)", border: "1px solid var(--color-danger, #dc2626)",
-            color: "var(--color-danger, #dc2626)",
+            background: "var(--color-danger-light)", border: "1px solid var(--color-danger)",
+            color: "var(--color-danger)",
             fontSize: 13, lineHeight: 1.5,
           }}>
             {error}
@@ -400,8 +400,8 @@ export default function Login() {
           <>
             <div style={{
               padding: "14px 16px", borderRadius: "var(--radius-md)", marginBottom: 20,
-              background: "var(--color-success-light, #ecfdf5)", border: "1px solid var(--color-success, #059669)",
-              color: "var(--color-success, #059669)",
+              background: "var(--color-success-light)", border: "1px solid var(--color-success)",
+              color: "var(--color-success)",
               fontSize: 13, lineHeight: 1.6,
             }}>
               認証が完了しました。ログインしてください。
@@ -459,8 +459,8 @@ export default function Login() {
           <>
             <div style={{
               padding: "14px 16px", borderRadius: "var(--radius-md)", marginBottom: 20,
-              background: "var(--color-success-light, #ecfdf5)", border: "1px solid var(--color-success, #059669)",
-              color: "var(--color-success, #059669)",
+              background: "var(--color-success-light)", border: "1px solid var(--color-success)",
+              color: "var(--color-success)",
               fontSize: 13, lineHeight: 1.6,
             }}>
               パスワードリセットメールを送信しました。メールを確認してください。

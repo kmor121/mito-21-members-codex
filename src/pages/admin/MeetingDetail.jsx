@@ -16,7 +16,7 @@ const RichTextEditor = lazy(() => import('../../components/common/RichTextEditor
 const STATUS_BADGE = {
   "下書き": { bg: "var(--color-border)", color: "var(--color-text-secondary)", border: "var(--color-border)" },
   "公開":   { bg: "var(--color-accent-light)", color: "var(--color-accent)", border: "var(--color-accent-light)" },
-  "完了":   { bg: "var(--color-success-light)", color: "var(--color-success)", border: "#bbf7d0" },
+  "完了":   { bg: "var(--color-success-light)", color: "var(--color-success)", border: "var(--color-success-light)" },
 };
 const STATUS_LABEL = { "下書き": "下書き", "公開": "公開", "完了": "完了" };
 
@@ -27,7 +27,7 @@ const AGENDA_TAGS = ["審議", "協議", "討議", "報告"];
 const TAG_BADGE = {
   "審議": { bg: "var(--color-accent-light)", color: "var(--color-accent)" },
   "協議": { bg: "var(--color-warning-light)", color: "var(--color-warning)" },
-  "討議": { bg: "#fef3c7", color: "#92400e" },
+  "討議": { bg: "var(--color-warning-light)", color: "#92400e" },
   "報告": { bg: "var(--color-success-light)", color: "var(--color-success)" },
   "議案": { bg: "var(--color-accent-light)", color: "var(--color-accent)" },
   "その他": { bg: "var(--color-border)", color: "var(--color-text-secondary)" },
@@ -42,10 +42,10 @@ const DEFAULT_SONOTA_ITEM = { order: 99, title: "その他", tag: "", person_id:
 
 const DECISION_STATUS_BADGE = {
   "未審議": { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" },
-  "承認":   { bg: "#ecfdf5", color: "#059669" },
-  "否決":   { bg: "#fee2e2", color: "#dc2626" },
-  "継続審議": { bg: "#fffbeb", color: "#d97706" },
-  "了承":   { bg: "#ecfdf5", color: "#059669" },
+  "承認":   { bg: "var(--color-success-light)", color: "var(--color-success)" },
+  "否決":   { bg: "var(--color-danger-light)", color: "var(--color-danger)" },
+  "継続審議": { bg: "var(--color-warning-light)", color: "var(--color-warning)" },
+  "了承":   { bg: "var(--color-success-light)", color: "var(--color-success)" },
 };
 
 const DEFAULT_CEREMONY_ITEMS = [
@@ -132,7 +132,7 @@ function SpeakerInput({ value, label, onChange, onLabelChange, members, roleMap,
   return (
     <div ref={wrapRef} style={{ position: "relative", flex: 1 }}>
       {displayText && !isOpen ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, padding: "5px 8px", border: "1px solid var(--color-border)", borderRadius: 8, background: "#fff" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, padding: "5px 8px", border: "1px solid var(--color-border)", borderRadius: 8, background: "var(--color-bg)" }}>
           {selectedMember ? (
             <MemberAvatar member={selectedMember} size={22} />
           ) : (
@@ -157,7 +157,7 @@ function SpeakerInput({ value, label, onChange, onLabelChange, members, roleMap,
       {isOpen && (query || !displayText) && (
         <div style={{
           position: "absolute", top: "100%", left: 0, right: 0, zIndex: 20,
-          background: "#fff", border: "1px solid var(--color-border)", borderRadius: 10,
+          background: "var(--color-bg)", border: "1px solid var(--color-border)", borderRadius: 10,
           boxShadow: "var(--shadow-lg)", maxHeight: 240, overflowY: "auto", marginTop: 4,
         }}>
           {filtered.map((m) => (
@@ -454,9 +454,9 @@ export default function MeetingDetail() {
         title: "幹事会を公開しますか？",
         message: (
           <div>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 12, padding: "10px 12px", background: "#fffbeb", borderRadius: 6, border: "1px solid #fde68a" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 12, padding: "10px 12px", background: "var(--color-warning-light)", borderRadius: 6, border: "1px solid #fde68a" }}>
               <span style={{ fontSize: 16, lineHeight: 1 }}>&#9888;</span>
-              <div style={{ fontSize: 13, color: "#92400e" }}>
+              <div style={{ fontSize: 13, color: "var(--color-warning)" }}>
                 <p style={{ margin: "0 0 4px", fontWeight: 600 }}>公開すると以下が実行されます:</p>
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
                   <li>会員に次第が公開されます</li>
@@ -465,10 +465,10 @@ export default function MeetingDetail() {
                 </ul>
               </div>
             </div>
-            <div style={{ fontSize: 13, padding: "8px 12px", background: "#f8fafc", borderRadius: 6, border: "1px solid var(--color-border)" }}>
-              出席: <strong style={{ color: "#059669" }}>{presentCount}名</strong>
+            <div style={{ fontSize: 13, padding: "8px 12px", background: "var(--color-bg-sub)", borderRadius: 6, border: "1px solid var(--color-border)" }}>
+              出席: <strong style={{ color: "var(--color-success)" }}>{presentCount}名</strong>
               <span style={{ margin: "0 6px", color: "var(--color-text-secondary)" }}>/</span>
-              欠席: <strong style={{ color: absCount > 0 ? "#dc2626" : "var(--color-text-secondary)" }}>{absCount}名</strong>
+              欠席: <strong style={{ color: absCount > 0 ? "var(--color-danger)" : "var(--color-text-secondary)" }}>{absCount}名</strong>
               {obsCount > 0 && (
                 <>
                   <span style={{ margin: "0 6px", color: "var(--color-text-secondary)" }}>/</span>
@@ -1077,13 +1077,13 @@ export default function MeetingDetail() {
             {/* Meeting info */}
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div className="field">
-                <label>会議名 <span style={{ color: "#dc2626" }}>*</span></label>
+                <label>会議名 <span style={{ color: "var(--color-danger)" }}>*</span></label>
                 <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} disabled={!canEditAgenda}
                   style={{ height: 38, fontSize: 14, padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit", boxSizing: "border-box" }} />
               </div>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <div className="field" style={{ flex: 1, minWidth: 180 }}>
-                  <label>開催日 <span style={{ color: "#dc2626" }}>*</span></label>
+                  <label>開催日 <span style={{ color: "var(--color-danger)" }}>*</span></label>
                   <DatePicker value={meetingDate} onChange={setMeetingDate} disabled={!canEditAgenda} />
                 </div>
                 <div className="field" style={{ flex: 1, minWidth: 180 }}>
@@ -1118,7 +1118,7 @@ export default function MeetingDetail() {
                 return (
                   <div key={item.order} style={{
                     display: "flex", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 8 : 12, padding: isMobile ? "8px 10px" : "8px 16px",
-                    background: "#f8fafc", borderRadius: 6, border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-sub)", borderRadius: 6, border: "1px solid var(--color-border)",
                     flexWrap: isMobile ? "wrap" : "nowrap",
                   }}>
                     <span style={{ fontWeight: 600, fontSize: 13, minWidth: 20, color: "var(--color-text-secondary)" }}>{item.order}.</span>
@@ -1163,7 +1163,7 @@ export default function MeetingDetail() {
                   {agendaItems.map((item, idx) => {
                     const tagBadge = item.tag ? (TAG_BADGE[item.tag] || TAG_BADGE["その他"]) : null;
                     return (
-                      <div key={idx} style={{ border: "1px solid var(--color-border)", borderRadius: 8, padding: isMobile ? "10px 10px" : "12px 14px", background: "#fff" }}>
+                      <div key={idx} style={{ border: "1px solid var(--color-border)", borderRadius: 8, padding: isMobile ? "10px 10px" : "12px 14px", background: "var(--color-bg)" }}>
                         {/* Title row */}
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                           <span style={{ fontWeight: 700, fontSize: 13, color: "var(--color-text-secondary)", minWidth: isMobile ? 24 : 30 }}>{idx + 1}）</span>
@@ -1191,7 +1191,7 @@ export default function MeetingDetail() {
                                     </svg>
                                   </button>
                                   {openTagIdx === idx && (
-                                    <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", boxShadow: "0 4px 16px rgba(0,0,0,0.08)", minWidth: 120, animation: "yearDropIn 0.12s ease" }}>
+                                    <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "var(--color-bg)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", boxShadow: "0 4px 16px rgba(0,0,0,0.08)", minWidth: 120, animation: "yearDropIn 0.12s ease" }}>
                                       {[{ v: "", l: "未設定" }, ...AGENDA_TAGS.map(t => ({ v: t, l: t }))].map(o => {
                                         const act = (item.tag || "") === o.v;
                                         return (
@@ -1241,7 +1241,7 @@ export default function MeetingDetail() {
                                 <input type="text" value={item.link_label || ""} onChange={(e) => updateAgendaItem(idx, "link_label", e.target.value)}
                                   placeholder="表示テキスト" style={{ width: 160, fontSize: 13, height: 32, padding: "4px 8px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", fontFamily: "inherit", boxSizing: "border-box" }} />
                                 <button type="button" onClick={() => { updateAgendaItem(idx, "link_url", ""); updateAgendaItem(idx, "link_label", ""); }}
-                                  style={{ background: "none", border: "none", cursor: "pointer", color: "#dc2626", fontSize: 14, padding: "0 4px" }}>&times;</button>
+                                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-danger)", fontSize: 14, padding: "0 4px" }}>&times;</button>
                               </div>
                             ) : (
                               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -1288,7 +1288,7 @@ export default function MeetingDetail() {
                                     const dec = applicantDecisions[appId] || "";
                                     const disabled = reviewConfirmed || saving;
                                     return (
-                                      <div key={appId} style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 8 : 12, padding: "8px 12px", background: "#fff", borderRadius: 6, border: "1px solid var(--color-border)", flexDirection: isMobile ? "column" : "row" }}>
+                                      <div key={appId} style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 8 : 12, padding: "8px 12px", background: "var(--color-bg)", borderRadius: 6, border: "1px solid var(--color-border)", flexDirection: isMobile ? "column" : "row" }}>
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                           <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)" }}>{name}</div>
                                           <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
@@ -1297,7 +1297,7 @@ export default function MeetingDetail() {
                                           </div>
                                         </div>
                                         <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                                          {[{ k: "承認", bg: "#ecfdf5", color: "#059669", activeBg: "#059669" }, { k: "却下", bg: "#fef2f2", color: "#dc2626", activeBg: "#dc2626" }, { k: "保留", bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)", activeBg: "#6b7280" }].map(opt => {
+                                          {[{ k: "承認", bg: "var(--color-success-light)", color: "var(--color-success)", activeBg: "var(--color-success)" }, { k: "却下", bg: "var(--color-danger-light)", color: "var(--color-danger)", activeBg: "var(--color-danger)" }, { k: "保留", bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)", activeBg: "var(--color-text-secondary)" }].map(opt => {
                                             const active = dec === opt.k;
                                             return (
                                               <button key={opt.k} type="button" disabled={disabled}
@@ -1344,7 +1344,7 @@ export default function MeetingDetail() {
                               style={{ background: "none", border: "1px solid var(--color-border)", borderRadius: 4, padding: "2px 8px", fontSize: 12, cursor: "pointer" }}>↓</button>
                             {item.title !== "その他" && (
                               <button type="button" onClick={() => removeAgendaItem(idx)}
-                                style={{ background: "none", border: "1px solid #fca5a5", borderRadius: 4, padding: "2px 8px", fontSize: 12, cursor: "pointer", color: "#dc2626" }}>削除</button>
+                                style={{ background: "none", border: "1px solid var(--color-danger-light)", borderRadius: 4, padding: "2px 8px", fontSize: 12, cursor: "pointer", color: "var(--color-danger)" }}>削除</button>
                             )}
                           </div>
                         )}
@@ -1364,7 +1364,7 @@ export default function MeetingDetail() {
                   <div key={item.order} style={{
                     display: "flex", alignItems: isKanjiKohyo && canEditAgenda ? "flex-start" : (isMobile ? "flex-start" : "center"),
                     gap: isMobile ? 8 : 12, padding: isMobile ? "8px 10px" : "8px 16px",
-                    background: "#f8fafc", borderRadius: 6, border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-sub)", borderRadius: 6, border: "1px solid var(--color-border)",
                     flexWrap: isMobile ? "wrap" : "nowrap",
                   }}>
                     <span style={{ fontWeight: 600, fontSize: 13, minWidth: 20, color: "var(--color-text-secondary)", paddingTop: isKanjiKohyo && canEditAgenda ? 6 : 0 }}>{item.order}.</span>
@@ -1445,7 +1445,7 @@ export default function MeetingDetail() {
                         const tagBadge = item.tag ? (TAG_BADGE[item.tag] || TAG_BADGE["その他"]) : null;
                         const decBadge = DECISION_STATUS_BADGE[item.decision_status] || DECISION_STATUS_BADGE["未審議"];
                         return (
-                          <div key={idx} style={{ border: "1px solid var(--color-border)", borderRadius: 8, padding: "14px 16px", background: "#fafbfc" }}>
+                          <div key={idx} style={{ border: "1px solid var(--color-border)", borderRadius: 8, padding: "14px 16px", background: "var(--color-bg-sub)" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
                               <span style={{ fontWeight: 700, fontSize: 14, color: "var(--color-text-secondary)" }}>{idx + 1}）</span>
                               {item.tag && tagBadge && <span className="pill" style={{ background: tagBadge.bg, color: tagBadge.color, fontSize: 12 }}>{item.tag}</span>}
@@ -1497,7 +1497,7 @@ export default function MeetingDetail() {
                     </Suspense>
                   ) : (
                     minutesContent ? (
-                      <div className="tiptap-content-view" style={{ padding: "16px", border: "1px solid var(--color-border)", borderRadius: 8, background: "#fafbfc" }}
+                      <div className="tiptap-content-view" style={{ padding: "16px", border: "1px solid var(--color-border)", borderRadius: 8, background: "var(--color-bg-sub)" }}
                         dangerouslySetInnerHTML={{ __html: minutesContent }} />
                     ) : (
                       <p style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>議事録本文はまだ記入されていません。</p>
@@ -1528,11 +1528,11 @@ export default function MeetingDetail() {
 
       {/* ── After Party section (hidden on attendance tab — has its own AP section) ── */}
       {activeTab !== "attendance" && afterParty ? (
-        <div style={{ marginBottom: 16, padding: 16, background: '#fffbeb', borderRadius: 'var(--radius-lg)', border: '1px solid #fde68a' }}>
+        <div style={{ marginBottom: 16, padding: 16, background: 'var(--color-warning-light)', borderRadius: 'var(--radius-lg)', border: '1px solid #fde68a' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 16 }}>🍻</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#92400e' }}>懇親会</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-warning)' }}>懇親会</span>
             </div>
             {canEditAttendance && !apEditing && (
               <div style={{ display: 'flex', gap: 6 }}>
@@ -1562,12 +1562,12 @@ export default function MeetingDetail() {
             </div>
           ) : (
             <>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#78350f', marginBottom: 6 }}>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13, color: 'var(--color-warning)', marginBottom: 6 }}>
                 {afterParty.location && <span>📍 {afterParty.location}</span>}
                 {afterParty.start_time && <span>🕐 {afterParty.start_time}{afterParty.end_time ? `〜${afterParty.end_time}` : ''}</span>}
                 {afterParty.fee > 0 && <span>¥{Number(afterParty.fee).toLocaleString()}</span>}
               </div>
-              <div style={{ fontSize: 12, color: '#92400e' }}>
+              <div style={{ fontSize: 12, color: 'var(--color-warning)' }}>
                 出欠: 出席 <strong>{afterPartyAtts.filter(a => a.response === '出席').length}</strong> / 欠席 <strong>{afterPartyAtts.filter(a => a.response === '欠席').length}</strong>
               </div>
             </>
@@ -1705,11 +1705,11 @@ export default function MeetingDetail() {
                 <div style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   padding: "10px 14px", marginBottom: 12,
-                  background: meeting.attendance_closed ? "var(--color-warning-light, #fffbeb)" : "var(--color-bg-sub)",
+                  background: meeting.attendance_closed ? "var(--color-warning-light)" : "var(--color-bg-sub)",
                   borderRadius: "var(--radius-md)",
-                  border: meeting.attendance_closed ? "1px solid var(--color-warning, #fde68a)" : "1px solid var(--color-border)",
+                  border: meeting.attendance_closed ? "1px solid var(--color-warning)" : "1px solid var(--color-border)",
                 }}>
-                  <span style={{ fontSize: 13, color: meeting.attendance_closed ? "var(--color-warning, #92400e)" : "var(--color-text-secondary)" }}>
+                  <span style={{ fontSize: 13, color: meeting.attendance_closed ? "var(--color-warning)" : "var(--color-text-secondary)" }}>
                     {meeting.attendance_closed ? "出欠の受付は終了しています" : "出欠を受付中です"}
                   </span>
                   {meeting.attendance_closed ? (
@@ -1772,9 +1772,9 @@ export default function MeetingDetail() {
                                 if (e.target.value === '__cancel__') handleCancelMeetingResponse(mid);
                                 else handleProxyMeetingResponse(mid, e.target.value);
                               }} disabled={saving || !canEditAttendance}
-                                style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
+                                style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                                 {responseOptions.map(o => <option key={o} value={o}>{o}</option>)}
-                                <option value="__cancel__" style={{ color: '#999' }}>-- 取消 --</option>
+                                <option value="__cancel__" style={{ color: 'var(--color-text-tertiary)' }}>-- 取消 --</option>
                               </select>
                             </div>
                           );
@@ -1800,7 +1800,7 @@ export default function MeetingDetail() {
                             }}>
                               <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80, color: 'var(--color-text-tertiary)' }}>{fullName(m)}</span>
                               <select value="" onChange={e => e.target.value && handleProxyMeetingResponse(mid, e.target.value)} disabled={saving || !canEditAttendance}
-                                style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', color: 'var(--color-text-tertiary)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
+                                style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text-tertiary)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                                 <option value="">--</option>
                                 {responseOptions.map(o => <option key={o} value={o}>{o}</option>)}
                               </select>
@@ -1893,7 +1893,7 @@ export default function MeetingDetail() {
                                       if (e.target.value === '__cancel__') handleCancelApResponse(mid);
                                       else handleProxyApResponse(mid, e.target.value);
                                     }} disabled={saving || !canEditAttendance}
-                                      style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
+                                      style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                                       {apResponseOptions.map(o => <option key={o} value={o}>{o}</option>)}
                                       <option value="__cancel__">-- 取消 --</option>
                                     </select>
@@ -1920,7 +1920,7 @@ export default function MeetingDetail() {
                                   }}>
                                     <span style={{ fontWeight: 500, fontSize: 13, flex: 1, minWidth: 80, color: 'var(--color-text-tertiary)' }}>{fullName(m)}</span>
                                     <select value="" onChange={e => e.target.value && handleProxyApResponse(mid, e.target.value)} disabled={saving || !canEditAttendance}
-                                      style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: '#fff', color: 'var(--color-text-tertiary)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
+                                      style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text-tertiary)', width: isMobile ? '100%' : 'auto', minWidth: isMobile ? 'auto' : 100 }}>
                                       <option value="">--</option>
                                       {apResponseOptions.map(o => <option key={o} value={o}>{o}</option>)}
                                     </select>

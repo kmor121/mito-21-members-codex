@@ -10,17 +10,17 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 
 const TYPE_BADGE = {
   "懇親会": { bg: "#fdf2f8", color: "#db2777", border: "#fbcfe8" },
-  "総会":   { bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe" },
-  "例会":   { bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" },
-  "セミナー": { bg: "#fffbeb", color: "#d97706", border: "#fde68a" },
-  "ゴルフ": { bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" },
+  "総会":   { bg: "var(--color-accent-light)", color: "var(--color-accent)", border: "#bfdbfe" },
+  "例会":   { bg: "var(--color-success-light)", color: "var(--color-success)", border: "#a7f3d0" },
+  "セミナー": { bg: "var(--color-warning-light)", color: "var(--color-warning)", border: "#fde68a" },
+  "ゴルフ": { bg: "var(--color-success-light)", color: "var(--color-success)", border: "#bbf7d0" },
   "その他": { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)", border: "var(--color-border)" },
 };
 
 const STATUS_BADGE = {
-  published: { label: "公開中", bg: "#eff6ff", color: "#2563eb" },
-  closed:    { label: "公開中", bg: "#eff6ff", color: "#2563eb" },
-  completed: { label: "完了", bg: "#ecfdf5", color: "#059669" },
+  published: { label: "公開中", bg: "var(--color-accent-light)", color: "var(--color-accent)" },
+  closed:    { label: "公開中", bg: "var(--color-accent-light)", color: "var(--color-accent)" },
+  completed: { label: "完了", bg: "var(--color-success-light)", color: "var(--color-success)" },
 };
 
 function formatEventDate(dateStr, startTime, endTime) {
@@ -175,7 +175,7 @@ export default function EventDetailView() {
 
       {/* ── Header Card (with attendance buttons) ── */}
       <div style={{
-        background: '#fff', borderRadius: 16, border: '1px solid var(--color-border)',
+        background: 'var(--color-bg)', borderRadius: 16, border: '1px solid var(--color-border)',
         padding: isMobile ? 20 : '28px 32px', marginBottom: 24,
       }}>
         <div style={{
@@ -224,7 +224,7 @@ export default function EventDetailView() {
                         fontSize: 13, fontWeight: 600,
                         cursor: (closed || saving) ? 'default' : 'pointer',
                         border: sel ? 'none' : '1px solid var(--color-border)',
-                        background: sel ? (isAttend ? 'var(--color-success)' : isAbsent ? 'var(--color-danger)' : 'var(--color-accent)') : '#fff',
+                        background: sel ? (isAttend ? 'var(--color-success)' : isAbsent ? 'var(--color-danger)' : 'var(--color-accent)') : 'var(--color-bg)',
                         color: sel ? '#fff' : 'var(--color-text-secondary)',
                         transition: 'all 0.15s',
                         opacity: (closed || saving) && !sel ? 0.5 : 1,
@@ -258,7 +258,7 @@ export default function EventDetailView() {
       {/* ── Description ── */}
       {event.description && (
         <div style={{
-          background: '#fff', borderRadius: 16, border: '1px solid var(--color-border)',
+          background: 'var(--color-bg)', borderRadius: 16, border: '1px solid var(--color-border)',
           padding: isMobile ? 20 : '28px 32px', marginBottom: 24,
         }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px' }}>詳細</h2>
@@ -269,7 +269,7 @@ export default function EventDetailView() {
       {/* ── After Party (warm card, bottom) ── */}
       {afterParty && (
         <div style={{
-          background: '#FFFBEB', borderRadius: 16, border: '1px solid #FDE68A',
+          background: 'var(--color-warning-light)', borderRadius: 16, border: '1px solid #FDE68A',
           padding: isMobile ? 20 : '28px 32px', marginBottom: 24,
         }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 12px', color: '#78350F' }}>
@@ -298,7 +298,7 @@ export default function EventDetailView() {
                       fontSize: 13, fontWeight: 600,
                       cursor: (closed || saving) ? 'default' : 'pointer',
                       border: sel ? 'none' : '1px solid #FDE68A',
-                      background: sel ? (attend ? 'var(--color-success)' : 'var(--color-danger)') : '#fff',
+                      background: sel ? (attend ? 'var(--color-success)' : 'var(--color-danger)') : 'var(--color-bg)',
                       color: sel ? '#fff' : '#78350F',
                       transition: 'all 0.15s',
                       opacity: (closed || saving) && !sel ? 0.5 : 1,

@@ -559,7 +559,7 @@ export default function Meetings() {
         .mtg-copy-source-btn:hover { border-color: var(--color-accent); color: var(--color-accent); background: var(--color-accent-light); }
         .mtg-copy-list {
           margin-top: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md);
-          max-height: 200px; overflow-y: auto; background: #fff;
+          max-height: 200px; overflow-y: auto; background: var(--color-bg);
         }
         .mtg-copy-list-item {
           width: 100%; display: flex; flex-direction: column; align-items: flex-start;

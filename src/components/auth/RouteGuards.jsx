@@ -7,7 +7,7 @@ function AuthLoading() {
   return (
     <div style={{
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-      background: "#f8fafc",
+      background: "var(--color-bg-sub)",
     }}>
       <LoadingSpinner />
     </div>
@@ -86,14 +86,14 @@ export function LinkedMemberRoute({ children }) {
     return (
       <div style={{
         minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-        background: "#f8fafc",
+        background: "var(--color-bg-sub)",
       }}>
         <div style={{
-          background: "#fff", borderRadius: 12, boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+          background: "var(--color-bg)", borderRadius: 12, boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
           padding: "48px 36px", maxWidth: 440, width: "100%", textAlign: "center",
         }}>
           <div style={{
-            width: 56, height: 56, borderRadius: "50%", background: "#fef2f2",
+            width: 56, height: 56, borderRadius: "50%", background: "var(--color-danger-light)",
             display: "flex", alignItems: "center", justifyContent: "center",
             margin: "0 auto 20px",
           }}>
@@ -112,7 +112,7 @@ export function LinkedMemberRoute({ children }) {
             onClick={logout}
             style={{
               padding: "10px 32px", borderRadius: 8, border: "1px solid var(--color-border)",
-              background: "#fff", color: "#334155", fontSize: 14, fontWeight: 600,
+              background: "var(--color-bg)", color: "var(--color-text-secondary)", fontSize: 14, fontWeight: 600,
               cursor: "pointer",
             }}
           >

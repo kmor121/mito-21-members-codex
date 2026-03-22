@@ -14,16 +14,16 @@ import { fullName } from '../../utils/formatName';
 const EVENT_TYPE_BADGE = {
   "懇親会": { color: "#ea580c", bg: "#fff7ed", border: "#fed7aa" },
   "総会":   { color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
-  "例会":   { color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
-  "セミナー": { color: "#059669", bg: "#ecfdf5", border: "#a7f3d0" },
+  "例会":   { color: "var(--color-accent)", bg: "var(--color-accent-light)", border: "#bfdbfe" },
+  "セミナー": { color: "var(--color-success)", bg: "var(--color-success-light)", border: "#a7f3d0" },
   "その他": { color: "var(--color-text-secondary)", bg: "var(--color-bg-sub)", border: "var(--color-border)" },
 };
 
 const STATUS_BADGE = {
   draft:     { label: "下書き", color: "var(--color-text-secondary)", bg: "var(--color-bg-sub)", border: "var(--color-border)" },
-  published: { label: "公開中", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
-  closed:    { label: "受付終了", color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
-  completed: { label: "完了",   color: "#059669", bg: "#ecfdf5", border: "#bbf7d0" },
+  published: { label: "公開中", color: "var(--color-accent)", bg: "var(--color-accent-light)", border: "#bfdbfe" },
+  closed:    { label: "受付終了", color: "var(--color-warning)", bg: "var(--color-warning-light)", border: "#fde68a" },
+  completed: { label: "完了",   color: "var(--color-success)", bg: "var(--color-success-light)", border: "#bbf7d0" },
 };
 
 function getDayParts(dateStr) {
@@ -365,7 +365,7 @@ export default function Events() {
                   {typeDropdownOpen && (
                     <div style={{
                       position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
-                      background: '#fff', border: '1px solid var(--color-border)',
+                      background: 'var(--color-bg)', border: '1px solid var(--color-border)',
                       borderRadius: 'var(--radius-md)',
                       boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
                       zIndex: 100, overflow: 'hidden',

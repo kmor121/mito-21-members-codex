@@ -11,15 +11,15 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 const EVENT_TYPE_BADGE = {
   "懇親会": { color: "#ea580c", bg: "#fff7ed", border: "#fed7aa" },
   "総会":   { color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
-  "例会":   { color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
-  "セミナー": { color: "#059669", bg: "#ecfdf5", border: "#a7f3d0" },
+  "例会":   { color: "var(--color-accent)", bg: "var(--color-accent-light)", border: "#bfdbfe" },
+  "セミナー": { color: "var(--color-success)", bg: "var(--color-success-light)", border: "#a7f3d0" },
   "その他": { color: "var(--color-text-secondary)", bg: "var(--color-bg-sub)", border: "var(--color-border)" },
 };
 
 const STATUS_BADGE = {
-  published: { label: "公開中", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
-  closed:    { label: "受付終了", color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
-  completed: { label: "完了",   color: "#059669", bg: "#ecfdf5", border: "#bbf7d0" },
+  published: { label: "公開中", color: "var(--color-accent)", bg: "var(--color-accent-light)", border: "#bfdbfe" },
+  closed:    { label: "受付終了", color: "var(--color-warning)", bg: "var(--color-warning-light)", border: "#fde68a" },
+  completed: { label: "完了",   color: "var(--color-success)", bg: "var(--color-success-light)", border: "#bbf7d0" },
 };
 
 function formatDate(d) {
@@ -294,7 +294,7 @@ export default function EventsView() {
                             padding: '6px 16px', borderRadius: 8,
                             fontSize: 13, fontWeight: 600, cursor: disabled ? 'default' : 'pointer',
                             transition: 'all 0.15s',
-                            background: isSelected ? rc.color : '#fff',
+                            background: isSelected ? rc.color : 'var(--color-bg)',
                             color: isSelected ? '#fff' : 'var(--color-text-secondary)',
                             border: isSelected ? 'none' : '1px solid var(--color-border)',
                             opacity: disabled && !isSelected ? 0.5 : 1,
@@ -328,7 +328,7 @@ export default function EventsView() {
                   const apCanRespond = evt.status === 'published' && !(ap.rsvp_deadline && ap.rsvp_deadline < today);
                   const apIsSaving = saving === ap.id;
                   return (
-                    <div style={{ marginTop: 10, padding: 12, borderRadius: 8, background: '#FFFBEB', border: '1px solid #FDE68A' }}>
+                    <div style={{ marginTop: 10, padding: 12, borderRadius: 8, background: 'var(--color-warning-light)', border: '1px solid #FDE68A' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
                         <span style={{ fontSize: 13, fontWeight: 700, color: '#92400e' }}>懇親会</span>
                       </div>
@@ -351,7 +351,7 @@ export default function EventsView() {
                                   fontSize: 13, fontWeight: 600,
                                   cursor: disabled ? 'default' : 'pointer',
                                   transition: 'all 0.15s',
-                                  background: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : '#fff',
+                                  background: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : 'var(--color-bg)',
                                   color: isSelected ? '#fff' : 'var(--color-text-secondary)',
                                   border: isSelected ? 'none' : '1px solid var(--color-border)',
                                   opacity: disabled && !isSelected ? 0.5 : 1,

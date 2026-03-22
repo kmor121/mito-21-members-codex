@@ -136,8 +136,8 @@ function renderPreview(template, vars) {
 function RoleBadge({ appRole }) {
   const styles = {
     admin_member: { background: "#fff7ed", color: "#ea580c", border: "1px solid #fed7aa" },
-    manager: { background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe" },
-    member: { background: "#f8fafc", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" },
+    manager: { background: "var(--color-accent-light)", color: "var(--color-accent)", border: "1px solid #bfdbfe" },
+    member: { background: "var(--color-bg-sub)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" },
   };
   const s = styles[appRole] || styles.member;
   const label = APP_ROLE_LABELS[appRole] || appRole || "未設定";
@@ -446,7 +446,7 @@ export default function Settings() {
                           </div>
                           <div className="mobile-card-item-row">
                             <span className="mobile-card-item-label">メールアドレス</span>
-                            <span style={{ fontSize: 13, color: "#475569", wordBreak: "break-all" }}>{m.email || "-"}</span>
+                            <span style={{ fontSize: 13, color: "var(--color-text-secondary)", wordBreak: "break-all" }}>{m.email || "-"}</span>
                           </div>
                           <div className="mobile-card-item-row">
                             <span className="mobile-card-item-label">アカウント</span>
@@ -458,7 +458,7 @@ export default function Settings() {
                               onChange={(e) => handleRoleChangeRequest(memberId, fullName(m) || m.email, e.target.value)}
                               style={{
                                 padding: "6px 10px", borderRadius: 6, border: "1px solid var(--color-border)",
-                                fontSize: 13, color: "#334155", background: "#fff", cursor: "pointer",
+                                fontSize: 13, color: "var(--color-text-secondary)", background: "var(--color-bg)", cursor: "pointer",
                                 width: "100%",
                               }}
                             >
@@ -492,7 +492,7 @@ export default function Settings() {
                               <td style={{ padding: "10px 12px", fontSize: 14 }}>
                                 <strong>{fullName(m) || "-"}</strong>
                               </td>
-                              <td style={{ padding: "10px 12px", fontSize: 13, color: "#475569" }}>
+                              <td style={{ padding: "10px 12px", fontSize: 13, color: "var(--color-text-secondary)" }}>
                                 {m.email || "-"}
                               </td>
                               <td style={{ padding: "10px 12px", textAlign: "center" }}>
@@ -507,7 +507,7 @@ export default function Settings() {
                                   onChange={(e) => handleRoleChangeRequest(memberId, fullName(m) || m.email, e.target.value)}
                                   style={{
                                     padding: "4px 8px", borderRadius: 6, border: "1px solid var(--color-border)",
-                                    fontSize: 13, color: "#334155", background: "#fff", cursor: "pointer",
+                                    fontSize: 13, color: "var(--color-text-secondary)", background: "var(--color-bg)", cursor: "pointer",
                                   }}
                                 >
                                   {APP_ROLE_OPTIONS.map((opt) => (
@@ -599,7 +599,7 @@ export default function Settings() {
 
                   {/* Variable insertion */}
                   <div style={{ marginBottom: 16, ...(isMobile ? { overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" } : {}) }}>
-                    <span style={{ fontSize: 12, color: "#6b7280", marginRight: 8 }}>変数を挿入:</span>
+                    <span style={{ fontSize: 12, color: "var(--color-text-secondary)", marginRight: 8 }}>変数を挿入:</span>
                     {variables.map((v) => (
                       <button
                         key={v.var}
@@ -609,11 +609,11 @@ export default function Settings() {
                           display: "inline-flex", alignItems: "center", gap: 4,
                           padding: "3px 10px", margin: "2px 4px 2px 0",
                           borderRadius: 6, border: "1px solid var(--color-border)",
-                          background: "#f8fafc", fontSize: 12, color: "#475569",
+                          background: "var(--color-bg-sub)", fontSize: 12, color: "var(--color-text-secondary)",
                           cursor: "pointer",
                         }}
                       >
-                        <span style={{ fontFamily: "monospace", color: "#2563eb" }}>{`{{${v.var}}}`}</span>
+                        <span style={{ fontFamily: "monospace", color: "var(--color-accent)" }}>{`{{${v.var}}}`}</span>
                         <span style={{ color: "var(--color-text-tertiary)" }}>{v.label}</span>
                       </button>
                     ))}
@@ -656,7 +656,7 @@ export default function Settings() {
                   {/* Save button */}
                   <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, ...(isMobile ? { flexDirection: "column", alignItems: "stretch" } : {}) }}>
                     {emailDirty && (
-                      <span style={{ alignSelf: isMobile ? "flex-start" : "center", fontSize: 12, color: "#d97706" }}>
+                      <span style={{ alignSelf: isMobile ? "flex-start" : "center", fontSize: 12, color: "var(--color-warning)" }}>
                         未保存の変更があります
                       </span>
                     )}

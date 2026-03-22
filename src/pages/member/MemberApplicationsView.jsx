@@ -6,9 +6,9 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 const STATUS_BADGE = {
-  "申請中": { bg: "#fffbeb", color: "#d97706", border: "#fde68a" },
-  "承認済": { bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" },
-  "却下":   { bg: "#fee2e2", color: "#991b1b", border: "#fecaca" },
+  "申請中": { bg: "var(--color-warning-light)", color: "var(--color-warning)", border: "#fde68a" },
+  "承認済": { bg: "var(--color-success-light)", color: "var(--color-success)", border: "#a7f3d0" },
+  "却下":   { bg: "var(--color-danger-light)", color: "var(--color-danger)", border: "#fecaca" },
 };
 
 const STATUS_TABS = [

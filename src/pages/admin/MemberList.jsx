@@ -21,15 +21,15 @@ const PAGE_SIZE = 30;
 
 const MEMBER_TYPE_BADGE = {
   "正会員": { bg: "var(--color-accent-light)", color: "var(--color-accent)" },
-  "賛助会員": { bg: "#ecfdf5", color: "#059669" },
+  "賛助会員": { bg: "var(--color-success-light)", color: "var(--color-success)" },
   "OB会員": { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" },
-  "名誉顧問": { bg: "#fffbeb", color: "#d97706" },
+  "名誉顧問": { bg: "var(--color-warning-light)", color: "var(--color-warning)" },
 };
 
 const STATUS_BADGE = {
-  "活動中": { bg: "#ecfdf5", color: "#059669" },
-  "休会": { bg: "#fffbeb", color: "#d97706" },
-  "退会": { bg: "#fee2e2", color: "#991b1b" },
+  "活動中": { bg: "var(--color-success-light)", color: "var(--color-success)" },
+  "休会": { bg: "var(--color-warning-light)", color: "var(--color-warning)" },
+  "退会": { bg: "var(--color-danger-light)", color: "var(--color-danger)" },
 };
 
 function useDebounce(value, delay) {
@@ -375,10 +375,10 @@ export default function MemberList() {
             style={{
               width: "100%",
               padding: "8px 10px",
-              border: "2px solid #fef3c7",
+              border: "2px solid var(--color-warning-light)",
               borderRadius: "4px",
               fontSize: "13px",
-              background: isChanged ? "rgba(255, 255, 200, 0.5)" : "#fffef5",
+              background: isChanged ? "rgba(255, 255, 200, 0.5)" : "var(--color-warning-light)",
               outline: "none",
             }}
           >
@@ -400,10 +400,10 @@ export default function MemberList() {
             style={{
               width: "100%",
               padding: "8px 10px",
-              border: "2px solid #fef3c7",
+              border: "2px solid var(--color-warning-light)",
               borderRadius: "4px",
               fontSize: "13px",
-              background: isChanged ? "rgba(255, 255, 200, 0.5)" : "#fffef5",
+              background: isChanged ? "rgba(255, 255, 200, 0.5)" : "var(--color-warning-light)",
               outline: "none",
             }}
           >
@@ -454,10 +454,10 @@ export default function MemberList() {
           style={{
             width: "100%",
             padding: "8px 10px",
-            border: "2px solid #fef3c7",
+            border: "2px solid var(--color-warning-light)",
             borderRadius: "4px",
             fontSize: "13px",
-            background: isChanged ? "rgba(255, 255, 200, 0.5)" : "#fffef5",
+            background: isChanged ? "rgba(255, 255, 200, 0.5)" : "var(--color-warning-light)",
             outline: "none",
           }}
         />
@@ -490,7 +490,7 @@ export default function MemberList() {
             <button type="button" onClick={() => setShowFilters(v => !v)} style={{
               width: 36, height: 36, borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: showFilters ? 'var(--color-accent-light)' : '#fff', cursor: 'pointer',
+              background: showFilters ? 'var(--color-accent-light)' : 'var(--color-bg)', cursor: 'pointer',
               color: showFilters ? 'var(--color-accent)' : 'var(--color-text-secondary)',
             }}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
@@ -571,7 +571,7 @@ export default function MemberList() {
                 placeholder="氏名・フリガナ・会員番号・会社名で検索"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                style={{ width: '100%', padding: '10px 12px 10px 34px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, background: '#fff' }}
+                style={{ width: '100%', padding: '10px 12px 10px 34px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontSize: 14, background: 'var(--color-bg)' }}
               />
             </div>
             {/* Member type pills */}
@@ -594,7 +594,7 @@ export default function MemberList() {
                   style={{
                     padding: '5px 14px', borderRadius: 999,
                     border: organizationId ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-                    background: organizationId ? 'var(--color-accent)' : '#fff',
+                    background: organizationId ? 'var(--color-accent)' : 'var(--color-bg)',
                     color: organizationId ? '#fff' : 'var(--color-text-secondary)',
                     fontSize: 12, fontWeight: 600, cursor: 'pointer',
                     display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', transition: 'all 0.15s',
@@ -609,7 +609,7 @@ export default function MemberList() {
                     <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setShowOrgDropdown(false)} />
                     <div style={{
                       position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 100,
-                      background: '#fff', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
+                      background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
                       boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
                       minWidth: 240, maxHeight: 240, overflowY: 'auto',
                       animation: 'yearDropIn 0.12s ease',
@@ -679,7 +679,7 @@ export default function MemberList() {
                   border: "1px solid var(--color-border)",
                   borderRadius: "var(--radius-md)",
                   fontSize: "14px",
-                  background: "#fff",
+                  background: "var(--color-bg)",
                   transition: "border-color 0.15s, box-shadow 0.15s",
                 }}
               />
@@ -726,7 +726,7 @@ export default function MemberList() {
                   style={{
                     padding: "5px 14px", borderRadius: "999px",
                     border: organizationId ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
-                    background: organizationId ? "var(--color-accent)" : "#fff",
+                    background: organizationId ? "var(--color-accent)" : "var(--color-bg)",
                     color: organizationId ? "#fff" : "var(--color-text-secondary)",
                     fontSize: "12px", fontWeight: 600, cursor: "pointer",
                     display: "inline-flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap", transition: "all 0.15s",
@@ -741,7 +741,7 @@ export default function MemberList() {
                     <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => setShowOrgDropdown(false)} />
                     <div style={{
                       position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100,
-                      background: "#fff", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
+                      background: "var(--color-bg)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
                       boxShadow: "0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
                       minWidth: 240, maxHeight: 240, overflowY: "auto",
                       animation: "yearDropIn 0.12s ease",
@@ -793,8 +793,8 @@ export default function MemberList() {
         <div style={{
           padding: "12px 16px",
           borderRadius: "var(--radius-md)",
-          background: "#fee2e2",
-          color: "#991b1b",
+          background: "var(--color-danger-light)",
+          color: "var(--color-danger)",
           fontSize: "13px",
           fontWeight: 600,
           marginBottom: "16px",
@@ -828,12 +828,12 @@ export default function MemberList() {
                         {m.profile_image ? (
                           <img src={m.profile_image} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                         ) : (
-                          <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, var(--color-border), var(--color-bg-sub))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#475467", flexShrink: 0 }}>
+                          <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, var(--color-border), var(--color-bg-sub))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", flexShrink: 0 }}>
                             {(fullName(m) || "M").charAt(0)}
                           </div>
                         )}
                         <span className="card-title">{displayValue(fullName(m))}</span>
-                        {m.is_new && <span style={{ padding: "1px 6px", borderRadius: 4, background: "#fee2e2", color: "#dc2626", fontSize: 12, fontWeight: 700 }}>新入</span>}
+                        {m.is_new && <span style={{ padding: "1px 6px", borderRadius: 4, background: "var(--color-danger-light)", color: "var(--color-danger)", fontSize: 12, fontWeight: 700 }}>新入</span>}
                         {m.is_graduate && <span style={{ padding: "1px 6px", borderRadius: 4, background: "#f3e8ff", color: "#7c3aed", fontSize: 12, fontWeight: 700 }}>卒業</span>}
                       </div>
                       <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
@@ -904,7 +904,7 @@ export default function MemberList() {
                             {m.profile_image ? (
                               <img src={m.profile_image} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                             ) : (
-                              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, var(--color-border), var(--color-bg-sub))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#475467", flexShrink: 0 }}>
+                              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, var(--color-border), var(--color-bg-sub))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", flexShrink: 0 }}>
                                 {(fullName(m) || "M").charAt(0)}
                               </div>
                             )}
@@ -920,8 +920,8 @@ export default function MemberList() {
                                 display: "inline-block",
                                 padding: "1px 6px",
                                 borderRadius: "4px",
-                                background: "#fee2e2",
-                                color: "#dc2626",
+                                background: "var(--color-danger-light)",
+                                color: "var(--color-danger)",
                                 fontSize: "12px",
                                 fontWeight: 700,
                                 letterSpacing: "0.5px",

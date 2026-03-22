@@ -15,9 +15,9 @@ function statusLabel(s) {
 function statusColor(s) {
   return {
     draft: { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)", border: "var(--color-border)", bar: "var(--color-text-tertiary)" },
-    scheduled: { bg: "#fffbeb", text: "#92400e", border: "#fde68a", bar: "#d97706" },
-    sent: { bg: "#ecfdf5", text: "#065f46", border: "#a7f3d0", bar: "#059669" },
-    failed: { bg: "#fef2f2", text: "#991b1b", border: "#fecaca", bar: "#dc2626" },
+    scheduled: { bg: "var(--color-warning-light)", text: "#92400e", border: "#fde68a", bar: "var(--color-warning)" },
+    sent: { bg: "var(--color-success-light)", text: "#065f46", border: "#a7f3d0", bar: "var(--color-success)" },
+    failed: { bg: "var(--color-danger-light)", text: "#991b1b", border: "#fecaca", bar: "var(--color-danger)" },
     cancelled: { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)", border: "var(--color-border)", bar: "var(--color-text-tertiary)" },
   }[s] || { bg: "var(--color-bg-sub)", text: "var(--color-text-secondary)", border: "var(--color-border)", bar: "var(--color-text-tertiary)" };
 }
@@ -392,7 +392,7 @@ function EditorModeTabs({ mode, onChange }) {
         onClick={() => onChange("text")}
         style={{
           padding: "6px 16px", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
-          background: mode === "text" ? "var(--color-accent)" : "#fff",
+          background: mode === "text" ? "var(--color-accent)" : "var(--color-bg)",
           color: mode === "text" ? "#fff" : "var(--color-text-secondary)",
           transition: "all 0.15s",
         }}
@@ -403,7 +403,7 @@ function EditorModeTabs({ mode, onChange }) {
         style={{
           padding: "6px 16px", border: "none", borderLeft: "1px solid var(--color-border)",
           cursor: "pointer", fontSize: 12, fontWeight: 600,
-          background: mode === "rich" ? "var(--color-accent)" : "#fff",
+          background: mode === "rich" ? "var(--color-accent)" : "var(--color-bg)",
           color: mode === "rich" ? "#fff" : "var(--color-text-secondary)",
           transition: "all 0.15s",
         }}
@@ -797,7 +797,7 @@ export default function Newsletters() {
         title="テンプレートを削除"
         message={`テンプレート「${form.title}」を削除しますか？この操作は取り消せません。`}
         confirmLabel="削除する"
-        confirmStyle={{ background: "#dc2626", borderColor: "#dc2626" }}
+        confirmStyle={{ background: "var(--color-danger)", borderColor: "var(--color-danger)" }}
         onConfirm={handleDeleteTemplate}
         onCancel={() => setConfirmDeleteTemplate(false)}
       />
@@ -886,10 +886,10 @@ export default function Newsletters() {
                             display: "block", width: "100%", textAlign: "left",
                             padding: "10px 14px", marginBottom: 4,
                             borderRadius: "var(--radius-md)", border: "1px dashed var(--color-border)",
-                            background: "#fff", cursor: "pointer", transition: "all 0.15s", fontSize: 13,
+                            background: "var(--color-bg)", cursor: "pointer", transition: "all 0.15s", fontSize: 13,
                           }}
                           onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-accent)"; e.currentTarget.style.background = "var(--color-accent-light)"; }}
-                          onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.background = "#fff"; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.background = "var(--color-bg)"; }}
                         >
                           <div style={{ fontWeight: 600, color: "var(--color-text-primary)", marginBottom: 2 }}>{pt.name || pt.title}</div>
                           <div style={{ fontSize: 12, color: "var(--color-text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -906,7 +906,7 @@ export default function Newsletters() {
                         margin: "0 12px 4px", padding: "12px 14px",
                         borderRadius: "var(--radius-md)",
                         border: selectedId === tmpl.id ? "2px solid var(--color-accent)" : "2px dashed var(--color-border)",
-                        background: selectedId === tmpl.id ? "var(--color-accent-light)" : "#fff",
+                        background: selectedId === tmpl.id ? "var(--color-accent-light)" : "var(--color-bg)",
                         cursor: "pointer", transition: "all 0.15s",
                       }}
                       onClick={() => handleSelect(tmpl.id)}
@@ -992,7 +992,7 @@ export default function Newsletters() {
 
           {/* ── Bottom fixed button ── */}
           <div style={{
-            padding: "12px", borderTop: "1px solid var(--color-border)", background: "#fff",
+            padding: "12px", borderTop: "1px solid var(--color-border)", background: "var(--color-bg)",
           }}>
             {activeTab === "template" ? (
               <button
@@ -1098,7 +1098,7 @@ export default function Newsletters() {
 
               {/* Body */}
               <div style={{
-                padding: 20, background: "#fff", border: "1px solid var(--color-border)",
+                padding: 20, background: "var(--color-bg)", border: "1px solid var(--color-border)",
                 borderRadius: "var(--radius-lg)", fontSize: 14, lineHeight: 1.7,
               }}>
                 {form.body_html ? (
@@ -1142,7 +1142,7 @@ export default function Newsletters() {
                 {isTemplate && (
                   <div style={{
                     padding: "10px 16px", marginBottom: 16, borderRadius: "var(--radius-md)",
-                    border: "1px solid #fde68a", background: "#fffbeb",
+                    border: "1px solid #fde68a", background: "var(--color-warning-light)",
                     display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, color: "#92400e",
                   }}>
                     <FileIcon size={16} color="#92400e" />
@@ -1152,7 +1152,7 @@ export default function Newsletters() {
                 {isFromTemplate && (
                   <div style={{
                     padding: "10px 16px", marginBottom: 16, borderRadius: "var(--radius-md)",
-                    border: "1px solid #a7f3d0", background: "#ecfdf5",
+                    border: "1px solid #a7f3d0", background: "var(--color-success-light)",
                     display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 500, color: "#065f46",
                   }}>
                     <FileIcon size={16} color="#065f46" />
@@ -1221,7 +1221,7 @@ export default function Newsletters() {
                         style={{
                           width: "100%", minHeight: 200, padding: "14px 16px", fontSize: 14,
                           lineHeight: 1.7, borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
-                          background: "#fff", resize: "vertical", outline: "none", transition: "border-color 0.15s",
+                          background: "var(--color-bg)", resize: "vertical", outline: "none", transition: "border-color 0.15s",
                         }}
                         onFocus={e => e.currentTarget.style.borderColor = "var(--color-accent)"}
                         onBlur={e => e.currentTarget.style.borderColor = "var(--color-border)"}
@@ -1243,7 +1243,7 @@ export default function Newsletters() {
                     <button type="button" onClick={() => setForm(prev => ({ ...prev, channel: "email" }))}
                       style={{
                         padding: "8px 20px", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600,
-                        background: form.channel === "email" ? "var(--color-accent)" : "#fff",
+                        background: form.channel === "email" ? "var(--color-accent)" : "var(--color-bg)",
                         color: form.channel === "email" ? "#fff" : "var(--color-text-secondary)",
                         display: "flex", alignItems: "center", gap: 6, transition: "all 0.15s",
                       }}
@@ -1256,7 +1256,7 @@ export default function Newsletters() {
                         style={{
                           padding: "8px 20px", border: "none", borderLeft: "1px solid var(--color-border)",
                           cursor: "not-allowed", fontSize: 13, fontWeight: 600,
-                          background: "#f8fafc", color: "var(--color-text-tertiary)",
+                          background: "var(--color-bg-sub)", color: "var(--color-text-tertiary)",
                           display: "flex", alignItems: "center", gap: 6, opacity: 0.6,
                         }}
                       >
@@ -1283,7 +1283,7 @@ export default function Newsletters() {
                         style={{
                           padding: "6px 16px", borderRadius: 20, fontSize: 13, fontWeight: 600,
                           cursor: "pointer", transition: "all 0.15s",
-                          background: form.audience_type === opt.key ? "var(--color-accent)" : "#fff",
+                          background: form.audience_type === opt.key ? "var(--color-accent)" : "var(--color-bg)",
                           color: form.audience_type === opt.key ? "#fff" : "var(--color-text-secondary)",
                           border: `1px solid ${form.audience_type === opt.key ? "var(--color-accent)" : "var(--color-border)"}`,
                         }}
@@ -1299,7 +1299,7 @@ export default function Newsletters() {
                           style={{
                             padding: "5px 14px", borderRadius: 20, fontSize: 12, fontWeight: 500,
                             cursor: "pointer", transition: "all 0.15s",
-                            background: form.audience_detail === opt.key ? "var(--color-accent-light)" : "#fff",
+                            background: form.audience_detail === opt.key ? "var(--color-accent-light)" : "var(--color-bg)",
                             color: form.audience_detail === opt.key ? "var(--color-accent)" : "var(--color-text-secondary)",
                             border: `1px solid ${form.audience_detail === opt.key ? "var(--color-accent)" : "var(--color-border)"}`,
                           }}
@@ -1324,7 +1324,7 @@ export default function Newsletters() {
                     padding: "12px 16px", marginBottom: 20,
                     borderRadius: "var(--radius-md)",
                     border: form.is_template ? "1px solid #fde68a" : "1px solid var(--color-border)",
-                    background: form.is_template ? "#fffbeb" : "#fff",
+                    background: form.is_template ? "var(--color-warning-light)" : "var(--color-bg)",
                     transition: "all 0.15s",
                   }}>
                     <FileIcon size={16} color={form.is_template ? "#92400e" : "var(--color-text-secondary)"} />
@@ -1381,7 +1381,7 @@ export default function Newsletters() {
                                 style={{
                                   padding: "5px 14px", borderRadius: 20, fontSize: 12, fontWeight: 600,
                                   cursor: "pointer", transition: "all 0.15s",
-                                  background: schedHour === qt.h && schedMin === qt.m ? "var(--color-accent)" : "#fff",
+                                  background: schedHour === qt.h && schedMin === qt.m ? "var(--color-accent)" : "var(--color-bg)",
                                   color: schedHour === qt.h && schedMin === qt.m ? "#fff" : "var(--color-text-secondary)",
                                   border: `1px solid ${schedHour === qt.h && schedMin === qt.m ? "var(--color-accent)" : "var(--color-border)"}`,
                                 }}
@@ -1485,7 +1485,7 @@ export default function Newsletters() {
 
               {/* ═══ Action bar (fixed bottom) ═══ */}
               <div style={{
-                padding: "14px 28px", borderTop: "1px solid var(--color-border)", background: "#fff",
+                padding: "14px 28px", borderTop: "1px solid var(--color-border)", background: "var(--color-bg)",
                 display: "flex", alignItems: "center", gap: 8, flexShrink: 0, flexWrap: "wrap",
               }}>
                 {isTemplate ? (
@@ -1496,7 +1496,7 @@ export default function Newsletters() {
                           style={{
                             padding: "7px 16px", borderRadius: "var(--radius-md)",
                             border: "1px solid var(--color-danger)", background: "var(--error-light)",
-                            color: "#991b1b", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                            color: "var(--color-danger)", fontSize: 13, fontWeight: 600, cursor: "pointer",
                           }}
                         >テンプレートを削除</button>
                       )}
@@ -1510,7 +1510,7 @@ export default function Newsletters() {
                     <button type="submit" disabled={saving}
                       style={{
                         padding: "7px 16px", borderRadius: "var(--radius-md)",
-                        border: "1px solid var(--color-border)", background: "#fff",
+                        border: "1px solid var(--color-border)", background: "var(--color-bg)",
                         color: "var(--color-text-secondary)", fontSize: 13, fontWeight: 600,
                         cursor: "pointer", transition: "all 0.15s",
                       }}
@@ -1523,13 +1523,13 @@ export default function Newsletters() {
                           <button type="button" onClick={() => setShowTestSend(true)} disabled={saving}
                             style={{
                               padding: "7px 16px", borderRadius: "var(--radius-md)",
-                              border: "1px solid var(--color-accent)", background: "#fff",
+                              border: "1px solid var(--color-accent)", background: "var(--color-bg)",
                               color: "var(--color-accent)", fontSize: 13, fontWeight: 600,
                               cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
                               transition: "all 0.15s",
                             }}
                             onMouseEnter={e => { e.currentTarget.style.background = "var(--color-accent-light)"; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = "#fff"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = "var(--color-bg)"; }}
                           >
                             <MailIcon size={13} color="var(--color-accent)" /> テスト送信
                           </button>
@@ -1537,12 +1537,12 @@ export default function Newsletters() {
                         <button type="button" onClick={handlePreview} disabled={saving}
                           style={{
                             padding: "7px 16px", borderRadius: "var(--radius-md)",
-                            border: "1px solid var(--color-accent)", background: "#fff",
+                            border: "1px solid var(--color-accent)", background: "var(--color-bg)",
                             color: "var(--color-accent)", fontSize: 13, fontWeight: 600,
                             cursor: "pointer", transition: "all 0.15s",
                           }}
                           onMouseEnter={e => { e.currentTarget.style.background = "var(--color-accent-light)"; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = "#fff"; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = "var(--color-bg)"; }}
                         >プレビュー</button>
                         {form.id && (
                           <button type="button" onClick={handleSendClick} disabled={saving}

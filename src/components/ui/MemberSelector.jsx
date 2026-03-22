@@ -82,7 +82,7 @@ export default function MemberSelector({ value, onChange, members = [], disabled
 
   if (disabled && selectedMember) {
     return (
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 10px", background: "#f9fafb", borderRadius: 6, border: "1px solid var(--color-border, var(--color-border))", fontSize: 13, color: "var(--color-text-primary, #1f2937)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 10px", background: "var(--color-bg-sub)", borderRadius: 6, border: "1px solid var(--color-border)", fontSize: 13, color: "var(--color-text-primary)" }}>
         <MemberAvatar member={selectedMember} size={22} />
         <span style={{ fontWeight: 500 }}>{fullName(selectedMember)}</span>
       </div>
@@ -90,7 +90,7 @@ export default function MemberSelector({ value, onChange, members = [], disabled
   }
   if (disabled) {
     return (
-      <div style={{ padding: "5px 10px", background: "#f9fafb", borderRadius: 6, border: "1px solid var(--color-border, var(--color-border))", fontSize: 13, color: "var(--color-text-secondary, var(--color-text-secondary))" }}>
+      <div style={{ padding: "5px 10px", background: "var(--color-bg-sub)", borderRadius: 6, border: "1px solid var(--color-border)", fontSize: 13, color: "var(--color-text-secondary)" }}>
         {placeholder}
       </div>
     );
@@ -132,7 +132,7 @@ export default function MemberSelector({ value, onChange, members = [], disabled
         <div ref={dropdownRef} className="dp-dropdown" style={{ width: "100%", minWidth: 240, maxHeight: 320, display: "flex", flexDirection: "column", padding: 0 }}>
           {/* Search input */}
           <div style={{ padding: "8px 10px", borderBottom: "1px solid var(--color-border, var(--color-border))" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f9fafb", borderRadius: 6, padding: "4px 8px", border: "1px solid var(--color-border, var(--color-border))" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--color-bg-sub)", borderRadius: 6, padding: "4px 8px", border: "1px solid var(--color-border)" }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4 }}>
                 <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
@@ -173,10 +173,10 @@ export default function MemberSelector({ value, onChange, members = [], disabled
                     style={{
                       display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "8px 12px",
                       border: "none", borderBottom: "1px solid var(--line-light, var(--color-bg-sub))",
-                      background: isSelected ? "#eff6ff" : "transparent",
+                      background: isSelected ? "var(--color-accent-light)" : "transparent",
                       cursor: "pointer", textAlign: "left", fontSize: 13, transition: "background 0.1s",
                     }}
-                    onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = "#f9fafb"; }}
+                    onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = "var(--color-bg-sub)"; }}
                     onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}
                   >
                     <MemberAvatar member={m} size={28} />
@@ -194,7 +194,7 @@ export default function MemberSelector({ value, onChange, members = [], disabled
                       })()}
                     </div>
                     {isSelected && (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     )}

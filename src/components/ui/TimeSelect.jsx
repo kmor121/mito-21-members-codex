@@ -95,7 +95,7 @@ export default function TimeSelect({ value, onChange, disabled, placeholder = "æ
               style={{
                 padding: "4px 10px", fontSize: 12, borderRadius: "var(--radius-sm)",
                 border: "1px solid var(--color-border)", cursor: "pointer",
-                background: isActive ? "var(--color-accent)" : "#fff",
+                background: isActive ? "var(--color-accent)" : "var(--color-bg)",
                 color: isActive ? "#fff" : "var(--color-text-primary)",
                 fontWeight: isActive ? 600 : 400,
               }}

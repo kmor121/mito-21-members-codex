@@ -11,15 +11,15 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 
 const MEMBER_TYPE_BADGE = {
   "正会員": { bg: "var(--color-accent-light)", color: "var(--color-accent)" },
-  "賛助会員": { bg: "#ecfdf5", color: "#059669" },
+  "賛助会員": { bg: "var(--color-success-light)", color: "var(--color-success)" },
   "OB会員": { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" },
-  "名誉顧問": { bg: "#fffbeb", color: "#d97706" },
+  "名誉顧問": { bg: "var(--color-warning-light)", color: "var(--color-warning)" },
 };
 
 const STATUS_BADGE = {
-  "活動中": { bg: "#ecfdf5", color: "#059669" },
-  "休会": { bg: "#fffbeb", color: "#d97706" },
-  "退会": { bg: "#fee2e2", color: "#991b1b" },
+  "活動中": { bg: "var(--color-success-light)", color: "var(--color-success)" },
+  "休会": { bg: "var(--color-warning-light)", color: "var(--color-warning)" },
+  "退会": { bg: "var(--color-danger-light)", color: "var(--color-danger)" },
 };
 
 const FIELD_LABELS = {
@@ -579,7 +579,7 @@ export default function MemberDetail() {
                   </span>
                 )}
                 {member.is_graduate && (
-                  <span className="pill" style={{ backgroundColor: "var(--color-warning-light, #fffbeb)", color: "var(--color-warning, #d97706)", fontWeight: 600, fontSize: "0.75rem", padding: "0.2rem 0.6rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
+                  <span className="pill" style={{ backgroundColor: "var(--color-warning-light)", color: "var(--color-warning)", fontWeight: 600, fontSize: "0.75rem", padding: "0.2rem 0.6rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
                     卒業生
                   </span>
                 )}
@@ -709,8 +709,8 @@ export default function MemberDetail() {
                   <div style={{ padding: "0 0.5rem" }}>
                     <div style={{
                       display: "flex", alignItems: "center", gap: 8, padding: "10px 14px",
-                      background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8,
-                      fontSize: 13, color: "#15803d", marginBottom: 12, flexWrap: "wrap",
+                      background: "var(--color-success-light)", border: "1px solid #bbf7d0", borderRadius: 8,
+                      fontSize: 13, color: "var(--color-success)", marginBottom: 12, flexWrap: "wrap",
                     }}>
                       <span>✅</span>
                       <span>Base44ユーザーと紐付け済み</span>
@@ -721,7 +721,7 @@ export default function MemberDetail() {
                       onClick={() => setShowUnlinkConfirm(true)}
                       style={{
                         background: "none", border: "1px solid #fca5a5", borderRadius: 6,
-                        padding: "6px 14px", fontSize: 13, color: "#dc2626", cursor: "pointer",
+                        padding: "6px 14px", fontSize: 13, color: "var(--color-danger)", cursor: "pointer",
                         transition: "all 0.15s",
                       }}
                     >
@@ -732,8 +732,8 @@ export default function MemberDetail() {
                   <div style={{ padding: "0 0.5rem" }}>
                     <div style={{
                       display: "flex", alignItems: "center", gap: 8, padding: "10px 14px",
-                      background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8,
-                      fontSize: 13, color: "#92400e", marginBottom: 12, flexWrap: "wrap",
+                      background: "var(--color-warning-light)", border: "1px solid #fde68a", borderRadius: 8,
+                      fontSize: 13, color: "var(--color-warning)", marginBottom: 12, flexWrap: "wrap",
                     }}>
                       <span>⚠️</span>
                       <span>Base44ユーザーと未紐付け（ログイン時にメールアドレスで自動紐付けされます）</span>
@@ -888,7 +888,7 @@ export default function MemberDetail() {
             <div style={{
               position: "sticky",
               bottom: 0,
-              backgroundColor: "var(--surface, #fff)",
+              backgroundColor: "var(--color-bg)",
               borderTop: "1px solid var(--color-border)",
               padding: "0.75rem 1.25rem",
               display: "flex",
@@ -936,7 +936,7 @@ export default function MemberDetail() {
                       height: "0.75rem",
                       borderRadius: "50%",
                       backgroundColor: "var(--color-accent)",
-                      border: "2px solid var(--surface, #fff)",
+                      border: "2px solid var(--color-bg)",
                       boxShadow: "0 0 0 2px var(--color-accent)",
                       transform: "translateX(0.075rem)",
                     }} />
@@ -976,9 +976,9 @@ export default function MemberDetail() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {duesHistory.map((d, idx) => {
                   const statusStyle = d.status === "納入済"
-                    ? { backgroundColor: "var(--color-success-light, #ecfdf5)", color: "var(--color-success, #059669)" }
+                    ? { backgroundColor: "var(--color-success-light)", color: "var(--color-success)" }
                     : d.status === "未納"
-                      ? { backgroundColor: "var(--color-danger-light, #fef2f2)", color: "var(--color-danger, #dc2626)" }
+                      ? { backgroundColor: "var(--color-danger-light)", color: "var(--color-danger)" }
                       : { backgroundColor: "var(--color-bg-sub)", color: "var(--color-text-secondary)" };
                   return (
                     <div key={idx} style={{
@@ -1020,9 +1020,9 @@ export default function MemberDetail() {
                   <tbody>
                     {duesHistory.map((d, idx) => {
                       const statusStyle = d.status === "納入済"
-                        ? { backgroundColor: "var(--color-success-light, #ecfdf5)", color: "var(--color-success, #059669)" }
+                        ? { backgroundColor: "var(--color-success-light)", color: "var(--color-success)" }
                         : d.status === "未納"
-                          ? { backgroundColor: "var(--color-danger-light, #fef2f2)", color: "var(--color-danger, #dc2626)" }
+                          ? { backgroundColor: "var(--color-danger-light)", color: "var(--color-danger)" }
                           : { backgroundColor: "var(--color-bg-sub)", color: "var(--color-text-secondary)" };
                       return (
                         <tr key={idx}>

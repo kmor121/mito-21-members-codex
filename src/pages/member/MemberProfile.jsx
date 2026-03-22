@@ -14,9 +14,9 @@ function displayValue(value) {
 
 const MEMBER_TYPE_COLORS = {
   "正会員":   { bg: "var(--color-accent-light)", color: "var(--color-accent)", border: "#c7d2fe" },
-  "賛助会員": { bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" },
+  "賛助会員": { bg: "var(--color-success-light)", color: "var(--color-success)", border: "#a7f3d0" },
   "OB会員":   { bg: "#fff7ed", color: "#ea580c", border: "#fed7aa" },
-  "名誉顧問": { bg: "#fef3c7", color: "#92400e", border: "#fde68a" },
+  "名誉顧問": { bg: "var(--color-warning-light)", color: "#92400e", border: "#fde68a" },
 };
 
 function MemberImage({ src, name, initial: initialOverride, size = "detail", memberType }) {

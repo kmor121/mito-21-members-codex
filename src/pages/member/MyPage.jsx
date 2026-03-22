@@ -796,7 +796,7 @@ export default function MyPage() {
                   </div>
                   <span style={{
                     fontSize: 12, padding: '2px 10px', borderRadius: 'var(--radius-full)',
-                    background: isPaid ? '#dcfce7' : '#fee2e2',
+                    background: isPaid ? 'var(--color-success-light)' : 'var(--color-danger-light)',
                     color: isPaid ? 'var(--color-success)' : 'var(--color-danger)',
                     fontWeight: 'var(--font-weight-medium)',
                   }}>

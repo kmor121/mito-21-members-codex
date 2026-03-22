@@ -268,7 +268,7 @@ export default function Dashboard() {
       {/* ═══ Scoped styles ═══ */}
       <style>{`
         .db-skeleton {
-          background: linear-gradient(90deg, var(--color-bg-sub) 25%, #e8ecf1 50%, var(--color-bg-sub) 75%);
+          background: linear-gradient(90deg, var(--color-bg-sub) 25%, var(--color-border) 50%, var(--color-bg-sub) 75%);
           background-size: 200% 100%; animation: db-shimmer 1.5s infinite;
         }
         @keyframes db-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }

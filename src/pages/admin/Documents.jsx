@@ -6,10 +6,10 @@ import { Button, PageHeader, Modal } from '../../components/ui';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 const DOC_TYPE_BADGE = {
-  "事業計画": { color: "#2563eb", bg: "#eff6ff", icon: "📋" },
+  "事業計画": { color: "var(--color-accent)", bg: "var(--color-accent-light)", icon: "📋" },
   "団体理念": { color: "#7c3aed", bg: "#f5f3ff", icon: "💡" },
-  "会則・規約": { color: "#d97706", bg: "#fffbeb", icon: "📜" },
-  "年間スケジュール": { color: "#059669", bg: "#ecfdf5", icon: "📅" },
+  "会則・規約": { color: "var(--color-warning)", bg: "var(--color-warning-light)", icon: "📜" },
+  "年間スケジュール": { color: "var(--color-success)", bg: "var(--color-success-light)", icon: "📅" },
   "運用マニュアル": { color: "var(--color-accent)", bg: "var(--color-accent-light)", icon: "📖" },
 };
 

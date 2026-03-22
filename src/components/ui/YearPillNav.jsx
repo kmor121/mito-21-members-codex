@@ -76,7 +76,7 @@ export default function YearPillNav({ fiscalYears, activeFyId, currentFyId, onCh
       {open && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 4px)', left: 0,
-          background: '#fff',
+          background: 'var(--color-bg)',
           border: '1px solid var(--color-border)',
           borderRadius: 'var(--radius-md)',
           boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',

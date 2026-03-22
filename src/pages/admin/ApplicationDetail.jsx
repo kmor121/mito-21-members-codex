@@ -68,9 +68,9 @@ const XIcon = () => (
 
 /* ── Status badge ── */
 const STATUS_BADGE = {
-  "申請中": { bg: "#fffbeb", color: "#d97706" },
-  "承認済": { bg: "#ecfdf5", color: "#059669" },
-  "却下":   { bg: "#fee2e2", color: "#991b1b" },
+  "申請中": { bg: "var(--color-warning-light)", color: "var(--color-warning)" },
+  "承認済": { bg: "var(--color-success-light)", color: "var(--color-success)" },
+  "却下":   { bg: "var(--color-danger-light)", color: "var(--color-danger)" },
 };
 
 function StatusBadge({ status, large }) {
@@ -127,8 +127,8 @@ function InfoGrid({ items, singleColumn }) {
 /* ── Member type pill selector ── */
 const MEMBER_TYPE_OPTIONS = [
   { value: "正会員", color: "var(--color-accent)", bg: "var(--color-accent-light)" },
-  { value: "賛助会員", color: "#059669", bg: "#ecfdf5" },
-  { value: "名誉顧問", color: "#d97706", bg: "#fffbeb" },
+  { value: "賛助会員", color: "var(--color-success)", bg: "var(--color-success-light)" },
+  { value: "名誉顧問", color: "var(--color-warning)", bg: "var(--color-warning-light)" },
 ];
 
 function MemberTypePills({ value, onChange }) {
@@ -144,7 +144,7 @@ function MemberTypePills({ value, onChange }) {
             style={{
               padding: "8px 20px", borderRadius: "999px", fontSize: 14, fontWeight: 600,
               border: active ? "2px solid " + opt.color : "2px solid var(--color-border)",
-              background: active ? opt.bg : "#fff",
+              background: active ? opt.bg : "var(--color-bg)",
               color: active ? opt.color : "var(--color-text-secondary)",
               cursor: "pointer", transition: "all 0.15s",
             }}
@@ -303,7 +303,7 @@ export default function ApplicationDetail() {
       </a>
       <div style={{
         background: "var(--color-danger-light)", border: "1px solid #fecaca",
-        borderRadius: "var(--radius)", padding: 24, color: "#991b1b", fontSize: 14,
+        borderRadius: "var(--radius)", padding: 24, color: "var(--color-danger)", fontSize: 14,
       }}>
         {error || "データを取得できませんでした"}
       </div>
@@ -323,7 +323,7 @@ export default function ApplicationDetail() {
         <span style={{
           display: "inline-flex", alignItems: "center", gap: 4,
           padding: "3px 10px", borderRadius: "var(--radius-sm)",
-          background: "#ecfdf5", color: "#059669", fontSize: 12, fontWeight: 600,
+          background: "var(--color-success-light)", color: "var(--color-success)", fontSize: 12, fontWeight: 600,
         }}>
           <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
           {arr.map(x => `${x.last_name || ""}${x.first_name ? " " + x.first_name : ""}${!x.last_name && !x.first_name ? (x.name_kanji || "-") : ""}${x.member_number ? " (" + x.member_number + ")" : ""}`).join(", ")} と一致
@@ -334,7 +334,7 @@ export default function ApplicationDetail() {
       <span style={{
         display: "inline-flex", alignItems: "center", gap: 4,
         padding: "3px 10px", borderRadius: "var(--radius-sm)",
-        background: "#fffbeb", color: "#d97706", fontSize: 12, fontWeight: 600,
+        background: "var(--color-warning-light)", color: "var(--color-warning)", fontSize: 12, fontWeight: 600,
       }}>
         <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         一致する会員が見つかりません
@@ -460,9 +460,9 @@ export default function ApplicationDetail() {
       {/* ══ Approved / Rejected banner ══ */}
       {isApproved && (
         <div style={{
-          background: "#ecfdf5", border: "1px solid #a7f3d0", borderRadius: "var(--radius)",
+          background: "var(--color-success-light)", border: "1px solid #a7f3d0", borderRadius: "var(--radius)",
           padding: "14px 20px", marginBottom: 20,
-          display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 600, color: "#065f46", flexWrap: "wrap",
+          display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 600, color: "var(--color-success)", flexWrap: "wrap",
         }}>
           <svg style={{ width: 20, height: 20, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
@@ -474,9 +474,9 @@ export default function ApplicationDetail() {
       )}
       {isRejected && (
         <div style={{
-          background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "var(--radius)",
+          background: "var(--color-danger-light)", border: "1px solid #fecaca", borderRadius: "var(--radius)",
           padding: "14px 20px", marginBottom: 20,
-          display: "flex", alignItems: "flex-start", gap: 10, fontSize: 14, fontWeight: 600, color: "#991b1b",
+          display: "flex", alignItems: "flex-start", gap: 10, fontSize: 14, fontWeight: 600, color: "var(--color-danger)",
         }}>
           <svg style={{ width: 20, height: 20, flexShrink: 0, marginTop: 1 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
@@ -614,7 +614,7 @@ export default function ApplicationDetail() {
             {/* Referrer 1 */}
             <div style={{
               padding: "14px 16px", borderRadius: "var(--radius)",
-              background: detail.referrer_matches?.referrer_1 ? "#f0fdf4" : "#fffbeb",
+              background: detail.referrer_matches?.referrer_1 ? "var(--color-success-light)" : "var(--color-warning-light)",
               border: `1px solid ${detail.referrer_matches?.referrer_1 ? "#bbf7d0" : "#fde68a"}`,
               display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
             }}>
@@ -628,7 +628,7 @@ export default function ApplicationDetail() {
             {detail.referrer_2 && (
               <div style={{
                 padding: "14px 16px", borderRadius: "var(--radius)",
-                background: detail.referrer_matches?.referrer_2 ? "#f0fdf4" : "#fffbeb",
+                background: detail.referrer_matches?.referrer_2 ? "var(--color-success-light)" : "var(--color-warning-light)",
                 border: `1px solid ${detail.referrer_matches?.referrer_2 ? "#bbf7d0" : "#fde68a"}`,
                 display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
               }}>
@@ -653,7 +653,7 @@ export default function ApplicationDetail() {
       {fieldError && (
         <div style={{
           padding: "12px 16px", borderRadius: "var(--radius)",
-          background: "#fee2e2", color: "#991b1b", fontSize: 13, fontWeight: 600,
+          background: "var(--color-danger-light)", color: "var(--color-danger)", fontSize: 13, fontWeight: 600,
         }}>
           {fieldError}
         </div>
@@ -663,7 +663,7 @@ export default function ApplicationDetail() {
       {isPending && (
         <div style={{
           position: "sticky", bottom: 0, zIndex: 10,
-          background: "#fff", borderTop: "1px solid var(--color-border)",
+          background: "var(--color-bg)", borderTop: "1px solid var(--color-border)",
           padding: "16px 24px",
           paddingBottom: "max(16px, env(safe-area-inset-bottom, 16px))",
           display: "flex", justifyContent: "flex-end", gap: 12,

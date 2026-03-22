@@ -543,7 +543,7 @@ export default function RichTextEditor({ content, onChange, placeholder }) {
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3] },
-        dropcursor: { color: '#4f46e5', width: 2 },
+        dropcursor: { color: 'var(--color-accent)', width: 2 },
       }),
       Link.configure({
         openOnClick: false,

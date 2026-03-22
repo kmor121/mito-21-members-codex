@@ -11,27 +11,27 @@ import { isAttendanceClosed } from '../../utils/attendanceUtils';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 const STATUS_BADGE = {
-  "公開": { bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe" },
-  "完了": { bg: "#ecfdf5", color: "#059669", border: "#bbf7d0" },
+  "公開": { bg: "var(--color-accent-light)", color: "var(--color-accent)", border: "#bfdbfe" },
+  "完了": { bg: "var(--color-success-light)", color: "var(--color-success)", border: "#bbf7d0" },
 };
 
 const STATUS_LABEL = { "公開": "公開", "完了": "完了" };
 
 const TAG_BADGE = {
-  "審議": { bg: "#eff6ff", color: "#2563eb" },
-  "協議": { bg: "#fffbeb", color: "#d97706" },
-  "討議": { bg: "#fef3c7", color: "#92400e" },
-  "報告": { bg: "#ecfdf5", color: "#059669" },
-  "議案": { bg: "#eff6ff", color: "#2563eb" },
+  "審議": { bg: "var(--color-accent-light)", color: "var(--color-accent)" },
+  "協議": { bg: "var(--color-warning-light)", color: "var(--color-warning)" },
+  "討議": { bg: "var(--color-warning-light)", color: "#92400e" },
+  "報告": { bg: "var(--color-success-light)", color: "var(--color-success)" },
+  "議案": { bg: "var(--color-accent-light)", color: "var(--color-accent)" },
   "その他": { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" },
 };
 
 const DECISION_STATUS_BADGE = {
   "未審議":   { bg: "var(--color-bg-sub)", color: "var(--color-text-secondary)" },
-  "承認":     { bg: "#ecfdf5", color: "#059669" },
-  "否決":     { bg: "#fee2e2", color: "#dc2626" },
-  "継続審議": { bg: "#fffbeb", color: "#d97706" },
-  "了承":     { bg: "#ecfdf5", color: "#059669" },
+  "承認":     { bg: "var(--color-success-light)", color: "var(--color-success)" },
+  "否決":     { bg: "var(--color-danger-light)", color: "var(--color-danger)" },
+  "継続審議": { bg: "var(--color-warning-light)", color: "var(--color-warning)" },
+  "了承":     { bg: "var(--color-success-light)", color: "var(--color-success)" },
 };
 
 /* ── Attendance Ring ── */
@@ -42,12 +42,12 @@ function AttendanceRing({ present, total, size = 44 }) {
   const pct = total > 0 ? present / total : 0;
   return (
     <svg width={size} height={size} style={{ flexShrink: 0 }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#E8E6DF" strokeWidth={3} />
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#1D9E75" strokeWidth={3}
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--color-border)" strokeWidth={3} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--color-success)" strokeWidth={3}
         strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)}
         strokeLinecap="round" transform={`rotate(-90 ${size/2} ${size/2})`} />
       <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="central"
-        style={{ fontSize: 11, fontWeight: 500, fill: '#2C2C2A' }}>
+        style={{ fontSize: 11, fontWeight: 500, fill: 'var(--color-text-primary)' }}>
         {present}/{total}
       </text>
     </svg>
@@ -80,7 +80,7 @@ const ChevronDown = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4.5 6.75L9 11.25l4.5-4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
 );
 const CalendarIcon = () => (
-  <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="10" width="36" height="32" rx="4" stroke="#E8E6DF" strokeWidth="2" fill="#F9F8F6"/><path d="M6 18h36" stroke="#E8E6DF" strokeWidth="2"/><rect x="14" y="14" width="2" height="0" rx="1" fill="#E8E6DF"/><line x1="16" y1="6" x2="16" y2="14" stroke="#E8E6DF" strokeWidth="2" strokeLinecap="round"/><line x1="32" y1="6" x2="32" y2="14" stroke="#E8E6DF" strokeWidth="2" strokeLinecap="round"/><rect x="14" y="24" width="6" height="4" rx="1" fill="#E8E6DF"/><rect x="14" y="32" width="6" height="4" rx="1" fill="#E8E6DF"/><rect x="24" y="24" width="6" height="4" rx="1" fill="#E8E6DF"/></svg>
+  <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="10" width="36" height="32" rx="4" stroke="var(--color-border)" strokeWidth="2" fill="var(--color-bg-sub)"/><path d="M6 18h36" stroke="var(--color-border)" strokeWidth="2"/><rect x="14" y="14" width="2" height="0" rx="1" fill="var(--color-border)"/><line x1="16" y1="6" x2="16" y2="14" stroke="var(--color-border)" strokeWidth="2" strokeLinecap="round"/><line x1="32" y1="6" x2="32" y2="14" stroke="var(--color-border)" strokeWidth="2" strokeLinecap="round"/><rect x="14" y="24" width="6" height="4" rx="1" fill="var(--color-border)"/><rect x="14" y="32" width="6" height="4" rx="1" fill="var(--color-border)"/><rect x="24" y="24" width="6" height="4" rx="1" fill="var(--color-border)"/></svg>
 );
 const LocationIcon = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.75a3.5 3.5 0 0 0-3.5 3.5C3.5 8.75 7 12.25 7 12.25s3.5-3.5 3.5-7a3.5 3.5 0 0 0-3.5-3.5Zm0 4.75a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z" fill="currentColor"/></svg>
@@ -97,34 +97,34 @@ const styles = {
   fyNav: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 },
   fyBtn: (disabled) => ({
     width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-    border: '1px solid #E8E6DF', borderRadius: 8, background: '#fff', cursor: disabled ? 'default' : 'pointer',
-    color: disabled ? '#ccc' : '#5F5E5A', opacity: disabled ? 0.5 : 1, transition: 'all 0.15s',
+    border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-bg)', cursor: disabled ? 'default' : 'pointer',
+    color: disabled ? 'var(--color-text-tertiary)' : 'var(--color-text-secondary)', opacity: disabled ? 0.5 : 1, transition: 'all 0.15s',
     padding: 0,
   }),
-  fyText: { fontWeight: 600, fontSize: 15, color: '#2C2C2A' },
+  fyText: { fontWeight: 600, fontSize: 15, color: 'var(--color-text-primary)' },
   statsRow: { display: 'flex', gap: 12, marginBottom: 28, flexWrap: 'wrap' },
   statCard: (accentColor) => ({
     flex: '1 1 140px', minWidth: 140, padding: '16px 20px', borderRadius: 12,
-    border: '1px solid #E8E6DF', background: '#fff', display: 'flex', alignItems: 'center', gap: 14,
+    border: '1px solid var(--color-border)', background: 'var(--color-bg)', display: 'flex', alignItems: 'center', gap: 14,
   }),
   statDot: (color) => ({
     width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0,
   }),
-  statLabel: { fontSize: 12, color: '#5F5E5A', margin: 0 },
-  statValue: { fontSize: 22, fontWeight: 600, color: '#2C2C2A', margin: 0, lineHeight: 1.1 },
+  statLabel: { fontSize: 12, color: 'var(--color-text-secondary)', margin: 0 },
+  statValue: { fontSize: 22, fontWeight: 600, color: 'var(--color-text-primary)', margin: 0, lineHeight: 1.1 },
   timeline: { display: 'flex', flexDirection: 'column', gap: 12 },
   card: (isExpanded) => ({
-    borderRadius: 12, border: '1px solid #E8E6DF', background: '#fff',
+    borderRadius: 12, border: '1px solid var(--color-border)', background: 'var(--color-bg)',
     transition: 'transform 0.15s, box-shadow 0.15s', cursor: 'pointer', overflow: 'hidden',
   }),
   cardHeader: { padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 },
   dateBlock: { display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 52, flexShrink: 0 },
-  dateDay: { fontSize: 20, fontWeight: 500, color: '#2C2C2A', lineHeight: 1.1 },
-  dateDow: { fontSize: 12, color: '#5F5E5A', marginTop: 2 },
-  divider: { width: 1, height: 40, background: '#E8E6DF', flexShrink: 0 },
+  dateDay: { fontSize: 20, fontWeight: 500, color: 'var(--color-text-primary)', lineHeight: 1.1 },
+  dateDow: { fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 2 },
+  divider: { width: 1, height: 40, background: 'var(--color-border)', flexShrink: 0 },
   cardCenter: { flex: 1, minWidth: 0 },
   cardTitleRow: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 },
-  cardTitle: { fontSize: 15, fontWeight: 600, color: '#2C2C2A' },
+  cardTitle: { fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)' },
   statusPill: (badge) => ({
     display: 'inline-block', padding: '2px 10px', borderRadius: 10, fontSize: 12, fontWeight: 500,
     background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, lineHeight: '18px',
@@ -133,61 +133,61 @@ const styles = {
     display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 12, fontWeight: 600,
     background: '#EEEDFE', color: '#534AB7', lineHeight: '18px',
   },
-  metaRow: { display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#5F5E5A' },
+  metaRow: { display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 13, color: 'var(--color-text-secondary)' },
   metaItem: { display: 'flex', alignItems: 'center', gap: 4 },
   chevronWrap: (isExpanded) => ({
     display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, flexShrink: 0,
-    color: '#5F5E5A', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)',
+    color: 'var(--color-text-secondary)', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)',
   }),
-  expandedBody: { borderTop: '1px solid #E8E6DF', padding: '20px 24px' },
-  moderatorLine: { margin: '0 0 16px', fontSize: 13, color: '#5F5E5A' },
+  expandedBody: { borderTop: '1px solid var(--color-border)', padding: '20px 24px' },
+  moderatorLine: { margin: '0 0 16px', fontSize: 13, color: 'var(--color-text-secondary)' },
   ceremonyRow: (idx) => ({
     display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', padding: '10px 12px',
-    borderRadius: 6, background: idx % 2 === 0 ? '#FAFAF8' : '#fff',
+    borderRadius: 6, background: idx % 2 === 0 ? 'var(--color-bg-sub)' : 'var(--color-bg)',
   }),
   numberBadge: {
     width: 28, height: 28, borderRadius: '50%', background: '#EEEDFE', color: '#534AB7',
     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600,
     flexShrink: 0,
   },
-  ceremonyTitle: { fontSize: 13, color: '#2C2C2A', marginLeft: 10, flex: 1 },
-  ceremonyPerson: { fontSize: 13, color: '#5F5E5A', textAlign: 'right', paddingLeft: 16, minWidth: 0 },
+  ceremonyTitle: { fontSize: 13, color: 'var(--color-text-primary)', marginLeft: 10, flex: 1 },
+  ceremonyPerson: { fontSize: 13, color: 'var(--color-text-secondary)', textAlign: 'right', paddingLeft: 16, minWidth: 0 },
   agendaSection: {
-    margin: '8px 0', padding: '16px', background: '#F9F8F6', borderRadius: 10,
+    margin: '8px 0', padding: '16px', background: 'var(--color-bg-sub)', borderRadius: 10,
   },
   agendaSectionTitle: { fontSize: 13, fontWeight: 700, color: '#534AB7', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 },
   agendaItem: {
-    padding: '12px 14px', background: '#fff', borderRadius: 8, border: '1px solid #E8E6DF', marginBottom: 8,
+    padding: '12px 14px', background: 'var(--color-bg)', borderRadius: 8, border: '1px solid var(--color-border)', marginBottom: 8,
   },
   agendaTitleRow: { display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' },
-  agendaNum: { fontWeight: 700, fontSize: 12, color: '#5F5E5A', minWidth: 24 },
-  agendaTitle: { fontWeight: 600, fontSize: 13, flex: 1, color: '#2C2C2A' },
+  agendaNum: { fontWeight: 700, fontSize: 12, color: 'var(--color-text-secondary)', minWidth: 24 },
+  agendaTitle: { fontWeight: 600, fontSize: 13, flex: 1, color: 'var(--color-text-primary)' },
   agendaTag: (tagBadge) => ({
     display: 'inline-block', padding: '1px 8px', borderRadius: 8, fontSize: 12, fontWeight: 500,
     background: tagBadge.bg, color: tagBadge.color, marginLeft: 6,
   }),
-  agendaPerson: { fontSize: 13, color: '#5F5E5A', textAlign: 'right', minWidth: 0 },
+  agendaPerson: { fontSize: 13, color: 'var(--color-text-secondary)', textAlign: 'right', minWidth: 0 },
   attendanceBox: {
-    marginTop: 20, padding: '16px', borderRadius: 10, background: '#F9F8F6', border: '1px solid #E8E6DF',
+    marginTop: 20, padding: '16px', borderRadius: 10, background: 'var(--color-bg-sub)', border: '1px solid var(--color-border)',
   },
   attendanceBadge: (bg, color) => ({
     display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 8,
     fontSize: 12, fontWeight: 500, background: bg, color: color,
   }),
   minutesBox: {
-    marginTop: 16, padding: '16px', borderRadius: 10, background: '#fff', border: '1px solid #E8E6DF',
+    marginTop: 16, padding: '16px', borderRadius: 10, background: 'var(--color-bg)', border: '1px solid var(--color-border)',
   },
-  minutesLabel: { fontSize: 12, fontWeight: 600, color: '#5F5E5A', display: 'block', marginBottom: 8 },
+  minutesLabel: { fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', display: 'block', marginBottom: 8 },
   noteBox: {
-    marginTop: 16, padding: '16px', borderRadius: 10, background: '#FFFBEB', border: '1px solid #FDE68A',
+    marginTop: 16, padding: '16px', borderRadius: 10, background: 'var(--color-warning-light)', border: '1px solid #FDE68A',
   },
   noteLabel: { fontSize: 12, fontWeight: 600, color: '#92400e' },
   noteText: { margin: '4px 0 0', fontSize: 13, color: '#78350f', whiteSpace: 'pre-wrap' },
   emptyState: {
     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-    padding: '60px 20px', color: '#5F5E5A',
+    padding: '60px 20px', color: 'var(--color-text-secondary)',
   },
-  emptyText: { fontSize: 14, marginTop: 16, color: '#5F5E5A' },
+  emptyText: { fontSize: 14, marginTop: 16, color: 'var(--color-text-secondary)' },
 };
 
 export default function MeetingsView() {
@@ -474,20 +474,20 @@ export default function MeetingsView() {
       {/* ── Summary stats ── */}
       {isMobile ? (
         <div className="stat-chip-bar" style={{ marginBottom: 8 }}>
-          <span className="stat-chip">開催済み <span className="stat-chip-value" style={{ color: '#1D9E75' }}>{confirmedCount}</span></span>
-          <span className="stat-chip">議題合計 <span className="stat-chip-value" style={{ color: '#5F5E5A' }}>{totalAgenda}</span></span>
+          <span className="stat-chip">開催済み <span className="stat-chip-value" style={{ color: 'var(--color-success)' }}>{confirmedCount}</span></span>
+          <span className="stat-chip">議題合計 <span className="stat-chip-value" style={{ color: 'var(--color-text-secondary)' }}>{totalAgenda}</span></span>
         </div>
       ) : (
         <div style={styles.statsRow}>
-          <div style={styles.statCard('#1D9E75')}>
-            <div style={styles.statDot('#1D9E75')} />
+          <div style={styles.statCard('var(--color-success)')}>
+            <div style={styles.statDot('var(--color-success)')} />
             <div>
               <p style={styles.statLabel}>開催済み</p>
               <p style={styles.statValue}>{confirmedCount}</p>
             </div>
           </div>
-          <div style={styles.statCard('#5F5E5A')}>
-            <div style={styles.statDot('#5F5E5A')} />
+          <div style={styles.statCard('var(--color-text-secondary)')}>
+            <div style={styles.statDot('var(--color-text-secondary)')} />
             <div>
               <p style={styles.statLabel}>議題合計</p>
               <p style={styles.statValue}>{totalAgenda}</p>
@@ -593,7 +593,7 @@ export default function MeetingsView() {
                                 padding: '6px 16px', borderRadius: 8,
                                 fontSize: 13, fontWeight: 600, cursor: (!canResp || isSav) ? 'default' : 'pointer',
                                 transition: 'all 0.15s',
-                                background: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : '#fff',
+                                background: isSelected ? (isAttend ? 'var(--color-success)' : 'var(--color-danger)') : 'var(--color-bg)',
                                 color: isSelected ? '#fff' : 'var(--color-text-secondary)',
                                 border: isSelected ? 'none' : '1px solid var(--color-border)',
                                 opacity: (!canResp || isSav) && !isSelected ? 0.5 : 1,
@@ -613,7 +613,7 @@ export default function MeetingsView() {
                   const apCanResp = m.status === '公開' && !isAttendanceClosed(m);
                   const apIsSav = savingResponse === ap.id;
                   return (
-                    <div style={{ padding: '10px 16px', background: '#FFFBEB', borderTop: '1px solid #FDE68A' }} onClick={e => e.stopPropagation()}>
+                    <div style={{ padding: '10px 16px', background: 'var(--color-warning-light)', borderTop: '1px solid #FDE68A' }} onClick={e => e.stopPropagation()}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
                         <span style={{ fontSize: 12, fontWeight: 700, color: '#92400e' }}>懇親会</span>
                         {ap.start_time && <span style={{ fontSize: 12, color: '#78350f' }}>{ap.start_time}{ap.end_time ? `〜${ap.end_time}` : ''}</span>}
@@ -633,7 +633,7 @@ export default function MeetingsView() {
                                   fontSize: 13, fontWeight: 600,
                                   cursor: disabled ? 'default' : 'pointer',
                                   transition: 'all 0.15s',
-                                  background: sel ? (attend ? 'var(--color-success)' : 'var(--color-danger)') : '#fff',
+                                  background: sel ? (attend ? 'var(--color-success)' : 'var(--color-danger)') : 'var(--color-bg)',
                                   color: sel ? '#fff' : '#78350F',
                                   border: sel ? 'none' : '1px solid #FDE68A',
                                   opacity: disabled && !sel ? 0.5 : 1,

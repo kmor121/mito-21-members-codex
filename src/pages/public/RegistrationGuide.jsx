@@ -162,7 +162,7 @@ export default function RegistrationGuide() {
         </div>
         <div class="rg-mockup-body" style="text-align: left;">
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--rg-border);">
-            <div style="width: 36px; height: 36px; background: #E8E6DF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--rg-text-muted); flex-shrink: 0;">✉</div>
+            <div style="width: 36px; height: 36px; background: var(--color-bg-sub); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--rg-text-muted); flex-shrink: 0;">✉</div>
             <div>
               <div style="font-size: 13px; font-weight: 600; color: var(--rg-text);">noreply@base44.com</div>
               <div style="font-size: 12px; color: var(--rg-text-muted);">To: taro.mito@example.com</div>
@@ -344,7 +344,7 @@ export default function RegistrationGuide() {
         </div>
         <div class="rg-mockup-body" style="text-align: left;">
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--rg-border);">
-            <div style="width: 36px; height: 36px; background: #E8E6DF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--rg-text-muted); flex-shrink: 0;">✉</div>
+            <div style="width: 36px; height: 36px; background: var(--color-bg-sub); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--rg-text-muted); flex-shrink: 0;">✉</div>
             <div>
               <div style="font-size: 13px; font-weight: 600; color: var(--rg-text);">noreply@base44.com</div>
               <div style="font-size: 12px; color: var(--rg-text-muted);">To: taro.mito@example.com</div>
@@ -505,21 +505,21 @@ export default function RegistrationGuide() {
 
         /* ── Scoped CSS variables (rg- prefix) ── */
         .rg-root {
-          --rg-primary: var(--color-accent, #2563eb);
-          --rg-primary-light: var(--color-accent-light, #eff6ff);
-          --rg-primary-dark: var(--color-accent-dark, #1d4ed8);
-          --rg-text: var(--color-text-primary, #1e293b);
-          --rg-text-secondary: var(--color-text-secondary, #64748b);
-          --rg-text-muted: var(--color-text-tertiary, #94a3b8);
-          --rg-bg: var(--color-bg-sub, #f1f5f9);
-          --rg-card-bg: #FFFFFF;
-          --rg-border: var(--color-border, #e2e8f0);
-          --rg-success: var(--color-success, #059669);
-          --rg-success-light: var(--color-success-light, #ecfdf5);
-          --rg-warning: var(--color-warning, #d97706);
-          --rg-warning-light: var(--color-warning-light, #fffbeb);
-          --rg-danger: var(--color-danger, #dc2626);
-          --rg-danger-light: var(--color-danger-light, #fef2f2);
+          --rg-primary: var(--color-accent);
+          --rg-primary-light: var(--color-accent-light);
+          --rg-primary-dark: var(--color-accent-dark);
+          --rg-text: var(--color-text-primary);
+          --rg-text-secondary: var(--color-text-secondary);
+          --rg-text-muted: var(--color-text-tertiary);
+          --rg-bg: var(--color-bg-sub);
+          --rg-card-bg: var(--color-bg);
+          --rg-border: var(--color-border);
+          --rg-success: var(--color-success);
+          --rg-success-light: var(--color-success-light);
+          --rg-warning: var(--color-warning);
+          --rg-warning-light: var(--color-warning-light);
+          --rg-danger: var(--color-danger);
+          --rg-danger-light: var(--color-danger-light);
           --rg-radius: var(--radius-lg, 12px);
           --rg-radius-sm: var(--radius-md, 8px);
         }
@@ -536,7 +536,7 @@ export default function RegistrationGuide() {
 
         /* ── Header ── */
         .rg-header {
-          background: white;
+          background: var(--color-bg);
           border-bottom: 1px solid var(--rg-border);
           padding: 20px 24px;
           display: flex;
@@ -635,7 +635,7 @@ export default function RegistrationGuide() {
           box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .rg-mockup-bar {
-          background: #F5F4F0;
+          background: var(--color-bg-sub);
           border-bottom: 1px solid var(--rg-border);
           padding: 10px 16px;
           display: flex; align-items: center; gap: 8px;
@@ -643,10 +643,10 @@ export default function RegistrationGuide() {
         }
         .rg-dot {
           width: 8px; height: 8px; border-radius: 50%;
-          background: #C4C3BE;
+          background: var(--color-text-tertiary);
         }
         .rg-url {
-          background: white;
+          background: var(--color-bg);
           border: 1px solid var(--rg-border);
           border-radius: 4px;
           padding: 4px 12px;
@@ -667,7 +667,7 @@ export default function RegistrationGuide() {
           border-radius: var(--rg-radius-sm);
           font-size: 14px;
           color: var(--rg-text);
-          background: white;
+          background: var(--color-bg);
           margin-bottom: 12px;
           font-family: inherit;
         }
@@ -697,7 +697,7 @@ export default function RegistrationGuide() {
           color: white;
         }
         .rg-mock-btn-outline {
-          background: white;
+          background: var(--color-bg);
           color: var(--rg-primary);
           border: 1.5px solid var(--rg-primary);
           font-weight: 600;
@@ -750,7 +750,7 @@ export default function RegistrationGuide() {
           color: var(--rg-success);
         }
         .rg-step-chip.rg-pending {
-          background: #F1EFE8;
+          background: var(--color-bg-sub);
           color: var(--rg-text-muted);
         }
         .rg-step-arrow {
@@ -803,7 +803,7 @@ export default function RegistrationGuide() {
 
         /* ── Table of Contents ── */
         .rg-toc {
-          background: white;
+          background: var(--color-bg);
           border: 1px solid var(--rg-border);
           border-radius: var(--rg-radius);
           padding: 24px;
@@ -817,7 +817,7 @@ export default function RegistrationGuide() {
         .rg-toc ul { list-style: none; margin: 0; padding: 0; }
         .rg-toc li {
           padding: 8px 0;
-          border-bottom: 1px solid #F1EFE8;
+          border-bottom: 1px solid var(--color-border);
           font-size: 14px;
         }
         .rg-toc li:last-child { border-bottom: none; }
@@ -875,7 +875,7 @@ export default function RegistrationGuide() {
 
         /* ── Print ── */
         @media print {
-          .rg-root { background: white; }
+          .rg-root { background: var(--color-bg); }
           .rg-mockup { break-inside: avoid; }
           .rg-section { break-inside: avoid; }
         }

@@ -41,7 +41,7 @@ function roleBadgeStyle(role) {
       return { background: "transparent", color: "var(--color-accent-dark)", border: "1px solid #a5b4fc" };
     case "exec":
     case "honor":
-      return { background: "transparent", color: "#475569", border: "1px solid #cbd5e1" };
+      return { background: "transparent", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" };
     case "member":
     default:
       return { background: "var(--color-bg-sub)", color: "var(--color-text-secondary)", border: "1px solid var(--color-bg-sub)" };
@@ -72,7 +72,7 @@ function MemberAvatar({ src, name, initial: initialOverride, size = 26 }) {
     return (
       <div style={{
         width: size, height: size, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
-        border: "2px solid #fff", boxShadow: "0 0 0 1px var(--color-border)",
+        border: "2px solid var(--color-bg)", boxShadow: "0 0 0 1px var(--color-border)",
       }}>
         <img src={src} alt={name || ""} loading="lazy"
           style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -110,7 +110,7 @@ function SkeletonCard({ delay = 0 }) {
   return (
     <div style={{
       padding: "18px 20px", borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
-      background: "#fff", borderLeft: "4px solid var(--color-border)",
+      background: "var(--color-bg)", borderLeft: "4px solid var(--color-border)",
       animation: `orgViewSlide 0.3s ease ${delay}ms both`,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
@@ -160,7 +160,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
       <div
         className="orgview-card"
         style={{
-          borderRadius: "var(--radius-lg)", background: "#fff",
+          borderRadius: "var(--radius-lg)", background: "var(--color-bg)",
           border: "1px solid var(--color-border)", borderLeft: `4px solid ${accentColor}`,
           overflow: "hidden", transition: "box-shadow var(--transition-fast)",
         }}
@@ -201,7 +201,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
                   padding: "1px 8px 1px 5px", borderRadius: 10,
                   fontSize: 12, fontWeight: 500, whiteSpace: "nowrap",
                   color: "var(--color-text-secondary)", background: "transparent",
-                  border: "1px dashed #cbd5e1",
+                  border: "1px dashed var(--color-border)",
                 }}>
                   <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="8" cy="5" r="3"/>
@@ -238,7 +238,7 @@ function OrgViewNode({ org, depth, expandedOrgs, toggleExpand, memberMap, superv
                     style={{
                       display: "flex", alignItems: "center", gap: 5,
                       padding: "3px 10px 3px 3px",
-                      borderRadius: 16, border: "1px solid var(--color-border)", background: "#fff",
+                      borderRadius: 16, border: "1px solid var(--color-border)", background: "var(--color-bg)",
                       textDecoration: "none", color: "var(--color-text-primary)", fontSize: 12,
                       transition: "all var(--transition-fast)",
                       animation: `chipEnter 0.25s ease ${idx * 30}ms both`,
@@ -493,7 +493,7 @@ export default function OrgChartView() {
       {/* ── Empty state ── */}
       {orgTree.length === 0 ? (
         <div style={{
-          textAlign: "center", padding: "64px 24px", background: "#fff",
+          textAlign: "center", padding: "64px 24px", background: "var(--color-bg)",
           borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
         }}>
           <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style={{ marginBottom: 20, opacity: 0.6 }}>
