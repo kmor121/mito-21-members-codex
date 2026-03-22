@@ -337,12 +337,8 @@ export default function Directory() {
         </section>
       )}
 
-      {/* Filter tabs (flat underline) */}
-      <div style={{
-        display: 'flex', borderBottom: '1px solid var(--color-border)',
-        overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none',
-        marginBottom: 'var(--space-4)',
-      }}>
+      {/* Filter chips */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 'var(--space-3)' }}>
         {MEMBER_TYPE_CHIPS.map((chip) => {
           const isActive = typeFilter === chip;
           const count = chip === "全員" ? allMembers.length : allMembers.filter(m => m.member_type === chip).length;
@@ -352,15 +348,19 @@ export default function Directory() {
               type="button"
               onClick={() => setTypeFilter(chip)}
               style={{
-                padding: '8px 14px', fontSize: 14, whiteSpace: 'nowrap', cursor: 'pointer',
-                background: 'none', border: 'none', borderBottom: isActive ? '2px solid var(--color-accent)' : '2px solid transparent',
-                color: isActive ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+                display: 'inline-flex', alignItems: 'center',
+                padding: '5px 12px', fontSize: 13, whiteSpace: 'nowrap', cursor: 'pointer',
+                background: isActive ? 'var(--color-accent-light)' : 'var(--color-bg)',
+                border: isActive ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-full)',
+                color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
                 fontWeight: isActive ? 'var(--font-weight-semibold)' : 'var(--font-weight-medium)',
-                transition: 'color var(--transition-fast), border-color var(--transition-fast)',
-                display: 'inline-flex', alignItems: 'baseline',
+                transition: 'all var(--transition-fast)',
               }}
+              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.borderColor = 'var(--color-accent-light)'; e.currentTarget.style.color = 'var(--color-accent)'; } }}
+              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.color = 'var(--color-text-secondary)'; } }}
             >
-              {chip}<span style={{ fontSize: 12, marginLeft: 3, fontWeight: 'var(--font-weight-normal)' }}>({count})</span>
+              {chip} ({count})
             </button>
           );
         })}
