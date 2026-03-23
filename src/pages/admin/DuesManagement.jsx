@@ -1353,7 +1353,7 @@ export default function DuesManagement() {
                 </div>
               ) : isMobile ? (
                 /* Compact mobile list */
-                <div>
+                <div style={{ borderTop: '1px solid var(--color-border)' }}>
                   {filteredDues.map((due, idx) => {
                     const isVirtual = !!due._virtual;
                     const isSelected = selectedIds.has(due.id);
@@ -1365,10 +1365,10 @@ export default function DuesManagement() {
                       <div key={due.id}
                         onClick={() => { if (!isVirtual) handleRowClick(due); }}
                         style={{
-                          padding: '14px 16px',
+                          padding: 16,
                           borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
                           cursor: isVirtual ? 'default' : 'pointer',
-                          background: isSelected ? 'rgba(37,99,235,0.06)' : hasPriorWarning ? 'var(--color-warning-light)' : undefined,
+                          background: isSelected ? 'rgba(37,99,235,0.06)' : hasPriorWarning ? 'rgba(245,158,11,0.04)' : undefined,
                           transition: 'background 0.15s',
                         }}
                       >
@@ -1397,11 +1397,11 @@ export default function DuesManagement() {
                         </div>
                         {/* Row 2: type + amount */}
                         {!isVirtual && (
-                          <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 4, paddingLeft: 28 }}>
+                          <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 6, paddingLeft: 28 }}>
                             <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {due.member_type}{" · "}{due.due_type || "年会費"}
                             </span>
-                            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)', flexShrink: 0, marginLeft: 12 }}>
+                            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)', flexShrink: 0, marginLeft: 16 }}>
                               {formatCurrency(due.amount)}
                             </span>
                           </div>
@@ -1657,7 +1657,7 @@ export default function DuesManagement() {
                                 else { openReconcileModal(due); }
                               }}
                               style={{
-                                padding: '14px 16px',
+                                padding: 16,
                                 borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
                                 cursor: 'pointer',
                                 background: isSelected ? 'rgba(37,99,235,0.06)' : undefined,
@@ -1683,11 +1683,11 @@ export default function DuesManagement() {
                                 <StatusBadge status={"未納"} onClick={(e) => { e.stopPropagation(); openReconcileModal(due); }} />
                               </div>
                               {/* Row 2: type + amount */}
-                              <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 4, paddingLeft: 28 }}>
+                              <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 6, paddingLeft: 28 }}>
                                 <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {due.member_type}{" · "}{due.due_type || "年会費"}
                                 </span>
-                                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)', flexShrink: 0, marginLeft: 12 }}>
+                                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)', flexShrink: 0, marginLeft: 16 }}>
                                   {formatCurrency(due.amount)}
                                 </span>
                               </div>

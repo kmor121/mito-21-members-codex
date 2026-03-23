@@ -295,20 +295,20 @@ export default function Documents() {
             </div>
           ) : isMobile ? (
             /* ── Mobile card list ── */
-            <div>
+            <div style={{ borderTop: '1px solid var(--color-border)' }}>
               {docs.map((doc, idx) => {
                 const isLast = idx === docs.length - 1;
                 return (
                   <div
                     key={doc.id}
                     style={{
-                      padding: '14px 16px',
+                      padding: 16,
                       borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
                       cursor: 'pointer',
                     }}
                     onClick={() => navigate(`/admin/documents/${doc.id}/edit`)}
                   >
-                    {/* Row 1: title + publish indicator + delete */}
+                    {/* Row 1: title + publish badge + delete */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{
                         flex: 1, minWidth: 0,
@@ -317,21 +317,19 @@ export default function Documents() {
                       }}>
                         {doc.title || "-"}
                       </div>
-                      {/* Publish dot indicator */}
+                      {/* Publish text badge */}
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setConfirmToggle(doc); }}
                         aria-label={doc.published ? "公開中 — タップで非公開に" : "非公開 — タップで公開に"}
                         style={{
-                          width: 32, height: 32, padding: 0, border: 'none', background: 'none',
-                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                          padding: '2px 8px', border: 'none', borderRadius: 8, cursor: 'pointer', flexShrink: 0,
+                          fontSize: 11, fontWeight: doc.published ? 600 : 500, whiteSpace: 'nowrap',
+                          background: doc.published ? 'var(--color-accent-light)' : 'var(--color-bg-sub)',
+                          color: doc.published ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
                         }}
                       >
-                        <span style={{
-                          display: 'block', width: 10, height: 10, borderRadius: '50%',
-                          background: doc.published ? 'var(--color-accent)' : 'transparent',
-                          border: doc.published ? 'none' : '1.5px solid var(--color-text-tertiary)',
-                        }} />
+                        {doc.published ? "公開" : "非公開"}
                       </button>
                       {/* Delete button */}
                       <button
@@ -339,7 +337,7 @@ export default function Documents() {
                         onClick={(e) => { e.stopPropagation(); setConfirmDelete(doc); }}
                         aria-label="削除"
                         style={{
-                          width: 32, height: 32, padding: 0, border: 'none', background: 'none', cursor: 'pointer',
+                          padding: 4, border: 'none', background: 'none', cursor: 'pointer',
                           color: 'var(--color-text-tertiary)', flexShrink: 0, display: 'flex',
                           alignItems: 'center', justifyContent: 'center',
                         }}
@@ -350,7 +348,7 @@ export default function Documents() {
                       </button>
                     </div>
                     {/* Row 2: meta info */}
-                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 6 }}>
                       {doc.doc_type || "-"} · {doc.fiscal_year_label || "常設"}{doc.updated_at ? ` · ${doc.updated_at.slice(0, 10)}` : ""}
                     </div>
                   </div>
