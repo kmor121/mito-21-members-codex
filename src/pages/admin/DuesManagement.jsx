@@ -1365,7 +1365,7 @@ export default function DuesManagement() {
                         onClick={() => { if (!isVirtual) handleRowClick(due); }}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 10,
-                          padding: '9px 16px',
+                          padding: '11px 16px',
                           borderBottom: idx < filteredDues.length - 1 ? '1px solid var(--color-border)' : 'none',
                           cursor: isVirtual ? 'default' : 'pointer',
                           background: isSelected ? 'rgba(37,99,235,0.06)' : hasPriorWarning ? 'rgba(245,158,11,0.04)' : undefined,
@@ -1651,7 +1651,7 @@ export default function DuesManagement() {
                               }}
                               style={{
                                 display: 'flex', alignItems: 'center', gap: 10,
-                                padding: '9px 16px',
+                                padding: '11px 16px',
                                 borderBottom: idx < items.length - 1 ? '1px solid var(--color-border)' : 'none',
                                 cursor: 'pointer',
                                 background: isSelected ? 'rgba(37,99,235,0.06)' : undefined,
