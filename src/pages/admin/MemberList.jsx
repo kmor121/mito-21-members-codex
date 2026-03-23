@@ -813,10 +813,10 @@ export default function MemberList() {
           </div>
         </div>
       ) : (
-        <div className="card panel-card single-panel">
+        <div className={isMobile && !editMode ? "" : "card panel-card single-panel"}>
           {isMobile && !editMode ? (
             /* ── Mobile Card List ── */
-            <div className="mobile-card-list" style={{ padding: 8 }}>
+            <div className="mobile-card-list" style={{ padding: 0 }}>
               {paginatedMembers.map((m) => {
                 const assigns = Array.isArray(m.org_assignments) ? m.org_assignments : [];
                 const orgText = assigns.map((a) => `${a.org_name || ""}${a.role ? " " + a.role : ""}`).join(", ");

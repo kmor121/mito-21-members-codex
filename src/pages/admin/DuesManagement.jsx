@@ -1260,8 +1260,8 @@ export default function DuesManagement() {
           )}
 
           {/* Search & Filter Bar + Data */}
-          <section className="card panel-card single-panel">
-            <div className="card-body stack">
+          <section className={isMobile ? "" : "card panel-card single-panel"}>
+            <div className={isMobile ? "" : "card-body stack"}>
               {/* Desktop: Row 1 = Search, Row 2 = filters */}
               {!isMobile && (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -1353,19 +1353,20 @@ export default function DuesManagement() {
                 </div>
               ) : isMobile ? (
                 /* Compact mobile list */
-                <div style={{ margin: '0 -12px' }}>
-                  {filteredDues.map((due) => {
+                <div>
+                  {filteredDues.map((due, idx) => {
                     const isVirtual = !!due._virtual;
                     const isSelected = selectedIds.has(due.id);
                     const isUnpaid = due.status !== "納入済" && !isVirtual;
                     const priorCount = priorUnpaidByMember[due.member_id] || 0;
                     const initial = (due.member_name || "M").charAt(0);
+                    const isLast = idx === filteredDues.length - 1;
                     return (
                       <div key={due.id}
                         onClick={() => { if (!isVirtual) handleRowClick(due); }}
                         style={{
                           padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10,
-                          borderBottom: '1px solid var(--color-border)',
+                          borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
                           cursor: isVirtual ? 'default' : 'pointer',
                           background: isSelected ? 'rgba(79, 70, 229, 0.06)' : undefined,
                           transition: 'background 0.15s',

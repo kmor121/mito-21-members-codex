@@ -262,8 +262,8 @@ export default function Documents() {
         </div>
       </div>
 
-      <section className="card panel-card single-panel">
-        <div className="card-body stack">
+      <section className={isMobile ? "" : "card panel-card single-panel"}>
+        <div className={isMobile ? "" : "card-body stack"}>
           {!isMobile && (
             <div className="panel-heading compact">
               <h2>資料一覧</h2>
@@ -295,8 +295,9 @@ export default function Documents() {
           ) : isMobile ? (
             /* ── Mobile card list ── */
             <div>
-              {docs.map((doc) => {
+              {docs.map((doc, idx) => {
                 const badge = getTypeBadge(doc.doc_type);
+                const isLast = idx === docs.length - 1;
                 return (
                   <div
                     key={doc.id}
@@ -304,8 +305,8 @@ export default function Documents() {
                       padding: '10px 16px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 10,
-                      borderBottom: '1px solid var(--color-border)',
+                      gap: 12,
+                      borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
                       cursor: 'pointer',
                     }}
                     onClick={() => navigate(`/admin/documents/${doc.id}/edit`)}
