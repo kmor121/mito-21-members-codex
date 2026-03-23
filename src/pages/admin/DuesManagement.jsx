@@ -1382,7 +1382,7 @@ export default function DuesManagement() {
                             <button type="button"
                               onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
                               className="card-title"
-                              style={{ padding: 0, border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', color: 'inherit', font: 'inherit', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              style={{ padding: 0, border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', color: 'var(--color-text-primary)', fontSize: 14, fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {displayValue(due.member_name)}
                             </button>
                             {due.is_new && <span style={{ padding: '1px 6px', borderRadius: 4, background: 'var(--color-accent-light)', color: 'var(--color-accent)', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>新入</span>}
@@ -1678,7 +1678,7 @@ export default function DuesManagement() {
                                   <button type="button"
                                     onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
                                     className="card-title"
-                                    style={{ padding: 0, border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', color: 'inherit', font: 'inherit', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    style={{ padding: 0, border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', color: 'var(--color-text-primary)', fontSize: 14, fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {displayValue(due.member_name)}
                                   </button>
                                   {due.is_new && <span style={{ padding: '1px 6px', borderRadius: 4, background: 'var(--color-accent-light)', color: 'var(--color-accent)', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>新入</span>}
