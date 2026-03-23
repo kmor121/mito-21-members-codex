@@ -302,14 +302,14 @@ export default function Documents() {
                   <div
                     key={doc.id}
                     style={{
-                      padding: '10px 16px',
+                      padding: '10px 12px 10px 16px',
                       borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
                       cursor: 'pointer',
                     }}
                     onClick={() => navigate(`/admin/documents/${doc.id}/edit`)}
                   >
                     {/* Row 1: title + compact toggle + delete */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{
                         flex: 1, minWidth: 0,
                         fontWeight: 600, fontSize: 15, color: 'var(--color-text-primary)',

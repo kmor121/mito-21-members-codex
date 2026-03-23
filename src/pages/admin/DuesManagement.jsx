@@ -1373,7 +1373,7 @@ export default function DuesManagement() {
                         }}
                       >
                         {/* Row 1: checkbox + name + badges + status */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           {isUnpaid ? (
                             <input type="checkbox" checked={isSelected}
                               onClick={(e) => e.stopPropagation()} onChange={(e) => handleCheckboxClick(due, e)}
@@ -1397,7 +1397,7 @@ export default function DuesManagement() {
                         </div>
                         {/* Row 2: type + amount */}
                         {!isVirtual && (
-                          <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 2, paddingLeft: 28 }}>
+                          <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 2, paddingLeft: 26 }}>
                             <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {due.member_type}{" · "}{due.due_type || "年会費"}
                             </span>
@@ -1665,7 +1665,7 @@ export default function DuesManagement() {
                               }}
                             >
                               {/* Row 1: checkbox + name + badge + status */}
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <input type="checkbox" checked={isSelected}
                                   onClick={(e) => e.stopPropagation()} onChange={(ev) => handleCheckboxClick(due, ev)}
                                   style={{ flexShrink: 0, width: 18, height: 18, borderRadius: 4, accentColor: 'var(--color-accent)' }} />
@@ -1683,7 +1683,7 @@ export default function DuesManagement() {
                                 <StatusBadge status={"未納"} onClick={(e) => { e.stopPropagation(); openReconcileModal(due); }} />
                               </div>
                               {/* Row 2: type + amount */}
-                              <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 2, paddingLeft: 28 }}>
+                              <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 2, paddingLeft: 26 }}>
                                 <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {due.member_type}{" · "}{due.due_type || "年会費"}
                                 </span>
