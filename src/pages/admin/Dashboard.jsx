@@ -124,7 +124,7 @@ export default function Dashboard() {
   return (
     <section className="admin-shell">
       {isMobile ? (
-        <div style={{ padding: '0 0 12px' }}>
+        <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
             <h1 className="page-title" style={{ margin: 0, fontSize: 18 }}>ダッシュボード</h1>
             {fyLabel && <span className="db-fy-badge">{fyLabel}</span>}

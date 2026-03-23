@@ -2909,9 +2909,9 @@ textarea { resize: vertical; }
   .mobile-only { display: block; }
   .desktop-only { display: none; }
 
-  /* Page header compact */
+  /* Page header compact — admin-shell uses grid gap, so no extra margin needed */
   .page-header {
-    margin-bottom: 12px;
+    margin-bottom: 0;
     gap: 8px;
   }
   .page-title {

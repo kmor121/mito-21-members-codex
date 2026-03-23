@@ -381,7 +381,7 @@ export default function Applications() {
         </div>
       )}
       {isMobile ? (
-        <div style={{ padding: '0 0 12px' }}>
+        <div>
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             gap: 8,

@@ -268,7 +268,7 @@ export default function MemberDuesView() {
 
       {/* Page header with YearPillNav */}
       {isMobile ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <h1 className="page-title" style={{ margin: 0 }}>会費一覧</h1>
           <div style={{ flex: 1 }} />
           <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />

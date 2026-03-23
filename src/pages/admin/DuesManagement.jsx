@@ -959,7 +959,7 @@ export default function DuesManagement() {
     <section className="admin-shell">
       {/* ── Page Header ── */}
       {isMobile ? (
-        <div style={{ padding: '0 0 12px' }}>
+        <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <h1 className="page-title" style={{ margin: 0, fontSize: 18, whiteSpace: 'nowrap', flex: 'none' }}>会費管理</h1>
             <div style={{ flex: 1 }} />
