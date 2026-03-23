@@ -1352,7 +1352,7 @@ export default function DuesManagement() {
                   )}
                 </div>
               ) : isMobile ? (
-                /* Mobile list */
+                /* Mobile list — cloned from Documents.jsx structure */
                 <div style={{ borderTop: '1px solid var(--color-border)' }}>
                   {filteredDues.map((due, idx) => {
                     const isVirtual = !!due._virtual;
@@ -1365,95 +1365,42 @@ export default function DuesManagement() {
                         key={due.id}
                         onClick={() => { if (!isVirtual) handleRowClick(due); }}
                         style={{
-                          padding: 'var(--space-3) var(--space-4)',
+                          display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '11px 12px 11px 16px',
                           borderBottom: idx < filteredDues.length - 1 ? '1px solid var(--color-border)' : 'none',
                           cursor: isVirtual ? 'default' : 'pointer',
-                          background: isSelected
-                            ? 'var(--color-accent-light)'
-                            : hasPriorWarning
-                              ? 'var(--color-warning-light)'
-                              : 'var(--color-bg)',
-                          transition: 'background var(--transition-fast)',
+                          background: isSelected ? 'var(--color-accent-light)' : hasPriorWarning ? 'var(--color-warning-light)' : undefined,
                         }}
                       >
-                        {/* Row 1 — name + badge */}
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 'var(--space-2)',
-                        }}>
-                          {isUnpaid ? (
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onClick={(e) => e.stopPropagation()}
-                              onChange={(e) => handleCheckboxClick(due, e)}
-                              style={{ flexShrink: 0, width: 16, height: 16, accentColor: 'var(--color-accent)' }}
-                            />
-                          ) : (
-                            <span style={{ width: 16, flexShrink: 0 }} />
-                          )}
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
-                            style={{
-                              flex: 1, minWidth: 0,
-                              fontWeight: 'var(--font-weight-semibold)',
-                              fontSize: 14,
-                              lineHeight: 1.4,
-                              color: 'var(--color-text-primary)',
-                              padding: 0, border: 'none', background: 'none',
-                              cursor: 'pointer', textAlign: 'left',
-                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {displayValue(due.member_name)}
-                          </button>
-                          {due.is_new && (
-                            <span style={{
-                              padding: '1px 6px', borderRadius: 'var(--radius-full)',
-                              background: 'var(--color-accent-light)', color: 'var(--color-accent)',
-                              fontSize: 10, fontWeight: 'var(--font-weight-bold)',
-                              whiteSpace: 'nowrap', flexShrink: 0, lineHeight: '16px',
-                            }}>新入</span>
-                          )}
-                          {hasPriorWarning && (
-                            <span style={{ fontSize: 10, flexShrink: 0, color: 'var(--color-warning)' }}>⚠</span>
-                          )}
-                          <StatusBadge
-                            status={due.status}
-                            disabled={isVirtual}
-                            onClick={isVirtual ? undefined : (e) => { e.stopPropagation(); openReconcileModal(due); }}
-                          />
-                        </div>
-
-                        {/* Row 2 — type · amount */}
-                        {!isVirtual && (
-                          <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'baseline',
-                            marginTop: 'var(--space-1)',
-                            paddingLeft: 24,
-                          }}>
-                            <span style={{
-                              fontSize: 12,
-                              color: 'var(--color-text-secondary)',
-                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                            }}>
-                              {due.member_type} · {due.due_type || "年会費"}
-                            </span>
-                            <span style={{
-                              fontSize: 13,
-                              fontWeight: 'var(--font-weight-semibold)',
-                              color: 'var(--color-text-primary)',
-                              flexShrink: 0,
-                              marginLeft: 'var(--space-3)',
-                            }}>
-                              {formatCurrency(due.amount)}
-                            </span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.3, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            {isUnpaid ? (
+                              <input type="checkbox" checked={isSelected}
+                                onClick={(e) => e.stopPropagation()} onChange={(e) => handleCheckboxClick(due, e)}
+                                style={{ flexShrink: 0, width: 16, height: 16, accentColor: 'var(--color-accent)' }} />
+                            ) : (
+                              <span style={{ width: 16, flexShrink: 0 }} />
+                            )}
+                            <button type="button"
+                              onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
+                              style={{ fontWeight: 600, fontSize: 14, lineHeight: 1.3, padding: 0, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-primary)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
+                              {displayValue(due.member_name)}
+                            </button>
+                            {due.is_new && <span style={{ padding: '0 5px', borderRadius: 999, background: 'var(--color-accent-light)', color: 'var(--color-accent)', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, lineHeight: '15px' }}>新入</span>}
+                            {hasPriorWarning && <span style={{ fontSize: 10, flexShrink: 0, color: 'var(--color-warning)' }}>⚠</span>}
                           </div>
-                        )}
+                          {!isVirtual && (
+                            <div style={{ fontSize: 12, lineHeight: 1.2, color: 'var(--color-text-secondary)', marginTop: 'var(--space-1)', display: 'flex', alignItems: 'baseline', paddingLeft: 22 }}>
+                              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {due.member_type} · {due.due_type || "年会費"}
+                              </span>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)', flexShrink: 0, marginLeft: 12 }}>
+                                {formatCurrency(due.amount)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <StatusBadge status={due.status} disabled={isVirtual} onClick={isVirtual ? undefined : (e) => { e.stopPropagation(); openReconcileModal(due); }} />
                       </div>
                     );
                   })}
@@ -1705,78 +1652,35 @@ export default function DuesManagement() {
                                 else { openReconcileModal(due); }
                               }}
                               style={{
-                                padding: 'var(--space-3) var(--space-4)',
+                                display: 'flex', alignItems: 'center', gap: 10,
+                                padding: '11px 12px 11px 16px',
                                 borderBottom: idx < items.length - 1 ? '1px solid var(--color-border)' : 'none',
                                 cursor: 'pointer',
-                                background: isSelected ? 'var(--color-accent-light)' : 'var(--color-bg)',
-                                transition: 'background var(--transition-fast)',
+                                background: isSelected ? 'var(--color-accent-light)' : undefined,
                               }}
                             >
-                              {/* Row 1 — name + badge */}
-                              <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 'var(--space-2)',
-                              }}>
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onClick={(e) => e.stopPropagation()}
-                                  onChange={(ev) => handleCheckboxClick(due, ev)}
-                                  style={{ flexShrink: 0, width: 16, height: 16, accentColor: 'var(--color-accent)' }}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
-                                  style={{
-                                    flex: 1, minWidth: 0,
-                                    fontWeight: 'var(--font-weight-semibold)',
-                                    fontSize: 14,
-                                    lineHeight: 1.4,
-                                    color: 'var(--color-text-primary)',
-                                    padding: 0, border: 'none', background: 'none',
-                                    cursor: 'pointer', textAlign: 'left',
-                                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                                  }}
-                                >
-                                  {displayValue(due.member_name)}
-                                </button>
-                                {due.is_new && (
-                                  <span style={{
-                                    padding: '1px 6px', borderRadius: 'var(--radius-full)',
-                                    background: 'var(--color-accent-light)', color: 'var(--color-accent)',
-                                    fontSize: 10, fontWeight: 'var(--font-weight-bold)',
-                                    whiteSpace: 'nowrap', flexShrink: 0, lineHeight: '16px',
-                                  }}>新入</span>
-                                )}
-                                <StatusBadge status={"未納"} onClick={(e) => { e.stopPropagation(); openReconcileModal(due); }} />
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.3, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <input type="checkbox" checked={isSelected}
+                                    onClick={(e) => e.stopPropagation()} onChange={(ev) => handleCheckboxClick(due, ev)}
+                                    style={{ flexShrink: 0, width: 16, height: 16, accentColor: 'var(--color-accent)' }} />
+                                  <button type="button"
+                                    onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
+                                    style={{ fontWeight: 600, fontSize: 14, lineHeight: 1.3, padding: 0, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-primary)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
+                                    {displayValue(due.member_name)}
+                                  </button>
+                                  {due.is_new && <span style={{ padding: '0 5px', borderRadius: 999, background: 'var(--color-accent-light)', color: 'var(--color-accent)', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, lineHeight: '15px' }}>新入</span>}
+                                </div>
+                                <div style={{ fontSize: 12, lineHeight: 1.2, color: 'var(--color-text-secondary)', marginTop: 'var(--space-1)', display: 'flex', alignItems: 'baseline', paddingLeft: 22 }}>
+                                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {due.member_type} · {due.due_type || "年会費"}
+                                  </span>
+                                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)', flexShrink: 0, marginLeft: 12 }}>
+                                    {formatCurrency(due.amount)}
+                                  </span>
+                                </div>
                               </div>
-
-                              {/* Row 2 — type · amount */}
-                              <div style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'baseline',
-                                marginTop: 'var(--space-1)',
-                                paddingLeft: 24,
-                              }}>
-                                <span style={{
-                                  fontSize: 12,
-                                  color: 'var(--color-text-secondary)',
-                                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                                }}>
-                                  {due.member_type} · {due.due_type || "年会費"}
-                                </span>
-                                <span style={{
-                                  fontSize: 13,
-                                  fontWeight: 'var(--font-weight-semibold)',
-                                  color: 'var(--color-text-primary)',
-                                  flexShrink: 0,
-                                  marginLeft: 'var(--space-3)',
-                                }}>
-                                  {formatCurrency(due.amount)}
-                                </span>
-                              </div>
+                              <StatusBadge status={"未納"} onClick={(e) => { e.stopPropagation(); openReconcileModal(due); }} />
                             </div>
                           );
                         })}
