@@ -1564,7 +1564,7 @@ textarea { resize: vertical; }
   outline: none;
   box-sizing: border-box;
 }
-.doc-toggle-on { background: var(--color-success); }
+.doc-toggle-on { background: var(--color-accent); }
 .doc-toggle-knob {
   position: absolute;
   top: 2px;

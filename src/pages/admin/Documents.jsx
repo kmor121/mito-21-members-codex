@@ -322,19 +322,33 @@ export default function Documents() {
                         type="button"
                         role="switch"
                         aria-checked={!!doc.published}
-                        aria-label={doc.published ? "公開中" : "非公開"}
+                        aria-label={doc.published ? "公開中 — タップで非公開に" : "非公開 — タップで公開に"}
                         onClick={(e) => { e.stopPropagation(); setConfirmToggle(doc); }}
                         style={{
-                          position: 'relative', width: 34, height: 18, borderRadius: 9,
-                          border: 'none', padding: 0, cursor: 'pointer', flexShrink: 0,
-                          background: doc.published ? 'var(--color-accent)' : 'var(--color-border)',
-                          transition: 'background 0.2s',
+                          position: 'relative',
+                          display: 'inline-block',
+                          width: 36,
+                          height: 20,
+                          borderRadius: 10,
+                          border: 'none',
+                          padding: 0,
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                          background: doc.published ? 'var(--color-accent)' : '#d1d5db',
+                          transition: 'background 0.2s ease',
+                          verticalAlign: 'middle',
                         }}
                       >
                         <span style={{
-                          position: 'absolute', top: 2, left: doc.published ? 18 : 2,
-                          width: 14, height: 14, borderRadius: '50%', background: '#fff',
-                          transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
+                          position: 'absolute',
+                          top: 2,
+                          left: doc.published ? 18 : 2,
+                          width: 16,
+                          height: 16,
+                          borderRadius: '50%',
+                          background: '#fff',
+                          transition: 'left 0.2s ease',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                         }} />
                       </button>
                       {/* Delete button */}
