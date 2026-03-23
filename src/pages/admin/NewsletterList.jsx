@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44, invalidateReadCache } from '../../api/base44Client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { PageHeader, Button } from '../../components/ui';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 /* ── Inline SVG Icons ── */
 function MailIcon() {
@@ -491,6 +492,7 @@ function HistoryDetailModal({ newsletter, onClose, onResend }) {
 /* ── Main Component ── */
 export default function NewsletterList() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const [newsletters, setNewsletters] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -889,7 +891,7 @@ export default function NewsletterList() {
           </div>
 
           {/* History Table */}
-          <div className="card panel-card single-panel" style={{ padding: 0, overflow: "hidden" }}>
+          <div className={isMobile ? "" : "card panel-card single-panel"} style={isMobile ? {} : { padding: 0, overflow: "hidden" }}>
             {historyItems.length === 0 ? (
               <div style={{
                 padding: "64px 24px", textAlign: "center",
@@ -900,100 +902,83 @@ export default function NewsletterList() {
                 </div>
                 <p style={{ margin: 0, fontSize: 15 }}>送信履歴がありません</p>
               </div>
-            ) : (
-              <div className="table-wrap">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>送信日時</th>
-                      <th>件名</th>
-                      <th>チャネル</th>
-                      <th>配信対象</th>
-                      <th style={{ textAlign: "center" }}>対象人数</th>
-                      <th style={{ textAlign: "center" }}>ステータス</th>
-                      <th style={{ textAlign: "center" }}>添付</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historyItems.map(nl => {
-                      const sc = statusColor(nl.status);
-                      const sentDate = nl.last_sent_at || nl.scheduled_at || nl.created_date;
-                      const attachments = parseAttachments(nl);
-                      return (
-                        <tr
-                          key={nl.id}
-                          onClick={() => setSelectedHistory(nl)}
-                          style={{ cursor: "pointer" }}
-                          onMouseEnter={e => { e.currentTarget.style.background = "var(--color-bg-sub)"; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = ""; }}
-                        >
-                          <td style={{ whiteSpace: "nowrap", fontSize: 13 }}>
-                            {formatDateFull(sentDate)}
-                          </td>
-                          <td style={{ fontWeight: 600, color: "var(--color-accent)" }}>
-                            {nl.title || "(無題)"}
-                          </td>
-                          <td>
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                              {nl.channel === "line" || nl.channel === "email+line"
-                                ? <LineIcon />
-                                : <MailIcon />}
-                              {channelLabel(nl.channel)}
-                            </span>
-                          </td>
-                          <td>{audienceLabel(nl)}</td>
-                          <td style={{ textAlign: "center" }}>
-                            {nl.sent_count ? (
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                                <span style={{
-                                  display: "inline-block", padding: "2px 10px", borderRadius: 999,
-                                  fontSize: 12, fontWeight: 600,
-                                  background: "var(--color-accent-light)", color: "var(--color-accent-dark)",
-                                }}>
-                                  {nl.sent_count}
-                                </span>
-                                {nl.failed_count > 0 && (
-                                  <span style={{
-                                    display: "inline-block", padding: "1px 8px", borderRadius: 999,
-                                    fontSize: 11, fontWeight: 600,
-                                    background: "var(--color-danger-light)", color: "var(--color-danger)",
-                                  }}>
-                                    失敗{nl.failed_count}
-                                  </span>
-                                )}
-                              </div>
-                            ) : "-"}
-                          </td>
-                          <td style={{ textAlign: "center" }}>
-                            <span style={{
-                              display: "inline-flex", alignItems: "center", gap: 4,
-                              padding: "3px 10px", borderRadius: 999,
-                              fontSize: 12, fontWeight: 600,
-                              background: sc.bg, color: sc.text,
-                            }}>
-                              {nl.status === "scheduled" && (
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "nlSpin 1s linear infinite" }}>
-                                  <path d="M21 12a9 9 0 11-6.219-8.56" />
-                                </svg>
-                              )}
-                              {statusLabel(nl.status)}
-                            </span>
-                          </td>
-                          <td style={{ textAlign: "center" }}>
-                            {attachments.length > 0 && (
-                              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--color-text-secondary)" }}>
-                                <ClipIcon />
-                                <span style={{ fontSize: 12, fontWeight: 600 }}>{attachments.length}</span>
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            ) : isMobile ? (
+                <div className="mobile-card-list" style={{ padding: 0 }}>
+                  {historyItems.map(nl => {
+                    const sc = statusColor(nl.status);
+                    const sentDate = nl.last_sent_at || nl.scheduled_at || nl.created_date;
+                    const attachments = parseAttachments(nl);
+                    return (
+                      <div key={nl.id} className="mobile-card-item"
+                        onClick={() => setSelectedHistory(nl)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <div className="mobile-card-item-header">
+                          <span className="card-title" style={{ color: "var(--color-accent)" }}>{nl.title || "(無題)"}</span>
+                          <span style={{
+                            padding: "2px 10px", borderRadius: 999,
+                            fontSize: 12, fontWeight: 600, background: sc.bg, color: sc.text, whiteSpace: "nowrap", flexShrink: 0,
+                          }}>
+                            {statusLabel(nl.status)}
+                          </span>
+                        </div>
+                        <div className="mobile-card-item-row">
+                          <span className="card-label">{channelLabel(nl.channel)}</span>
+                          <span className="card-value">{audienceLabel(nl)}</span>
+                        </div>
+                        <div className="mobile-card-item-row">
+                          <span className="card-label">{formatDateFull(sentDate)}</span>
+                          <span className="card-value" style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                            {nl.sent_count ? <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-accent)" }}>{nl.sent_count}通</span> : null}
+                            {nl.failed_count > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-danger)" }}>失敗{nl.failed_count}</span>}
+                            {attachments.length > 0 && <span style={{ display: "inline-flex", alignItems: "center", gap: 2, color: "var(--color-text-secondary)" }}><ClipIcon /><span style={{ fontSize: 11 }}>{attachments.length}</span></span>}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="table-wrap">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>送信日時</th>
+                        <th>件名</th>
+                        <th>チャネル</th>
+                        <th>配信対象</th>
+                        <th style={{ textAlign: "center" }}>対象人数</th>
+                        <th style={{ textAlign: "center" }}>ステータス</th>
+                        <th style={{ textAlign: "center" }}>添付</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {historyItems.map(nl => {
+                        const sc = statusColor(nl.status);
+                        const sentDate = nl.last_sent_at || nl.scheduled_at || nl.created_date;
+                        const attachments = parseAttachments(nl);
+                        return (
+                          <tr
+                            key={nl.id}
+                            onClick={() => setSelectedHistory(nl)}
+                            style={{ cursor: "pointer" }}
+                            onMouseEnter={e => { e.currentTarget.style.background = "var(--color-bg-sub)"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = ""; }}
+                          >
+                            <td style={{ whiteSpace: "nowrap", fontSize: 13 }}>{formatDateFull(sentDate)}</td>
+                            <td style={{ fontWeight: 600, color: "var(--color-accent)" }}>{nl.title || "(無題)"}</td>
+                            <td><span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>{nl.channel === "line" || nl.channel === "email+line" ? <LineIcon /> : <MailIcon />}{channelLabel(nl.channel)}</span></td>
+                            <td>{audienceLabel(nl)}</td>
+                            <td style={{ textAlign: "center" }}>{nl.sent_count ? (<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}><span style={{ display: "inline-block", padding: "2px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600, background: "var(--color-accent-light)", color: "var(--color-accent-dark)" }}>{nl.sent_count}</span>{nl.failed_count > 0 && (<span style={{ display: "inline-block", padding: "1px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "var(--color-danger-light)", color: "var(--color-danger)" }}>失敗{nl.failed_count}</span>)}</div>) : "-"}</td>
+                            <td style={{ textAlign: "center" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600, background: sc.bg, color: sc.text }}>{nl.status === "scheduled" && (<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "nlSpin 1s linear infinite" }}><path d="M21 12a9 9 0 11-6.219-8.56" /></svg>)}{statusLabel(nl.status)}</span></td>
+                            <td style={{ textAlign: "center" }}>{attachments.length > 0 && (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--color-text-secondary)" }}><ClipIcon /><span style={{ fontSize: 12, fontWeight: 600 }}>{attachments.length}</span></span>)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
           </div>
         </>
       ) : (
@@ -1111,75 +1096,118 @@ export default function NewsletterList() {
                   </tbody>
                 </table>
               </div>
-            ) : (
-              /* ── Regular Newsletter Table ── */
-              <div className="table-wrap">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>件名</th>
-                      <th>チャネル</th>
-                      <th>配信対象</th>
-                      <th>ステータス</th>
-                      <th>日時</th>
-                      <th>作成日</th>
-                      <th style={{ width: 1 }}></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredItems.map(nl => {
-                      const sc = statusColor(nl.status);
-                      const dateVal = nl.last_sent_at || nl.scheduled_at || nl.created_date;
-                      const canDelete = nl.status === "draft" || nl.status === "cancelled" || nl.status === "failed";
-                      return (
-                        <tr
-                          key={nl.id}
-                          onClick={() => navigate(`/admin/newsletters/${nl.id}/edit`)}
-                          style={{ cursor: "pointer" }}
-                          onMouseEnter={e => { e.currentTarget.style.background = "var(--color-bg-sub)"; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = ""; }}
-                        >
-                          <td style={{ fontWeight: 600 }}>{nl.title || "(無題)"}</td>
-                          <td>{channelLabel(nl.channel)}</td>
-                          <td>{audienceLabel(nl)}</td>
-                          <td>
+            ) : isMobile ? (
+              /* ── Regular Newsletter List (Mobile) ── */
+                <div className="mobile-card-list" style={{ padding: 0 }}>
+                  {filteredItems.map(nl => {
+                    const sc = statusColor(nl.status);
+                    const dateVal = nl.last_sent_at || nl.scheduled_at || nl.created_date;
+                    const canDelete = nl.status === "draft" || nl.status === "cancelled" || nl.status === "failed";
+                    return (
+                      <div key={nl.id} className="mobile-card-item"
+                        onClick={() => navigate(`/admin/newsletters/${nl.id}/edit`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <div className="mobile-card-item-header">
+                          <span className="card-title">{nl.title || "(無題)"}</span>
+                          <div style={{ display: "flex", gap: 4, flexShrink: 0, alignItems: "center" }}>
                             <span style={{
-                              display: "inline-block", padding: "3px 10px", borderRadius: 999,
-                              fontSize: 12, fontWeight: 600, background: sc.bg, color: sc.text,
+                              padding: "2px 10px", borderRadius: 999,
+                              fontSize: 12, fontWeight: 600, background: sc.bg, color: sc.text, whiteSpace: "nowrap",
                             }}>
                               {statusLabel(nl.status)}
                             </span>
-                          </td>
-                          <td>{formatDate(dateVal)}</td>
-                          <td>{formatDate(nl.created_date)}</td>
-                          <td>
                             {canDelete && (
-                              <button
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  setDeleteTarget({ id: nl.id, label: "この下書き" });
-                                }}
-                                title="削除"
-                                style={{
-                                  display: "inline-flex", alignItems: "center", justifyContent: "center",
-                                  width: 30, height: 30, borderRadius: 6,
-                                  border: "none", background: "transparent", color: "var(--color-text-tertiary)",
-                                  cursor: "pointer", transition: "all 0.15s",
-                                }}
-                                onMouseEnter={e => { e.currentTarget.style.background = "var(--color-danger-light)"; e.currentTarget.style.color = "var(--color-danger)"; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--color-text-tertiary)"; }}
-                              >
+                              <button aria-label="削除"
+                                onClick={e => { e.stopPropagation(); setDeleteTarget({ id: nl.id, label: "この下書き" }); }}
+                                style={{ padding: 4, border: "none", background: "none", cursor: "pointer", color: "var(--color-text-tertiary)", flexShrink: 0, display: "flex", alignItems: "center" }}>
                                 <TrashIcon />
                               </button>
                             )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                          </div>
+                        </div>
+                        <div className="mobile-card-item-row">
+                          <span className="card-label">{channelLabel(nl.channel)}</span>
+                          <span className="card-value">{audienceLabel(nl)}</span>
+                        </div>
+                        {dateVal && (
+                          <div className="mobile-card-item-row">
+                            <span className="card-label">日時</span>
+                            <span className="card-value">{formatDate(dateVal)}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="table-wrap">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>件名</th>
+                        <th>チャネル</th>
+                        <th>配信対象</th>
+                        <th>ステータス</th>
+                        <th>日時</th>
+                        <th>作成日</th>
+                        <th style={{ width: 1 }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredItems.map(nl => {
+                        const sc = statusColor(nl.status);
+                        const dateVal = nl.last_sent_at || nl.scheduled_at || nl.created_date;
+                        const canDelete = nl.status === "draft" || nl.status === "cancelled" || nl.status === "failed";
+                        return (
+                          <tr
+                            key={nl.id}
+                            onClick={() => navigate(`/admin/newsletters/${nl.id}/edit`)}
+                            style={{ cursor: "pointer" }}
+                            onMouseEnter={e => { e.currentTarget.style.background = "var(--color-bg-sub)"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = ""; }}
+                          >
+                            <td style={{ fontWeight: 600 }}>{nl.title || "(無題)"}</td>
+                            <td>{channelLabel(nl.channel)}</td>
+                            <td>{audienceLabel(nl)}</td>
+                            <td>
+                              <span style={{
+                                display: "inline-block", padding: "3px 10px", borderRadius: 999,
+                                fontSize: 12, fontWeight: 600, background: sc.bg, color: sc.text,
+                              }}>
+                                {statusLabel(nl.status)}
+                              </span>
+                            </td>
+                            <td>{formatDate(dateVal)}</td>
+                            <td>{formatDate(nl.created_date)}</td>
+                            <td>
+                              {canDelete && (
+                                <button
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    setDeleteTarget({ id: nl.id, label: "この下書き" });
+                                  }}
+                                  title="削除"
+                                  style={{
+                                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                    width: 30, height: 30, borderRadius: 6,
+                                    border: "none", background: "transparent", color: "var(--color-text-tertiary)",
+                                    cursor: "pointer", transition: "all 0.15s",
+                                  }}
+                                  onMouseEnter={e => { e.currentTarget.style.background = "var(--color-danger-light)"; e.currentTarget.style.color = "var(--color-danger)"; }}
+                                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--color-text-tertiary)"; }}
+                                >
+                                  <TrashIcon />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
           </div>
         </>
       )}
