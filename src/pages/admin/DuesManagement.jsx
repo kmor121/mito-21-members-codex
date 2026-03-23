@@ -1359,49 +1359,53 @@ export default function DuesManagement() {
                     const isSelected = selectedIds.has(due.id);
                     const isUnpaid = due.status !== "納入済" && !isVirtual;
                     const priorCount = priorUnpaidByMember[due.member_id] || 0;
-                    const initial = (due.member_name || "M").charAt(0);
                     const isLast = idx === filteredDues.length - 1;
+                    const hasPriorWarning = !isVirtual && priorCount > 0;
                     return (
                       <div key={due.id}
                         onClick={() => { if (!isVirtual) handleRowClick(due); }}
                         style={{
-                          padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '14px 16px',
                           borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
                           cursor: isVirtual ? 'default' : 'pointer',
-                          background: isSelected ? 'rgba(79, 70, 229, 0.06)' : undefined,
+                          background: isSelected ? 'rgba(37,99,235,0.06)' : hasPriorWarning ? 'var(--color-warning-light)' : undefined,
                           transition: 'background 0.15s',
                         }}
                       >
-                        {isUnpaid && (
-                          <input type="checkbox" checked={isSelected}
-                            onClick={(e) => e.stopPropagation()} onChange={(e) => handleCheckboxClick(due, e)}
-                            style={{ flexShrink: 0, width: 18, height: 18 }} />
-                        )}
-                        <div style={{
-                          width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                          background: 'linear-gradient(135deg, var(--color-border), var(--color-bg-sub))',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 12, fontWeight: 700, color: 'var(--color-text-secondary)',
-                        }}>{initial}</div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {/* Row 1: checkbox + name + badges + status */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          {isUnpaid ? (
+                            <input type="checkbox" checked={isSelected}
+                              onClick={(e) => e.stopPropagation()} onChange={(e) => handleCheckboxClick(due, e)}
+                              style={{ flexShrink: 0, width: 18, height: 18, borderRadius: 4, accentColor: 'var(--color-accent)' }} />
+                          ) : (
+                            <div style={{ width: 18, flexShrink: 0 }} />
+                          )}
+                          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
                             <button type="button" style={{
-                              fontWeight: 600, fontSize: 14, padding: 0, border: 'none', background: 'none',
+                              fontWeight: 600, fontSize: 15, padding: 0, border: 'none', background: 'none',
                               cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none',
                               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                              maxWidth: '100%',
                             }}
                               onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}>
                               {displayValue(due.member_name)}
                             </button>
-                            {due.is_new && <span style={{ padding: '0 4px', borderRadius: 999, background: 'var(--color-accent-light)', color: 'var(--color-accent-dark)', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, lineHeight: '16px' }}>新入</span>}
-                            {!isVirtual && priorCount > 0 && <span style={{ fontSize: 12, lineHeight: 1, flexShrink: 0 }}>{"\u26A0\uFE0F"}</span>}
+                            {due.is_new && <span style={{ padding: '1px 6px', borderRadius: 999, background: 'var(--color-accent-light)', color: 'var(--color-accent-dark)', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, lineHeight: '16px' }}>新入</span>}
+                            {hasPriorWarning && <span style={{ fontSize: 11, lineHeight: 1, flexShrink: 0, color: 'var(--color-warning)' }} title={`過年度未納${priorCount}件`}>⚠</span>}
                           </div>
-                          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {due.member_type}{!isVirtual && <>{" \u00B7 "}{due.due_type || "\u5E74\u4F1A\u8CBB"}{" "}{formatCurrency(due.amount)}</>}
-                          </div>
+                          <StatusBadge status={due.status} disabled={isVirtual} onClick={isVirtual ? undefined : (e) => { e.stopPropagation(); openReconcileModal(due); }} />
                         </div>
-                        <StatusBadge status={due.status} disabled={isVirtual} onClick={isVirtual ? undefined : (e) => { e.stopPropagation(); openReconcileModal(due); }} />
+                        {/* Row 2: type + amount */}
+                        {!isVirtual && (
+                          <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 4, paddingLeft: 28 }}>
+                            <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {due.member_type}{" · "}{due.due_type || "年会費"}
+                            </span>
+                            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)', flexShrink: 0, marginLeft: 12 }}>
+                              {formatCurrency(due.amount)}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1643,9 +1647,9 @@ export default function DuesManagement() {
                   <div className="card-body" style={{ padding: "0" }}>
                     {isMobile ? (
                       <div>
-                        {items.map((due) => {
+                        {items.map((due, idx) => {
                           const isSelected = selectedIds.has(due.id);
-                          const initial = (due.member_name || "M").charAt(0);
+                          const isLast = idx === items.length - 1;
                           return (
                             <div key={due.id}
                               onClick={() => {
@@ -1653,40 +1657,40 @@ export default function DuesManagement() {
                                 else { openReconcileModal(due); }
                               }}
                               style={{
-                                padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10,
-                                borderBottom: '1px solid var(--color-border)',
+                                padding: '14px 16px',
+                                borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
                                 cursor: 'pointer',
-                                background: isSelected ? 'rgba(79, 70, 229, 0.06)' : undefined,
+                                background: isSelected ? 'rgba(37,99,235,0.06)' : undefined,
                                 transition: 'background 0.15s',
                               }}
                             >
-                              <input type="checkbox" checked={isSelected}
-                                onClick={(e) => e.stopPropagation()} onChange={(ev) => handleCheckboxClick(due, ev)}
-                                style={{ flexShrink: 0, width: 18, height: 18 }} />
-                              <div style={{
-                                width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                                background: 'linear-gradient(135deg, var(--color-border), var(--color-bg-sub))',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: 12, fontWeight: 700, color: 'var(--color-text-secondary)',
-                              }}>{initial}</div>
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              {/* Row 1: checkbox + name + badge + status */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <input type="checkbox" checked={isSelected}
+                                  onClick={(e) => e.stopPropagation()} onChange={(ev) => handleCheckboxClick(due, ev)}
+                                  style={{ flexShrink: 0, width: 18, height: 18, borderRadius: 4, accentColor: 'var(--color-accent)' }} />
+                                <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
                                   <button type="button" style={{
-                                    fontWeight: 600, fontSize: 14, padding: 0, border: 'none', background: 'none',
+                                    fontWeight: 600, fontSize: 15, padding: 0, border: 'none', background: 'none',
                                     cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none',
                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                                    maxWidth: '100%',
                                   }}
                                     onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}>
                                     {displayValue(due.member_name)}
                                   </button>
-                                  {due.is_new && <span style={{ padding: '0 4px', borderRadius: 999, background: 'var(--color-accent-light)', color: 'var(--color-accent-dark)', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, lineHeight: '16px' }}>新入</span>}
+                                  {due.is_new && <span style={{ padding: '1px 6px', borderRadius: 999, background: 'var(--color-accent-light)', color: 'var(--color-accent-dark)', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, lineHeight: '16px' }}>新入</span>}
                                 </div>
-                                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {due.member_type}{" \u00B7 "}{due.due_type || "\u5E74\u4F1A\u8CBB"}{" "}{formatCurrency(due.amount)}
-                                </div>
+                                <StatusBadge status={"未納"} onClick={(e) => { e.stopPropagation(); openReconcileModal(due); }} />
                               </div>
-                              <StatusBadge status={"\u672A\u7D0D"} onClick={(e) => { e.stopPropagation(); openReconcileModal(due); }} />
+                              {/* Row 2: type + amount */}
+                              <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 4, paddingLeft: 28 }}>
+                                <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {due.member_type}{" · "}{due.due_type || "年会費"}
+                                </span>
+                                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)', flexShrink: 0, marginLeft: 12 }}>
+                                  {formatCurrency(due.amount)}
+                                </span>
+                              </div>
                             </div>
                           );
                         })}

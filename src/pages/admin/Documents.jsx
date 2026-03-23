@@ -296,73 +296,62 @@ export default function Documents() {
             /* ── Mobile card list ── */
             <div>
               {docs.map((doc, idx) => {
-                const badge = getTypeBadge(doc.doc_type);
                 const isLast = idx === docs.length - 1;
                 return (
                   <div
                     key={doc.id}
                     style={{
-                      padding: '10px 16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
+                      padding: '14px 16px',
                       borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
                       cursor: 'pointer',
                     }}
                     onClick={() => navigate(`/admin/documents/${doc.id}/edit`)}
                   >
-                    {/* File type icon avatar */}
-                    <div style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: '50%',
-                      flexShrink: 0,
-                      background: badge.bg || 'linear-gradient(135deg, var(--color-border), var(--color-bg-sub))',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 14,
-                    }}>
-                      {badge.icon}
-                    </div>
-
-                    {/* Text info */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Row 1: title + publish indicator + delete */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                       <div style={{
-                        fontWeight: 600,
-                        fontSize: 14,
-                        color: 'var(--color-text-primary)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+                        flex: 1, minWidth: 0,
+                        fontWeight: 600, fontSize: 15, color: 'var(--color-text-primary)',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
                         {doc.title || "-"}
                       </div>
-                      <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 1 }}>
-                        {doc.doc_type || "-"} · {doc.fiscal_year_label || "常設"} · {doc.updated_at ? doc.updated_at.slice(0, 10) : "-"}
-                      </div>
+                      {/* Publish dot indicator */}
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setConfirmToggle(doc); }}
+                        aria-label={doc.published ? "公開中 — タップで非公開に" : "非公開 — タップで公開に"}
+                        style={{
+                          width: 20, height: 20, padding: 0, border: 'none', background: 'none',
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                        }}
+                      >
+                        <span style={{
+                          display: 'block', width: 8, height: 8, borderRadius: '50%',
+                          background: doc.published ? 'var(--color-accent)' : 'transparent',
+                          border: doc.published ? 'none' : '1.5px solid var(--color-text-tertiary)',
+                        }} />
+                      </button>
+                      {/* Delete button */}
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(doc); }}
+                        aria-label="削除"
+                        style={{
+                          padding: 0, border: 'none', background: 'none', cursor: 'pointer',
+                          color: 'var(--color-text-tertiary)', flexShrink: 0, display: 'flex',
+                          alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M2.5 4.5h11M5.5 4.5V3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.5M6.5 7v4M9.5 7v4M3.5 4.5l.5 8a1.5 1.5 0 0 0 1.5 1.5h5a1.5 1.5 0 0 0 1.5-1.5l.5-8" />
+                        </svg>
+                      </button>
                     </div>
-
-                    {/* Published toggle */}
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <ToggleSwitch
-                        checked={!!doc.published}
-                        onChange={() => setConfirmToggle(doc)}
-                      />
+                    {/* Row 2: meta info */}
+                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+                      {doc.doc_type || "-"} · {doc.fiscal_year_label || "常設"}{doc.updated_at ? ` · ${doc.updated_at.slice(0, 10)}` : ""}
                     </div>
-
-                    {/* Delete button */}
-                    <button
-                      type="button"
-                      className="doc-delete-btn"
-                      onClick={(e) => { e.stopPropagation(); setConfirmDelete(doc); }}
-                      aria-label="削除"
-                      style={{ flexShrink: 0 }}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M2.5 4.5h11M5.5 4.5V3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.5M6.5 7v4M9.5 7v4M3.5 4.5l.5 8a1.5 1.5 0 0 0 1.5 1.5h5a1.5 1.5 0 0 0 1.5-1.5l.5-8" />
-                      </svg>
-                    </button>
                   </div>
                 );
               })}
