@@ -129,7 +129,7 @@ export default function Dashboard() {
             <h1 className="page-title" style={{ margin: 0, fontSize: 18 }}>ダッシュボード</h1>
             {fyLabel && <span className="db-fy-badge">{fyLabel}</span>}
           </div>
-          <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--color-text-tertiary)' }}>水戸21の会 管理ダッシュボード</p>
+          <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--color-text-tertiary)' }}>水戸21の会 管理ダッシュボード</p>
         </div>
       ) : (
         <PageHeader
