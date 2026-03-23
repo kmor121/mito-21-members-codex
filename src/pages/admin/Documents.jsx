@@ -187,8 +187,8 @@ export default function Documents() {
   return (
     <section className="admin-shell">
       {isMobile ? (
-        <div className="page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px' }}>
-          <h1 className="page-title" style={{ margin: 0, fontSize: 18 }}>資料管理</h1>
+        <div className="page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h1 className="page-title" style={{ margin: 0 }}>資料管理</h1>
           <Button
             variant="primary"
             size="sm"

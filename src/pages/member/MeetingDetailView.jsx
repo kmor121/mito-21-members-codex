@@ -286,8 +286,9 @@ export default function MeetingDetailView() {
               </div>
             )}
             <h1 style={{
-              fontSize: isMobile ? 20 : 24, fontWeight: 700,
+              fontSize: isMobile ? 18 : 20, fontWeight: 700,
               color: 'var(--color-text-primary)', margin: '0 0 10px',
+              letterSpacing: '-0.02em', lineHeight: 1.2,
             }}>
               {meeting.title}
             </h1>

@@ -167,7 +167,7 @@ export default function DocumentEditor() {
         <p className="page-description" style={{ marginBottom: 4 }}>
           <Link className="text-link" to="/admin/documents">&larr; 資料一覧に戻る</Link>
         </p>
-        <h1 className="page-title" style={{ fontSize: 22 }}>
+        <h1 className="page-title">
           {isNew ? "新しい資料を作成" : "資料編集"}
         </h1>
       </div>

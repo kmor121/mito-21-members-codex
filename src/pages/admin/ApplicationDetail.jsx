@@ -496,7 +496,7 @@ export default function ApplicationDetail() {
       <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4, flexWrap: "wrap" }}>
-            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{displayValue(fullName(detail))}</h1>
+            <h1 className="page-title" style={{ margin: 0 }}>{displayValue(fullName(detail))}</h1>
             <span style={{ fontSize: 13, color: "var(--color-text-tertiary)" }}>{displayValue(fullNameKana(detail))}</span>
             <StatusBadge status={detail.approval_status} large />
           </div>

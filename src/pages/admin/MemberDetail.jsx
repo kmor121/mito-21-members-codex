@@ -552,7 +552,7 @@ export default function MemberDetail() {
                 justifyContent: isMobile ? "center" : "flex-start",
                 marginBottom: 4,
               }}>
-                <h1 style={{ margin: 0, fontSize: isMobile ? 20 : "1.5rem", fontWeight: 700, color: "var(--color-text-primary)", whiteSpace: "nowrap" }}>
+                <h1 style={{ margin: 0, fontSize: isMobile ? 18 : 20, fontWeight: 700, color: "var(--color-text-primary)", whiteSpace: "nowrap", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
                   {displayValue(fullName(member))}
                 </h1>
                 {member.member_number && (

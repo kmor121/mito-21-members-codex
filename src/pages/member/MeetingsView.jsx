@@ -437,8 +437,8 @@ export default function MeetingsView() {
       {/* ── Header with YearPillNav ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-4)' }}>
         <div style={{ flex: 'none' }}>
-          <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 22, fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>幹事会</h1>
-          {!isMobile && <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--color-text-tertiary)' }}>幹事会の次第・議事録を確認</p>}
+          <h1 style={{ margin: 0, fontSize: isMobile ? 18 : 20, fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>幹事会</h1>
+          {!isMobile && <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--color-text-tertiary)' }}>幹事会の次第・議事録を確認</p>}
         </div>
         <div style={{ flex: 1 }} />
         {fiscalYears.length > 0 && (

@@ -184,7 +184,7 @@ export default function EventDetailView() {
         }}>
           {/* Left: event info */}
           <div style={{ flex: 1, minWidth: 200 }}>
-            <h1 style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 10px' }}>
+            <h1 style={{ fontSize: isMobile ? 18 : 20, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 10px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
               {event.title}
             </h1>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
