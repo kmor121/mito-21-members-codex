@@ -311,7 +311,7 @@ export default function Documents() {
                       <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.3, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {doc.title || "-"}
                       </div>
-                      <div style={{ fontSize: 12, lineHeight: 1.2, color: 'var(--color-text-secondary)' }}>
+                      <div style={{ fontSize: 12, lineHeight: 1.2, color: 'var(--color-text-secondary)', marginTop: 'var(--space-1)' }}>
                         {doc.doc_type || "-"} · {doc.fiscal_year_label || "常設"}{doc.updated_at ? ` · ${doc.updated_at.slice(0, 10)}` : ""}
                       </div>
                     </div>
