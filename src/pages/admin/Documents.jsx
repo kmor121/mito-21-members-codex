@@ -302,7 +302,7 @@ export default function Documents() {
                   <div
                     key={doc.id}
                     style={{
-                      padding: '10px 12px 10px 16px',
+                      padding: '8px 12px 8px 16px',
                       borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
                       cursor: 'pointer',
                     }}
@@ -368,7 +368,7 @@ export default function Documents() {
                       </button>
                     </div>
                     {/* Row 2: meta info */}
-                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>
+                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 1 }}>
                       {doc.doc_type || "-"} · {doc.fiscal_year_label || "常設"}{doc.updated_at ? ` · ${doc.updated_at.slice(0, 10)}` : ""}
                     </div>
                   </div>

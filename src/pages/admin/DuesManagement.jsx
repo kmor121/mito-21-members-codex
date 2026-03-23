@@ -1196,7 +1196,7 @@ export default function DuesManagement() {
           {/* Mobile filter panel (collapsible) */}
           {isMobile && showFilters && (
             <div style={{
-              padding: '10px 16px', marginBottom: 8,
+              padding: '8px 16px', marginBottom: 8,
               borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
               background: 'var(--color-bg-sub)',
             }}>
@@ -1365,7 +1365,7 @@ export default function DuesManagement() {
                       <div key={due.id}
                         onClick={() => { if (!isVirtual) handleRowClick(due); }}
                         style={{
-                          padding: '10px 16px',
+                          padding: '8px 16px',
                           borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
                           cursor: isVirtual ? 'default' : 'pointer',
                           background: isSelected ? 'rgba(37,99,235,0.06)' : hasPriorWarning ? 'rgba(245,158,11,0.04)' : undefined,
@@ -1397,7 +1397,7 @@ export default function DuesManagement() {
                         </div>
                         {/* Row 2: type + amount */}
                         {!isVirtual && (
-                          <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 2, paddingLeft: 26 }}>
+                          <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 1, paddingLeft: 26 }}>
                             <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {due.member_type}{" · "}{due.due_type || "年会費"}
                             </span>
@@ -1657,7 +1657,7 @@ export default function DuesManagement() {
                                 else { openReconcileModal(due); }
                               }}
                               style={{
-                                padding: '10px 16px',
+                                padding: '8px 16px',
                                 borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
                                 cursor: 'pointer',
                                 background: isSelected ? 'rgba(37,99,235,0.06)' : undefined,
@@ -1683,7 +1683,7 @@ export default function DuesManagement() {
                                 <StatusBadge status={"未納"} onClick={(e) => { e.stopPropagation(); openReconcileModal(due); }} />
                               </div>
                               {/* Row 2: type + amount */}
-                              <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 2, paddingLeft: 26 }}>
+                              <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 1, paddingLeft: 26 }}>
                                 <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {due.member_type}{" · "}{due.due_type || "年会費"}
                                 </span>
