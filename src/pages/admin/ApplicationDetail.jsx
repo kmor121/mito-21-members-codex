@@ -493,7 +493,7 @@ export default function ApplicationDetail() {
       )}
 
       {/* ══ Page Header ══ */}
-      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4, flexWrap: "wrap" }}>
             <h1 className="page-title" style={{ margin: 0 }}>{displayValue(fullName(detail))}</h1>

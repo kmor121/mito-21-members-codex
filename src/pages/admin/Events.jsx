@@ -241,27 +241,21 @@ export default function Events() {
           </div>
         </div>
       ) : (
-        <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-            <div style={{ flex: 1 }}>
-              <PageHeader
-                title="イベント管理"
-                subtitle="イベントの作成・出欠管理"
-                actions={
-                  <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-                    新規作成
-                  </Button>
-                }
-              />
-            </div>
-          </div>
-          {fiscalYears.length > 0 && (
-            <div style={{ marginBottom: 16 }}>
-              <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
-            </div>
-          )}
-        </>
+        <PageHeader
+          title="イベント管理"
+          subtitle="イベントの作成・出欠管理"
+          actions={
+            <>
+              {fiscalYears.length > 0 && (
+                <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
+              )}
+              <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                新規作成
+              </Button>
+            </>
+          }
+        />
       )}
 
       {/* ── Stats ── */}
