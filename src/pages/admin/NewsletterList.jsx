@@ -760,9 +760,16 @@ export default function NewsletterList() {
       <PageHeader
         title="配信管理"
         actions={!isHistoryTab && (
-          <Button variant="primary" onClick={() => navigate('/admin/newsletters/new')}>
-            <PlusIcon /> 新規作成
-          </Button>
+          isMobile ? (
+            <button type="button" onClick={() => navigate('/admin/newsletters/new')}
+              style={{ width: 36, height: 36, borderRadius: 'var(--radius-md)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-accent)', cursor: 'pointer', color: '#fff', flexShrink: 0 }}>
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+            </button>
+          ) : (
+            <Button variant="primary" onClick={() => navigate('/admin/newsletters/new')}>
+              <PlusIcon /> 新規作成
+            </Button>
+          )
         )}
       />
 

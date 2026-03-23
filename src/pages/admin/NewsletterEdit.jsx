@@ -1025,124 +1025,139 @@ export default function NewsletterEdit() {
       </Modal>
 
       {/* ── Top Header Bar ── */}
-      <div style={{
-        position: "sticky", top: 0, zIndex: 20, background: "var(--color-bg)",
-        borderBottom: "1px solid var(--color-border)", padding: isMobile ? "12px 12px" : "12px 28px",
-        display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap",
-      }}>
-        <Link to="/admin/newsletters" style={{ fontSize: 13, color: "var(--color-accent)", textDecoration: "none", whiteSpace: "nowrap" }}>
-          &larr; 配信一覧に戻る
-        </Link>
+      {isMobile ? (
+        <div style={{
+          position: "sticky", top: 0, zIndex: 20, background: "var(--color-bg)",
+          borderBottom: "1px solid var(--color-border)", padding: "12px 16px",
+        }}>
+          {/* Row 1: back link */}
+          <Link to="/admin/newsletters" style={{ fontSize: 13, color: "var(--color-accent)", textDecoration: "none" }}>
+            &larr; 配信一覧に戻る
+          </Link>
 
-        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-          {form.id && !isTemplate && form.status && (() => {
-            const sc = statusColor(form.status);
-            return (
-              <span style={{
-                display: "inline-block", padding: "3px 10px", borderRadius: 99,
-                fontSize: 12, fontWeight: 600, background: sc.bg, color: sc.text,
-              }}>
-                {statusLabel(form.status)}
-              </span>
-            );
-          })()}
-        </div>
+          {/* Row 2: title + status badge */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 'var(--space-2)' }}>
+            <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--color-text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+              {form.title || "(無題)"}
+            </h1>
+            {form.id && !isTemplate && form.status && (() => {
+              const sc = statusColor(form.status);
+              return (
+                <span style={{ padding: "2px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600, background: sc.bg, color: sc.text, whiteSpace: "nowrap", flexShrink: 0, marginLeft: 8 }}>
+                  {statusLabel(form.status)}
+                </span>
+              );
+            })()}
+          </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 8, flexWrap: "wrap" }}>
-          {!isTemplate && (
-            <button
-              className="button ghost"
-              style={{ fontSize: isMobile ? 11 : 13, padding: isMobile ? "4px 8px" : "6px 14px", border: "1px solid var(--color-border)", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}
-              onClick={() => handleSaveDraft()}
-              disabled={saving}
-            >
-              {saving ? "保存中..." : isMobile ? "保存" : "下書き保存"}
-            </button>
-          )}
-
-          {!isTemplate && (
-            <button
-              className="button ghost"
-              style={{ fontSize: isMobile ? 11 : 13, padding: isMobile ? "4px 8px" : "6px 14px", border: "1px solid var(--color-success)", color: "var(--color-success)", whiteSpace: "nowrap" }}
-              onClick={async () => {
-                if (!form.title.trim()) { setErrorDialog("件名を入力してください"); return; }
-                if (!form.id) {
-                  const ok = await handleSaveDraft({ silent: true });
-                  if (!ok) return;
-                }
-                setShowTestSend(true);
-              }}
-            >
-              テスト
-            </button>
-          )}
-
-          {!isTemplate && (
-            <button
-              className="button ghost"
-              style={{ fontSize: isMobile ? 11 : 13, padding: isMobile ? "4px 8px" : "6px 14px", border: "1px solid var(--color-accent)", color: "var(--color-accent)", whiteSpace: "nowrap" }}
-              onClick={handlePreview}
-            >
-              {isMobile ? "PV" : "プレビュー"}
-            </button>
-          )}
-
-          {!isTemplate && (() => {
-            const scheduled = isScheduled && schedDate;
-            return (
-              <button
-                className="button"
-                style={{
-                  fontSize: isMobile ? 12 : 14, padding: isMobile ? "6px 12px" : "8px 22px",
-                  background: scheduled ? "var(--color-warning)" : "var(--color-accent)",
-                  color: "#fff", border: "none", borderRadius: "var(--radius-md)",
-                  display: "flex", alignItems: "center", gap: 6, fontWeight: 600, whiteSpace: "nowrap",
-                }}
-                onClick={handleSendClick}
-              >
-                <SendIcon />
-                {scheduled ? "予約する" : "送信"}
+          {/* Row 3: action buttons */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 'var(--space-3)', overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
+            {!isTemplate && (
+              <button onClick={() => handleSaveDraft()} disabled={saving}
+                style={{ fontSize: 12, padding: "6px 12px", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", background: "var(--color-bg)", color: "var(--color-text-secondary)", cursor: "pointer", whiteSpace: "nowrap", fontWeight: 500 }}>
+                {saving ? "保存中..." : "保存"}
               </button>
-            );
-          })()}
-
-          {isTemplate && (
-            <button
-              className="button"
-              style={{
-                fontSize: 14, padding: "8px 20px",
-                background: "var(--color-accent)", color: "#fff", border: "none", borderRadius: "var(--radius-md)",
-                fontWeight: 600,
-              }}
-              onClick={() => handleSaveDraft()}
-              disabled={saving}
-            >
-              {saving ? "保存中..." : (form.id ? "テンプレートを更新" : "テンプレートを保存")}
-            </button>
-          )}
-
-          {/* Delete button - only for existing drafts/templates */}
-          {form.id && (isTemplate || form.status === "draft" || form.status === "cancelled" || form.status === "failed") && (
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              title={isTemplate ? "テンプレートを削除" : "下書きを削除"}
-              style={{
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                width: 34, height: 34, borderRadius: 8,
-                border: "1px solid #fecaca", background: "transparent", color: "var(--color-text-tertiary)",
-                cursor: "pointer", transition: "all 0.15s",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = "var(--color-danger-light)"; e.currentTarget.style.color = "var(--color-danger)"; e.currentTarget.style.borderColor = "#fca5a5"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--color-text-tertiary)"; e.currentTarget.style.borderColor = "#fecaca"; }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="3 6 5 6 21 6" />
+            )}
+            {!isTemplate && (
+              <button onClick={async () => {
+                  if (!form.title.trim()) { setErrorDialog("件名を入力してください"); return; }
+                  if (!form.id) { const ok = await handleSaveDraft({ silent: true }); if (!ok) return; }
+                  setShowTestSend(true);
+                }}
+                style={{ fontSize: 12, padding: "6px 12px", border: "1px solid var(--color-success)", borderRadius: "var(--radius-md)", background: "var(--color-bg)", color: "var(--color-success)", cursor: "pointer", whiteSpace: "nowrap", fontWeight: 500 }}>
+                テスト
+              </button>
+            )}
+            {!isTemplate && (
+              <button onClick={handlePreview}
+                style={{ fontSize: 12, padding: "6px 12px", border: "1px solid var(--color-accent)", borderRadius: "var(--radius-md)", background: "var(--color-bg)", color: "var(--color-accent)", cursor: "pointer", whiteSpace: "nowrap", fontWeight: 500 }}>
+                PV
+              </button>
+            )}
+            <div style={{ flex: 1 }} />
+            {!isTemplate && (() => {
+              const scheduled = isScheduled && schedDate;
+              return (
+                <button onClick={handleSendClick}
+                  style={{ fontSize: 13, padding: "6px 16px", background: scheduled ? "var(--color-warning)" : "var(--color-accent)", color: "#fff", border: "none", borderRadius: "var(--radius-md)", display: "flex", alignItems: "center", gap: 4, fontWeight: 600, whiteSpace: "nowrap", cursor: "pointer" }}>
+                  <SendIcon />
+                  {scheduled ? "予約" : "送信"}
+                </button>
+              );
+            })()}
+            {isTemplate && (
+              <button onClick={() => handleSaveDraft()} disabled={saving}
+                style={{ fontSize: 13, padding: "6px 16px", background: "var(--color-accent)", color: "#fff", border: "none", borderRadius: "var(--radius-md)", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
+                {saving ? "保存中..." : "保存"}
+              </button>
+            )}
+            {form.id && (isTemplate || form.status === "draft" || form.status === "cancelled" || form.status === "failed") && (
+              <button onClick={() => setShowDeleteConfirm(true)} aria-label="削除"
+                style={{ padding: 4, border: "none", background: "none", cursor: "pointer", color: "var(--color-text-tertiary)", flexShrink: 0, display: "flex", alignItems: "center" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
                 <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
               </svg>
             </button>
           )}
         </div>
       </div>
+      ) : (
+      <div style={{
+        position: "sticky", top: 0, zIndex: 20, background: "var(--color-bg)",
+        borderBottom: "1px solid var(--color-border)", padding: "12px 28px",
+        display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap",
+      }}>
+        <Link to="/admin/newsletters" style={{ fontSize: 13, color: "var(--color-accent)", textDecoration: "none", whiteSpace: "nowrap" }}>
+          &larr; 配信一覧に戻る
+        </Link>
+        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+          {form.id && !isTemplate && form.status && (() => {
+            const sc = statusColor(form.status);
+            return <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, background: sc.bg, color: sc.text }}>{statusLabel(form.status)}</span>;
+          })()}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          {!isTemplate && (
+            <button className="button ghost" style={{ fontSize: 13, padding: "6px 14px", border: "1px solid var(--color-border)", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }} onClick={() => handleSaveDraft()} disabled={saving}>
+              {saving ? "保存中..." : "下書き保存"}
+            </button>
+          )}
+          {!isTemplate && (
+            <button className="button ghost" style={{ fontSize: 13, padding: "6px 14px", border: "1px solid var(--color-success)", color: "var(--color-success)", whiteSpace: "nowrap" }}
+              onClick={async () => { if (!form.title.trim()) { setErrorDialog("件名を入力してください"); return; } if (!form.id) { const ok = await handleSaveDraft({ silent: true }); if (!ok) return; } setShowTestSend(true); }}>
+              テスト
+            </button>
+          )}
+          {!isTemplate && (
+            <button className="button ghost" style={{ fontSize: 13, padding: "6px 14px", border: "1px solid var(--color-accent)", color: "var(--color-accent)", whiteSpace: "nowrap" }} onClick={handlePreview}>
+              プレビュー
+            </button>
+          )}
+          {!isTemplate && (() => {
+            const scheduled = isScheduled && schedDate;
+            return (
+              <button className="button" style={{ fontSize: 14, padding: "8px 22px", background: scheduled ? "var(--color-warning)" : "var(--color-accent)", color: "#fff", border: "none", borderRadius: "var(--radius-md)", display: "flex", alignItems: "center", gap: 6, fontWeight: 600, whiteSpace: "nowrap" }} onClick={handleSendClick}>
+                <SendIcon />{scheduled ? "予約する" : "送信"}
+              </button>
+            );
+          })()}
+          {isTemplate && (
+            <button className="button" style={{ fontSize: 14, padding: "8px 20px", background: "var(--color-accent)", color: "#fff", border: "none", borderRadius: "var(--radius-md)", fontWeight: 600 }} onClick={() => handleSaveDraft()} disabled={saving}>
+              {saving ? "保存中..." : (form.id ? "テンプレートを更新" : "テンプレートを保存")}
+            </button>
+          )}
+          {form.id && (isTemplate || form.status === "draft" || form.status === "cancelled" || form.status === "failed") && (
+            <button onClick={() => setShowDeleteConfirm(true)} title={isTemplate ? "テンプレートを削除" : "下書きを削除"}
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: 8, border: "1px solid #fecaca", background: "transparent", color: "var(--color-text-tertiary)", cursor: "pointer", transition: "all 0.15s" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--color-danger-light)"; e.currentTarget.style.color = "var(--color-danger)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--color-text-tertiary)"; }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>
+            </button>
+          )}
+        </div>
+      </div>
+      )}
 
       {/* ── Main Content: 2-column ── */}
       <div className="nl-edit-grid" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 340px", minHeight: "calc(100vh - 120px)" }}>
