@@ -606,7 +606,7 @@ export default function MyPage() {
       {/* Greeting header */}
       <div style={{
         display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
-        justifyContent: 'space-between', gap: 8, marginBottom: 'var(--space-6)',
+        justifyContent: 'space-between', gap: 8, marginBottom: isMobile ? 12 : 'var(--space-6)',
       }}>
         <div style={{ minWidth: 0, flex: 1 }}>
           <h1 style={{
