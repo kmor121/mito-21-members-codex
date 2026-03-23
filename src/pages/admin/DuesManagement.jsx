@@ -1352,9 +1352,9 @@ export default function DuesManagement() {
                   )}
                 </div>
               ) : isMobile ? (
-                /* ── Mobile list ── */
-                <div>
-                  {filteredDues.map((due, idx) => {
+                /* ── Mobile card list ── */
+                <div className="mobile-card-list" style={{ padding: 0 }}>
+                  {filteredDues.map((due) => {
                     const isVirtual = !!due._virtual;
                     const isSelected = selectedIds.has(due.id);
                     const isUnpaid = due.status !== "納入済" && !isVirtual;
@@ -1363,56 +1363,57 @@ export default function DuesManagement() {
                     const isPaid = due.status === "納入済";
                     const isUnissued = due.status === "未発行";
                     return (
-                      <div key={due.id}
+                      <div key={due.id} className="mobile-card-item"
                         onClick={() => { if (!isVirtual) handleRowClick(due); }}
                         style={{
-                          display: 'flex', alignItems: 'flex-start', gap: 12,
-                          padding: '14px 16px',
-                          borderBottom: idx < filteredDues.length - 1 ? '1px solid var(--color-border)' : 'none',
                           cursor: isVirtual ? 'default' : 'pointer',
                           background: isSelected ? 'var(--color-accent-light)' : hasPriorWarning ? 'var(--color-warning-light)' : undefined,
+                          borderColor: isSelected ? 'var(--color-accent)' : hasPriorWarning ? 'var(--color-warning)' : undefined,
                         }}
                       >
-                        {/* Left: checkbox */}
-                        {isUnpaid ? (
-                          <input type="checkbox" checked={isSelected}
-                            onClick={(e) => e.stopPropagation()} onChange={(e) => handleCheckboxClick(due, e)}
-                            style={{ flexShrink: 0, width: 18, height: 18, marginTop: 1, accentColor: 'var(--color-accent)' }} />
-                        ) : (
-                          <span style={{ width: 18, flexShrink: 0 }} />
-                        )}
-
-                        {/* Center: name + meta */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {/* Header: name + status badge */}
+                        <div className="mobile-card-item-header">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1 }}>
+                            {isUnpaid && (
+                              <input type="checkbox" checked={isSelected}
+                                onClick={(e) => e.stopPropagation()} onChange={(e) => handleCheckboxClick(due, e)}
+                                style={{ flexShrink: 0, width: 18, height: 18, accentColor: 'var(--color-accent)' }} />
+                            )}
                             <button type="button"
                               onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
-                              style={{ padding: 0, border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+                              className="card-title"
+                              style={{ padding: 0, border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', color: 'inherit', font: 'inherit', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {displayValue(due.member_name)}
                             </button>
-                            {due.is_new && <span style={{ padding: '1px 6px', borderRadius: 'var(--radius-full)', background: 'var(--color-accent-light)', color: 'var(--color-accent)', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>新入</span>}
-                            {hasPriorWarning && <span style={{ fontSize: 11, flexShrink: 0, color: 'var(--color-warning)' }}>⚠</span>}
+                            {due.is_new && <span style={{ padding: '1px 6px', borderRadius: 4, background: 'var(--color-accent-light)', color: 'var(--color-accent)', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>新入</span>}
+                            {hasPriorWarning && <span style={{ padding: '1px 6px', borderRadius: 4, background: 'var(--color-warning-light)', color: 'var(--color-warning)', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>⚠滞納</span>}
                           </div>
-                          {!isVirtual && (
-                            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 3 }}>
-                              {due.member_type} · {due.due_type || "年会費"}
-                            </div>
-                          )}
+                          <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                            <button type="button" disabled={isVirtual}
+                              onClick={isVirtual ? undefined : (e) => { e.stopPropagation(); openReconcileModal(due); }}
+                              style={{
+                                padding: '2px 10px', borderRadius: 999, border: 'none', fontSize: 12, fontWeight: 600,
+                                cursor: isVirtual ? 'default' : 'pointer', whiteSpace: 'nowrap',
+                                background: isPaid ? 'var(--color-success-light)' : isUnissued ? 'var(--color-bg-sub)' : 'var(--color-danger-light)',
+                                color: isPaid ? 'var(--color-success)' : isUnissued ? 'var(--color-text-secondary)' : 'var(--color-danger)',
+                              }}>
+                              {isPaid ? "✓ 納入済" : isUnissued ? "未発行" : "● 未納"}
+                            </button>
+                          </div>
                         </div>
-
-                        {/* Right: amount + status */}
-                        <div style={{ flexShrink: 0, textAlign: 'right' }}>
-                          {!isVirtual && (
-                            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', letterSpacing: '-0.02em' }}>
-                              {formatCurrency(due.amount)}
+                        {/* Detail rows */}
+                        {!isVirtual && (
+                          <>
+                            <div className="mobile-card-item-row">
+                              <span className="card-label">{due.member_type}</span>
+                              <span className="card-value">{due.due_type || "年会費"}</span>
                             </div>
-                          )}
-                          <button type="button" disabled={isVirtual}
-                            onClick={isVirtual ? undefined : (e) => { e.stopPropagation(); openReconcileModal(due); }}
-                            style={{ marginTop: 2, padding: '1px 8px', borderRadius: 'var(--radius-full)', border: 'none', cursor: isVirtual ? 'default' : 'pointer', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', background: isPaid ? 'var(--color-success-light)' : isUnissued ? 'var(--color-bg-sub)' : 'var(--color-danger-light)', color: isPaid ? 'var(--color-success)' : isUnissued ? 'var(--color-text-tertiary)' : 'var(--color-danger)' }}>
-                            {isPaid ? "✓ 納入済" : isUnissued ? "未発行" : "未納"}
-                          </button>
-                        </div>
+                            <div className="mobile-card-item-row">
+                              <span className="card-label">金額</span>
+                              <span className="card-value" style={{ fontWeight: 700, fontSize: 14 }}>{formatCurrency(due.amount)}</span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     );
                   })}
@@ -1653,53 +1654,45 @@ export default function DuesManagement() {
 
                   <div className="card-body" style={{ padding: "0" }}>
                     {isMobile ? (
-                      <div>
-                        {items.map((due, idx) => {
+                      <div className="mobile-card-list" style={{ padding: 0 }}>
+                        {items.map((due) => {
                           const isSelected = selectedIds.has(due.id);
                           return (
-                            <div key={due.id}
+                            <div key={due.id} className="mobile-card-item"
                               onClick={() => {
                                 if (selectionMode) { toggleSelectOne(due.id); }
                                 else { openReconcileModal(due); }
                               }}
                               style={{
-                                display: 'flex', alignItems: 'flex-start', gap: 12,
-                                padding: '14px 16px',
-                                borderBottom: idx < items.length - 1 ? '1px solid var(--color-border)' : 'none',
                                 cursor: 'pointer',
                                 background: isSelected ? 'var(--color-accent-light)' : undefined,
+                                borderColor: isSelected ? 'var(--color-accent)' : undefined,
                               }}
                             >
-                              {/* Left: checkbox */}
-                              <input type="checkbox" checked={isSelected}
-                                onClick={(e) => e.stopPropagation()} onChange={(ev) => handleCheckboxClick(due, ev)}
-                                style={{ flexShrink: 0, width: 18, height: 18, marginTop: 1, accentColor: 'var(--color-accent)' }} />
-
-                              {/* Center: name + meta */}
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              {/* Header: name + status */}
+                              <div className="mobile-card-item-header">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1 }}>
+                                  <input type="checkbox" checked={isSelected}
+                                    onClick={(e) => e.stopPropagation()} onChange={(ev) => handleCheckboxClick(due, ev)}
+                                    style={{ flexShrink: 0, width: 18, height: 18, accentColor: 'var(--color-accent)' }} />
                                   <button type="button"
                                     onClick={(e) => { e.stopPropagation(); setHistoryModal({ memberId: due.member_id, memberName: due.member_name }); }}
-                                    style={{ padding: 0, border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+                                    className="card-title"
+                                    style={{ padding: 0, border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', color: 'inherit', font: 'inherit', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {displayValue(due.member_name)}
                                   </button>
-                                  {due.is_new && <span style={{ padding: '1px 6px', borderRadius: 'var(--radius-full)', background: 'var(--color-accent-light)', color: 'var(--color-accent)', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>新入</span>}
+                                  {due.is_new && <span style={{ padding: '1px 6px', borderRadius: 4, background: 'var(--color-accent-light)', color: 'var(--color-accent)', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>新入</span>}
                                 </div>
-                                <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 3 }}>
-                                  {due.member_type} · {due.due_type || "年会費"}
-                                </div>
+                                <span style={{ padding: '2px 10px', borderRadius: 999, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0, background: 'var(--color-danger-light)', color: 'var(--color-danger)' }}>● 未納</span>
                               </div>
-
-                              {/* Right: amount + status */}
-                              <div style={{ flexShrink: 0, textAlign: 'right' }}>
-                                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', letterSpacing: '-0.02em' }}>
-                                  {formatCurrency(due.amount)}
-                                </div>
-                                <button type="button"
-                                  onClick={(e) => { e.stopPropagation(); openReconcileModal(due); }}
-                                  style={{ marginTop: 2, padding: '1px 8px', borderRadius: 'var(--radius-full)', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', background: 'var(--color-danger-light)', color: 'var(--color-danger)' }}>
-                                  未納
-                                </button>
+                              {/* Detail rows */}
+                              <div className="mobile-card-item-row">
+                                <span className="card-label">{due.member_type}</span>
+                                <span className="card-value">{due.due_type || "年会費"}</span>
+                              </div>
+                              <div className="mobile-card-item-row">
+                                <span className="card-label">金額</span>
+                                <span className="card-value" style={{ fontWeight: 700, fontSize: 14 }}>{formatCurrency(due.amount)}</span>
                               </div>
                             </div>
                           );
