@@ -189,17 +189,18 @@ export default function Documents() {
       {isMobile ? (
         <div className="page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h1 className="page-title" style={{ margin: 0 }}>資料管理</h1>
-          <Button
-            variant="primary"
-            size="sm"
+          <button
+            type="button"
             onClick={() => navigate("/admin/documents/new")}
-            style={{ padding: '6px 10px', minWidth: 0, lineHeight: 1 }}
+            style={{
+              width: 36, height: 36, borderRadius: 'var(--radius-md)', border: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'var(--color-accent)', cursor: 'pointer', color: '#fff', flexShrink: 0,
+            }}
             aria-label="新規作成"
           >
-            <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
-              <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </Button>
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+          </button>
         </div>
       ) : (
         <PageHeader title="資料管理" subtitle="団体資料の管理・並び替え・公開設定" />
@@ -308,7 +309,7 @@ export default function Documents() {
                     onClick={() => navigate(`/admin/documents/${doc.id}/edit`)}
                   >
                     {/* Row 1: title + publish indicator + delete */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{
                         flex: 1, minWidth: 0,
                         fontWeight: 600, fontSize: 15, color: 'var(--color-text-primary)',
@@ -322,12 +323,12 @@ export default function Documents() {
                         onClick={(e) => { e.stopPropagation(); setConfirmToggle(doc); }}
                         aria-label={doc.published ? "公開中 — タップで非公開に" : "非公開 — タップで公開に"}
                         style={{
-                          width: 20, height: 20, padding: 0, border: 'none', background: 'none',
+                          width: 32, height: 32, padding: 0, border: 'none', background: 'none',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                         }}
                       >
                         <span style={{
-                          display: 'block', width: 8, height: 8, borderRadius: '50%',
+                          display: 'block', width: 10, height: 10, borderRadius: '50%',
                           background: doc.published ? 'var(--color-accent)' : 'transparent',
                           border: doc.published ? 'none' : '1.5px solid var(--color-text-tertiary)',
                         }} />
@@ -338,7 +339,7 @@ export default function Documents() {
                         onClick={(e) => { e.stopPropagation(); setConfirmDelete(doc); }}
                         aria-label="削除"
                         style={{
-                          padding: 0, border: 'none', background: 'none', cursor: 'pointer',
+                          width: 32, height: 32, padding: 0, border: 'none', background: 'none', cursor: 'pointer',
                           color: 'var(--color-text-tertiary)', flexShrink: 0, display: 'flex',
                           alignItems: 'center', justifyContent: 'center',
                         }}
