@@ -294,86 +294,42 @@ export default function Documents() {
               </Button>
             </div>
           ) : isMobile ? (
-            /* ── Mobile card list ── */
+            /* ── Mobile list (iOS-density) ── */
             <div style={{ borderTop: '1px solid var(--color-border)' }}>
-              {docs.map((doc, idx) => {
-                const isLast = idx === docs.length - 1;
-                return (
+              {docs.map((doc, idx) => (
                   <div
                     key={doc.id}
+                    onClick={() => navigate(`/admin/documents/${doc.id}/edit`)}
                     style={{
-                      padding: '8px 12px 8px 16px',
-                      borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '7px 12px 7px 16px',
+                      borderBottom: idx < docs.length - 1 ? '1px solid var(--color-border)' : 'none',
                       cursor: 'pointer',
                     }}
-                    onClick={() => navigate(`/admin/documents/${doc.id}/edit`)}
                   >
-                    {/* Row 1: title + compact toggle + delete */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{
-                        flex: 1, minWidth: 0,
-                        fontWeight: 600, fontSize: 15, color: 'var(--color-text-primary)',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.3, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {doc.title || "-"}
                       </div>
-                      {/* Compact toggle */}
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={!!doc.published}
-                        aria-label={doc.published ? "公開中 — タップで非公開に" : "非公開 — タップで公開に"}
-                        onClick={(e) => { e.stopPropagation(); setConfirmToggle(doc); }}
-                        style={{
-                          position: 'relative',
-                          display: 'inline-block',
-                          width: 36,
-                          height: 20,
-                          borderRadius: 10,
-                          border: 'none',
-                          padding: 0,
-                          cursor: 'pointer',
-                          flexShrink: 0,
-                          background: doc.published ? 'var(--color-accent)' : '#d1d5db',
-                          transition: 'background 0.2s ease',
-                          verticalAlign: 'middle',
-                        }}
-                      >
-                        <span style={{
-                          position: 'absolute',
-                          top: 2,
-                          left: doc.published ? 18 : 2,
-                          width: 16,
-                          height: 16,
-                          borderRadius: '50%',
-                          background: '#fff',
-                          transition: 'left 0.2s ease',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                        }} />
-                      </button>
-                      {/* Delete button */}
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(doc); }}
-                        aria-label="削除"
-                        style={{
-                          padding: 4, border: 'none', background: 'none', cursor: 'pointer',
-                          color: 'var(--color-text-tertiary)', flexShrink: 0, display: 'flex',
-                          alignItems: 'center', justifyContent: 'center',
-                        }}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M2.5 4.5h11M5.5 4.5V3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.5M6.5 7v4M9.5 7v4M3.5 4.5l.5 8a1.5 1.5 0 0 0 1.5 1.5h5a1.5 1.5 0 0 0 1.5-1.5l.5-8" />
-                        </svg>
-                      </button>
+                      <div style={{ fontSize: 12, lineHeight: 1.2, color: 'var(--color-text-secondary)' }}>
+                        {doc.doc_type || "-"} · {doc.fiscal_year_label || "常設"}{doc.updated_at ? ` · ${doc.updated_at.slice(0, 10)}` : ""}
+                      </div>
                     </div>
-                    {/* Row 2: meta info */}
-                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 1 }}>
-                      {doc.doc_type || "-"} · {doc.fiscal_year_label || "常設"}{doc.updated_at ? ` · ${doc.updated_at.slice(0, 10)}` : ""}
-                    </div>
+                    <button type="button" role="switch" aria-checked={!!doc.published}
+                      aria-label={doc.published ? "公開中" : "非公開"}
+                      onClick={(e) => { e.stopPropagation(); setConfirmToggle(doc); }}
+                      style={{ position: 'relative', display: 'inline-block', width: 36, height: 20, borderRadius: 10, border: 'none', padding: 0, cursor: 'pointer', flexShrink: 0, background: doc.published ? 'var(--color-accent)' : '#d1d5db', transition: 'background 0.2s ease' }}>
+                      <span style={{ position: 'absolute', top: 2, left: doc.published ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                    </button>
+                    <button type="button" aria-label="削除"
+                      onClick={(e) => { e.stopPropagation(); setConfirmDelete(doc); }}
+                      style={{ padding: 4, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M2.5 4.5h11M5.5 4.5V3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.5M6.5 7v4M9.5 7v4M3.5 4.5l.5 8a1.5 1.5 0 0 0 1.5 1.5h5a1.5 1.5 0 0 0 1.5-1.5l.5-8" />
+                      </svg>
+                    </button>
                   </div>
-                );
-              })}
+                ))}
             </div>
           ) : (
             /* ── Desktop table ── */
