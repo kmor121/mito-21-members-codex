@@ -302,7 +302,7 @@ export default function Documents() {
                     onClick={() => navigate(`/admin/documents/${doc.id}/edit`)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10,
-                      padding: '7px 12px 7px 16px',
+                      padding: '9px 12px 9px 16px',
                       borderBottom: idx < docs.length - 1 ? '1px solid var(--color-border)' : 'none',
                       cursor: 'pointer',
                     }}
