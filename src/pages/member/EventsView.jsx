@@ -181,7 +181,7 @@ export default function EventsView() {
       <section className="admin-shell">
         <div className="page-header">
           <h1 className="page-title">イベント</h1>
-          <p className="page-description">公開中のイベント・出欠回答</p>
+          <p className="page-description desktop-only">公開中のイベント・出欠回答</p>
         </div>
         <LoadingSpinner />
       </section>
@@ -192,7 +192,7 @@ export default function EventsView() {
     <section className="admin-shell">
       <div className="page-header">
         <h1 className="page-title">イベント</h1>
-        <p className="page-description">公開中のイベント・出欠回答</p>
+        <p className="page-description desktop-only">公開中のイベント・出欠回答</p>
       </div>
 
       {/* Filter chips */}

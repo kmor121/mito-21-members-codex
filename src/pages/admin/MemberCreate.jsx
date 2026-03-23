@@ -358,7 +358,7 @@ export default function MemberCreate() {
           会員一覧に戻る
         </a>
         <h1 className="page-title">新規会員登録</h1>
-        <p className="page-description">管理者による会員の直接登録</p>
+        <p className="page-description desktop-only">管理者による会員の直接登録</p>
       </div>
 
       {/* ---- Progress Indicator ---- */}

@@ -365,7 +365,7 @@ export default function MyPage() {
       <section className="admin-shell">
         <div className="page-header">
           <h1 className="page-title">マイページ</h1>
-          <p className="page-description">自分の情報と名簿公開設定を管理</p>
+          <p className="page-description desktop-only">自分の情報と名簿公開設定を管理</p>
         </div>
         <section className="card panel-card single-panel">
           <div className="card-body stack">
@@ -385,7 +385,7 @@ export default function MyPage() {
       <section className="admin-shell">
         <div className="page-header">
           <h1 className="page-title">マイページ</h1>
-          <p className="page-description">自分の情報と名簿公開設定を管理</p>
+          <p className="page-description desktop-only">自分の情報と名簿公開設定を管理</p>
         </div>
         <MyPageSkeleton />
       </section>
@@ -397,7 +397,7 @@ export default function MyPage() {
       <section className="admin-shell">
         <div className="page-header">
           <h1 className="page-title">マイページ</h1>
-          <p className="page-description">自分の情報と名簿公開設定を管理</p>
+          <p className="page-description desktop-only">自分の情報と名簿公開設定を管理</p>
         </div>
         <section className="card panel-card single-panel">
           <div className="card-body stack">
@@ -435,7 +435,7 @@ export default function MyPage() {
         <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
             <h1 className="page-title">マイページ - 編集</h1>
-            <p className="page-description">自分の情報と名簿公開設定を管理</p>
+            <p className="page-description desktop-only">自分の情報と名簿公開設定を管理</p>
           </div>
         </div>
 
@@ -616,7 +616,7 @@ export default function MyPage() {
           }}>
             {getGreeting()}、{greetingName(member) || "会員さん"}
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--color-text-tertiary)' }}>マイページ</p>
+          {!isMobile && <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--color-text-tertiary)' }}>マイページ</p>}
         </div>
         <button
           type="button"

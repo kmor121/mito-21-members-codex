@@ -67,7 +67,7 @@ export default function MemberApplicationsView() {
 
       <div className="page-header">
         <h1 className="page-title">入会申込一覧</h1>
-        <p className="page-description">入会申込の現在のステータスを確認できます（閲覧専用）</p>
+        <p className="page-description desktop-only">入会申込の現在のステータスを確認できます（閲覧専用）</p>
       </div>
 
       {/* Status tabs */}
