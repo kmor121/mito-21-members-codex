@@ -605,7 +605,7 @@ export default function MyPage() {
     <section className="admin-shell">
       {/* Greeting header */}
       <div style={{
-        display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
+        display: 'flex', alignItems: 'center', minHeight: isMobile ? 36 : undefined,
         justifyContent: 'space-between', gap: 8, marginBottom: isMobile ? 0 : 'var(--space-6)',
       }}>
         <div style={{ minWidth: 0, flex: 1 }}>

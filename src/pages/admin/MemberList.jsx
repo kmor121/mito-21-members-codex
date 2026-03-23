@@ -471,6 +471,7 @@ export default function MemberList() {
       {isMobile ? (
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          minHeight: 36,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <h1 className="page-title" style={{ margin: 0 }}>会員一覧</h1>

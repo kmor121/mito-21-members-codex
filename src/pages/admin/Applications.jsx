@@ -384,7 +384,7 @@ export default function Applications() {
         <div>
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            gap: 8,
+            gap: 8, minHeight: 36,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
               <h1 className="page-title" style={{ margin: 0, fontSize: 18, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>

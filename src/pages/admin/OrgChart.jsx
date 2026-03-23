@@ -851,7 +851,7 @@ export default function OrgChart() {
       {/* ── Page header ── */}
       {isMobile ? (
         <div>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 36 }}>
             <h1 className="page-title" style={{ margin: 0, fontSize: 18, whiteSpace: 'nowrap', flex: 'none' }}>組織図管理</h1>
             <div style={{ flex: 1 }} />
             <YearPillNav

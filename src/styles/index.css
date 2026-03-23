@@ -2913,6 +2913,9 @@ textarea { resize: vertical; }
   .page-header {
     margin-bottom: 0;
     gap: 8px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
   }
   .page-title {
     font-size: 18px !important;
