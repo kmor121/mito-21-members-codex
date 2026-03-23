@@ -266,10 +266,12 @@ export default function MemberDuesView() {
         <button type="button" className="text-link" onClick={() => { if (window.history.length > 1) navigate(-1); else navigate('/meetings'); }} style={{ fontSize: 13, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>&larr; 戻る</button>
       </div>
 
-      {/* Page header */}
+      {/* Page header with YearPillNav */}
       {isMobile ? (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
           <h1 className="page-title" style={{ margin: 0 }}>会費一覧</h1>
+          <div style={{ flex: 1 }} />
+          <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
           <button type="button" onClick={() => setShowFilters((v) => !v)}
             style={{
               width: 36, height: 36, borderRadius: 8,
@@ -285,16 +287,15 @@ export default function MemberDuesView() {
           </button>
         </div>
       ) : (
-        <div className="page-header">
-          <h1 className="page-title">会費一覧</h1>
-          <p className="page-description">会費の納入状況を確認できます（閲覧専用）</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-6)' }}>
+          <div style={{ flex: 'none' }}>
+            <h1 className="page-title" style={{ margin: 0 }}>会費一覧</h1>
+            <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--color-text-tertiary)' }}>会費の納入状況を確認できます（閲覧専用）</p>
+          </div>
+          <div style={{ flex: 1 }} />
+          <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
         </div>
       )}
-
-      {/* Year pill nav */}
-      <div style={{ marginBottom: 16 }}>
-        <YearPillNav fiscalYears={fiscalYears} activeFyId={selectedFYId} currentFyId={currentFyId} onChange={setSelectedFYId} />
-      </div>
 
       {/* Summary */}
       {isMobile ? (
