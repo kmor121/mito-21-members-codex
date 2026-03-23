@@ -435,7 +435,7 @@ export default function MeetingsView() {
   return (
     <section className="admin-shell">
       {/* ── Header with YearPillNav ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: isMobile ? 0 : 'var(--space-6)' }}>
+      <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: 8, marginBottom: isMobile ? 0 : 'var(--space-6)' }}>
         <div style={{ flex: 'none' }}>
           <h1 style={{ margin: 0, fontSize: isMobile ? 18 : 20, fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>幹事会</h1>
           {!isMobile && <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--color-text-tertiary)' }}>幹事会の次第・議事録を確認</p>}
