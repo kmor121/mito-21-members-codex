@@ -2860,7 +2860,7 @@ textarea { resize: vertical; }
 
 .mobile-card-item-header .card-title {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-primary);
   min-width: 0;
   overflow: hidden;
