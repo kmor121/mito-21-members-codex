@@ -163,10 +163,8 @@ export default function DocumentEditor() {
         onConfirm={handleConfirmCancel}
         onCancel={() => setConfirmCancel(false)}
       />
-      <div className="page-header">
-        <p className="page-description" style={{ marginBottom: 4 }}>
-          <Link className="text-link" to="/admin/documents">&larr; 資料一覧に戻る</Link>
-        </p>
+      <div className="page-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+        <Link className="text-link" to="/admin/documents" style={{ fontSize: 13, marginBottom: 8 }}>&larr; 資料一覧に戻る</Link>
         <h1 className="page-title">
           {isNew ? "新しい資料を作成" : "資料編集"}
         </h1>

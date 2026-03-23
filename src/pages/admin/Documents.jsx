@@ -302,14 +302,14 @@ export default function Documents() {
                   <div
                     key={doc.id}
                     style={{
-                      padding: '12px 16px',
+                      padding: '10px 16px',
                       borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
                       cursor: 'pointer',
                     }}
                     onClick={() => navigate(`/admin/documents/${doc.id}/edit`)}
                   >
-                    {/* Row 1: title + publish badge + delete */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {/* Row 1: title + compact toggle + delete */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                       <div style={{
                         flex: 1, minWidth: 0,
                         fontWeight: 600, fontSize: 15, color: 'var(--color-text-primary)',
@@ -317,19 +317,25 @@ export default function Documents() {
                       }}>
                         {doc.title || "-"}
                       </div>
-                      {/* Publish text badge */}
+                      {/* Compact toggle */}
                       <button
                         type="button"
+                        role="switch"
+                        aria-checked={!!doc.published}
+                        aria-label={doc.published ? "公開中" : "非公開"}
                         onClick={(e) => { e.stopPropagation(); setConfirmToggle(doc); }}
-                        aria-label={doc.published ? "公開中 — タップで非公開に" : "非公開 — タップで公開に"}
                         style={{
-                          padding: '2px 8px', border: 'none', borderRadius: 8, cursor: 'pointer', flexShrink: 0,
-                          fontSize: 11, fontWeight: doc.published ? 600 : 500, whiteSpace: 'nowrap',
-                          background: doc.published ? 'var(--color-accent-light)' : 'var(--color-bg-sub)',
-                          color: doc.published ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+                          position: 'relative', width: 34, height: 18, borderRadius: 9,
+                          border: 'none', padding: 0, cursor: 'pointer', flexShrink: 0,
+                          background: doc.published ? 'var(--color-accent)' : 'var(--color-border)',
+                          transition: 'background 0.2s',
                         }}
                       >
-                        {doc.published ? "公開" : "非公開"}
+                        <span style={{
+                          position: 'absolute', top: 2, left: doc.published ? 18 : 2,
+                          width: 14, height: 14, borderRadius: '50%', background: '#fff',
+                          transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
+                        }} />
                       </button>
                       {/* Delete button */}
                       <button
@@ -348,7 +354,7 @@ export default function Documents() {
                       </button>
                     </div>
                     {/* Row 2: meta info */}
-                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 3 }}>
+                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>
                       {doc.doc_type || "-"} · {doc.fiscal_year_label || "常設"}{doc.updated_at ? ` · ${doc.updated_at.slice(0, 10)}` : ""}
                     </div>
                   </div>
