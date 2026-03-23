@@ -3044,6 +3044,12 @@ textarea { resize: vertical; }
     min-height: 44px;
     min-width: 44px;
   }
+  /* Exempt compact toggles and inline list-action buttons from 44px minimum */
+  button[role="switch"],
+  button[aria-label="削除"] {
+    min-height: unset;
+    min-width: unset;
+  }
 
   /* Icon-only buttons (keep square) */
   button:has(> svg:only-child),
