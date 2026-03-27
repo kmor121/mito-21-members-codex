@@ -7,6 +7,7 @@ import DatePicker from "../../components/ui/DatePicker";
 import { Button, Modal } from '../../components/ui';
 import RichTextEditor from "../../components/common/RichTextEditor";
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { fullName, fullNameKana } from '../../utils/formatName';
 
 /* ── Inline SVG Icons ── */
 function MailIcon() {
